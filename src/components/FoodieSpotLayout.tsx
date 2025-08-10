@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import SearchBar from './SearchBar';
@@ -16,9 +17,23 @@ export default function FoodieSpotLayout() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filter states
+  const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
+  const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
+  const [selectedEstablishments, setSelectedEstablishments] = useState<number[]>([]);
+  const [selectedServices, setSelectedServices] = useState<number[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
+  const [selectedTimeRanges, setSelectedTimeRanges] = useState<number[]>([]);
+  const [selectedDietTypes, setSelectedDietTypes] = useState<string[]>([]);
 
   const { user } = useAuth();
-  const { restaurants, loading, error } = useRestaurants();
+  const { restaurants, loading, error } = useRestaurants({
+    searchQuery,
+    priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
+    minRating: selectedRatings.length > 0 ? Math.min(...selectedRatings) : undefined
+  });
 
   const handleAccountClick = () => {
     if (user) {
@@ -34,6 +49,15 @@ export default function FoodieSpotLayout() {
     } else {
       setActiveTab(tab);
     }
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleLocationSelect = () => {
+    // TODO: Implement location selection
+    console.log('Location selection not implemented yet');
   };
 
   const renderContent = () => {
@@ -121,10 +145,32 @@ export default function FoodieSpotLayout() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-6">
-          <FiltersSidebar isOpen={showFilters} onClose={() => setShowFilters(false)} />
+          {showFilters && (
+            <div className="w-64 flex-shrink-0">
+              <FiltersSidebar
+                selectedDistances={selectedDistances}
+                onDistanceChange={setSelectedDistances}
+                selectedRatings={selectedRatings}
+                onRatingChange={setSelectedRatings}
+                selectedEstablishments={selectedEstablishments}
+                onEstablishmentChange={setSelectedEstablishments}
+                selectedServices={selectedServices}
+                onServiceChange={setSelectedServices}
+                selectedPriceRanges={selectedPriceRanges}
+                onPriceRangeChange={setSelectedPriceRanges}
+                selectedTimeRanges={selectedTimeRanges}
+                onTimeRangeChange={setSelectedTimeRanges}
+                selectedDietTypes={selectedDietTypes}
+                onDietTypeChange={setSelectedDietTypes}
+              />
+            </div>
+          )}
           
           <div className="flex-1 space-y-6">
-            <SearchBar />
+            <SearchBar 
+              onSearchChange={handleSearchChange}
+              onLocationSelect={handleLocationSelect}
+            />
             {activeTab === 'restaurants' && renderContent()}
             {activeTab === 'dishes' && (
               <div className="text-center py-12">
