@@ -24,13 +24,11 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
 
   if (loading) {
     return (
-      <ScrollArea className="w-full">
-        <div className="flex gap-2 pb-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-8 w-20 rounded-full" />
-          ))}
-        </div>
-      </ScrollArea>
+      <div className="grid grid-cols-2 gap-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-16 rounded-lg" />
+        ))}
+      </div>
     );
   }
 
@@ -52,20 +50,27 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
   }
 
   return (
-    <ScrollArea className="w-full">
-      <div className="flex gap-2 pb-2">
-        {cuisineTypes.map((cuisine) => (
-          <Badge
-            key={cuisine.id}
-            variant={selectedCuisines.includes(cuisine.id) ? "default" : "outline"}
-            className="cursor-pointer whitespace-nowrap hover:bg-primary/90 transition-colors"
-            onClick={() => handleCuisineToggle(cuisine.id)}
-          >
-            {cuisine.icon && <span className="mr-1">{cuisine.icon}</span>}
-            {cuisine.name}
-          </Badge>
-        ))}
-      </div>
-    </ScrollArea>
+    <div className="grid grid-cols-2 gap-3">
+      {cuisineTypes.map((cuisine) => (
+        <div
+          key={cuisine.id}
+          className={`cursor-pointer rounded-lg p-3 transition-all duration-200 text-center ${
+            selectedCuisines.includes(cuisine.id)
+              ? 'bg-primary text-primary-foreground shadow-md'
+              : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+          }`}
+          onClick={() => handleCuisineToggle(cuisine.id)}
+        >
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-2xl">
+              {cuisine.icon_emoji || cuisine.icon || '🍽️'}
+            </div>
+            <span className="text-sm font-medium leading-tight">
+              {cuisine.name}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
