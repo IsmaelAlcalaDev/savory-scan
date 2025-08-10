@@ -25,7 +25,7 @@ export default function VegModeToggle({ isVegMode, onToggle, className }: VegMod
           className={cn(
             "h-5 w-5 transition-all duration-300",
             isVegMode 
-              ? "text-green-600 fill-green-600" 
+              ? "text-green-600 fill-green-600 stroke-white stroke-[1.5]" 
               : "text-muted-foreground hover:text-foreground"
           )} 
         />
