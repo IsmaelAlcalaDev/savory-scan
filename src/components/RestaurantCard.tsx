@@ -1,5 +1,5 @@
 
-import { Star, Euro, Heart } from 'lucide-react';
+import { Star, Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -126,7 +126,6 @@ export default function RestaurantCard({
               </>
             )}
             <div className="flex items-center gap-1 flex-shrink-0">
-              <Euro className="h-3 w-3" />
               <span className="font-medium text-foreground">{priceRange}</span>
             </div>
           </div>
