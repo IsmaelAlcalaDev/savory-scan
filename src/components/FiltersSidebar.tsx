@@ -188,7 +188,7 @@ export default function FiltersSidebar({
         selectedCount={selectedDistances?.length || 0}
         loading={distanceLoading}
       >
-        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
+        <div className="flex flex-wrap gap-1.5">
           {(distanceRanges || []).map((range) => (
             <TagButton
               key={range.id}
@@ -215,7 +215,7 @@ export default function FiltersSidebar({
         selectedCount={selectedPriceRanges?.length || 0}
         loading={priceLoading}
       >
-        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
+        <div className="flex flex-wrap gap-1.5">
           {(priceRanges || []).map((range) => (
             <TagButton
               key={range.id}
