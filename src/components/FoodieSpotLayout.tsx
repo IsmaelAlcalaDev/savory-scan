@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, MapPin, User, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import RatingFilter from './RatingFilter';
 import RestaurantCard from './RestaurantCard';
 import LocationModal from './LocationModal';
 import { useRestaurants } from '@/hooks/useRestaurants';
+import { useIPLocation } from '@/hooks/useIPLocation';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const filterOptions = [
@@ -31,14 +32,32 @@ export default function FoodieSpotLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [currentLocationName, setCurrentLocationName] = useState('Seleccionar ubicación');
+  const [currentLocationName, setCurrentLocationName] = useState('Detectando ubicación...');
+
+  // Detectar ubicación automáticamente por IP
+  const { location: ipLocation, loading: ipLoading } = useIPLocation();
+
+  // Establecer la ubicación automáticamente cuando se detecte por IP
+  useEffect(() => {
+    if (ipLocation && !userLocation) {
+      console.log('Setting user location from IP detection:', ipLocation);
+      setUserLocation({
+        lat: ipLocation.latitude,
+        lng: ipLocation.longitude
+      });
+      
+      // Mostrar nombre de la ubicación detectada
+      const locationDisplay = `${ipLocation.city}, ${ipLocation.region}`;
+      setCurrentLocationName(locationDisplay);
+    }
+  }, [ipLocation, userLocation]);
 
   // Usar datos reales de restaurantes
   const { restaurants, loading, error } = useRestaurants({
     searchQuery,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
-    maxDistance: 50, // Rango amplio para asegurar resultados
+    maxDistance: 50,
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     minRating: selectedRatings.length > 0 ? Math.min(...selectedRatings) : 0
   });
@@ -54,13 +73,12 @@ export default function FoodieSpotLayout() {
   };
 
   const handleLocationSelect = (location: { type: string; data?: any }) => {
-    console.log('FoodieSpotLayout: Location selected:', location);
+    console.log('FoodieSpotLayout: Manual location selected:', location);
     if (location.type === 'gps') {
       setUserLocation({
         lat: location.data.latitude,
         lng: location.data.longitude
       });
-      // Mostrar el nombre de la ubicación detectada si está disponible
       if (location.data.name && location.data.parent) {
         const locationDisplay = `${location.data.name}, ${location.data.parent.split(',')[0]}`;
         setCurrentLocationName(locationDisplay);
@@ -80,7 +98,6 @@ export default function FoodieSpotLayout() {
         lat: location.data.latitude,
         lng: location.data.longitude
       });
-      // Mostrar nombre con contexto si está disponible
       const locationDisplay = location.data.parent 
         ? `${location.data.name}, ${location.data.parent.split(',')[0]}`
         : location.data.name;
@@ -112,7 +129,9 @@ export default function FoodieSpotLayout() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           >
             <MapPin className="h-4 w-4" />
-            <span className="max-w-40 truncate">{currentLocationName}</span>
+            <span className="max-w-40 truncate">
+              {ipLoading ? 'Detectando...' : currentLocationName}
+            </span>
           </Button>
 
           <div className="flex items-center gap-2">
@@ -183,6 +202,11 @@ export default function FoodieSpotLayout() {
                 <p className="text-sm text-muted-foreground">
                   {loading ? 'Cargando...' : `${restaurants.length} resultados`}
                   {userLocation && ' • Ordenados por distancia'}
+                  {ipLocation && ipLocation.accuracy === 'ip' && (
+                    <span className="text-xs text-muted-foreground ml-1">
+                      (ubicación aproximada)
+                    </span>
+                  )}
                 </p>
                 {error && (
                   <p className="text-sm text-destructive mt-1">Error: {error}</p>

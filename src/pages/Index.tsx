@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import SearchBar from '@/components/SearchBar';
 import RestaurantCard from '@/components/RestaurantCard';
 import LocationModal from '@/components/LocationModal';
+import { useIPLocation } from '@/hooks/useIPLocation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Utensils, TrendingUp, MapPin } from 'lucide-react';
@@ -26,6 +27,20 @@ export default function Index() {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat?: number; lng?: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Detectar ubicación automáticamente por IP
+  const { location: ipLocation } = useIPLocation();
+
+  // Establecer la ubicación automáticamente cuando se detecte por IP
+  useEffect(() => {
+    if (ipLocation && !currentLocation) {
+      console.log('Index: Setting location from IP detection:', ipLocation);
+      setCurrentLocation({
+        lat: ipLocation.latitude,
+        lng: ipLocation.longitude
+      });
+    }
+  }, [ipLocation, currentLocation]);
 
   const searchRestaurants = useCallback(async (query: string) => {
     setLoading(true);
@@ -63,12 +78,9 @@ export default function Index() {
         lng: location.data.longitude
       });
     } else if (location.type === 'manual' && location.data) {
-      // For now, we'll just search without specific coordinates
-      // In a full implementation, we'd geocode the manual location
       console.log('Manual location:', location.data.query);
     }
     
-    // Re-search with new location
     if (searchQuery) {
       searchRestaurants(searchQuery);
     }
@@ -100,6 +112,11 @@ export default function Index() {
                 Encuentra los mejores restaurantes y platos cerca de ti. 
                 Tu próxima experiencia culinaria está a un clic de distancia.
               </p>
+              {ipLocation && (
+                <p className="text-sm text-primary-foreground/70 mt-2">
+                  📍 Ubicación detectada: {ipLocation.city}, {ipLocation.region}
+                </p>
+              )}
             </div>
 
             <SearchBar
