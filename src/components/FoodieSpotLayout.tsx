@@ -508,48 +508,51 @@ export default function FoodieSpotLayout() {
     <div className={`min-h-screen bg-white pb-20 px-[7.5%] mode-transition`}>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
-        <div className="flex items-center p-4">
-          {/* Logo Section */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <div className={`w-8 h-8 bg-primary rounded-full flex items-center justify-center mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
-              <span className="text-primary-foreground font-bold text-sm">F</span>
+        <div className="flex items-center justify-between p-4">
+          {/* Left Section: Logo, Location, Search */}
+          <div className="flex items-center gap-2 flex-1">
+            {/* Logo Section */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <div className={`w-8 h-8 bg-primary rounded-full flex items-center justify-center mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
+                <span className="text-primary-foreground font-bold text-sm">F</span>
+              </div>
+              <div>
+                <h1 className="font-bold text-lg mode-transition">FoodieSpot</h1>
+                <p className="text-xs text-muted-foreground">Food delivery</p>
+              </div>
             </div>
-            <div>
-              <h1 className="font-bold text-lg mode-transition">FoodieSpot</h1>
-              <p className="text-xs text-muted-foreground">Food delivery</p>
+
+            {/* Location Section */}
+            <div className="flex justify-start ml-2">
+              <Button
+                variant="ghost"
+                onClick={() => setLocationModalOpen(true)}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive hover:bg-transparent whitespace-nowrap"
+              >
+                <MapPin className="h-4 w-4" />
+                <span className="max-w-40 truncate">
+                  {ipLoading ? 'Detectando...' : currentLocationName}
+                </span>
+              </Button>
+            </div>
+
+            {/* Search Section */}
+            <div className="flex-1 max-w-md ml-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10" />
+                <Input
+                  type="text"
+                  placeholder="Buscar restaurantes, platos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 h-10 text-base bg-background/50 border border-gray-800 backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full focus:border-gray-900"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Location Section - Left aligned */}
-          <div className="flex justify-start ml-6">
-            <Button
-              variant="ghost"
-              onClick={() => setLocationModalOpen(true)}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive hover:bg-transparent whitespace-nowrap"
-            >
-              <MapPin className="h-4 w-4" />
-              <span className="max-w-40 truncate">
-                {ipLoading ? 'Detectando...' : currentLocationName}
-              </span>
-            </Button>
-          </div>
-
-          {/* Search Section */}
-          <div className="flex-1 max-w-md ml-2 mr-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10" />
-              <Input
-                type="text"
-                placeholder="Buscar restaurantes, platos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 h-10 text-base bg-background/50 border border-gray-800 backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full focus:border-gray-900"
-              />
-            </div>
-          </div>
-
-          {/* Actions Section */}
-          <div className="flex items-center gap-12 flex-shrink-0">
+          {/* Right Section: Language & Menu */}
+          <div className="flex items-center gap-12 flex-shrink-0 ml-6">
             <LanguageSelector />
             <button 
               className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition hover:text-primary transition-colors"
