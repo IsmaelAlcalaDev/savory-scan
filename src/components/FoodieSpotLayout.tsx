@@ -383,7 +383,7 @@ export default function FoodieSpotLayout() {
     return (
       <>
         {/* Results Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-3">
           <div>
             <h2 className={`text-xl font-semibold mb-1 mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
               {userLocation ? 'Restaurantes cerca de ti' : 'Restaurantes'}
@@ -404,7 +404,7 @@ export default function FoodieSpotLayout() {
         </div>
 
         {/* Filter Badges with VEG Mode */}
-        <div className="flex items-center gap-4 mb-4 pt-3 pb-1">
+        <div className="flex items-center gap-4 mb-2 pt-1 pb-1">
           <div className="relative flex-1 min-w-0">
             <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-1 pr-4">
               <FiltersModal
@@ -447,7 +447,7 @@ export default function FoodieSpotLayout() {
 
         {/* Active Filters Display */}
         {activeFiltersDisplay.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-4">
             <div className="flex items-center gap-6">
               <div className="relative flex-1 min-w-0">
                 <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-1 pr-4">
@@ -590,7 +590,7 @@ export default function FoodieSpotLayout() {
         </div>
 
         {/* Tipos de Cocina */}
-        <div className="px-4 pb-4 pt-2">
+        <div className="px-4 pb-2 pt-2">
           <CuisineFilter 
             selectedCuisines={selectedCuisines}
             onCuisineChange={setSelectedCuisines}
