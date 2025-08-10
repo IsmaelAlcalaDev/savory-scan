@@ -517,16 +517,12 @@ export default function FoodieSpotLayout() {
       <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
         <div className="flex items-center justify-between p-4">
           {/* Left Section: Logo */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center flex-shrink-0">
             <img 
               src={appLogoUrl}
               alt={`${appName} Logo`} 
-              className={`w-10 h-10 object-contain mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}
+              className={`w-14 h-14 md:w-16 md:h-16 bg-transparent object-contain mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}
             />
-            <div>
-              <h1 className="font-bold text-lg mode-transition">{appName}</h1>
-              <p className="text-xs text-muted-foreground">Food delivery</p>
-            </div>
           </div>
 
           {/* Center Section: Location and Search */}
