@@ -469,7 +469,7 @@ export default function FoodieSpotLayout() {
   };
 
   return (
-    <div className={`min-h-screen bg-white pb-20 px-[7.5%] mode-transition ${isVegMode ? 'animate-shimmer-green' : ''}`}>
+    <div className={`min-h-screen bg-white pb-20 px-[7.5%] mode-transition`}>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
         <div className="flex items-center justify-between p-4">

@@ -72,29 +72,31 @@ All colors MUST be HSL.
     --sidebar-ring: 348 83% 47%;
   }
 
-  /* VEG Mode - Ecological Green Theme */
+  /* VEG Mode - Only change primary/accent colors, keep backgrounds neutral */
   .veg-mode {
-    /* Primary - ecological green */
+    /* Primary - ecological green (only for buttons, links, etc) */
     --primary: 142 76% 36%;
     --primary-light: 142 76% 46%;
-    --primary-foreground: 0 0% 98%;
-
+    
     /* Accent - nature green for highlights */
     --accent: 134 74% 45%;
-    --accent-foreground: 0 0% 98%;
-
+    
+    /* Ring color for focus states */
     --ring: 142 76% 36%;
 
-    /* Custom gradients - Green Nature */
+    /* Update gradients for interactive elements only */
     --gradient-hero: linear-gradient(135deg, hsl(142 76% 36%), hsl(134 74% 45%));
     --gradient-search: linear-gradient(135deg, hsl(142 76% 36%), hsl(134 74% 45%));
     
-    /* Green shadows */
+    /* Update shadows to green tint */
     --shadow-soft: 0 4px 20px hsl(142 76% 36% / 0.1);
     --shadow-card: 0 8px 32px hsl(142 76% 36% / 0.15);
     --shadow-float: 0 12px 40px hsl(142 76% 36% / 0.2);
 
+    /* Sidebar ring */
     --sidebar-ring: 142 76% 36%;
+    
+    /* Keep all other colors (background, secondary, muted, etc.) the same as normal mode */
   }
 
 .dark {
@@ -148,7 +150,7 @@ All colors MUST be HSL.
     --sidebar-ring: 348 83% 47%;
   }
 
-  /* Dark VEG Mode */
+  /* Dark VEG Mode - Only adjust primary/accent colors */
   .dark.veg-mode {
     --primary: 142 76% 40%;
     --primary-light: 142 76% 50%;
@@ -214,13 +216,10 @@ All colors MUST be HSL.
     animation: grow-bounce 2s ease-in-out infinite;
   }
 
+  /* Remove the shimmer effect from the main container */
   .veg-mode .animate-shimmer-green {
-    background: linear-gradient(90deg, 
-      hsl(142 76% 36%) 0%, 
-      hsl(134 74% 45%) 50%, 
-      hsl(142 76% 36%) 100%);
-    background-size: 200% 100%;
-    animation: shimmer-green 3s ease-in-out infinite;
+    background: transparent;
+    animation: none;
   }
 
   /* Smooth transition for mode changes */
