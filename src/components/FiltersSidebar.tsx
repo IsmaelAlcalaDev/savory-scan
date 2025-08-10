@@ -94,7 +94,7 @@ export default function FiltersSidebar({
     children: React.ReactNode;
     loading?: boolean;
   }) => (
-    <div className="mb-2.5">
+    <div className="mb-4">
       <Collapsible 
         open={openSections[sectionKey]} 
         onOpenChange={() => toggleSection(sectionKey)}
