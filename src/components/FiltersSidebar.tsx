@@ -26,10 +26,10 @@ interface FiltersSidebarProps {
 }
 
 const priceRangeOptions = [
-  { id: 'budget', label: 'Económico ($)', value: 'budget' },
-  { id: 'moderate', label: 'Moderado ($$)', value: 'moderate' },
-  { id: 'expensive', label: 'Caro ($$$)', value: 'expensive' },
-  { id: 'luxury', label: 'Lujo ($$$$)', value: 'luxury' },
+  { id: 'budget', label: 'Económico', value: 'budget' },
+  { id: 'moderate', label: 'Moderado', value: 'moderate' },
+  { id: 'expensive', label: 'Caro', value: 'expensive' },
+  { id: 'luxury', label: 'Lujo', value: 'luxury' },
 ];
 
 export default function FiltersSidebar({
@@ -45,7 +45,7 @@ export default function FiltersSidebar({
   onPriceRangeChange,
 }: FiltersSidebarProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    distance: false,
+    distance: true,
     rating: false,
     establishment: false,
     services: false,
@@ -110,289 +110,224 @@ export default function FiltersSidebar({
   const hasActiveFilters = selectedDistances.length > 0 || selectedRatings.length > 0 || 
     selectedEstablishments.length > 0 || selectedServices.length > 0 || selectedPriceRanges.length > 0;
 
+  const FilterSection = ({ 
+    title, 
+    icon: Icon, 
+    sectionKey, 
+    selectedCount, 
+    children, 
+    loading = false 
+  }: {
+    title: string;
+    icon: any;
+    sectionKey: string;
+    selectedCount: number;
+    children: React.ReactNode;
+    loading?: boolean;
+  }) => (
+    <div className="border border-border rounded-xl bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <Collapsible 
+        open={openSections[sectionKey]} 
+        onOpenChange={() => toggleSection(sectionKey)}
+      >
+        <CollapsibleTrigger asChild>
+          <div className="w-full px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <Icon className="h-4 w-4 text-primary" />
+                </div>
+                <span className="font-medium text-foreground">{title}</span>
+                {selectedCount > 0 && (
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-primary/20 text-primary border-0">
+                    {selectedCount}
+                  </Badge>
+                )}
+              </div>
+              <ChevronDown className={cn(
+                "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                openSections[sectionKey] && "rotate-180"
+              )} />
+            </div>
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-4 pb-4 pt-0">
+            {loading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center space-x-3">
+                    <Skeleton className="h-4 w-4 rounded" />
+                    <Skeleton className="h-4 flex-1" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {children}
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
+  );
+
+  const CheckboxOption = ({ 
+    id, 
+    checked, 
+    onChange, 
+    children, 
+    icon 
+  }: {
+    id: string;
+    checked: boolean;
+    onChange: () => void;
+    children: React.ReactNode;
+    icon?: React.ReactNode;
+  }) => (
+    <div className="flex items-center space-x-3 group">
+      <Checkbox 
+        id={id}
+        checked={checked}
+        onCheckedChange={onChange}
+        className="border-2"
+      />
+      <label 
+        htmlFor={id}
+        className="text-sm text-foreground cursor-pointer flex items-center gap-2 flex-1 group-hover:text-primary transition-colors"
+      >
+        {icon}
+        {children}
+      </label>
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Clear All Button */}
       {hasActiveFilters && (
         <div className="flex justify-start">
-          <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-            Limpiar todo
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={clearAllFilters}
+            className="text-muted-foreground hover:text-foreground border-dashed"
+          >
+            Limpiar filtros
           </Button>
         </div>
       )}
 
       {/* Distancia */}
-      <div>
-        <Collapsible open={openSections.distance} onOpenChange={() => toggleSection('distance')}>
-          <CollapsibleTrigger asChild>
-            <div className="cursor-pointer mb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  <span className="font-medium">Distancia</span>
-                  {selectedDistances.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {selectedDistances.length}
-                    </Badge>
-                  )}
-                </div>
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform",
-                  openSections.distance && "rotate-180"
-                )} />
-              </div>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="pl-6">
-              {distanceLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <Skeleton key={i} className="h-5 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {distanceRanges.map((range) => (
-                    <div key={range.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`distance-${range.id}`}
-                        checked={selectedDistances.includes(range.id)}
-                        onCheckedChange={() => handleDistanceToggle(range.id)}
-                      />
-                      <label 
-                        htmlFor={`distance-${range.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        {range.display_text}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-
-      {/* Valoración */}
-      <div>
-        <Collapsible open={openSections.rating} onOpenChange={() => toggleSection('rating')}>
-          <CollapsibleTrigger asChild>
-            <div className="cursor-pointer mb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4" />
-                  <span className="font-medium">Valoración</span>
-                  {selectedRatings.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {selectedRatings.length}
-                    </Badge>
-                  )}
-                </div>
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform",
-                  openSections.rating && "rotate-180"
-                )} />
-              </div>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="pl-6">
-              {ratingLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <Skeleton key={i} className="h-5 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {ratingOptions.map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`rating-${option.id}`}
-                        checked={selectedRatings.includes(option.id)}
-                        onCheckedChange={() => handleRatingToggle(option.id)}
-                      />
-                      <label 
-                        htmlFor={`rating-${option.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-1"
-                      >
-                        <Star className="h-3 w-3 fill-accent text-accent" />
-                        {option.display_text}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-
-      {/* Tipo de Establecimiento */}
-      <div>
-        <Collapsible open={openSections.establishment} onOpenChange={() => toggleSection('establishment')}>
-          <CollapsibleTrigger asChild>
-            <div className="cursor-pointer mb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building className="h-4 w-4" />
-                  <span className="font-medium">Tipo de Local</span>
-                  {selectedEstablishments.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {selectedEstablishments.length}
-                    </Badge>
-                  )}
-                </div>
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform",
-                  openSections.establishment && "rotate-180"
-                )} />
-              </div>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="pl-6">
-              {establishmentLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-5 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {establishmentTypes.map((type) => (
-                    <div key={type.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`establishment-${type.id}`}
-                        checked={selectedEstablishments.includes(type.id)}
-                        onCheckedChange={() => handleEstablishmentToggle(type.id)}
-                      />
-                      <label 
-                        htmlFor={`establishment-${type.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
-                      >
-                        {type.icon && (
-                          <span className="text-sm" role="img" aria-label={type.name}>
-                            {type.icon}
-                          </span>
-                        )}
-                        {type.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+      <FilterSection
+        title="Distancia"
+        icon={MapPin}
+        sectionKey="distance"
+        selectedCount={selectedDistances.length}
+        loading={distanceLoading}
+      >
+        {distanceRanges.map((range) => (
+          <CheckboxOption
+            key={range.id}
+            id={`distance-${range.id}`}
+            checked={selectedDistances.includes(range.id)}
+            onChange={() => handleDistanceToggle(range.id)}
+          >
+            {range.name}
+          </CheckboxOption>
+        ))}
+      </FilterSection>
 
       {/* Rango de Precios */}
-      <div>
-        <Collapsible open={openSections.price} onOpenChange={() => toggleSection('price')}>
-          <CollapsibleTrigger asChild>
-            <div className="cursor-pointer mb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  <span className="font-medium">Rango de Precios</span>
-                  {selectedPriceRanges.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {selectedPriceRanges.length}
-                    </Badge>
-                  )}
-                </div>
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform",
-                  openSections.price && "rotate-180"
-                )} />
-              </div>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="pl-6">
-              <div className="space-y-3">
-                {priceRangeOptions.map((option) => (
-                  <div key={option.id} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`price-${option.id}`}
-                      checked={selectedPriceRanges.includes(option.value)}
-                      onCheckedChange={() => handlePriceRangeToggle(option.value)}
-                    />
-                    <label 
-                      htmlFor={`price-${option.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {option.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+      <FilterSection
+        title="Rango de Precios"
+        icon={DollarSign}
+        sectionKey="price"
+        selectedCount={selectedPriceRanges.length}
+      >
+        {priceRangeOptions.map((option) => (
+          <CheckboxOption
+            key={option.id}
+            id={`price-${option.id}`}
+            checked={selectedPriceRanges.includes(option.value)}
+            onChange={() => handlePriceRangeToggle(option.value)}
+          >
+            {option.label}
+          </CheckboxOption>
+        ))}
+      </FilterSection>
+
+      {/* Valoración */}
+      <FilterSection
+        title="Valoración"
+        icon={Star}
+        sectionKey="rating"
+        selectedCount={selectedRatings.length}
+        loading={ratingLoading}
+      >
+        {ratingOptions.map((option) => (
+          <CheckboxOption
+            key={option.id}
+            id={`rating-${option.id}`}
+            checked={selectedRatings.includes(option.id)}
+            onChange={() => handleRatingToggle(option.id)}
+            icon={<Star className="h-3 w-3 fill-amber-400 text-amber-400" />}
+          >
+            {option.display_text}
+          </CheckboxOption>
+        ))}
+      </FilterSection>
+
+      {/* Tipo de Local */}
+      <FilterSection
+        title="Tipo de Local"
+        icon={Building}
+        sectionKey="establishment"
+        selectedCount={selectedEstablishments.length}
+        loading={establishmentLoading}
+      >
+        {establishmentTypes.map((type) => (
+          <CheckboxOption
+            key={type.id}
+            id={`establishment-${type.id}`}
+            checked={selectedEstablishments.includes(type.id)}
+            onChange={() => handleEstablishmentToggle(type.id)}
+            icon={type.icon && (
+              <span className="text-sm" role="img" aria-label={type.name}>
+                {type.icon}
+              </span>
+            )}
+          >
+            {type.name}
+          </CheckboxOption>
+        ))}
+      </FilterSection>
 
       {/* Servicios */}
-      <div>
-        <Collapsible open={openSections.services} onOpenChange={() => toggleSection('services')}>
-          <CollapsibleTrigger asChild>
-            <div className="cursor-pointer mb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <UtensilsCrossed className="h-4 w-4" />
-                  <span className="font-medium">Servicios</span>
-                  {selectedServices.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {selectedServices.length}
-                    </Badge>
-                  )}
-                </div>
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform",
-                  openSections.services && "rotate-180"
-                )} />
-              </div>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="pl-6">
-              {servicesLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Skeleton key={i} className="h-5 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {services.map((service) => (
-                    <div key={service.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`service-${service.id}`}
-                        checked={selectedServices.includes(service.id)}
-                        onCheckedChange={() => handleServiceToggle(service.id)}
-                      />
-                      <label 
-                        htmlFor={`service-${service.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
-                      >
-                        {service.icon && (
-                          <span className="text-sm" role="img" aria-label={service.name}>
-                            {service.icon}
-                          </span>
-                        )}
-                        {service.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+      <FilterSection
+        title="Servicios"
+        icon={UtensilsCrossed}
+        sectionKey="services"
+        selectedCount={selectedServices.length}
+        loading={servicesLoading}
+      >
+        {services.map((service) => (
+          <CheckboxOption
+            key={service.id}
+            id={`service-${service.id}`}
+            checked={selectedServices.includes(service.id)}
+            onChange={() => handleServiceToggle(service.id)}
+            icon={service.icon && (
+              <span className="text-sm" role="img" aria-label={service.name}>
+                {service.icon}
+              </span>
+            )}
+          >
+            {service.name}
+          </CheckboxOption>
+        ))}
+      </FilterSection>
     </div>
   );
 }
