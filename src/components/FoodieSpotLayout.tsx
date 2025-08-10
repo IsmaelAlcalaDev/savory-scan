@@ -508,8 +508,8 @@ export default function FoodieSpotLayout() {
     <div className={`min-h-screen bg-white pb-20 px-[7.5%] mode-transition`}>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
-        <div className="flex items-center justify-between p-4 gap-4">
-          <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
             <div className={`w-8 h-8 bg-primary rounded-full flex items-center justify-center mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
               <span className="text-primary-foreground font-bold text-sm">F</span>
             </div>
@@ -519,32 +519,32 @@ export default function FoodieSpotLayout() {
             </div>
           </div>
 
-          <Button
-            variant="ghost"
-            onClick={() => setLocationModalOpen(true)}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive hover:bg-transparent whitespace-nowrap flex-shrink-0 min-w-0 mr-2"
-          >
-            <MapPin className="h-4 w-4 flex-shrink-0" />
-            <span className="max-w-32 truncate">
-              {ipLoading ? 'Detectando...' : currentLocationName}
-            </span>
-          </Button>
+          <div className="flex items-center gap-4 flex-1 max-w-2xl mx-4">
+            <Button
+              variant="ghost"
+              onClick={() => setLocationModalOpen(true)}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive hover:bg-transparent whitespace-nowrap"
+            >
+              <MapPin className="h-4 w-4" />
+              <span className="max-w-40 truncate">
+                {ipLoading ? 'Detectando...' : currentLocationName}
+              </span>
+            </Button>
 
-          <div className="relative flex-1 max-w-2xl">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10" />
-            <Input
-              type="text"
-              placeholder="Buscar restaurantes, platos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 h-10 text-base bg-background/50 border border-gray-600 backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full focus:border-gray-700 w-full"
-            />
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10" />
+              <Input
+                type="text"
+                placeholder="Buscar restaurantes, platos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 h-10 text-base bg-background/50 border border-gray-600 backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full focus:border-gray-700"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="flex-shrink-0">
-              <LanguageSelector hideDropdownArrow />
-            </div>
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
             <Button 
               variant="ghost" 
               size="sm" 
