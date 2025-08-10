@@ -21,22 +21,23 @@ export const useServices = () => {
         setError(null);
         console.log('Fetching services...');
         
-        const { data, error: supabaseError } = await supabase
+        const { data, error: fetchError } = await supabase
           .from('services')
           .select('id, name, slug, icon')
-          .eq('is_active', true)
           .order('name');
 
-        if (supabaseError) {
-          console.error('Supabase error fetching services:', supabaseError);
-          throw supabaseError;
+        if (fetchError) {
+          console.error('Supabase error fetching services:', fetchError);
+          setError('Error al cargar servicios');
+          setServices([]);
+          return;
         }
         
         console.log('Raw services data:', data);
         setServices(data || []);
       } catch (err) {
         console.error('Error fetching services:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar servicios');
+        setError('Error al cargar servicios');
         setServices([]);
       } finally {
         setLoading(false);
