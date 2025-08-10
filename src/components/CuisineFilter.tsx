@@ -61,7 +61,14 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
       {/* Fade effect on the right */}
       <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
       
-      <div className="flex gap-4 pb-3 px-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div 
+        className="flex gap-4 pb-3 px-1 overflow-x-auto"
+        style={{ 
+          scrollbarWidth: 'none', 
+          msOverflowStyle: 'none',
+          WebkitScrollbar: { display: 'none' } as any
+        }}
+      >
         {cuisineTypes.map((cuisine) => (
           <div
             key={cuisine.id}
@@ -94,8 +101,8 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
         ))}
       </div>
       
-      <style jsx>{`
-        .scrollbar-hide::-webkit-scrollbar {
+      <style>{`
+        .overflow-x-auto::-webkit-scrollbar {
           display: none;
         }
       `}</style>
