@@ -299,7 +299,7 @@ export default function FoodieSpotLayout() {
     <button
       onClick={onClick}
       className={cn(
-        "h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none flex items-center",
+        "h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none flex items-center whitespace-nowrap flex-shrink-0",
         isSelected 
           ? "!bg-primary text-primary-foreground hover:!bg-primary/90 border-primary" 
           : "!bg-transparent hover:!bg-muted/50 text-muted-foreground hover:text-foreground border-border"
@@ -318,7 +318,7 @@ export default function FoodieSpotLayout() {
   }) => (
     <button
       onClick={onRemove}
-      className="h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full bg-transparent text-primary border-primary hover:bg-primary/5 flex items-center"
+      className="h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full bg-transparent text-primary border-primary hover:bg-primary/5 flex items-center whitespace-nowrap flex-shrink-0"
     >
       <span className="flex items-center">{children}</span>
       <X className="ml-1 h-3 w-3 flex-shrink-0" />
@@ -372,7 +372,7 @@ export default function FoodieSpotLayout() {
 
         {/* Filter Badges with VEG Mode */}
         <div className="flex items-center gap-4 mb-4">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 min-w-0">
             {filterOptions.map((filter) => (
               <TagButton
                 key={filter.id}
@@ -384,7 +384,7 @@ export default function FoodieSpotLayout() {
             ))}
           </div>
           
-          <div className={`ml-auto ${isVegMode ? 'animate-leaf-sway' : ''}`}>
+          <div className={`flex-shrink-0 ${isVegMode ? 'animate-leaf-sway' : ''}`}>
             <VegModeToggle 
               isVegMode={isVegMode}
               onToggle={setIsVegMode}
@@ -395,8 +395,8 @@ export default function FoodieSpotLayout() {
         {/* Active Filters Display */}
         {activeFiltersDisplay.length > 0 && (
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex flex-wrap gap-2 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-4">
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 min-w-0">
                 {activeFiltersDisplay.map((filter, index) => (
                   <FilterTag
                     key={`${filter.type}-${filter.value}-${index}`}
@@ -408,7 +408,7 @@ export default function FoodieSpotLayout() {
               </div>
               <button 
                 onClick={clearAllFilters}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-4 whitespace-nowrap"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
               >
                 Limpiar filtros
               </button>
@@ -584,6 +584,16 @@ export default function FoodieSpotLayout() {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+      
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
