@@ -78,7 +78,7 @@ export default function FiltersSidebar({
     children: React.ReactNode;
     loading?: boolean;
   }) => (
-    <div className="mb-4">
+    <div className={cn("mb-4", sectionKey === 'distance' && "mb-2.5")}>
       <Collapsible 
         open={openSections[sectionKey]} 
         onOpenChange={() => toggleSection(sectionKey)}

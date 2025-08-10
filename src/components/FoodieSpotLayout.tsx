@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from 'react';
 import { Search, MapPin, User, Menu, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -470,7 +468,7 @@ export default function FoodieSpotLayout() {
             <Button
               variant="ghost"
               onClick={() => setLocationModalOpen(true)}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground whitespace-nowrap"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive hover:bg-transparent whitespace-nowrap"
             >
               <MapPin className="h-4 w-4" />
               <span className="max-w-40 truncate">
@@ -486,7 +484,7 @@ export default function FoodieSpotLayout() {
                 placeholder="Buscar restaurantes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-10"
+                className="pl-10 h-10 rounded-full"
               />
             </div>
           </div>
