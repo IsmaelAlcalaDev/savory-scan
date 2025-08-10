@@ -522,7 +522,7 @@ export default function FoodieSpotLayout() {
           <Button
             variant="ghost"
             onClick={() => setLocationModalOpen(true)}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive hover:bg-transparent whitespace-nowrap flex-shrink-0 min-w-0"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive hover:bg-transparent whitespace-nowrap flex-shrink-0 min-w-0 mr-2"
           >
             <MapPin className="h-4 w-4 flex-shrink-0" />
             <span className="max-w-32 truncate">
@@ -530,7 +530,7 @@ export default function FoodieSpotLayout() {
             </span>
           </Button>
 
-          <div className="relative flex-1 max-w-lg">
+          <div className="relative flex-1 max-w-2xl">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10" />
             <Input
               type="text"

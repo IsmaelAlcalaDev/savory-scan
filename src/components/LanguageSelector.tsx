@@ -12,8 +12,7 @@ export default function LanguageSelector({ hideDropdownArrow = false }: Language
       variant="ghost" 
       size="sm"
       className={cn(
-        "flex items-center gap-1 text-sm font-medium mode-transition",
-        hideDropdownArrow && "gap-0"
+        "flex items-center gap-1 text-sm font-medium mode-transition"
       )}
     >
       <span className="text-base">🇪🇸</span>
