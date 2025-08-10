@@ -3,6 +3,7 @@ import { Star, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface RestaurantCardProps {
   id: number;
@@ -21,6 +22,7 @@ interface RestaurantCardProps {
   logoUrl?: string;
   onClick?: () => void;
   className?: string;
+  onLoginRequired?: () => void;
 }
 
 export default function RestaurantCard({
@@ -39,8 +41,10 @@ export default function RestaurantCard({
   coverImageUrl,
   logoUrl,
   onClick,
-  className
+  className,
+  onLoginRequired
 }: RestaurantCardProps) {
+  const { user } = useAuth();
   const { isFavorite, isToggling, toggleFavorite } = useFavorites();
 
   const handleClick = () => {
@@ -53,7 +57,13 @@ export default function RestaurantCard({
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que se active el click de la card
-    toggleFavorite(id);
+    
+    if (!user && onLoginRequired) {
+      onLoginRequired();
+      return;
+    }
+    
+    toggleFavorite(id, onLoginRequired);
   };
 
   // Elegir la mejor imagen disponible

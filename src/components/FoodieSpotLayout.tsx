@@ -13,7 +13,6 @@ import BottomNavigation from './BottomNavigation';
 import AccountModal from './AccountModal';
 import MenuModal from './MenuModal';
 import LanguageSelector from './LanguageSelector';
-import SearchBar from './SearchBar';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useIPLocation } from '@/hooks/useIPLocation';
 import { useDistanceRanges } from '@/hooks/useDistanceRanges';
@@ -320,6 +319,10 @@ export default function FoodieSpotLayout() {
     }
   };
 
+  const handleLoginRequired = () => {
+    setAccountModalOpen(true);
+  };
+
   const TagButton = ({ 
     children, 
     isSelected, 
@@ -492,6 +495,7 @@ export default function FoodieSpotLayout() {
                 favoritesCount={restaurant.favorites_count}
                 coverImageUrl={restaurant.cover_image_url}
                 logoUrl={restaurant.logo_url}
+                onLoginRequired={handleLoginRequired}
               />
             ))
           )}
@@ -527,10 +531,16 @@ export default function FoodieSpotLayout() {
               </span>
             </Button>
 
-            <SearchBar
-              onSearchChange={setSearchQuery}
-              onLocationSelect={handleLocationSelect}
-            />
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Buscar restaurantes, platos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 h-12 text-base bg-background/50 border-glass backdrop-blur-sm focus:bg-background/80 transition-smooth"
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-2">

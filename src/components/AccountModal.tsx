@@ -1,13 +1,13 @@
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Heart, Calendar, Settings } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import ProfileSection from './ProfileSection';
-import FavoritesSection from './FavoritesSection';
-import ReservationsSection from './ReservationsSection';
-import SettingsSection from './SettingsSection';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/use-toast';
+import { Loader2, User, LogOut, Heart, Calendar, Settings } from 'lucide-react';
 
 interface AccountModalProps {
   open: boolean;
@@ -15,89 +15,295 @@ interface AccountModalProps {
 }
 
 export default function AccountModal({ open, onOpenChange }: AccountModalProps) {
-  const [activeTab, setActiveTab] = useState('profile');
+  const { user, signIn, signUp, signOut, loading } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Check if VEG mode is active from body class
-  const isVegMode = typeof document !== 'undefined' && document.body.classList.contains('veg-mode');
-
-  const tabs = [
-    {
-      id: 'profile',
-      label: 'Mi Perfil',
-      icon: User
-    },
-    {
-      id: 'favorites',
-      label: 'Favoritos',
-      icon: Heart
-    },
-    {
-      id: 'reservations',
-      label: 'Reservas',
-      icon: Calendar
-    },
-    {
-      id: 'settings',
-      label: 'Configuración',
-      icon: Settings
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast({
+        title: "Error",
+        description: "Por favor completa todos los campos",
+        variant: "destructive"
+      });
+      return;
     }
-  ];
+
+    setIsLoading(true);
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        console.error('Sign in error:', error);
+        toast({
+          title: "Error al iniciar sesión",
+          description: error.message || "Credenciales incorrectas",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "¡Bienvenido!",
+          description: "Has iniciado sesión correctamente"
+        });
+        onOpenChange(false);
+        setEmail('');
+        setPassword('');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Error",
+        description: "Ocurrió un error inesperado",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast({
+        title: "Error",
+        description: "Por favor completa todos los campos",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Error",
+        description: "La contraseña debe tener al menos 6 caracteres",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await signUp(email, password);
+      if (error) {
+        console.error('Sign up error:', error);
+        if (error.message.includes('already registered')) {
+          toast({
+            title: "Usuario ya registrado",
+            description: "Este email ya está registrado. Intenta iniciar sesión.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Error al registrarse",
+            description: error.message || "No se pudo crear la cuenta",
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "¡Registro exitoso!",
+          description: "Revisa tu email para confirmar tu cuenta"
+        });
+        onOpenChange(false);
+        setEmail('');
+        setPassword('');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Error",
+        description: "Ocurrió un error inesperado",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente"
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo cerrar la sesión",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (user) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Mi Cuenta
+            </DialogTitle>
+            <DialogDescription>
+              Gestiona tu cuenta y preferencias
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="font-medium">{user.email}</p>
+              <p className="text-sm text-muted-foreground">Usuario verificado</p>
+            </div>
+
+            <div className="space-y-2">
+              <Button variant="outline" className="w-full justify-start" disabled>
+                <Heart className="mr-2 h-4 w-4" />
+                Mis Favoritos
+                <span className="ml-auto text-xs text-muted-foreground">Próximamente</span>
+              </Button>
+              
+              <Button variant="outline" className="w-full justify-start" disabled>
+                <Calendar className="mr-2 h-4 w-4" />
+                Mis Reservas
+                <span className="ml-auto text-xs text-muted-foreground">Próximamente</span>
+              </Button>
+              
+              <Button variant="outline" className="w-full justify-start" disabled>
+                <Settings className="mr-2 h-4 w-4" />
+                Configuración
+                <span className="ml-auto text-xs text-muted-foreground">Próximamente</span>
+              </Button>
+            </div>
+
+            <Button 
+              variant="destructive" 
+              onClick={handleSignOut}
+              className="w-full"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Cerrar Sesión
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden p-0">
-        <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle className={cn(
-            "text-xl font-semibold transition-colors duration-300",
-            isVegMode ? "text-green-700" : "text-red-700"
-          )}>
-            Mi Cuenta
-          </DialogTitle>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Iniciar Sesión</DialogTitle>
+          <DialogDescription>
+            Accede a tu cuenta para guardar favoritos y más
+          </DialogDescription>
         </DialogHeader>
-        
-        <div className="w-full">
-          <div className="flex w-full border-b border-gray-200">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all duration-300 relative flex-1",
-                    "border-b-2 border-transparent",
-                    isActive
-                      ? isVegMode
-                        ? "bg-green-600 text-white border-b-green-600"
-                        : "bg-red-600 text-white border-b-red-600"
-                      : cn(
-                          "text-gray-600 hover:text-white rounded-t-lg",
-                          isVegMode
-                            ? "hover:bg-green-400"
-                            : "hover:bg-red-400"
-                        )
-                  )}
-                >
-                  <Icon className={cn(
-                    "h-4 w-4 transition-colors duration-300",
-                    isActive 
-                      ? "text-white"
-                      : "text-gray-500"
-                  )} />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
 
-          <div className="overflow-y-auto max-h-[calc(80vh-140px)] p-6">
-            {activeTab === 'profile' && <ProfileSection />}
-            {activeTab === 'favorites' && <FavoritesSection />}
-            {activeTab === 'reservations' && <ReservationsSection />}
-            {activeTab === 'settings' && <SettingsSection />}
-          </div>
-        </div>
+        <Tabs defaultValue="signin" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="signin">Iniciar Sesión</TabsTrigger>
+            <TabsTrigger value="signup">Registrarse</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="signin" className="space-y-4">
+            <form onSubmit={handleSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signin-email">Email</Label>
+                <Input
+                  id="signin-email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="signin-password">Contraseña</Label>
+                <Input
+                  id="signin-password"
+                  type="password"
+                  placeholder="Tu contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Iniciando sesión...
+                  </>
+                ) : (
+                  'Iniciar Sesión'
+                )}
+              </Button>
+            </form>
+          </TabsContent>
+
+          <TabsContent value="signup" className="space-y-4">
+            <form onSubmit={handleSignUp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signup-email">Email</Label>
+                <Input
+                  id="signup-email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="signup-password">Contraseña</Label>
+                <Input
+                  id="signup-password"
+                  type="password"
+                  placeholder="Mínimo 6 caracteres"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Registrando...
+                  </>
+                ) : (
+                  'Crear Cuenta'
+                )}
+              </Button>
+            </form>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

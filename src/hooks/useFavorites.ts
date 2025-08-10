@@ -45,13 +45,18 @@ export const useFavorites = () => {
     }
   };
 
-  const toggleFavorite = async (restaurantId: number) => {
+  const toggleFavorite = async (restaurantId: number, openLoginModal?: () => void) => {
     if (!user) {
       toast({
         title: "Inicia sesión",
         description: "Debes iniciar sesión para guardar favoritos",
         variant: "destructive"
       });
+      
+      // Si se proporciona la función para abrir el modal de login, la ejecutamos
+      if (openLoginModal) {
+        openLoginModal();
+      }
       return;
     }
 
