@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Search, MapPin, User, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -235,9 +236,9 @@ export default function FoodieSpotLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-white pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <header className="sticky top-0 z-50 bg-white shadow-sm">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -301,7 +302,7 @@ export default function FoodieSpotLayout() {
       <div className="flex">
         {/* Sidebar - Filters */}
         <aside className={cn(
-          "w-80 border-r border-gray-200 bg-white transition-transform duration-300 md:translate-x-0 fixed md:static h-full z-40",
+          "w-80 bg-white transition-transform duration-300 md:translate-x-0 fixed md:static h-full z-40",
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}>
           <div className="p-4 space-y-4">
