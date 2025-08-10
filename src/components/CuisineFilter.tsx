@@ -12,10 +12,13 @@ interface CuisineFilterProps {
 export default function CuisineFilter({ selectedCuisines, onCuisineChange }: CuisineFilterProps) {
   const { cuisineTypes, loading, error } = useCuisineTypes();
 
+  console.log('CuisineFilter state:', { cuisineTypes, loading, error, selectedCuisines });
+
   const handleCuisineToggle = (cuisineId: number) => {
     const newSelected = selectedCuisines.includes(cuisineId)
       ? selectedCuisines.filter(id => id !== cuisineId)
       : [...selectedCuisines, cuisineId];
+    console.log('Cuisine selection changed:', newSelected);
     onCuisineChange(newSelected);
   };
 
@@ -33,7 +36,19 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
 
   if (error) {
     console.error('Error loading cuisine types:', error);
-    return null;
+    return (
+      <div className="text-sm text-destructive p-2">
+        Error cargando tipos de cocina: {error}
+      </div>
+    );
+  }
+
+  if (!cuisineTypes || cuisineTypes.length === 0) {
+    return (
+      <div className="text-sm text-muted-foreground p-2">
+        No hay tipos de cocina disponibles
+      </div>
+    );
   }
 
   return (

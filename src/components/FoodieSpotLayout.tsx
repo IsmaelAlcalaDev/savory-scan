@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Search, MapPin, Heart, User, Menu } from 'lucide-react';
+import { Search, MapPin, User, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +32,13 @@ export default function FoodieSpotLayout() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState('Tu ubicación actual');
 
+  console.log('FoodieSpotLayout state:', {
+    selectedCuisines,
+    selectedDistances,
+    selectedRatings,
+    userLocation
+  });
+
   // Use real restaurant data
   const { restaurants, loading, error } = useRestaurants({
     searchQuery,
@@ -42,6 +49,8 @@ export default function FoodieSpotLayout() {
     minRating: selectedRatings.length > 0 ? Math.min(...selectedRatings) : 0
   });
 
+  console.log('Restaurants hook result:', { restaurants, loading, error });
+
   const handleFilterToggle = (filterId: string) => {
     setActiveFilters(prev => 
       prev.includes(filterId) 
@@ -51,6 +60,7 @@ export default function FoodieSpotLayout() {
   };
 
   const handleLocationSelect = (location: { type: string; data?: any }) => {
+    console.log('Location selected:', location);
     if (location.type === 'gps') {
       setUserLocation({
         lat: location.data.latitude,
@@ -64,7 +74,6 @@ export default function FoodieSpotLayout() {
       });
       setCurrentLocationName(location.data.name);
     } else if (location.type === 'manual') {
-      // For manual location, we'd need geocoding - for now just update the name
       setCurrentLocationName(location.data.query);
     }
   };
@@ -134,7 +143,7 @@ export default function FoodieSpotLayout() {
       <div className="flex">
         {/* Sidebar - Filters */}
         <aside className={cn(
-          "w-80 border-r border-border bg-background transition-transform duration-300 md:translate-x-0",
+          "w-80 border-r border-border bg-background transition-transform duration-300 md:translate-x-0 fixed md:static h-full z-40",
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}>
           <div className="p-4 space-y-4">
@@ -150,7 +159,7 @@ export default function FoodieSpotLayout() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1">
+        <main className="flex-1 min-w-0">
           <div className="p-4">
             {/* Results Header */}
             <div className="flex items-center justify-between mb-6">
@@ -159,6 +168,9 @@ export default function FoodieSpotLayout() {
                 <p className="text-sm text-muted-foreground">
                   {loading ? 'Cargando...' : `${restaurants.length} resultados`}
                 </p>
+                {error && (
+                  <p className="text-sm text-destructive mt-1">Error: {error}</p>
+                )}
               </div>
               
               <div className="flex items-center gap-3">
@@ -197,7 +209,6 @@ export default function FoodieSpotLayout() {
             {/* Restaurant Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {loading ? (
-                // Loading skeletons
                 Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="space-y-3">
                     <Skeleton className="h-48 w-full" />
@@ -208,10 +219,16 @@ export default function FoodieSpotLayout() {
               ) : error ? (
                 <div className="col-span-full text-center py-8">
                   <p className="text-muted-foreground">Error al cargar restaurantes: {error}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Revisa la consola para más detalles
+                  </p>
                 </div>
               ) : restaurants.length === 0 ? (
                 <div className="col-span-full text-center py-8">
                   <p className="text-muted-foreground">No se encontraron restaurantes</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Intenta cambiar los filtros de búsqueda
+                  </p>
                 </div>
               ) : (
                 restaurants.map((restaurant) => (
@@ -240,6 +257,14 @@ export default function FoodieSpotLayout() {
         onOpenChange={setLocationModalOpen}
         onLocationSelect={handleLocationSelect}
       />
+
+      {/* Overlay for mobile sidebar */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }

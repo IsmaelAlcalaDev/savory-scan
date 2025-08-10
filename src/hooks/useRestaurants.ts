@@ -43,18 +43,34 @@ export const useRestaurants = ({
     const fetchRestaurants = async () => {
       try {
         setLoading(true);
+        console.log('Fetching restaurants with params:', {
+          searchQuery,
+          userLat,
+          userLng,
+          maxDistance,
+          cuisineTypeIds,
+          priceRanges,
+          minRating
+        });
+
+        // Use the existing search_restaurants function
         const { data, error } = await supabase.rpc('search_restaurants', {
           search_query: searchQuery,
           user_lat: userLat,
           user_lng: userLng,
           max_distance_km: maxDistance,
           cuisine_type_ids: cuisineTypeIds,
-          price_ranges: priceRanges as PriceRange[] | null,
+          price_ranges: priceRanges,
           min_rating: minRating,
           limit_count: 20
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+
+        console.log('Raw data from search_restaurants:', data);
 
         const formattedData = data?.map((restaurant: any) => ({
           id: restaurant.restaurant_id,
@@ -68,6 +84,7 @@ export const useRestaurants = ({
           establishment_type: restaurant.establishment_type
         })) || [];
 
+        console.log('Formatted restaurants:', formattedData);
         setRestaurants(formattedData);
       } catch (err) {
         console.error('Error fetching restaurants:', err);
