@@ -76,20 +76,20 @@ export default function RestaurantCard({
       onClick={handleClick}
     >
       <CardContent className="p-0">
-        {/* Image placeholder */}
-        <div className="h-48 bg-gradient-hero relative overflow-hidden">
+        {/* Image placeholder - Reduced height */}
+        <div className="h-32 bg-gradient-hero relative overflow-hidden">
           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-smooth" />
-          <div className="absolute top-3 left-3">
-            <Badge variant="secondary" className="bg-glass backdrop-blur-sm">
+          <div className="absolute top-2 left-2">
+            <Badge variant="secondary" className="bg-glass backdrop-blur-sm text-xs">
               {establishmentType}
             </Badge>
           </div>
         </div>
 
-        <div className="p-4 space-y-3">
+        <div className="p-3 space-y-2">
           {/* Nombre del restaurante con corazón */}
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-smooth flex-1 min-w-0 break-words">
+            <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-smooth flex-1 min-w-0 break-words">
               {name}
             </h3>
             <div className="flex items-center gap-1 bg-glass backdrop-blur-sm rounded-full px-2 py-1 border border-glass flex-shrink-0">
@@ -104,13 +104,16 @@ export default function RestaurantCard({
               {cuisineTypes.slice(0, 2).join(', ')}
             </span>
             {googleRating && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <Star className="h-3 w-3 fill-accent text-accent" />
-                <span className="font-medium text-foreground">{googleRating}</span>
-                {reviewCount && (
-                  <span className="text-muted-foreground">({reviewCount})</span>
-                )}
-              </div>
+              <>
+                <span>•</span>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Star className="h-3 w-3 fill-accent text-accent" />
+                  <span className="font-medium text-foreground">{googleRating}</span>
+                  {reviewCount && (
+                    <span className="text-muted-foreground">({reviewCount})</span>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
