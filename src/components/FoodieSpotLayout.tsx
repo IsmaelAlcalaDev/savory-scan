@@ -20,6 +20,7 @@ import { useServices } from '@/hooks/useServices';
 import { usePriceRanges } from '@/hooks/usePriceRanges';
 import { useTimeRanges } from '@/hooks/useTimeRanges';
 import { useCuisineTypes } from '@/hooks/useCuisineTypes';
+import { useDietTypes } from '@/hooks/useDietTypes';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const filterOptions = [
@@ -40,6 +41,7 @@ export default function FoodieSpotLayout() {
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [selectedTimeRanges, setSelectedTimeRanges] = useState<number[]>([]);
+  const [selectedDietTypes, setSelectedDietTypes] = useState<string[]>([]);
   const [activeFilters, setActiveFilters] = useState<string[]>(['nearby']);
   const [isVegMode, setIsVegMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -57,6 +59,7 @@ export default function FoodieSpotLayout() {
   const { priceRanges } = usePriceRanges();
   const { timeRanges } = useTimeRanges();
   const { cuisineTypes } = useCuisineTypes();
+  const { dietTypes } = useDietTypes();
 
   useEffect(() => {
     if (ipLocation && !userLocation) {
@@ -153,6 +156,7 @@ export default function FoodieSpotLayout() {
     setSelectedServices([]);
     setSelectedPriceRanges([]);
     setSelectedTimeRanges([]);
+    setSelectedDietTypes([]);
     setActiveFilters([]);
   };
 
@@ -178,6 +182,9 @@ export default function FoodieSpotLayout() {
         break;
       case 'time':
         setSelectedTimeRanges(prev => prev.filter(id => id !== value));
+        break;
+      case 'diet':
+        setSelectedDietTypes(prev => prev.filter(slug => slug !== value));
         break;
       case 'quick':
         setActiveFilters(prev => prev.filter(id => id !== value));
@@ -282,6 +289,18 @@ export default function FoodieSpotLayout() {
           type: 'time',
           value: id,
           label: timeRange.display_text
+        });
+      }
+    });
+
+    // Diet types
+    selectedDietTypes.forEach(slug => {
+      const dietType = dietTypes?.find(d => d.slug === slug);
+      if (dietType) {
+        filters.push({
+          type: 'diet',
+          value: slug,
+          label: dietType.name
         });
       }
     });
@@ -574,6 +593,8 @@ export default function FoodieSpotLayout() {
               onPriceRangeChange={setSelectedPriceRanges}
               selectedTimeRanges={selectedTimeRanges}
               onTimeRangeChange={setSelectedTimeRanges}
+              selectedDietTypes={selectedDietTypes}
+              onDietTypeChange={setSelectedDietTypes}
             />
           </div>
         </aside>

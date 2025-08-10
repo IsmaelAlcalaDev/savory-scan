@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, Star } from 'lucide-react';
+import { ChevronDown, Star, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,6 +11,7 @@ import { useEstablishmentTypes } from '@/hooks/useEstablishmentTypes';
 import { useServices } from '@/hooks/useServices';
 import { usePriceRanges } from '@/hooks/usePriceRanges';
 import { useTimeRanges } from '@/hooks/useTimeRanges';
+import { useDietTypes } from '@/hooks/useDietTypes';
 
 interface FiltersSidebarProps {
   selectedDistances: number[];
@@ -25,6 +26,8 @@ interface FiltersSidebarProps {
   onPriceRangeChange: (priceRanges: string[]) => void;
   selectedTimeRanges: number[];
   onTimeRangeChange: (timeRanges: number[]) => void;
+  selectedDietTypes: string[];
+  onDietTypeChange: (dietTypes: string[]) => void;
 }
 
 export default function FiltersSidebar({
@@ -40,6 +43,8 @@ export default function FiltersSidebar({
   onPriceRangeChange,
   selectedTimeRanges = [],
   onTimeRangeChange,
+  selectedDietTypes = [],
+  onDietTypeChange,
 }: FiltersSidebarProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     distance: true,
@@ -48,6 +53,7 @@ export default function FiltersSidebar({
     time: false,
     establishment: false,
     services: false,
+    diet: false,
   });
 
   const { distanceRanges, loading: distanceLoading } = useDistanceRanges();
@@ -56,6 +62,7 @@ export default function FiltersSidebar({
   const { services, loading: servicesLoading } = useServices();
   const { priceRanges, loading: priceLoading } = usePriceRanges();
   const { timeRanges, loading: timeLoading } = useTimeRanges();
+  const { dietTypes, loading: dietLoading } = useDietTypes();
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({
@@ -199,7 +206,33 @@ export default function FiltersSidebar({
         ))}
       </FilterSection>
 
-      {/* 3. Valoración - Tags acumulables */}
+      {/* 3. Tipos de Dieta - Tags acumulables */}
+      <FilterSection
+        title="Tipos de Dieta"
+        sectionKey="diet"
+        selectedCount={selectedDietTypes?.length || 0}
+        loading={dietLoading}
+      >
+        {(dietTypes || []).map((diet) => (
+          <TagButton
+            key={diet.id}
+            isSelected={selectedDietTypes?.includes(diet.slug) || false}
+            onClick={() => {
+              const isSelected = selectedDietTypes?.includes(diet.slug);
+              if (isSelected) {
+                onDietTypeChange(selectedDietTypes.filter(d => d !== diet.slug));
+              } else {
+                onDietTypeChange([...selectedDietTypes, diet.slug]);
+              }
+            }}
+            icon={<Leaf className="h-3 w-3 text-green-500" />}
+          >
+            {diet.name}
+          </TagButton>
+        ))}
+      </FilterSection>
+
+      {/* 4. Valoración - Tags acumulables */}
       <FilterSection
         title="Valoración"
         sectionKey="rating"
@@ -225,7 +258,7 @@ export default function FiltersSidebar({
         ))}
       </FilterSection>
 
-      {/* 4. Horarios - Tags acumulables */}
+      {/* 5. Horarios - Tags acumulables */}
       <FilterSection
         title="Disponibilidad"
         sectionKey="time"
@@ -250,7 +283,7 @@ export default function FiltersSidebar({
         ))}
       </FilterSection>
 
-      {/* 5. Tipo de Local - Tags acumulables */}
+      {/* 6. Tipo de Local - Tags acumulables */}
       <FilterSection
         title="Tipo de Local"
         sectionKey="establishment"
@@ -275,7 +308,7 @@ export default function FiltersSidebar({
         ))}
       </FilterSection>
 
-      {/* 6. Servicios - Tags acumulables */}
+      {/* 7. Servicios - Tags acumulables */}
       <FilterSection
         title="Servicios Especiales"
         sectionKey="services"
