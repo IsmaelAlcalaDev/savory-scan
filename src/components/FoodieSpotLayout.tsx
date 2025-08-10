@@ -9,6 +9,8 @@ import DistanceFilter from './DistanceFilter';
 import RatingFilter from './RatingFilter';
 import RestaurantCard from './RestaurantCard';
 import LocationModal from './LocationModal';
+import VegModeToggle from './VegModeToggle';
+import ViewModeToggle from './ViewModeToggle';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useIPLocation } from '@/hooks/useIPLocation';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,6 +31,7 @@ export default function FoodieSpotLayout() {
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [activeFilters, setActiveFilters] = useState<string[]>(['nearby']);
   const [isVegMode, setIsVegMode] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -109,9 +112,9 @@ export default function FoodieSpotLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background border-b border-border">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -175,7 +178,7 @@ export default function FoodieSpotLayout() {
       <div className="flex">
         {/* Sidebar - Filters */}
         <aside className={cn(
-          "w-80 border-r border-border bg-background transition-transform duration-300 md:translate-x-0 fixed md:static h-full z-40",
+          "w-80 border-r border-gray-200 bg-white transition-transform duration-300 md:translate-x-0 fixed md:static h-full z-40",
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}>
           <div className="p-4 space-y-4">
@@ -213,22 +216,15 @@ export default function FoodieSpotLayout() {
                 )}
               </div>
               
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">Modo VEG</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsVegMode(!isVegMode)}
-                  className={cn(
-                    "relative w-12 h-6 rounded-full p-0",
-                    isVegMode ? "bg-green-500" : "bg-muted"
-                  )}
-                >
-                  <div className={cn(
-                    "absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform",
-                    isVegMode ? "translate-x-6" : "translate-x-0.5"
-                  )} />
-                </Button>
+              <div className="flex items-center gap-4">
+                <VegModeToggle 
+                  isVegMode={isVegMode}
+                  onToggle={setIsVegMode}
+                />
+                <ViewModeToggle 
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                />
               </div>
             </div>
 
@@ -246,12 +242,16 @@ export default function FoodieSpotLayout() {
               ))}
             </div>
 
-            {/* Restaurant Grid - Máximo 4 columnas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Restaurant Grid/List */}
+            <div className={cn(
+              viewMode === 'grid' 
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                : "space-y-4"
+            )}>
               {loading ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="space-y-3">
-                    <Skeleton className="h-40 w-full" />
+                    <Skeleton className={viewMode === 'grid' ? "h-32 w-full" : "h-24 w-full"} />
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
                   </div>
@@ -285,6 +285,7 @@ export default function FoodieSpotLayout() {
                     establishmentType={restaurant.establishment_type}
                     services={restaurant.services}
                     favoritesCount={restaurant.favorites_count}
+                    viewMode={viewMode}
                   />
                 ))
               )}
