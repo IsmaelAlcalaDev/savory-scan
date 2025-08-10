@@ -75,7 +75,7 @@ export const useUserPreferences = () => {
         const rawPrefs = data.preferences;
         
         if (rawPrefs && typeof rawPrefs === 'object' && !Array.isArray(rawPrefs)) {
-          const userPrefs = rawPrefs as Record<string, any>;
+          const userPrefs = rawPrefs as any;
           
           const parsedPrefs: UserPreferences = {
             language: typeof userPrefs.language === 'string' ? userPrefs.language : defaultPreferences.language,
@@ -118,35 +118,35 @@ export const useUserPreferences = () => {
 
     setSaving(true);
     try {
-      // Create a complete preferences object by merging current preferences with updates
-      const updatedPreferences: UserPreferences = {
-        language: newPreferences.language ?? preferences.language,
-        theme: newPreferences.theme ?? preferences.theme,
+      // Create the updated preferences object
+      const updatedPrefs = {
+        language: newPreferences.language || preferences.language,
+        theme: newPreferences.theme || preferences.theme,
         notifications: {
-          email: newPreferences.notifications?.email ?? preferences.notifications.email,
-          push: newPreferences.notifications?.push ?? preferences.notifications.push,
-          sms: newPreferences.notifications?.sms ?? preferences.notifications.sms,
+          email: newPreferences.notifications?.email !== undefined ? newPreferences.notifications.email : preferences.notifications.email,
+          push: newPreferences.notifications?.push !== undefined ? newPreferences.notifications.push : preferences.notifications.push,
+          sms: newPreferences.notifications?.sms !== undefined ? newPreferences.notifications.sms : preferences.notifications.sms,
         },
         diet: {
-          vegetarian: newPreferences.diet?.vegetarian ?? preferences.diet.vegetarian,
-          vegan: newPreferences.diet?.vegan ?? preferences.diet.vegan,
-          gluten_free: newPreferences.diet?.gluten_free ?? preferences.diet.gluten_free,
-          lactose_free: newPreferences.diet?.lactose_free ?? preferences.diet.lactose_free,
+          vegetarian: newPreferences.diet?.vegetarian !== undefined ? newPreferences.diet.vegetarian : preferences.diet.vegetarian,
+          vegan: newPreferences.diet?.vegan !== undefined ? newPreferences.diet.vegan : preferences.diet.vegan,
+          gluten_free: newPreferences.diet?.gluten_free !== undefined ? newPreferences.diet.gluten_free : preferences.diet.gluten_free,
+          lactose_free: newPreferences.diet?.lactose_free !== undefined ? newPreferences.diet.lactose_free : preferences.diet.lactose_free,
         },
         location: {
-          auto_detect: newPreferences.location?.auto_detect ?? preferences.location.auto_detect,
-          default_radius: newPreferences.location?.default_radius ?? preferences.location.default_radius,
+          auto_detect: newPreferences.location?.auto_detect !== undefined ? newPreferences.location.auto_detect : preferences.location.auto_detect,
+          default_radius: newPreferences.location?.default_radius !== undefined ? newPreferences.location.default_radius : preferences.location.default_radius,
         }
       };
       
       const { error } = await supabase
         .from('users')
-        .update({ preferences: updatedPreferences })
+        .update({ preferences: updatedPrefs as any })
         .eq('auth_user_id', user.id);
 
       if (error) throw error;
 
-      setPreferences(updatedPreferences);
+      setPreferences(updatedPrefs);
       toast.success('Preferencias actualizadas');
     } catch (error) {
       console.error('Error updating preferences:', error);
