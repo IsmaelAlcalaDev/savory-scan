@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, MapPin, User, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,6 @@ import FiltersSidebar from './FiltersSidebar';
 import RestaurantCard from './RestaurantCard';
 import LocationModal from './LocationModal';
 import VegModeToggle from './VegModeToggle';
-import ViewModeToggle from './ViewModeToggle';
 import BottomNavigation from './BottomNavigation';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useIPLocation } from '@/hooks/useIPLocation';
@@ -36,7 +34,6 @@ export default function FoodieSpotLayout() {
   const [selectedTimeRanges, setSelectedTimeRanges] = useState<number[]>([]);
   const [activeFilters, setActiveFilters] = useState<string[]>(['nearby']);
   const [isVegMode, setIsVegMode] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -154,13 +151,6 @@ export default function FoodieSpotLayout() {
               <p className="text-sm text-destructive mt-1">Error: {error}</p>
             )}
           </div>
-          
-          <div className="flex items-center gap-4">
-            <ViewModeToggle 
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-            />
-          </div>
         </div>
 
         {/* Filter Badges with VEG Mode */}
@@ -186,18 +176,17 @@ export default function FoodieSpotLayout() {
           </div>
         </div>
 
-        {/* Restaurant Grid/List */}
-        <div className={cn(
-          viewMode === 'grid' 
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-            : "space-y-4"
-        )}>
+        {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {loading ? (
-            Array.from({ length: 8 }).map((_, i) => (
+            Array.from({ length: 9 }).map((_, i) => (
               <div key={i} className="space-y-3">
-                <Skeleton className={viewMode === 'grid' ? "h-32 w-full" : "h-24 w-full"} />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-48 w-full rounded-lg" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
               </div>
             ))
           ) : error ? (
@@ -229,7 +218,9 @@ export default function FoodieSpotLayout() {
                 establishmentType={restaurant.establishment_type}
                 services={restaurant.services}
                 favoritesCount={restaurant.favorites_count}
-                viewMode={viewMode}
+                imageUrl={restaurant.image_url}
+                coverImageUrl={restaurant.cover_image_url}
+                logoUrl={restaurant.logo_url}
               />
             ))
           )}

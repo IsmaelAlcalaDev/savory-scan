@@ -17,9 +17,11 @@ interface RestaurantCardProps {
   establishmentType?: string;
   services?: string[];
   favoritesCount?: number;
+  imageUrl?: string;
+  coverImageUrl?: string;
+  logoUrl?: string;
   onClick?: () => void;
   className?: string;
-  viewMode?: 'grid' | 'list';
 }
 
 export default function RestaurantCard({
@@ -35,9 +37,11 @@ export default function RestaurantCard({
   establishmentType,
   services = [],
   favoritesCount = 0,
+  imageUrl,
+  coverImageUrl,
+  logoUrl,
   onClick,
-  className,
-  viewMode = 'grid'
+  className
 }: RestaurantCardProps) {
   const handleClick = () => {
     if (onClick) {
@@ -69,81 +73,8 @@ export default function RestaurantCard({
     );
   };
 
-  if (viewMode === 'list') {
-    return (
-      <Card 
-        className={cn(
-          "group cursor-pointer bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] overflow-hidden",
-          className
-        )}
-        onClick={handleClick}
-      >
-        <CardContent className="p-0">
-          <div className="flex">
-            {/* Content area with white background */}
-            <div className="flex-1 bg-white p-4 space-y-2 min-w-0">
-              {/* Nombre del restaurante con corazón */}
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth flex-1 min-w-0 break-words">
-                  {name}
-                </h3>
-                <div className="flex items-center gap-1 bg-gray-50 rounded-full px-2 py-1 border border-gray-200 flex-shrink-0">
-                  <Heart className="h-3 w-3 text-red-500" />
-                  <span className="text-xs font-medium">{favoritesCount}</span>
-                </div>
-              </div>
-              
-              {/* Tipo de comercio · Tipo de cocina · Rating */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {establishmentType && (
-                  <>
-                    <span className="text-foreground font-medium">{establishmentType}</span>
-                    <span>•</span>
-                  </>
-                )}
-                <span className="line-clamp-1">
-                  {cuisineTypes.slice(0, 2).join(', ')}
-                </span>
-                {googleRating && (
-                  <>
-                    <span>•</span>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                      <span className="font-medium text-foreground">{googleRating}</span>
-                      {reviewCount && (
-                        <span className="text-muted-foreground">({reviewCount})</span>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Distancia • Rango de precio */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {distance && (
-                  <>
-                    <span className="flex-shrink-0">{distance.toFixed(1)}km</span>
-                    <span>•</span>
-                  </>
-                )}
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <span className="font-medium text-foreground">{priceRange}</span>
-                </div>
-              </div>
-
-              {/* Servicios como tags */}
-              {renderServices()}
-            </div>
-
-            {/* Image - on the right side, SQUARE */}
-            <div className="w-24 h-24 bg-gradient-hero relative overflow-hidden flex-shrink-0 self-start mt-4 mr-4 rounded-lg">
-              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-smooth" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Elegir la mejor imagen disponible
+  const displayImage = coverImageUrl || imageUrl || logoUrl;
 
   return (
     <Card 
@@ -154,9 +85,24 @@ export default function RestaurantCard({
       onClick={handleClick}
     >
       <CardContent className="p-0">
-        {/* Image placeholder - REDUCED HEIGHT for grid mode */}
-        <div className="h-32 bg-gradient-hero relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-smooth" />
+        {/* Image */}
+        <div className="h-48 relative overflow-hidden">
+          {displayImage ? (
+            <img 
+              src={displayImage} 
+              alt={name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                // Fallback to gradient if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
+          ) : null}
+          <div className={cn(
+            "absolute inset-0 transition-smooth",
+            displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
+          )} />
           <div className="absolute top-2 left-2">
             <Badge variant="secondary" className="bg-glass backdrop-blur-sm text-xs">
               {establishmentType}
@@ -164,7 +110,7 @@ export default function RestaurantCard({
           </div>
         </div>
 
-        {/* Content area with white background */}
+        {/* Content area */}
         <div className="bg-white p-4 space-y-2">
           {/* Nombre del restaurante con corazón */}
           <div className="flex items-start justify-between gap-2">
