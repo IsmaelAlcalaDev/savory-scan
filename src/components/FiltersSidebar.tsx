@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -155,21 +154,19 @@ export default function FiltersSidebar({
     onClick: () => void;
     icon?: React.ReactNode;
   }) => (
-    <Button
-      variant={isSelected ? "default" : "outline"}
-      size="sm"
+    <button
       onClick={onClick}
       className={cn(
-        "h-8 px-3 text-xs font-medium transition-all duration-200 border rounded-full shadow-none bg-transparent backdrop-blur-none",
+        "h-8 px-3 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none",
         isSelected 
-          ? "bg-primary text-primary-foreground hover:bg-primary/90 border-primary" 
-          : "bg-transparent hover:bg-muted/50 text-muted-foreground hover:text-foreground border-border"
+          ? "!bg-primary text-primary-foreground hover:!bg-primary/90 border-primary" 
+          : "!bg-transparent hover:!bg-muted/50 text-muted-foreground hover:text-foreground border-border"
       )}
     >
       {icon && <span className="mr-1.5">{icon}</span>}
       {children}
       {isSelected && <X className="ml-1.5 h-3 w-3" />}
-    </Button>
+    </button>
   );
 
   return (
@@ -181,7 +178,7 @@ export default function FiltersSidebar({
             variant="outline" 
             size="sm" 
             onClick={clearAllFilters}
-            className="text-muted-foreground hover:text-foreground border-dashed hover:border-solid bg-transparent shadow-none"
+            className="text-muted-foreground hover:text-foreground border-dashed hover:border-solid !bg-transparent !shadow-none"
           >
             Limpiar filtros
           </Button>
