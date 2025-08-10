@@ -229,7 +229,6 @@ export type Database = {
           banner_url: string | null
           created_at: string | null
           icon: string | null
-          icon_emoji: string | null
           icon_url: string | null
           id: number
           name: string
@@ -239,7 +238,6 @@ export type Database = {
           banner_url?: string | null
           created_at?: string | null
           icon?: string | null
-          icon_emoji?: string | null
           icon_url?: string | null
           id?: number
           name: string
@@ -249,7 +247,6 @@ export type Database = {
           banner_url?: string | null
           created_at?: string | null
           icon?: string | null
-          icon_emoji?: string | null
           icon_url?: string | null
           id?: number
           name?: string
