@@ -6,9 +6,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import RestaurantProfile from "./pages/RestaurantProfile";
-import SuperAdminPanel from "./pages/SuperAdminPanel";
+import SecureAdminPanel from "./pages/SecureAdminPanel";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import FoodieSpot from "./pages/FoodieSpot";
@@ -27,7 +28,14 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/foodiespot" element={<FoodieSpot />} />
               <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
-              <Route path="/admin" element={<SuperAdminPanel />} />
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <SecureAdminPanel />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="/auth" element={<Auth />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

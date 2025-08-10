@@ -1467,6 +1467,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       promotions: {
         Row: {
           applicable_dishes: Json | null
@@ -3126,6 +3153,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_saved_dishes: {
         Row: {
           dish_id: number
@@ -4374,6 +4422,10 @@ export type Database = {
         Args: { input_text: string }
         Returns: string
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       get_dishes_filtered_by_diet: {
         Args: { restaurant_id_param: number; diet_filters?: string[] }
         Returns: {
@@ -4444,6 +4496,13 @@ export type Database = {
           saved_at: string
           image_url: string
         }[]
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
       }
       haversine_distance: {
         Args: { lat1: number; lng1: number; lat2: number; lng2: number }
@@ -4584,6 +4643,7 @@ export type Database = {
         | "over_18"
         | "over_21"
         | "family_only"
+      app_role: "admin" | "moderator" | "user"
       auth_provider: "google" | "apple" | "email"
       device_type: "ios" | "android" | "web"
       discount_type: "percentage" | "fixed" | "two_for_one"
@@ -4734,6 +4794,7 @@ export const Constants = {
         "over_21",
         "family_only",
       ],
+      app_role: ["admin", "moderator", "user"],
       auth_provider: ["google", "apple", "email"],
       device_type: ["ios", "android", "web"],
       discount_type: ["percentage", "fixed", "two_for_one"],
