@@ -61,27 +61,30 @@ export default function VegetablesRainEffect({ isActive, onComplete }: Vegetable
             top: '-10%',
             '--duration': `${vegetable.animationDuration}s`,
             '--delay': `${vegetable.delay}s`,
+            animationName: 'fall',
           } as React.CSSProperties}
         >
           {vegetable.emoji}
         </div>
       ))}
       
-      <style jsx>{`
-        @keyframes fall {
-          0% {
-            transform: translateY(-100px) rotate(0deg);
-            opacity: 1;
+      <style>
+        {`
+          @keyframes fall {
+            0% {
+              transform: translateY(-100px) rotate(0deg);
+              opacity: 1;
+            }
+            80% {
+              opacity: 1;
+            }
+            100% {
+              transform: translateY(calc(100vh + 100px)) rotate(360deg);
+              opacity: 0;
+            }
           }
-          80% {
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(calc(100vh + 100px)) rotate(360deg);
-            opacity: 0;
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 }
