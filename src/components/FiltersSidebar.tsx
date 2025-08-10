@@ -1,9 +1,7 @@
 
 import { useState } from 'react';
-import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign, Clock, X } from 'lucide-react';
+import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -146,37 +144,6 @@ export default function FiltersSidebar({
     </div>
   );
 
-  const RadioOption = ({ 
-    id, 
-    value,
-    checked, 
-    onChange, 
-    children, 
-    icon 
-  }: {
-    id: string;
-    value: string;
-    checked: boolean;
-    onChange: (value: string) => void;
-    children: React.ReactNode;
-    icon?: React.ReactNode;
-  }) => (
-    <div className="flex items-center space-x-3 group py-1">
-      <RadioGroupItem 
-        value={value}
-        id={id}
-        className="border-2"
-      />
-      <label 
-        htmlFor={id}
-        className="text-sm text-foreground cursor-pointer flex items-center gap-2 flex-1 group-hover:text-primary transition-colors font-medium"
-      >
-        {icon}
-        {children}
-      </label>
-    </div>
-  );
-
   const TagButton = ({ 
     children, 
     isSelected, 
@@ -193,9 +160,9 @@ export default function FiltersSidebar({
       size="sm"
       onClick={onClick}
       className={cn(
-        "h-8 px-3 text-xs font-medium transition-all duration-200",
+        "h-8 px-3 text-xs font-medium transition-all duration-200 border",
         isSelected 
-          ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+          ? "bg-primary text-primary-foreground hover:bg-primary/90 border-primary" 
           : "bg-background hover:bg-muted text-muted-foreground hover:text-foreground border-border"
       )}
     >
@@ -203,33 +170,6 @@ export default function FiltersSidebar({
       {children}
       {isSelected && <X className="ml-1.5 h-3 w-3" />}
     </Button>
-  );
-
-  const CheckboxOption = ({ 
-    id, 
-    checked, 
-    onChange, 
-    children 
-  }: {
-    id: string;
-    checked: boolean;
-    onChange: () => void;
-    children: React.ReactNode;
-  }) => (
-    <div className="flex items-center space-x-3 group py-1">
-      <Checkbox 
-        id={id}
-        checked={checked}
-        onCheckedChange={onChange}
-        className="border-2"
-      />
-      <label 
-        htmlFor={id}
-        className="text-sm text-foreground cursor-pointer flex-1 group-hover:text-primary transition-colors font-medium"
-      >
-        {children}
-      </label>
-    </div>
   );
 
   return (
@@ -248,7 +188,7 @@ export default function FiltersSidebar({
         </div>
       )}
 
-      {/* 1. Distancia - Radio (más importante, siempre visible) */}
+      {/* 1. Distancia - Tags */}
       <FilterSection
         title="Distancia"
         icon={MapPin}
@@ -256,25 +196,27 @@ export default function FiltersSidebar({
         selectedCount={selectedDistances?.length || 0}
         loading={distanceLoading}
       >
-        <RadioGroup 
-          value={selectedDistances?.[0]?.toString() || ""} 
-          onValueChange={(value) => onDistanceChange(value ? [parseInt(value)] : [])}
-        >
+        <div className="flex flex-wrap gap-2">
           {(distanceRanges || []).map((range) => (
-            <RadioOption
+            <TagButton
               key={range.id}
-              id={`distance-${range.id}`}
-              value={range.id.toString()}
-              checked={selectedDistances?.includes(range.id) || false}
-              onChange={(value) => onDistanceChange([parseInt(value)])}
+              isSelected={selectedDistances?.includes(range.id) || false}
+              onClick={() => {
+                const isSelected = selectedDistances?.includes(range.id);
+                if (isSelected) {
+                  onDistanceChange([]);
+                } else {
+                  onDistanceChange([range.id]);
+                }
+              }}
             >
               {range.display_text}
-            </RadioOption>
+            </TagButton>
           ))}
-        </RadioGroup>
+        </div>
       </FilterSection>
 
-      {/* 2. Rango de Precios - Tags (visual y fácil) */}
+      {/* 2. Rango de Precios - Tags solo con € */}
       <FilterSection
         title="Presupuesto"
         icon={DollarSign}
@@ -290,12 +232,12 @@ export default function FiltersSidebar({
               onClick={() => {
                 const isSelected = selectedPriceRanges?.includes(range.value);
                 if (isSelected) {
-                  onPriceRangeChange(selectedPriceRanges.filter(p => p !== range.value));
+                  onPriceRangeChange([]);
                 } else {
                   onPriceRangeChange([range.value]);
                 }
               }}
-              icon={<span className="text-xs">💰</span>}
+              icon={<span className="text-xs">€</span>}
             >
               {range.display_text}
             </TagButton>
@@ -303,7 +245,7 @@ export default function FiltersSidebar({
         </div>
       </FilterSection>
 
-      {/* 3. Valoración - Tags con estrellas (visual atractivo) */}
+      {/* 3. Valoración - Tags con estrellas */}
       <FilterSection
         title="Valoración"
         icon={Star}
@@ -319,7 +261,7 @@ export default function FiltersSidebar({
               onClick={() => {
                 const isSelected = selectedRatings?.includes(option.id);
                 if (isSelected) {
-                  onRatingChange(selectedRatings.filter(r => r !== option.id));
+                  onRatingChange([]);
                 } else {
                   onRatingChange([option.id]);
                 }
@@ -332,34 +274,35 @@ export default function FiltersSidebar({
         </div>
       </FilterSection>
 
-      {/* 4. Horarios - Radio (práctico) */}
+      {/* 4. Horarios - Tags sin icono de reloj */}
       <FilterSection
         title="Disponibilidad"
-        icon={Clock}
+        icon={DollarSign}
         sectionKey="time"
         selectedCount={selectedTimeRanges?.length || 0}
         loading={timeLoading}
       >
-        <RadioGroup 
-          value={selectedTimeRanges?.[0]?.toString() || ""} 
-          onValueChange={(value) => onTimeRangeChange(value ? [parseInt(value)] : [])}
-        >
+        <div className="flex flex-wrap gap-2">
           {(timeRanges || []).map((range) => (
-            <RadioOption
+            <TagButton
               key={range.id}
-              id={`time-${range.id}`}
-              value={range.id.toString()}
-              checked={selectedTimeRanges?.includes(range.id) || false}
-              onChange={(value) => onTimeRangeChange([parseInt(value)])}
-              icon={<Clock className="h-3 w-3 text-muted-foreground" />}
+              isSelected={selectedTimeRanges?.includes(range.id) || false}
+              onClick={() => {
+                const isSelected = selectedTimeRanges?.includes(range.id);
+                if (isSelected) {
+                  onTimeRangeChange([]);
+                } else {
+                  onTimeRangeChange([range.id]);
+                }
+              }}
             >
               {range.display_text}
-            </RadioOption>
+            </TagButton>
           ))}
-        </RadioGroup>
+        </div>
       </FilterSection>
 
-      {/* 5. Tipo de Local - Checkboxes (permite múltiples) */}
+      {/* 5. Tipo de Local - Tags */}
       <FilterSection
         title="Tipo de Local"
         icon={Building}
@@ -367,26 +310,27 @@ export default function FiltersSidebar({
         selectedCount={selectedEstablishments?.length || 0}
         loading={establishmentLoading}
       >
-        {(establishmentTypes || []).map((type) => (
-          <CheckboxOption
-            key={type.id}
-            id={`establishment-${type.id}`}
-            checked={selectedEstablishments?.includes(type.id) || false}
-            onChange={() => {
-              const isSelected = selectedEstablishments?.includes(type.id);
-              if (isSelected) {
-                onEstablishmentChange(selectedEstablishments.filter(e => e !== type.id));
-              } else {
-                onEstablishmentChange([...selectedEstablishments, type.id]);
-              }
-            }}
-          >
-            {type.name}
-          </CheckboxOption>
-        ))}
+        <div className="flex flex-wrap gap-2">
+          {(establishmentTypes || []).map((type) => (
+            <TagButton
+              key={type.id}
+              isSelected={selectedEstablishments?.includes(type.id) || false}
+              onClick={() => {
+                const isSelected = selectedEstablishments?.includes(type.id);
+                if (isSelected) {
+                  onEstablishmentChange(selectedEstablishments.filter(e => e !== type.id));
+                } else {
+                  onEstablishmentChange([...selectedEstablishments, type.id]);
+                }
+              }}
+            >
+              {type.name}
+            </TagButton>
+          ))}
+        </div>
       </FilterSection>
 
-      {/* 6. Servicios - Tags (más visual) */}
+      {/* 6. Servicios - Tags */}
       <FilterSection
         title="Servicios Especiales"
         icon={UtensilsCrossed}
