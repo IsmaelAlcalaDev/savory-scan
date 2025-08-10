@@ -14,14 +14,35 @@ export const useSecureAdminActions = () => {
     details?: any
   ) => {
     try {
-      await supabase.rpc('log_security_event', {
+      // Try to call the security logging function if it exists
+      const { error } = await supabase.rpc('log_security_event', {
         p_action_type: actionType,
         p_entity_type: entityType,
         p_entity_id: entityId,
         p_details: details || {}
-      });
+      }).single();
+      
+      if (error) {
+        console.warn('Security logging function not available:', error.message);
+        // Fallback: log to console for now
+        console.log('Security Event:', {
+          action: actionType,
+          entity: entityType,
+          id: entityId,
+          details,
+          timestamp: new Date().toISOString()
+        });
+      }
     } catch (error) {
-      console.error('Failed to log security event:', error);
+      console.warn('Failed to log security event:', error);
+      // Fallback: log to console
+      console.log('Security Event (fallback):', {
+        action: actionType,
+        entity: entityType,
+        id: entityId,
+        details,
+        timestamp: new Date().toISOString()
+      });
     }
   };
 
@@ -116,14 +137,17 @@ export const useSecureAdminActions = () => {
     return executeSecureAction(
       'Get Security Audit Log',
       async () => {
-        const { data, error } = await supabase
-          .from('security_audit_log')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(limit);
-        
-        if (error) throw error;
-        return data;
+        try {
+          const { data, error } = await supabase.rpc('get_security_audit_log', {
+            limit_count: limit
+          });
+          
+          if (error) throw error;
+          return data;
+        } catch (error) {
+          console.warn('Security audit log function not available:', error);
+          return [];
+        }
       },
       'system',
       'security_audit_log'

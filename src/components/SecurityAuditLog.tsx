@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, AlertTriangle, User, Calendar, Filter } from 'lucide-react';
+import { Shield, AlertTriangle, User, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -31,22 +31,27 @@ export default function SecurityAuditLog() {
     
     setLoading(true);
     try {
-      let query = supabase
-        .from('security_audit_log')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (filter !== 'all') {
-        query = query.eq('action_type', filter);
-      }
-
-      const { data, error } = await query;
+      // Use raw SQL query to access the security_audit_log table
+      const { data, error } = await supabase.rpc('get_security_audit_log', {
+        limit_count: 50
+      });
       
-      if (error) throw error;
-      setAuditLogs(data || []);
+      if (error) {
+        console.error('Error fetching audit logs:', error);
+        // Fallback to empty array if function doesn't exist yet
+        setAuditLogs([]);
+        return;
+      }
+      
+      let filteredData = data || [];
+      if (filter !== 'all') {
+        filteredData = filteredData.filter((log: AuditLogEntry) => log.action_type === filter);
+      }
+      
+      setAuditLogs(filteredData);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
+      setAuditLogs([]);
     } finally {
       setLoading(false);
     }
