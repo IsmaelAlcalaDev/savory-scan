@@ -7,7 +7,6 @@ interface Service {
   name: string;
   slug: string;
   icon?: string;
-  icon_url?: string;
 }
 
 export const useServices = () => {
@@ -23,7 +22,7 @@ export const useServices = () => {
         
         const { data, error } = await supabase
           .from('services')
-          .select('id, name, slug, icon, icon_url')
+          .select('id, name, slug, icon')
           .eq('is_active', true)
           .order('name');
 
