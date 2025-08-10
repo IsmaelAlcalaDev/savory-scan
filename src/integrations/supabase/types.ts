@@ -1511,27 +1511,33 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
           id: string
+          phone: string | null
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id: string
+          phone?: string | null
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -3613,6 +3619,7 @@ export type Database = {
           login_count: number | null
           phone: string | null
           phone_verified: boolean | null
+          preferences: Json
           preferred_currency_id: number | null
           preferred_language_id: number | null
           updated_at: string | null
@@ -3632,6 +3639,7 @@ export type Database = {
           login_count?: number | null
           phone?: string | null
           phone_verified?: boolean | null
+          preferences?: Json
           preferred_currency_id?: number | null
           preferred_language_id?: number | null
           updated_at?: string | null
@@ -3651,6 +3659,7 @@ export type Database = {
           login_count?: number | null
           phone?: string | null
           phone_verified?: boolean | null
+          preferences?: Json
           preferred_currency_id?: number | null
           preferred_language_id?: number | null
           updated_at?: string | null
@@ -4711,6 +4720,15 @@ export type Database = {
       }
       update_restaurant_location_tags: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      upsert_user_auth_provider: {
+        Args: {
+          p_provider: Database["public"]["Enums"]["auth_provider"]
+          p_provider_user_id?: string
+          p_provider_email?: string
+          p_provider_data?: Json
+        }
         Returns: undefined
       }
     }
