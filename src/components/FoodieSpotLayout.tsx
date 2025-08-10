@@ -509,21 +509,21 @@ export default function FoodieSpotLayout() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
         <div className="flex items-center justify-between p-4">
-          {/* Left Section: Logo, Location, Search */}
-          <div className="flex items-center gap-2 flex-1">
-            {/* Logo Section */}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <div className={`w-8 h-8 bg-primary rounded-full flex items-center justify-center mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
-                <span className="text-primary-foreground font-bold text-sm">F</span>
-              </div>
-              <div>
-                <h1 className="font-bold text-lg mode-transition">FoodieSpot</h1>
-                <p className="text-xs text-muted-foreground">Food delivery</p>
-              </div>
+          {/* Left Section: Logo */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <div className={`w-8 h-8 bg-primary rounded-full flex items-center justify-center mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
+              <span className="text-primary-foreground font-bold text-sm">F</span>
             </div>
+            <div>
+              <h1 className="font-bold text-lg mode-transition">FoodieSpot</h1>
+              <p className="text-xs text-muted-foreground">Food delivery</p>
+            </div>
+          </div>
 
+          {/* Center Section: Location and Search */}
+          <div className="flex items-center gap-4 flex-1 justify-center max-w-2xl mx-8">
             {/* Location Section */}
-            <div className="flex justify-start ml-2">
+            <div className="flex justify-start">
               <Button
                 variant="ghost"
                 onClick={() => setLocationModalOpen(true)}
@@ -537,7 +537,7 @@ export default function FoodieSpotLayout() {
             </div>
 
             {/* Search Section */}
-            <div className="flex-1 max-w-md ml-2">
+            <div className="flex-1 max-w-md">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10" />
                 <Input
@@ -552,7 +552,7 @@ export default function FoodieSpotLayout() {
           </div>
 
           {/* Right Section: Language & Menu */}
-          <div className="flex items-center gap-12 flex-shrink-0 ml-6">
+          <div className="flex items-center gap-12 flex-shrink-0">
             <LanguageSelector />
             <button 
               className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition hover:text-primary transition-colors"
