@@ -9,6 +9,7 @@ interface Restaurant {
   description?: string;
   price_range: string;
   google_rating?: number;
+  review_count?: number;
   distance_km?: number;
   cuisine_types: string[];
   establishment_type?: string;
@@ -69,7 +70,7 @@ export const useRestaurants = ({
           minRating
         });
 
-        // Obtener restaurantes con servicios, favoritos e imágenes
+        // Obtener restaurantes con servicios, favoritos, imágenes y review_count
         let query = supabase
           .from('restaurants')
           .select(`
@@ -79,6 +80,7 @@ export const useRestaurants = ({
             description,
             price_range,
             google_rating,
+            review_count,
             latitude,
             longitude,
             favorites_count,
@@ -134,6 +136,7 @@ export const useRestaurants = ({
             description: restaurant.description,
             price_range: restaurant.price_range,
             google_rating: restaurant.google_rating,
+            review_count: restaurant.review_count,
             distance_km,
             cuisine_types: restaurant.restaurant_cuisines?.map((rc: any) => rc.cuisine_types?.name).filter(Boolean) || [],
             establishment_type: restaurant.establishment_types?.name,
