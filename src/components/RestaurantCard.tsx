@@ -17,7 +17,6 @@ interface RestaurantCardProps {
   establishmentType?: string;
   services?: string[];
   favoritesCount?: number;
-  imageUrl?: string;
   coverImageUrl?: string;
   logoUrl?: string;
   onClick?: () => void;
@@ -37,7 +36,6 @@ export default function RestaurantCard({
   establishmentType,
   services = [],
   favoritesCount = 0,
-  imageUrl,
   coverImageUrl,
   logoUrl,
   onClick,
@@ -74,7 +72,7 @@ export default function RestaurantCard({
   };
 
   // Elegir la mejor imagen disponible
-  const displayImage = coverImageUrl || imageUrl || logoUrl;
+  const displayImage = coverImageUrl || logoUrl;
 
   return (
     <Card 

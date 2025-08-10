@@ -14,7 +14,6 @@ interface Restaurant {
   establishment_type?: string;
   services: string[];
   favorites_count: number;
-  image_url?: string;
   cover_image_url?: string;
   logo_url?: string;
 }
@@ -83,7 +82,6 @@ export const useRestaurants = ({
             latitude,
             longitude,
             favorites_count,
-            image_url,
             cover_image_url,
             logo_url,
             establishment_types!inner(name),
@@ -141,7 +139,6 @@ export const useRestaurants = ({
             establishment_type: restaurant.establishment_types?.name,
             services: restaurant.restaurant_services?.map((rs: any) => rs.services?.name).filter(Boolean) || [],
             favorites_count: restaurant.favorites_count || 0,
-            image_url: restaurant.image_url,
             cover_image_url: restaurant.cover_image_url,
             logo_url: restaurant.logo_url
           };

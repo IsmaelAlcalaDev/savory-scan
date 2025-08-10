@@ -218,7 +218,6 @@ export default function FoodieSpotLayout() {
                 establishmentType={restaurant.establishment_type}
                 services={restaurant.services}
                 favoritesCount={restaurant.favorites_count}
-                imageUrl={restaurant.image_url}
                 coverImageUrl={restaurant.cover_image_url}
                 logoUrl={restaurant.logo_url}
               />
