@@ -536,10 +536,10 @@ export default function FoodieSpotLayout() {
             <img 
               src={appLogoUrl}
               alt={`${appName} Logo`} 
-              className={`w-16 h-16 bg-transparent object-contain mode-transition absolute top-1/2 left-0 transform -translate-y-1/2 z-10 ${isVegMode ? 'animate-grow-bounce' : ''}`}
+              className={`w-20 h-20 bg-transparent object-contain mode-transition absolute top-1/2 left-0 transform -translate-y-1/2 z-10 ${isVegMode ? 'animate-grow-bounce' : ''}`}
             />
             {/* Spacer to maintain layout */}
-            <div className="w-16 h-8" />
+            <div className="w-20 h-8" />
           </div>
 
           {/* Center Section: Location and Search */}
