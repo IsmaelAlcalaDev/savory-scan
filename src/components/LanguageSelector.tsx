@@ -8,29 +8,37 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
+import { useLanguages } from '@/hooks/useLanguages';
 
 interface Language {
+  id: number;
   code: string;
   name: string;
   flag: string;
+  is_active: boolean;
 }
 
-const languages: Language[] = [
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'pt', name: 'Português', flag: '🇧🇷' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-];
-
 export default function LanguageSelector() {
-  const [selectedLanguage, setSelectedLanguage] = React.useState(languages[0]);
+  const { data: languages = [], isLoading } = useLanguages();
+  const [selectedLanguage, setSelectedLanguage] = React.useState<Language | null>(null);
+
+  // Set default language when data loads
+  React.useEffect(() => {
+    if (languages.length > 0 && !selectedLanguage) {
+      const defaultLanguage = languages.find(lang => lang.code === 'es') || languages[0];
+      setSelectedLanguage(defaultLanguage);
+    }
+  }, [languages, selectedLanguage]);
 
   const handleLanguageChange = (language: Language) => {
     setSelectedLanguage(language);
     // Aquí se implementaría la lógica para cambiar el idioma de la aplicación
     console.log('Changing language to:', language.code);
   };
+
+  if (isLoading || !selectedLanguage) {
+    return null;
+  }
 
   return (
     <DropdownMenu modal={false}>
@@ -52,7 +60,7 @@ export default function LanguageSelector() {
       >
         {languages.map((language) => (
           <DropdownMenuItem
-            key={language.code}
+            key={language.id}
             onClick={() => handleLanguageChange(language)}
             className="flex items-center gap-3 cursor-pointer"
           >

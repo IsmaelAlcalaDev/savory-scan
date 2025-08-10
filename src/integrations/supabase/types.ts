@@ -1048,6 +1048,7 @@ export type Database = {
         Row: {
           code: string
           created_at: string | null
+          flag: string | null
           id: number
           is_active: boolean | null
           name: string
@@ -1055,6 +1056,7 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string | null
+          flag?: string | null
           id?: number
           is_active?: boolean | null
           name: string
@@ -1062,6 +1064,7 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string | null
+          flag?: string | null
           id?: number
           is_active?: boolean | null
           name?: string
