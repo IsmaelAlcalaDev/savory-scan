@@ -4408,6 +4408,28 @@ export type Database = {
           times_ordered: number
         }[]
       }
+      get_restaurant_by_slug: {
+        Args: { p_slug: string }
+        Returns: {
+          id: number
+          name: string
+          slug: string
+          description: string
+          price_range: Database["public"]["Enums"]["price_range"]
+          google_rating: number
+          google_rating_count: number
+          address: string
+          website: string
+          phone: string
+          email: string
+          logo_url: string
+          cover_image_url: string
+          social_links: Json
+          delivery_links: Json
+          cuisine_types: string[]
+          establishment_type: string
+        }[]
+      }
       get_restaurant_main_image: {
         Args: { p_restaurant_id: number }
         Returns: string
