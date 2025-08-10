@@ -385,7 +385,7 @@ export default function FoodieSpotLayout() {
               ))}
             </div>
             {/* Fade gradient for overflow */}
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
           </div>
           
           <div className={`flex-shrink-0 ${isVegMode ? 'animate-leaf-sway' : ''}`}>
@@ -399,7 +399,7 @@ export default function FoodieSpotLayout() {
         {/* Active Filters Display */}
         {activeFiltersDisplay.length > 0 && (
           <div className="mb-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
               <div className="relative flex-1 min-w-0">
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                   {activeFiltersDisplay.map((filter, index) => (
@@ -412,11 +412,11 @@ export default function FoodieSpotLayout() {
                   ))}
                 </div>
                 {/* Fade gradient for overflow */}
-                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
               </div>
               <button 
                 onClick={clearAllFilters}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 ml-2"
               >
                 Limpiar filtros
               </button>
@@ -566,7 +566,7 @@ export default function FoodieSpotLayout() {
 
         {/* Main Content */}
         <main className="flex-1 min-w-0">
-          <div className="p-4 ml-6 md:ml-8 lg:ml-12 mr-4 md:mr-8 lg:mr-12">
+          <div className="p-4 ml-8 md:ml-10 lg:ml-14 mr-4 md:mr-8 lg:mr-12">
             {renderContent()}
           </div>
         </main>
