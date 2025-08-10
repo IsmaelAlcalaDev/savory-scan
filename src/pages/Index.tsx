@@ -190,7 +190,7 @@ export default function Index() {
                     description={restaurant.description}
                     priceRange={restaurant.price_range}
                     googleRating={restaurant.google_rating}
-                    reviewCount={restaurant.review_count}
+                    googleRatingCount={restaurant.review_count}
                     distance={restaurant.distance_km}
                     cuisineTypes={restaurant.cuisine_types}
                     establishmentType={restaurant.establishment_type}
