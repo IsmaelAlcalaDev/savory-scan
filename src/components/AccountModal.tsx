@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
-import { Loader2, User, LogOut, Heart, Calendar, Settings } from 'lucide-react';
+import { Loader2, User, LogOut } from 'lucide-react';
+import ProfileSection from './ProfileSection';
+import FavoritesSection from './FavoritesSection';
+import ReservationsSection from './ReservationsSection';
+import SettingsSection from './SettingsSection';
 
 interface AccountModalProps {
   open: boolean;
@@ -46,7 +49,7 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
           title: "¡Bienvenido!",
           description: "Has iniciado sesión correctamente"
         });
-        onOpenChange(false);
+        // Don't close modal, let it show the profile view
         setEmail('');
         setPassword('');
       }
@@ -178,52 +181,52 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
   if (user) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Mi Cuenta
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Mi Perfil
+              </div>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="ml-auto"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Cerrar Sesión
+              </Button>
             </DialogTitle>
             <DialogDescription>
-              Gestiona tu cuenta y preferencias
+              Gestiona tu perfil, favoritos y configuración
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="font-medium">{user.email}</p>
-              <p className="text-sm text-muted-foreground">Usuario verificado</p>
-            </div>
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="profile">Perfil</TabsTrigger>
+              <TabsTrigger value="favorites">Favoritos</TabsTrigger>
+              <TabsTrigger value="reservations">Reservas</TabsTrigger>
+              <TabsTrigger value="settings">Configuración</TabsTrigger>
+            </TabsList>
 
-            <div className="space-y-2">
-              <Button variant="outline" className="w-full justify-start" disabled>
-                <Heart className="mr-2 h-4 w-4" />
-                Mis Favoritos
-                <span className="ml-auto text-xs text-muted-foreground">Próximamente</span>
-              </Button>
-              
-              <Button variant="outline" className="w-full justify-start" disabled>
-                <Calendar className="mr-2 h-4 w-4" />
-                Mis Reservas
-                <span className="ml-auto text-xs text-muted-foreground">Próximamente</span>
-              </Button>
-              
-              <Button variant="outline" className="w-full justify-start" disabled>
-                <Settings className="mr-2 h-4 w-4" />
-                Configuración
-                <span className="ml-auto text-xs text-muted-foreground">Próximamente</span>
-              </Button>
-            </div>
+            <TabsContent value="profile" className="mt-6">
+              <ProfileSection />
+            </TabsContent>
 
-            <Button 
-              variant="destructive" 
-              onClick={handleSignOut}
-              className="w-full"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Cerrar Sesión
-            </Button>
-          </div>
+            <TabsContent value="favorites" className="mt-6">
+              <FavoritesSection />
+            </TabsContent>
+
+            <TabsContent value="reservations" className="mt-6">
+              <ReservationsSection />
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-6">
+              <SettingsSection />
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     );
