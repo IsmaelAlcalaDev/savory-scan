@@ -19,14 +19,26 @@ export const useDishPriceRanges = () => {
     const fetchRanges = async () => {
       try {
         setLoading(true);
+        console.info('Fetching dish price ranges from price_ranges...');
+        // Adaptamos a la tabla existente "price_ranges"
         const { data, error } = await supabase
-          .from('dish_price_ranges')
-          .select('id, name, display_text, min_price, max_price')
+          .from('price_ranges')
+          .select('id, name, display_text, min_price, max_price, is_active, display_order')
           .eq('is_active', true)
           .order('display_order', { ascending: true });
 
         if (error) throw error;
-        setPriceRanges(data || []);
+
+        const mapped: DishPriceRange[] = (data ?? []).map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          display_text: r.display_text,
+          min_price: r.min_price,
+          max_price: r.max_price,
+        }));
+
+        setPriceRanges(mapped);
+        console.info('Dish price ranges loaded:', mapped);
       } catch (e) {
         console.error('Error fetching dish price ranges:', e);
         setError(e instanceof Error ? e.message : 'Error al cargar rangos de precio de platos');

@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Dish {
@@ -51,55 +51,105 @@ export const useDishes = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Mapeo de slugs de dieta a campos booleanos de la vista
+  const dietSlugToField: Record<string, keyof Dish> = useMemo(() => ({
+    vegetarian: 'is_vegetarian',
+    vegetariano: 'is_vegetarian',
+    vegan: 'is_vegan',
+    vegano: 'is_vegan',
+    'gluten_free': 'is_gluten_free',
+    'sin-gluten': 'is_gluten_free',
+    'lactose_free': 'is_lactose_free',
+    'sin-lactosa': 'is_lactose_free',
+    healthy: 'is_healthy',
+    saludable: 'is_healthy',
+  }), []);
+
   useEffect(() => {
     const fetchDishes = async () => {
       try {
         setLoading(true);
         setError(null);
-
-        const { data, error } = await supabase.rpc('search_dishes_with_filters', {
-          search_query: searchQuery,
-          user_lat: userLat ?? null,
-          user_lng: userLng ?? null,
-          max_distance_km: maxDistance,
-          cuisine_type_ids: cuisineTypeIds?.length ? cuisineTypeIds : null,
-          category_ids: categoryIds?.length ? categoryIds : null,
-          diet_filters: dietFilters?.length ? dietFilters : null,
-          exclude_allergen_slugs: null,
-          price_range_ids: priceRangeIds?.length ? priceRangeIds : null,
-          order_by: orderBy,
-          limit_count: 50,
-          offset_count: 0,
+        console.info('Fetching dishes from dishes_full view with filters:', {
+          searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, categoryIds, dietFilters, priceRangeIds, orderBy
         });
 
+        // Usamos la vista existente "dishes_full"
+        let query = supabase
+          .from('dishes_full')
+          .select('id, name, base_price, image_url, restaurant_id, restaurant_name, restaurant_slug, category_id, category_name, is_vegetarian, is_vegan, is_gluten_free, is_lactose_free, is_healthy');
+
+        if (searchQuery && searchQuery.trim().length > 0) {
+          query = query.ilike('name', `%${searchQuery.trim()}%`);
+        }
+
+        if (categoryIds && categoryIds.length > 0) {
+          query = query.in('category_id', categoryIds);
+        }
+
+        // Nota: filtros por cocina y rangos de precio se aplicarán en cliente (no hay join disponible aquí)
+        const { data, error } = await query.limit(200);
+
         if (error) {
-          console.error('Supabase error fetching dishes:', error);
+          console.error('Supabase error fetching dishes (dishes_full):', error);
           throw error;
         }
 
-        const formatted: Dish[] = (data || []).map((row: any) => ({
-          id: row.dish_id,
-          name: row.dish_name,
-          base_price: row.base_price,
+        const rows: any[] = data ?? [];
+
+        // Filtro cliente por dietas
+        const dietSet = new Set((dietFilters ?? []).map((d) => d.toLowerCase()));
+        const filteredByDiet = rows.filter((row) => {
+          if (dietSet.size === 0) return true;
+          // Requiere que todos los filtros estén en true
+          for (const slug of dietSet) {
+            const field = dietSlugToField[slug];
+            if (!field) continue; // slug desconocido, lo ignoramos
+            if (!row[field]) return false;
+          }
+          return true;
+        });
+
+        // Filtro cliente por cocinas (si la vista ofrece info, aquí no la tenemos -> ignoramos por ahora)
+        const filteredByCuisine = filteredByDiet; // mantener igual por ahora
+
+        // TODO: aplicar filtrado cliente por rangos de precio si se dispone de sus min/max en contexto
+
+        const formatted: Dish[] = filteredByCuisine.map((row: any) => ({
+          id: row.id,
+          name: row.name,
+          base_price: Number(row.base_price ?? 0),
           image_url: row.image_url,
           restaurant_id: row.restaurant_id,
           restaurant_name: row.restaurant_name,
           restaurant_slug: row.restaurant_slug,
-          distance_km: row.distance_km,
-          cuisine_types: row.cuisine_types || [],
-          category_id: row.category_id,
-          category_name: row.category_name,
-          is_vegetarian: row.is_vegetarian,
-          is_vegan: row.is_vegan,
-          is_gluten_free: row.is_gluten_free,
-          is_lactose_free: row.is_lactose_free,
-          is_healthy: row.is_healthy,
-          favorites_count: row.favorites_count ?? 0,
-          favorites_count_week: row.favorites_count_week ?? 0,
-          favorites_count_month: row.favorites_count_month ?? 0,
+          distance_km: null, // la vista no trae distancia
+          cuisine_types: [], // no disponible en la vista
+          category_id: row.category_id ?? null,
+          category_name: row.category_name ?? null,
+          is_vegetarian: !!row.is_vegetarian,
+          is_vegan: !!row.is_vegan,
+          is_gluten_free: !!row.is_gluten_free,
+          is_lactose_free: !!row.is_lactose_free,
+          is_healthy: !!row.is_healthy,
+          favorites_count: 0,
+          favorites_count_week: 0,
+          favorites_count_month: 0,
         }));
 
-        setDishes(formatted);
+        // Ordenaciones básicas en cliente
+        const sorted = [...formatted].sort((a, b) => {
+          switch (orderBy) {
+            case 'price_asc': return a.base_price - b.base_price;
+            case 'price_desc': return b.base_price - a.base_price;
+            case 'distance': return (a.distance_km ?? Infinity) - (b.distance_km ?? Infinity);
+            case 'relevance': 
+            case 'popularity':
+            default: return 0;
+          }
+        });
+
+        setDishes(sorted);
       } catch (e) {
         console.error('Error fetching dishes:', e);
         setError(e instanceof Error ? e.message : 'Error al cargar platos');
@@ -124,7 +174,6 @@ export const useDishes = ({
             setDishes(prev =>
               prev.map(d => {
                 if (d.id !== dishId) return d;
-                // calcular incremento según evento
                 const increment =
                   payload.eventType === 'INSERT' && (payload.new as any).is_active ? 1 :
                   payload.eventType === 'UPDATE' && payload.old &&
@@ -142,7 +191,8 @@ export const useDishes = ({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, categoryIds, dietFilters, priceRangeIds, orderBy]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, categoryIds, dietFilters, priceRangeIds, orderBy, dietSlugToField]);
 
   return { dishes, loading, error };
 };
