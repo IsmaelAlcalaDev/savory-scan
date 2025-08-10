@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +17,7 @@ interface Restaurant {
   description?: string;
   price_range: string;
   google_rating?: number;
+  review_count?: number;
   distance_km?: number;
   cuisine_types: string[];
   establishment_type?: string;
@@ -184,6 +186,7 @@ export default function Index() {
                     description={restaurant.description}
                     priceRange={restaurant.price_range}
                     googleRating={restaurant.google_rating}
+                    reviewCount={restaurant.review_count}
                     distance={restaurant.distance_km}
                     cuisineTypes={restaurant.cuisine_types}
                     establishmentType={restaurant.establishment_type}
