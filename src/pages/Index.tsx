@@ -47,6 +47,9 @@ export default function Index() {
   const searchRestaurants = useCallback(async (query: string) => {
     setLoading(true);
     try {
+      console.log('Searching restaurants with query:', query);
+      console.log('Current location:', currentLocation);
+
       const { data, error } = await supabase.rpc('search_restaurants', {
         search_query: query,
         user_lat: currentLocation?.lat || null,
@@ -60,6 +63,7 @@ export default function Index() {
         return;
       }
 
+      console.log('Search results:', data);
       setRestaurants(data || []);
     } catch (error) {
       console.error('Search error:', error);
