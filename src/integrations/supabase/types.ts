@@ -1470,6 +1470,45 @@ export type Database = {
         }
         Relationships: []
       }
+      price_ranges: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          display_text: string
+          icon: string | null
+          id: number
+          is_active: boolean | null
+          max_price: number | null
+          min_price: number | null
+          name: string
+          value: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          display_text: string
+          icon?: string | null
+          id?: number
+          is_active?: boolean | null
+          max_price?: number | null
+          min_price?: number | null
+          name: string
+          value: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          display_text?: string
+          icon?: string | null
+          id?: number
+          is_active?: boolean | null
+          max_price?: number | null
+          min_price?: number | null
+          name?: string
+          value?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2849,6 +2888,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      time_ranges: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          display_text: string
+          end_time: string
+          icon: string | null
+          id: number
+          is_active: boolean | null
+          name: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          display_text: string
+          end_time: string
+          icon?: string | null
+          id?: number
+          is_active?: boolean | null
+          name: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          display_text?: string
+          end_time?: string
+          icon?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          start_time?: string
+        }
+        Relationships: []
       }
       time_slots: {
         Row: {

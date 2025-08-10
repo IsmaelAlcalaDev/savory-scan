@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign } from 'lucide-react';
+import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -10,6 +11,8 @@ import { useDistanceRanges } from '@/hooks/useDistanceRanges';
 import { useRatingOptions } from '@/hooks/useRatingOptions';
 import { useEstablishmentTypes } from '@/hooks/useEstablishmentTypes';
 import { useServices } from '@/hooks/useServices';
+import { usePriceRanges } from '@/hooks/usePriceRanges';
+import { useTimeRanges } from '@/hooks/useTimeRanges';
 
 interface FiltersSidebarProps {
   selectedDistances: number[];
@@ -22,14 +25,9 @@ interface FiltersSidebarProps {
   onServiceChange: (services: number[]) => void;
   selectedPriceRanges: string[];
   onPriceRangeChange: (priceRanges: string[]) => void;
+  selectedTimeRanges: number[];
+  onTimeRangeChange: (timeRanges: number[]) => void;
 }
-
-const priceRangeOptions = [
-  { id: 'budget', label: 'Económico', value: 'budget' },
-  { id: 'moderate', label: 'Moderado', value: 'moderate' },
-  { id: 'expensive', label: 'Caro', value: 'expensive' },
-  { id: 'luxury', label: 'Lujo', value: 'luxury' },
-];
 
 export default function FiltersSidebar({
   selectedDistances,
@@ -42,6 +40,8 @@ export default function FiltersSidebar({
   onServiceChange,
   selectedPriceRanges,
   onPriceRangeChange,
+  selectedTimeRanges,
+  onTimeRangeChange,
 }: FiltersSidebarProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     distance: true,
@@ -49,12 +49,15 @@ export default function FiltersSidebar({
     establishment: false,
     services: false,
     price: false,
+    time: false,
   });
 
   const { distanceRanges, loading: distanceLoading } = useDistanceRanges();
   const { ratingOptions, loading: ratingLoading } = useRatingOptions();
   const { establishmentTypes, loading: establishmentLoading } = useEstablishmentTypes();
   const { services, loading: servicesLoading } = useServices();
+  const { priceRanges, loading: priceLoading } = usePriceRanges();
+  const { timeRanges, loading: timeLoading } = useTimeRanges();
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({
@@ -63,51 +66,18 @@ export default function FiltersSidebar({
     }));
   };
 
-  const handleDistanceToggle = (distanceId: number) => {
-    const newSelected = selectedDistances.includes(distanceId)
-      ? selectedDistances.filter(id => id !== distanceId)
-      : [...selectedDistances, distanceId];
-    onDistanceChange(newSelected);
-  };
-
-  const handleRatingToggle = (ratingId: number) => {
-    const newSelected = selectedRatings.includes(ratingId)
-      ? selectedRatings.filter(id => id !== ratingId)
-      : [...selectedRatings, ratingId];
-    onRatingChange(newSelected);
-  };
-
-  const handleEstablishmentToggle = (establishmentId: number) => {
-    const newSelected = selectedEstablishments.includes(establishmentId)
-      ? selectedEstablishments.filter(id => id !== establishmentId)
-      : [...selectedEstablishments, establishmentId];
-    onEstablishmentChange(newSelected);
-  };
-
-  const handleServiceToggle = (serviceId: number) => {
-    const newSelected = selectedServices.includes(serviceId)
-      ? selectedServices.filter(id => id !== serviceId)
-      : [...selectedServices, serviceId];
-    onServiceChange(newSelected);
-  };
-
-  const handlePriceRangeToggle = (priceRange: string) => {
-    const newSelected = selectedPriceRanges.includes(priceRange)
-      ? selectedPriceRanges.filter(range => range !== priceRange)
-      : [...selectedPriceRanges, priceRange];
-    onPriceRangeChange(newSelected);
-  };
-
   const clearAllFilters = () => {
     onDistanceChange([]);
     onRatingChange([]);
     onEstablishmentChange([]);
     onServiceChange([]);
     onPriceRangeChange([]);
+    onTimeRangeChange([]);
   };
 
   const hasActiveFilters = selectedDistances.length > 0 || selectedRatings.length > 0 || 
-    selectedEstablishments.length > 0 || selectedServices.length > 0 || selectedPriceRanges.length > 0;
+    selectedEstablishments.length > 0 || selectedServices.length > 0 || 
+    selectedPriceRanges.length > 0 || selectedTimeRanges.length > 0;
 
   const FilterSection = ({ 
     title, 
@@ -251,20 +221,47 @@ export default function FiltersSidebar({
         icon={DollarSign}
         sectionKey="price"
         selectedCount={selectedPriceRanges.length}
+        loading={priceLoading}
       >
         <RadioGroup 
           value={selectedPriceRanges[0] || ""} 
           onValueChange={(value) => onPriceRangeChange(value ? [value] : [])}
         >
-          {priceRangeOptions.map((option) => (
+          {priceRanges.map((range) => (
             <RadioOption
-              key={option.id}
-              id={`price-${option.id}`}
-              value={option.value}
-              checked={selectedPriceRanges.includes(option.value)}
+              key={range.id}
+              id={`price-${range.id}`}
+              value={range.value}
+              checked={selectedPriceRanges.includes(range.value)}
               onChange={(value) => onPriceRangeChange([value])}
             >
-              {option.label}
+              {range.display_text}
+            </RadioOption>
+          ))}
+        </RadioGroup>
+      </FilterSection>
+
+      {/* Horarios */}
+      <FilterSection
+        title="Horarios"
+        icon={Clock}
+        sectionKey="time"
+        selectedCount={selectedTimeRanges.length}
+        loading={timeLoading}
+      >
+        <RadioGroup 
+          value={selectedTimeRanges[0]?.toString() || ""} 
+          onValueChange={(value) => onTimeRangeChange(value ? [parseInt(value)] : [])}
+        >
+          {timeRanges.map((range) => (
+            <RadioOption
+              key={range.id}
+              id={`time-${range.id}`}
+              value={range.id.toString()}
+              checked={selectedTimeRanges.includes(range.id)}
+              onChange={(value) => onTimeRangeChange([parseInt(value)])}
+            >
+              {range.display_text}
             </RadioOption>
           ))}
         </RadioGroup>
