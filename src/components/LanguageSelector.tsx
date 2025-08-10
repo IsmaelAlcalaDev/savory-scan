@@ -36,13 +36,15 @@ export default function LanguageSelector() {
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="flex items-center gap-2 h-8 px-2">
-          <span className="text-lg">{selectedLanguage.flag}</span>
+          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-sm">
+            {selectedLanguage.flag}
+          </div>
           <ChevronDown className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="start" 
-        className="w-40 z-[9999]"
+        className="w-40 z-[9999] bg-background border border-border"
         side="bottom"
         sideOffset={4}
         avoidCollisions={true}
@@ -54,7 +56,9 @@ export default function LanguageSelector() {
             onClick={() => handleLanguageChange(language)}
             className="flex items-center gap-3 cursor-pointer"
           >
-            <span className="text-lg">{language.flag}</span>
+            <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-sm">
+              {language.flag}
+            </div>
             <span className="text-sm">{language.name}</span>
           </DropdownMenuItem>
         ))}

@@ -112,7 +112,7 @@ export default function RestaurantCard({
           displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
         )} />
         <div className="absolute top-3 left-3">
-          <Badge variant="secondary" className="bg-white text-foreground text-xs shadow-sm">
+          <Badge variant="secondary" className="bg-white text-foreground text-xs shadow-sm pointer-events-none">
             {establishmentType}
           </Badge>
         </div>
