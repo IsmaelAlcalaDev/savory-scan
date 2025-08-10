@@ -159,6 +159,29 @@ export const useRestaurants = ({
 
         console.log('Final formatted restaurants:', sortedData.length);
         setRestaurants(sortedData);
+
+        // Configurar listener para cambios en tiempo real en favorites
+        const channel = supabase
+          .channel('restaurants-favorites')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'user_saved_restaurants'
+            },
+            (payload) => {
+              console.log('Favorite change detected:', payload);
+              // Recargar datos cuando cambie algún favorito
+              fetchRestaurants();
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
+
       } catch (err) {
         console.error('Error fetching restaurants:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar restaurantes');

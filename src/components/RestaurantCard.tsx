@@ -2,6 +2,7 @@
 import { Star, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface RestaurantCardProps {
   id: number;
@@ -40,12 +41,19 @@ export default function RestaurantCard({
   onClick,
   className
 }: RestaurantCardProps) {
+  const { isFavorite, isToggling, toggleFavorite } = useFavorites();
+
   const handleClick = () => {
     if (onClick) {
       onClick();
     } else {
       window.location.href = `/restaurant/${slug}`;
     }
+  };
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evitar que se active el click de la card
+    toggleFavorite(id);
   };
 
   // Elegir la mejor imagen disponible
@@ -91,10 +99,26 @@ export default function RestaurantCard({
           </Badge>
         </div>
         <div className="absolute top-3 right-3">
-          <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 border border-white/20">
-            <Heart className="h-3 w-3 text-red-500" />
+          <button
+            onClick={handleFavoriteClick}
+            disabled={isToggling(id)}
+            className={cn(
+              "flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 border border-white/20",
+              "hover:bg-white transition-all duration-200",
+              "disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
+          >
+            <Heart 
+              className={cn(
+                "h-3 w-3 transition-all duration-200",
+                isFavorite(id) 
+                  ? "text-red-500 fill-red-500" 
+                  : "text-red-500",
+                isToggling(id) && "animate-pulse"
+              )} 
+            />
             <span className="text-xs font-medium">{favoritesCount}</span>
-          </div>
+          </button>
         </div>
       </div>
 
