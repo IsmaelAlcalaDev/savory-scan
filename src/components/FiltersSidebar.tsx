@@ -103,7 +103,7 @@ export default function FiltersSidebar({
           <div className="w-full py-1.5 hover:bg-muted/30 transition-colors cursor-pointer rounded-lg px-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-foreground text-sm">{title}</span>
+                <span className="font-bold text-foreground text-base">{title}</span>
                 {selectedCount > 0 && (
                   <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-primary text-primary-foreground font-medium">
                     {selectedCount}
