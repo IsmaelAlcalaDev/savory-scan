@@ -36,55 +36,75 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
     setDetectedLocation('');
     
     try {
-      if ('geolocation' in navigator) {
+      console.log('Requesting geolocation permission...');
+      
+      if (!('geolocation' in navigator)) {
+        throw new Error('Geolocalización no soportada en este navegador');
+      }
+
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            
-            // Encontrar la ubicación más cercana en la base de datos
-            const nearestLocation = await findNearestLocation(latitude, longitude);
-            
-            if (nearestLocation) {
-              const locationText = nearestLocation.parent 
-                ? `${nearestLocation.name}, ${nearestLocation.parent}`
-                : nearestLocation.name;
-              
-              setDetectedLocation(locationText);
-              
-              onLocationSelect({
-                type: 'gps',
-                data: {
-                  latitude,
-                  longitude,
-                  name: nearestLocation.name,
-                  type: nearestLocation.type,
-                  parent: nearestLocation.parent,
-                  address: locationText
-                }
-              });
-            } else {
-              setDetectedLocation('Ubicación detectada');
-              onLocationSelect({
-                type: 'gps',
-                data: {
-                  latitude,
-                  longitude,
-                  address: 'Ubicación detectada'
-                }
-              });
-            }
-            
-            onOpenChange(false);
-            setIsLoadingGPS(false);
-          },
-          (error) => {
-            console.error('GPS Error:', error);
-            setIsLoadingGPS(false);
+          resolve,
+          reject,
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
           }
         );
+      });
+
+      const { latitude, longitude } = position.coords;
+      console.log('GPS coordinates obtained:', { latitude, longitude });
+      
+      // Encontrar la ubicación más cercana en la base de datos
+      const nearestLocation = await findNearestLocation(latitude, longitude);
+      
+      if (nearestLocation) {
+        const locationText = nearestLocation.parent 
+          ? `${nearestLocation.name}, ${nearestLocation.parent}`
+          : nearestLocation.name;
+        
+        setDetectedLocation(locationText);
+        
+        onLocationSelect({
+          type: 'gps',
+          data: {
+            latitude,
+            longitude,
+            name: nearestLocation.name,
+            type: nearestLocation.type,
+            parent: nearestLocation.parent,
+            address: locationText
+          }
+        });
+      } else {
+        setDetectedLocation('Ubicación detectada');
+        onLocationSelect({
+          type: 'gps',
+          data: {
+            latitude,
+            longitude,
+            address: 'Ubicación detectada'
+          }
+        });
       }
-    } catch (error) {
+      
+      onOpenChange(false);
+    } catch (error: any) {
       console.error('GPS Error:', error);
+      
+      let errorMessage = 'Error al obtener ubicación';
+      if (error.code === 1) {
+        errorMessage = 'Permiso de ubicación denegado';
+      } else if (error.code === 2) {
+        errorMessage = 'Ubicación no disponible';
+      } else if (error.code === 3) {
+        errorMessage = 'Tiempo de espera agotado';
+      }
+      
+      setDetectedLocation(errorMessage);
+    } finally {
       setIsLoadingGPS(false);
     }
   };
