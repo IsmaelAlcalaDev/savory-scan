@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -125,21 +124,21 @@ export default function FiltersSidebar({
     children: React.ReactNode;
     loading?: boolean;
   }) => (
-    <div className="border border-border rounded-xl bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    <div className="mb-6">
       <Collapsible 
         open={openSections[sectionKey]} 
         onOpenChange={() => toggleSection(sectionKey)}
       >
         <CollapsibleTrigger asChild>
-          <div className="w-full px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer">
+          <div className="w-full py-3 hover:bg-muted/30 transition-colors cursor-pointer rounded-lg px-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-lg bg-primary/10">
+                <div className="p-2 rounded-full bg-primary/10">
                   <Icon className="h-4 w-4 text-primary" />
                 </div>
-                <span className="font-medium text-foreground">{title}</span>
+                <span className="font-semibold text-foreground text-base">{title}</span>
                 {selectedCount > 0 && (
-                  <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-primary/20 text-primary border-0">
+                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-primary text-primary-foreground font-medium">
                     {selectedCount}
                   </Badge>
                 )}
@@ -152,7 +151,7 @@ export default function FiltersSidebar({
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="px-4 pb-4 pt-0">
+          <div className="px-3 pb-2 pt-2">
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -163,7 +162,7 @@ export default function FiltersSidebar({
                 ))}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 ml-6">
                 {children}
               </div>
             )}
@@ -186,16 +185,16 @@ export default function FiltersSidebar({
     children: React.ReactNode;
     icon?: React.ReactNode;
   }) => (
-    <div className="flex items-center space-x-3 group">
+    <div className="flex items-center space-x-3 group py-1">
       <Checkbox 
         id={id}
         checked={checked}
         onCheckedChange={onChange}
-        className="border-2"
+        className="border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
       />
       <label 
         htmlFor={id}
-        className="text-sm text-foreground cursor-pointer flex items-center gap-2 flex-1 group-hover:text-primary transition-colors"
+        className="text-sm text-foreground cursor-pointer flex items-center gap-2 flex-1 group-hover:text-primary transition-colors font-medium"
       >
         {icon}
         {children}
@@ -204,15 +203,15 @@ export default function FiltersSidebar({
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-0">
       {/* Clear All Button */}
       {hasActiveFilters && (
-        <div className="flex justify-start">
+        <div className="mb-6">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={clearAllFilters}
-            className="text-muted-foreground hover:text-foreground border-dashed"
+            className="text-muted-foreground hover:text-foreground border-dashed hover:border-solid"
           >
             Limpiar filtros
           </Button>
@@ -318,11 +317,6 @@ export default function FiltersSidebar({
             id={`service-${service.id}`}
             checked={selectedServices.includes(service.id)}
             onChange={() => handleServiceToggle(service.id)}
-            icon={service.icon && (
-              <span className="text-sm" role="img" aria-label={service.name}>
-                {service.icon}
-              </span>
-            )}
           >
             {service.name}
           </CheckboxOption>
