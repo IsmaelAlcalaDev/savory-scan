@@ -34,7 +34,7 @@ const DishCard: React.FC<DishCardProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+    <Card className="overflow-hidden hover:shadow-md transition-shadow border-0 shadow-none">
       <div className="relative">
         <img
           src={imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&q=80&auto=format&fit=crop'}
@@ -62,7 +62,6 @@ const DishCard: React.FC<DishCardProps> = ({
             <p className="text-sm text-muted-foreground">{restaurantName}</p>
           </div>
           <div className="text-right">
-            <div className="text-sm text-muted-foreground">Desde</div>
             <div className="text-lg font-semibold">{basePrice.toFixed(2)}€</div>
           </div>
         </div>
