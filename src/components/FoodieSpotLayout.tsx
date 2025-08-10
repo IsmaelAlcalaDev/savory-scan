@@ -11,6 +11,7 @@ import RestaurantCard from './RestaurantCard';
 import LocationModal from './LocationModal';
 import VegModeToggle from './VegModeToggle';
 import ViewModeToggle from './ViewModeToggle';
+import BottomNavigation from './BottomNavigation';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useIPLocation } from '@/hooks/useIPLocation';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,6 +37,7 @@ export default function FoodieSpotLayout() {
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState('Detectando ubicación...');
+  const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>('restaurants');
 
   const { location: ipLocation, loading: ipLoading } = useIPLocation();
 
@@ -107,8 +109,133 @@ export default function FoodieSpotLayout() {
     console.log('Updated location name:', currentLocationName);
   };
 
+  const renderContent = () => {
+    if (activeBottomTab === 'dishes') {
+      return (
+        <div className="text-center py-16">
+          <h2 className="text-xl font-semibold mb-2">Platos</h2>
+          <p className="text-muted-foreground">Próximamente disponible</p>
+        </div>
+      );
+    }
+    
+    if (activeBottomTab === 'account') {
+      return (
+        <div className="text-center py-16">
+          <h2 className="text-xl font-semibold mb-2">Mi Cuenta</h2>
+          <p className="text-muted-foreground">Próximamente disponible</p>
+        </div>
+      );
+    }
+
+    // Default restaurants content
+    return (
+      <>
+        {/* Results Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-semibold mb-1">
+              {userLocation ? 'Restaurantes cerca de ti' : 'Restaurantes'}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {loading ? 'Cargando...' : `${restaurants.length} resultados`}
+              {userLocation && ' • Ordenados por distancia'}
+              {ipLocation && ipLocation.accuracy === 'ip' && (
+                <span className="text-xs text-muted-foreground ml-1">
+                  (ubicación aproximada)
+                </span>
+              )}
+            </p>
+            {error && (
+              <p className="text-sm text-destructive mt-1">Error: {error}</p>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <ViewModeToggle 
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+            />
+          </div>
+        </div>
+
+        {/* Filter Badges with VEG Mode */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex gap-2">
+            {filterOptions.map((filter) => (
+              <Badge
+                key={filter.id}
+                variant={activeFilters.includes(filter.id) ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => handleFilterToggle(filter.id)}
+              >
+                {filter.label}
+              </Badge>
+            ))}
+          </div>
+          
+          <div className="ml-auto">
+            <VegModeToggle 
+              isVegMode={isVegMode}
+              onToggle={setIsVegMode}
+            />
+          </div>
+        </div>
+
+        {/* Restaurant Grid/List */}
+        <div className={cn(
+          viewMode === 'grid' 
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            : "space-y-4"
+        )}>
+          {loading ? (
+            Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className={viewMode === 'grid' ? "h-32 w-full" : "h-24 w-full"} />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))
+          ) : error ? (
+            <div className="col-span-full text-center py-8">
+              <p className="text-muted-foreground">Error al cargar restaurantes: {error}</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Revisa la consola para más detalles
+              </p>
+            </div>
+          ) : restaurants.length === 0 ? (
+            <div className="col-span-full text-center py-8">
+              <p className="text-muted-foreground">No se encontraron restaurantes</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Intenta cambiar los filtros de búsqueda
+              </p>
+            </div>
+          ) : (
+            restaurants.map((restaurant) => (
+              <RestaurantCard
+                key={restaurant.id}
+                id={restaurant.id}
+                name={restaurant.name}
+                slug={restaurant.slug}
+                description={restaurant.description}
+                priceRange={restaurant.price_range}
+                googleRating={restaurant.google_rating}
+                distance={restaurant.distance_km}
+                cuisineTypes={restaurant.cuisine_types}
+                establishmentType={restaurant.establishment_type}
+                services={restaurant.services}
+                favoritesCount={restaurant.favorites_count}
+                viewMode={viewMode}
+              />
+            ))
+          )}
+        </div>
+      </>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="flex items-center justify-between p-4">
@@ -192,108 +319,16 @@ export default function FoodieSpotLayout() {
         {/* Main Content */}
         <main className="flex-1 min-w-0">
           <div className="p-4 mx-4 md:mx-8 lg:mx-12">
-            {/* Results Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-semibold mb-1">
-                  {userLocation ? 'Restaurantes cerca de ti' : 'Restaurantes'}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {loading ? 'Cargando...' : `${restaurants.length} resultados`}
-                  {userLocation && ' • Ordenados por distancia'}
-                  {ipLocation && ipLocation.accuracy === 'ip' && (
-                    <span className="text-xs text-muted-foreground ml-1">
-                      (ubicación aproximada)
-                    </span>
-                  )}
-                </p>
-                {error && (
-                  <p className="text-sm text-destructive mt-1">Error: {error}</p>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <ViewModeToggle 
-                  viewMode={viewMode}
-                  onViewModeChange={setViewMode}
-                />
-              </div>
-            </div>
-
-            {/* Filter Badges with VEG Mode */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex gap-2">
-                {filterOptions.map((filter) => (
-                  <Badge
-                    key={filter.id}
-                    variant={activeFilters.includes(filter.id) ? "default" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => handleFilterToggle(filter.id)}
-                  >
-                    {filter.label}
-                  </Badge>
-                ))}
-              </div>
-              
-              <div className="ml-auto">
-                <VegModeToggle 
-                  isVegMode={isVegMode}
-                  onToggle={setIsVegMode}
-                />
-              </div>
-            </div>
-
-            {/* Restaurant Grid/List */}
-            <div className={cn(
-              viewMode === 'grid' 
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                : "space-y-4"
-            )}>
-              {loading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className={viewMode === 'grid' ? "h-32 w-full" : "h-24 w-full"} />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                ))
-              ) : error ? (
-                <div className="col-span-full text-center py-8">
-                  <p className="text-muted-foreground">Error al cargar restaurantes: {error}</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Revisa la consola para más detalles
-                  </p>
-                </div>
-              ) : restaurants.length === 0 ? (
-                <div className="col-span-full text-center py-8">
-                  <p className="text-muted-foreground">No se encontraron restaurantes</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Intenta cambiar los filtros de búsqueda
-                  </p>
-                </div>
-              ) : (
-                restaurants.map((restaurant) => (
-                  <RestaurantCard
-                    key={restaurant.id}
-                    id={restaurant.id}
-                    name={restaurant.name}
-                    slug={restaurant.slug}
-                    description={restaurant.description}
-                    priceRange={restaurant.price_range}
-                    googleRating={restaurant.google_rating}
-                    distance={restaurant.distance_km}
-                    cuisineTypes={restaurant.cuisine_types}
-                    establishmentType={restaurant.establishment_type}
-                    services={restaurant.services}
-                    favoritesCount={restaurant.favorites_count}
-                    viewMode={viewMode}
-                  />
-                ))
-              )}
-            </div>
+            {renderContent()}
           </div>
         </main>
       </div>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation 
+        activeTab={activeBottomTab}
+        onTabChange={setActiveBottomTab}
+      />
 
       {/* Location Modal */}
       <LocationModal
