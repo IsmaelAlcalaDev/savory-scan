@@ -192,7 +192,7 @@ export default function FavoritesSection() {
 
       switch (type) {
         case 'restaurant':
-          // Actualización optimista inmediata
+          // Immediate optimistic updates
           setFavoriteState(id, false);
           setFavoriteRestaurants(prev => prev.filter(item => item.id !== id));
           
@@ -201,7 +201,7 @@ export default function FavoritesSection() {
             restaurant_id_param: id
           }));
 
-          // Actualizar el estado global después de la operación exitosa
+          // Update global state after successful operation
           if (!error) {
             await refreshFavorites();
           }

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
+import { FavoritesProvider } from "./contexts/FavoritesContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RestaurantProfile from "./pages/RestaurantProfile";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
@@ -20,35 +21,37 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<FoodieSpot />} />
-              <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <SecureAdminPanel />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/superadmin" 
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <SuperAdminPanel />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/auth" element={<Auth />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <FavoritesProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<FoodieSpot />} />
+                <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <SecureAdminPanel />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/superadmin" 
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <SuperAdminPanel />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/auth" element={<Auth />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </FavoritesProvider>
       </AuthProvider>
     </QueryClientProvider>
   </HelmetProvider>

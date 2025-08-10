@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface RestaurantCardProps {
   id: number;
@@ -58,11 +58,30 @@ export default function RestaurantCard({
   
   // Local state para manejar el contador de favoritos
   const [localFavoritesCount, setLocalFavoritesCount] = useState(favoritesCount);
+  const previousIsFavoriteRef = useRef<boolean | null>(null);
 
   // Sincronizar el contador local cuando cambie el prop favoritesCount
   useEffect(() => {
     setLocalFavoritesCount(favoritesCount);
   }, [favoritesCount]);
+
+  // Sync with global favorites context
+  useEffect(() => {
+    const currentIsFavorite = isFavorite(id);
+    
+    // Only adjust count if this is not the first render and the favorite state actually changed
+    if (previousIsFavoriteRef.current !== null && previousIsFavoriteRef.current !== currentIsFavorite) {
+      if (currentIsFavorite && !previousIsFavoriteRef.current) {
+        // Changed from not favorite to favorite
+        setLocalFavoritesCount(prev => prev + 1);
+      } else if (!currentIsFavorite && previousIsFavoriteRef.current) {
+        // Changed from favorite to not favorite
+        setLocalFavoritesCount(prev => Math.max(0, prev - 1));
+      }
+    }
+    
+    previousIsFavoriteRef.current = currentIsFavorite;
+  }, [isFavorite(id), id]);
 
   const handleClick = () => {
     if (onClick) {
@@ -80,21 +99,8 @@ export default function RestaurantCard({
       return;
     }
     
-    // Update local count optimistically
-    const wasLiked = isFavorite(id);
-    const newCount = wasLiked ? localFavoritesCount - 1 : localFavoritesCount + 1;
-    setLocalFavoritesCount(Math.max(0, newCount)); // No permitir números negativos
-    
-    try {
-      const result = await toggleFavorite(id, onLoginRequired);
-      // Si el resultado final no coincide con lo que esperábamos, corregir
-      if (result !== !wasLiked) {
-        setLocalFavoritesCount(wasLiked ? localFavoritesCount : localFavoritesCount);
-      }
-    } catch (error) {
-      // Revertir el cambio optimista en caso de error
-      setLocalFavoritesCount(localFavoritesCount);
-    }
+    // The global context will handle optimistic updates
+    await toggleFavorite(id, onLoginRequired);
   };
 
   // Elegir la mejor imagen disponible
