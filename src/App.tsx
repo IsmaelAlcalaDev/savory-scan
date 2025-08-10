@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Index from "./pages/Index";
 import RestaurantProfile from "./pages/RestaurantProfile";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
 import SuperAdminPanel from "./pages/SuperAdminPanel";
@@ -26,8 +25,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/foodiespot" element={<FoodieSpot />} />
+              <Route path="/" element={<FoodieSpot />} />
               <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
               <Route 
                 path="/admin" 
