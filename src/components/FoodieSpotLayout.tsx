@@ -21,6 +21,8 @@ const filterOptions = [
 ];
 
 export default function FoodieSpotLayout() {
+  console.log('FoodieSpotLayout: Rendering component');
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
@@ -32,13 +34,6 @@ export default function FoodieSpotLayout() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState('Tu ubicación actual');
 
-  console.log('FoodieSpotLayout state:', {
-    selectedCuisines,
-    selectedDistances,
-    selectedRatings,
-    userLocation
-  });
-
   // Use real restaurant data
   const { restaurants, loading, error } = useRestaurants({
     searchQuery,
@@ -49,7 +44,7 @@ export default function FoodieSpotLayout() {
     minRating: selectedRatings.length > 0 ? Math.min(...selectedRatings) : 0
   });
 
-  console.log('Restaurants hook result:', { restaurants, loading, error });
+  console.log('FoodieSpotLayout: Restaurants hook result:', { restaurants, loading, error });
 
   const handleFilterToggle = (filterId: string) => {
     setActiveFilters(prev => 
@@ -60,7 +55,7 @@ export default function FoodieSpotLayout() {
   };
 
   const handleLocationSelect = (location: { type: string; data?: any }) => {
-    console.log('Location selected:', location);
+    console.log('FoodieSpotLayout: Location selected:', location);
     if (location.type === 'gps') {
       setUserLocation({
         lat: location.data.latitude,
