@@ -539,13 +539,13 @@ export default function FoodieSpotLayout() {
             {/* Search Section */}
             <div className="flex-1 max-w-md">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10" />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground hover:text-red-500 transition-colors z-10" />
                 <Input
                   type="text"
                   placeholder="Buscar restaurantes, platos..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 h-10 text-base bg-background/50 border border-muted-foreground backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full focus:border-muted-foreground"
+                  className="pl-10 pr-4 h-10 text-base bg-background/50 border border-muted-foreground backdrop-blur-sm rounded-full focus:border-muted-foreground"
                 />
               </div>
             </div>

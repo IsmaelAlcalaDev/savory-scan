@@ -142,8 +142,24 @@ export default function RestaurantCard({
 
       {/* Datos fuera de la imagen, sin bordes */}
       <div className="space-y-2">
-        {/* Nombre del restaurante y rating en la misma línea */}
+        {/* Nombre del restaurante con logo y rating en la misma línea */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Logo del restaurante */}
+          {logoUrl && (
+            <div className="flex-shrink-0">
+              <img 
+                src={logoUrl} 
+                alt={`${name} logo`}
+                className="w-6 h-6 rounded object-cover"
+                onError={(e) => {
+                  // Ocultar logo si falla la carga
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+          
           <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-smooth">
             {name}
           </h3>
