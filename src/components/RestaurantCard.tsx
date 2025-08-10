@@ -51,6 +51,14 @@ export default function RestaurantCard({
   // Elegir la mejor imagen disponible
   const displayImage = coverImageUrl || logoUrl;
 
+  // Formatear la distancia
+  const formatDistance = (distanceKm: number) => {
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)}m`;
+    }
+    return `${distanceKm.toFixed(1)}km`;
+  };
+
   return (
     <div 
       className={cn(
@@ -108,19 +116,19 @@ export default function RestaurantCard({
           )}
         </div>
         
-        {/* Tipo de cocina · Distancia · Precio en una sola línea */}
+        {/* Tipo de cocina · Rango de precio · Distancia en una sola línea */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
           <span className="line-clamp-1">
             {cuisineTypes.slice(0, 2).join(', ')}
           </span>
+          <span>•</span>
+          <span className="font-medium text-foreground">{priceRange}</span>
           {distance && (
             <>
               <span>•</span>
-              <span className="flex-shrink-0">{distance.toFixed(1)}km</span>
+              <span className="flex-shrink-0">{formatDistance(distance)}</span>
             </>
           )}
-          <span>•</span>
-          <span className="font-medium text-foreground">{priceRange}</span>
         </div>
       </div>
     </div>
