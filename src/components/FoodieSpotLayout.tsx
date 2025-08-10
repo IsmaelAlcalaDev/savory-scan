@@ -520,8 +520,8 @@ export default function FoodieSpotLayout() {
             </div>
           </div>
 
-          {/* Location Section - Centered */}
-          <div className="flex-1 flex justify-center">
+          {/* Location Section - Left aligned */}
+          <div className="flex justify-start ml-6">
             <Button
               variant="ghost"
               onClick={() => setLocationModalOpen(true)}
@@ -535,7 +535,7 @@ export default function FoodieSpotLayout() {
           </div>
 
           {/* Search Section */}
-          <div className="flex-1 max-w-md mr-6">
+          <div className="flex-1 max-w-md ml-2 mr-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10" />
               <Input
