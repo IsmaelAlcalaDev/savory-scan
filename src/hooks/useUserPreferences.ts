@@ -72,25 +72,33 @@ export const useUserPreferences = () => {
       }
 
       if (data?.preferences) {
-        // Parse preferences safely
-        const userPrefs = data.preferences;
-        if (userPrefs && typeof userPrefs === 'object') {
-          const parsedPrefs = {
-            language: userPrefs.language || defaultPreferences.language,
-            theme: userPrefs.theme || defaultPreferences.theme,
+        // Type-safe parsing of JSON preferences
+        const rawPrefs = data.preferences;
+        
+        // Ensure it's an object and not an array
+        if (rawPrefs && typeof rawPrefs === 'object' && !Array.isArray(rawPrefs)) {
+          const userPrefs = rawPrefs as Record<string, any>;
+          
+          const parsedPrefs: UserPreferences = {
+            language: typeof userPrefs.language === 'string' ? userPrefs.language : defaultPreferences.language,
+            theme: ['light', 'dark', 'system'].includes(userPrefs.theme) ? userPrefs.theme : defaultPreferences.theme,
             notifications: {
-              ...defaultPreferences.notifications,
-              ...(userPrefs.notifications || {})
+              email: typeof userPrefs.notifications?.email === 'boolean' ? userPrefs.notifications.email : defaultPreferences.notifications.email,
+              push: typeof userPrefs.notifications?.push === 'boolean' ? userPrefs.notifications.push : defaultPreferences.notifications.push,
+              sms: typeof userPrefs.notifications?.sms === 'boolean' ? userPrefs.notifications.sms : defaultPreferences.notifications.sms,
             },
             diet: {
-              ...defaultPreferences.diet,
-              ...(userPrefs.diet || {})
+              vegetarian: typeof userPrefs.diet?.vegetarian === 'boolean' ? userPrefs.diet.vegetarian : defaultPreferences.diet.vegetarian,
+              vegan: typeof userPrefs.diet?.vegan === 'boolean' ? userPrefs.diet.vegan : defaultPreferences.diet.vegan,
+              gluten_free: typeof userPrefs.diet?.gluten_free === 'boolean' ? userPrefs.diet.gluten_free : defaultPreferences.diet.gluten_free,
+              lactose_free: typeof userPrefs.diet?.lactose_free === 'boolean' ? userPrefs.diet.lactose_free : defaultPreferences.diet.lactose_free,
             },
             location: {
-              ...defaultPreferences.location,
-              ...(userPrefs.location || {})
+              auto_detect: typeof userPrefs.location?.auto_detect === 'boolean' ? userPrefs.location.auto_detect : defaultPreferences.location.auto_detect,
+              default_radius: typeof userPrefs.location?.default_radius === 'number' ? userPrefs.location.default_radius : defaultPreferences.location.default_radius,
             }
-          } as UserPreferences;
+          };
+          
           setPreferences(parsedPrefs);
         } else {
           setPreferences(defaultPreferences);

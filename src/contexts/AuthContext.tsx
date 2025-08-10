@@ -87,7 +87,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const { error } = await supabase.rpc('upsert_user_auth_provider', {
-        p_user_id: user.id,
         p_provider: providerType,
         p_provider_user_id: user.user_metadata?.sub || user.id,
         p_provider_email: user.email || '',
