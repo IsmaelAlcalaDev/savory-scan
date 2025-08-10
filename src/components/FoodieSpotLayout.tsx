@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import BottomNavigation from './BottomNavigation';
@@ -5,7 +6,9 @@ import DistanceFilter from './DistanceFilter';
 import CuisineFilter from './CuisineFilter';
 import RatingFilter from './RatingFilter';
 import VegModeToggle from './VegModeToggle';
-import LocationInfo from './LocationInfo';
+import { useIPLocation } from '@/hooks/useIPLocation';
+import { useNearestLocation } from '@/hooks/useNearestLocation';
+import { MapPin } from 'lucide-react';
 
 interface FoodieSpotLayoutProps {
   children: React.ReactNode;
@@ -13,10 +16,13 @@ interface FoodieSpotLayoutProps {
 
 export default function FoodieSpotLayout({ children }: FoodieSpotLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedDistance, setSelectedDistance] = useState<number | null>(null);
+  const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
-  const [selectedRating, setSelectedRating] = useState<number | null>(null);
-  const [vegMode, setVegMode] = useState<boolean>(false);
+  const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
+  const [isVegMode, setIsVegMode] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState('home');
+
+  const { location: ipLocation } = useIPLocation();
 
   return (
     <div className="min-h-screen bg-white pb-20">
@@ -27,7 +33,6 @@ export default function FoodieSpotLayout({ children }: FoodieSpotLayoutProps) {
             className="md:hidden text-gray-600 focus:outline-none"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
-            {/* Hamburger Icon - Replace with your preferred icon */}
             <svg
               className="h-6 w-6"
               fill="none"
@@ -56,25 +61,31 @@ export default function FoodieSpotLayout({ children }: FoodieSpotLayoutProps) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}>
           <div className="p-4 space-y-6">
-            {/* Location Info - always visible */}
-            <div>
-              <LocationInfo />
-            </div>
+            {/* Location Info */}
+            {ipLocation && (
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <MapPin className="h-4 w-4 text-blue-500" />
+                  <span className="font-medium text-sm">Ubicación detectada</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {ipLocation.city}, {ipLocation.region}
+                </p>
+              </div>
+            )}
 
             {/* Filters */}
             <div className="space-y-6">
               {/* Distance Filter */}
               <div>
-                <h3 className="font-semibold text-lg mb-3">Distancia</h3>
                 <DistanceFilter
-                  selectedDistance={selectedDistance}
-                  onDistanceChange={setSelectedDistance}
+                  selectedDistances={selectedDistances}
+                  onDistanceChange={setSelectedDistances}
                 />
               </div>
 
               {/* Cuisine Types Filter */}
               <div>
-                <h3 className="font-semibold text-lg mb-3">Tipos de Cocina</h3>
                 <CuisineFilter
                   selectedCuisines={selectedCuisines}
                   onCuisineChange={setSelectedCuisines}
@@ -83,18 +94,17 @@ export default function FoodieSpotLayout({ children }: FoodieSpotLayoutProps) {
 
               {/* Rating Filter */}
               <div>
-                <h3 className="font-semibold text-lg mb-3">Valoración</h3>
                 <RatingFilter
-                  selectedRating={selectedRating}
-                  onRatingChange={setSelectedRating}
+                  selectedRatings={selectedRatings}
+                  onRatingChange={setSelectedRatings}
                 />
               </div>
 
               {/* Veg Mode Toggle */}
               <div>
                 <VegModeToggle
-                  vegMode={vegMode}
-                  onVegModeChange={setVegMode}
+                  isVegMode={isVegMode}
+                  onToggle={setIsVegMode}
                 />
               </div>
             </div>
@@ -108,7 +118,10 @@ export default function FoodieSpotLayout({ children }: FoodieSpotLayoutProps) {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNavigation />
+      <BottomNavigation 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* Overlay for mobile sidebar */}
       {sidebarOpen && (

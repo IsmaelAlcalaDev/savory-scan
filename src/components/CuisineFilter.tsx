@@ -1,6 +1,7 @@
 
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState } from 'react';
+import { ChevronDown, Utensils } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -12,65 +13,64 @@ interface CuisineFilterProps {
 export default function CuisineFilter({ selectedCuisines, onCuisineChange }: CuisineFilterProps) {
   const { cuisineTypes, loading, error } = useCuisineTypes();
 
-  console.log('CuisineFilter state:', { cuisineTypes, loading, error, selectedCuisines });
-
   const handleCuisineToggle = (cuisineId: number) => {
     const newSelected = selectedCuisines.includes(cuisineId)
       ? selectedCuisines.filter(id => id !== cuisineId)
       : [...selectedCuisines, cuisineId];
-    console.log('Cuisine selection changed:', newSelected);
     onCuisineChange(newSelected);
   };
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 rounded-lg" />
-        ))}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Utensils className="h-4 w-4" />
+          <span className="font-medium">Tipos de Cocina</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center p-3 border rounded-lg">
+              <Skeleton className="h-6 w-6 mb-2" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (error) {
     console.error('Error loading cuisine types:', error);
-    return (
-      <div className="text-sm text-destructive p-2">
-        Error cargando tipos de cocina: {error}
-      </div>
-    );
-  }
-
-  if (!cuisineTypes || cuisineTypes.length === 0) {
-    return (
-      <div className="text-sm text-muted-foreground p-2">
-        No hay tipos de cocina disponibles
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3">
-      {cuisineTypes.map((cuisine) => (
-        <div
-          key={cuisine.id}
-          className={`cursor-pointer rounded-lg p-3 transition-all duration-200 text-center ${
-            selectedCuisines.includes(cuisine.id)
-              ? 'bg-primary text-primary-foreground shadow-md'
-              : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
-          }`}
-          onClick={() => handleCuisineToggle(cuisine.id)}
-        >
-          <div className="flex flex-col items-center gap-2">
-            <div className="text-2xl">
-              {cuisine.icon_emoji || cuisine.icon || '🍽️'}
+    <div>
+      <div className="flex items-center gap-2 mb-4">
+        <Utensils className="h-4 w-4" />
+        <span className="font-medium">Tipos de Cocina</span>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {cuisineTypes.map((cuisine) => (
+          <div key={cuisine.id} className="flex flex-col items-center">
+            <div
+              className={`flex flex-col items-center p-3 border rounded-lg cursor-pointer transition-all hover:bg-gray-50 ${
+                selectedCuisines.includes(cuisine.id)
+                  ? 'border-primary bg-primary/5'
+                  : 'border-gray-200'
+              }`}
+              onClick={() => handleCuisineToggle(cuisine.id)}
+            >
+              <div className="text-2xl mb-2">
+                {cuisine.icon_emoji || '🍽️'}
+              </div>
+              <span className="text-xs text-center font-medium">
+                {cuisine.name}
+              </span>
             </div>
-            <span className="text-sm font-medium leading-tight">
-              {cuisine.name}
-            </span>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
