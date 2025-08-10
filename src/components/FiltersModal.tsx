@@ -10,7 +10,6 @@ import {
   ModalTrigger,
 } from '@/components/ui/modal-wrapper';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import FiltersSidebar from './FiltersSidebar';
 
 interface FiltersModalProps {
@@ -81,50 +80,55 @@ export default function FiltersModal({
         </Button>
       </ModalTrigger>
       
-      <ModalContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden relative">
-        {/* Botón de cerrar personalizado más grande */}
-        <button
-          onClick={() => setOpen(false)}
-          className="absolute right-4 top-4 z-10 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center"
-        >
-          <X className="h-6 w-6 text-white font-bold" strokeWidth={3} />
-        </button>
+      <ModalContent className="max-w-4xl h-[90vh] p-0 overflow-hidden flex flex-col">
+        {/* Header fijo */}
+        <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 flex-shrink-0 relative">
+          {/* Botón de cerrar más grande y blanco */}
+          <button
+            onClick={() => setOpen(false)}
+            className="absolute right-4 top-4 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center"
+          >
+            <X className="h-8 w-8 text-white font-bold" strokeWidth={4} />
+          </button>
 
-        {/* Modern Header with gradient */}
-        <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 pr-16">
           <ModalHeader>
-            <div className="flex items-center justify-between">
-              <ModalTitle className="flex items-center gap-3 text-xl font-bold">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                  <SlidersHorizontal className="h-5 w-5" />
+            <div className="flex items-center justify-between pr-16">
+              <ModalTitle className="flex items-center gap-3 text-2xl font-bold">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <SlidersHorizontal className="h-6 w-6" />
                 </div>
                 Filtros de Búsqueda
               </ModalTitle>
-              
-              {hasActiveFilters && (
+            </div>
+            
+            {hasActiveFilters && (
+              <div className="mt-4 flex items-center justify-between">
+                <p className="text-red-100 text-sm">
+                  Tienes filtros activos. Los cambios se aplican automáticamente.
+                </p>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearAllFilters}
-                  className="text-white hover:bg-white/20 transition-colors flex items-center gap-2"
+                  className="text-white hover:bg-white/20 transition-colors flex items-center gap-2 bg-white/10 px-4 py-2"
                 >
                   <RotateCcw className="h-4 w-4" />
-                  Limpiar todo
+                  Limpiar Filtros
                 </Button>
-              )}
-            </div>
-            
-            {hasActiveFilters && (
+              </div>
+            )}
+
+            {!hasActiveFilters && (
               <p className="text-red-100 text-sm mt-2">
-                Tienes filtros activos. Ajústalos para refinar tu búsqueda.
+                Selecciona los filtros que desees para refinar tu búsqueda.
               </p>
             )}
           </ModalHeader>
         </div>
 
-        {/* Content Area */}
-        <div className="bg-gradient-to-b from-gray-50/50 to-white flex-1">
-          <ScrollArea className="h-[calc(90vh-140px)]">
+        {/* Contenido scrolleable */}
+        <div className="flex-1 overflow-hidden bg-gradient-to-b from-gray-50/50 to-white">
+          <ScrollArea className="h-full">
             <div className="p-6">
               <FiltersSidebar
                 selectedDistances={selectedDistances}
@@ -145,6 +149,22 @@ export default function FiltersModal({
             </div>
           </ScrollArea>
         </div>
+
+        {/* Footer fijo con botón de limpiar alternativo */}
+        {hasActiveFilters && (
+          <div className="flex-shrink-0 bg-white border-t border-gray-200 p-4">
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                onClick={clearAllFilters}
+                className="flex items-center gap-2 px-6 py-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Limpiar Todos los Filtros
+              </Button>
+            </div>
+          </div>
+        )}
       </ModalContent>
     </ModalWrapper>
   );
