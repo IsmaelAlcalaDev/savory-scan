@@ -10,6 +10,7 @@ import RestaurantCard from './RestaurantCard';
 import LocationModal from './LocationModal';
 import VegModeToggle from './VegModeToggle';
 import BottomNavigation from './BottomNavigation';
+import AccountModal from './AccountModal';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useIPLocation } from '@/hooks/useIPLocation';
 import { useDistanceRanges } from '@/hooks/useDistanceRanges';
@@ -43,6 +44,7 @@ export default function FoodieSpotLayout() {
   const [isVegMode, setIsVegMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState('Detectando ubicación...');
   const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>('restaurants');
@@ -287,6 +289,13 @@ export default function FoodieSpotLayout() {
     return filters;
   };
 
+  const handleBottomTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
+    setActiveBottomTab(tab);
+    if (tab === 'account') {
+      setAccountModalOpen(true);
+    }
+  };
+
   const TagButton = ({ 
     children, 
     isSelected, 
@@ -517,7 +526,12 @@ export default function FoodieSpotLayout() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="mode-transition">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="mode-transition"
+              onClick={() => setAccountModalOpen(true)}
+            >
               <User className="h-5 w-5" />
             </Button>
             <Button 
@@ -575,7 +589,13 @@ export default function FoodieSpotLayout() {
       {/* Bottom Navigation */}
       <BottomNavigation 
         activeTab={activeBottomTab}
-        onTabChange={setActiveBottomTab}
+        onTabChange={handleBottomTabChange}
+      />
+
+      {/* Account Modal */}
+      <AccountModal
+        open={accountModalOpen}
+        onOpenChange={setAccountModalOpen}
       />
 
       {/* Location Modal */}
