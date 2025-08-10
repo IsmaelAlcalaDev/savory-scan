@@ -309,9 +309,10 @@ export default function FoodieSpotLayout() {
   };
 
   const handleBottomTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
-    setActiveBottomTab(tab);
     if (tab === 'account') {
       setAccountModalOpen(true);
+    } else {
+      setActiveBottomTab(tab);
     }
   };
 
@@ -362,19 +363,10 @@ export default function FoodieSpotLayout() {
         </div>
       );
     }
-    
-    if (activeBottomTab === 'account') {
-      return (
-        <div className="text-center py-16">
-          <h2 className="text-xl font-semibold mb-2">Mi Cuenta</h2>
-          <p className="text-muted-foreground">Próximamente disponible</p>
-        </div>
-      );
-    }
 
     const activeFiltersDisplay = getActiveFiltersDisplay();
 
-    // Default restaurants content
+    // Default restaurants content (siempre mostrar cuando no sea 'dishes')
     return (
       <>
         {/* Results Header */}
