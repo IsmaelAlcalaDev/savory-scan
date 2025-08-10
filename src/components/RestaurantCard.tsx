@@ -73,9 +73,7 @@ export default function RestaurantCard({
     return (
       <Card 
         className={cn(
-          "group cursor-pointer bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] overflow-hidden relative",
-          "shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_8px_25px_0_rgba(0,0,0,0.15)]",
-          "border-l-4 border-l-primary/20 hover:border-l-primary/40",
+          "group cursor-pointer bg-white border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] overflow-hidden",
           className
         )}
         onClick={handleClick}
@@ -131,10 +129,10 @@ export default function RestaurantCard({
               {renderServices()}
             </div>
 
-            {/* Image - on the right side, full height */}
-            <div className="w-32 bg-gradient-hero relative overflow-hidden flex-shrink-0 self-stretch">
+            {/* Image - on the right side, square */}
+            <div className="w-24 h-24 bg-gradient-hero relative overflow-hidden flex-shrink-0 self-start mt-4 mr-4 rounded-lg">
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-smooth" />
-              <div className="absolute top-2 right-2">
+              <div className="absolute top-1 right-1">
                 <Badge variant="secondary" className="bg-glass backdrop-blur-sm text-xs">
                   {establishmentType}
                 </Badge>
@@ -149,16 +147,14 @@ export default function RestaurantCard({
   return (
     <Card 
       className={cn(
-        "group cursor-pointer bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden relative",
-        "shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_8px_25px_0_rgba(0,0,0,0.15)]",
-        "border-l-4 border-l-primary/20 hover:border-l-primary/40",
+        "group cursor-pointer bg-white border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] overflow-hidden",
         className
       )}
       onClick={handleClick}
     >
       <CardContent className="p-0">
-        {/* Image placeholder - Reduced height */}
-        <div className="h-28 bg-gradient-hero relative overflow-hidden">
+        {/* Image placeholder - Square aspect ratio */}
+        <div className="aspect-square bg-gradient-hero relative overflow-hidden">
           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-smooth" />
           <div className="absolute top-2 left-2">
             <Badge variant="secondary" className="bg-glass backdrop-blur-sm text-xs">

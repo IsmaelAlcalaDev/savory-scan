@@ -37,10 +37,8 @@ export default function FoodieSpotLayout() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState('Detectando ubicación...');
 
-  // Detectar ubicación automáticamente por IP
   const { location: ipLocation, loading: ipLoading } = useIPLocation();
 
-  // Establecer la ubicación automáticamente cuando se detecte por IP
   useEffect(() => {
     if (ipLocation && !userLocation) {
       console.log('Setting user location from IP detection:', ipLocation);
@@ -49,13 +47,11 @@ export default function FoodieSpotLayout() {
         lng: ipLocation.longitude
       });
       
-      // Mostrar nombre de la ubicación detectada
       const locationDisplay = `${ipLocation.city}, ${ipLocation.region}`;
       setCurrentLocationName(locationDisplay);
     }
   }, [ipLocation, userLocation]);
 
-  // Usar datos reales de restaurantes
   const { restaurants, loading, error } = useRestaurants({
     searchQuery,
     userLat: userLocation?.lat,
@@ -126,16 +122,30 @@ export default function FoodieSpotLayout() {
             </div>
           </div>
 
-          <Button
-            variant="ghost"
-            onClick={() => setLocationModalOpen(true)}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <MapPin className="h-4 w-4" />
-            <span className="max-w-40 truncate">
-              {ipLoading ? 'Detectando...' : currentLocationName}
-            </span>
-          </Button>
+          <div className="flex items-center gap-4 flex-1 max-w-2xl mx-4">
+            <Button
+              variant="ghost"
+              onClick={() => setLocationModalOpen(true)}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground whitespace-nowrap"
+            >
+              <MapPin className="h-4 w-4" />
+              <span className="max-w-40 truncate">
+                {ipLoading ? 'Detectando...' : currentLocationName}
+              </span>
+            </Button>
+
+            {/* Search Bar en el nav */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Buscar restaurantes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-10"
+              />
+            </div>
+          </div>
 
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm">
@@ -149,20 +159,6 @@ export default function FoodieSpotLayout() {
             >
               <Menu className="h-5 w-5" />
             </Button>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="px-4 pb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Buscar restaurantes ..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12"
-            />
           </div>
         </div>
 
@@ -195,7 +191,7 @@ export default function FoodieSpotLayout() {
 
         {/* Main Content */}
         <main className="flex-1 min-w-0">
-          <div className="p-4">
+          <div className="p-4 mx-4 md:mx-8 lg:mx-12">
             {/* Results Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -225,7 +221,7 @@ export default function FoodieSpotLayout() {
             </div>
 
             {/* Filter Badges with VEG Mode */}
-            <div className="flex items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-6">
               <div className="flex gap-2">
                 {filterOptions.map((filter) => (
                   <Badge
@@ -239,10 +235,12 @@ export default function FoodieSpotLayout() {
                 ))}
               </div>
               
-              <VegModeToggle 
-                isVegMode={isVegMode}
-                onToggle={setIsVegMode}
-              />
+              <div className="ml-auto">
+                <VegModeToggle 
+                  isVegMode={isVegMode}
+                  onToggle={setIsVegMode}
+                />
+              </div>
             </div>
 
             {/* Restaurant Grid/List */}
