@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ChevronDown, Star, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -93,13 +94,13 @@ export default function FiltersSidebar({
     children: React.ReactNode;
     loading?: boolean;
   }) => (
-    <div className="mb-4">
+    <div className="mb-3">
       <Collapsible 
         open={openSections[sectionKey]} 
         onOpenChange={() => toggleSection(sectionKey)}
       >
         <CollapsibleTrigger asChild>
-          <div className="w-full py-2 hover:bg-muted/30 transition-colors cursor-pointer rounded-lg px-2">
+          <div className="w-full py-1.5 hover:bg-muted/30 transition-colors cursor-pointer rounded-lg px-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-foreground text-sm">{title}</span>
@@ -128,7 +129,7 @@ export default function FiltersSidebar({
                 ))}
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {children}
               </div>
             )}
@@ -187,7 +188,7 @@ export default function FiltersSidebar({
         selectedCount={selectedDistances?.length || 0}
         loading={distanceLoading}
       >
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
           {(distanceRanges || []).map((range) => (
             <TagButton
               key={range.id}
@@ -214,7 +215,7 @@ export default function FiltersSidebar({
         selectedCount={selectedPriceRanges?.length || 0}
         loading={priceLoading}
       >
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
           {(priceRanges || []).map((range) => (
             <TagButton
               key={range.id}
@@ -241,7 +242,7 @@ export default function FiltersSidebar({
         selectedCount={selectedRatings?.length || 0}
         loading={ratingLoading}
       >
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
           {(ratingOptions || []).map((option) => (
             <TagButton
               key={option.id}
@@ -269,7 +270,7 @@ export default function FiltersSidebar({
         selectedCount={selectedTimeRanges?.length || 0}
         loading={timeLoading}
       >
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
           {(timeRanges || []).map((range) => (
             <TagButton
               key={range.id}
@@ -296,7 +297,7 @@ export default function FiltersSidebar({
         selectedCount={selectedEstablishments?.length || 0}
         loading={establishmentLoading}
       >
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
           {(establishmentTypes || []).map((type) => (
             <TagButton
               key={type.id}
@@ -323,7 +324,7 @@ export default function FiltersSidebar({
         selectedCount={selectedServices?.length || 0}
         loading={servicesLoading}
       >
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
           {(services || []).map((service) => (
             <TagButton
               key={service.id}
