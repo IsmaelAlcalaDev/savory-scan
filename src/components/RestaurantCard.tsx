@@ -93,8 +93,8 @@ export default function RestaurantCard({
       )}
       onClick={handleClick}
     >
-      {/* Imagen rectangular con menos redondeo */}
-      <div className="aspect-[4/3] relative overflow-hidden rounded-lg mb-3">
+      {/* Imagen rectangular con menos altura - cambiado de aspect-[4/3] a aspect-[5/3] */}
+      <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
         {displayImage ? (
           <img 
             src={displayImage} 
@@ -140,8 +140,8 @@ export default function RestaurantCard({
         </div>
       </div>
 
-      {/* Datos fuera de la imagen, sin bordes */}
-      <div className="space-y-2">
+      {/* Datos fuera de la imagen, con menos espacio - reducido el space-y de 2 a 1 */}
+      <div className="space-y-1">
         {/* Nombre del restaurante con logo y rating en la misma línea */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Logo del restaurante - increased size from w-6 h-6 to w-12 h-12 */}
