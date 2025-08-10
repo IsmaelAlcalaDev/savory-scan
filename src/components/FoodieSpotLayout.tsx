@@ -12,6 +12,13 @@ import VegModeToggle from './VegModeToggle';
 import BottomNavigation from './BottomNavigation';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useIPLocation } from '@/hooks/useIPLocation';
+import { useDistanceRanges } from '@/hooks/useDistanceRanges';
+import { useRatingOptions } from '@/hooks/useRatingOptions';
+import { useEstablishmentTypes } from '@/hooks/useEstablishmentTypes';
+import { useServices } from '@/hooks/useServices';
+import { usePriceRanges } from '@/hooks/usePriceRanges';
+import { useTimeRanges } from '@/hooks/useTimeRanges';
+import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const filterOptions = [
@@ -41,6 +48,13 @@ export default function FoodieSpotLayout() {
   const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>('restaurants');
 
   const { location: ipLocation, loading: ipLoading } = useIPLocation();
+  const { distanceRanges } = useDistanceRanges();
+  const { ratingOptions } = useRatingOptions();
+  const { establishmentTypes } = useEstablishmentTypes();
+  const { services } = useServices();
+  const { priceRanges } = usePriceRanges();
+  const { timeRanges } = useTimeRanges();
+  const { cuisineTypes } = useCuisineTypes();
 
   useEffect(() => {
     if (ipLocation && !userLocation) {
@@ -110,6 +124,132 @@ export default function FoodieSpotLayout() {
     console.log('Updated location name:', currentLocationName);
   };
 
+  const clearAllFilters = () => {
+    setSelectedCuisines([]);
+    setSelectedDistances([]);
+    setSelectedRatings([]);
+    setSelectedEstablishments([]);
+    setSelectedServices([]);
+    setSelectedPriceRanges([]);
+    setSelectedTimeRanges([]);
+  };
+
+  const removeFilter = (filterType: string, value: any) => {
+    switch (filterType) {
+      case 'cuisine':
+        setSelectedCuisines(prev => prev.filter(id => id !== value));
+        break;
+      case 'distance':
+        setSelectedDistances(prev => prev.filter(id => id !== value));
+        break;
+      case 'rating':
+        setSelectedRatings(prev => prev.filter(id => id !== value));
+        break;
+      case 'establishment':
+        setSelectedEstablishments(prev => prev.filter(id => id !== value));
+        break;
+      case 'service':
+        setSelectedServices(prev => prev.filter(id => id !== value));
+        break;
+      case 'price':
+        setSelectedPriceRanges(prev => prev.filter(range => range !== value));
+        break;
+      case 'time':
+        setSelectedTimeRanges(prev => prev.filter(id => id !== value));
+        break;
+    }
+  };
+
+  const getActiveFiltersDisplay = () => {
+    const filters = [];
+
+    // Cuisines
+    selectedCuisines.forEach(id => {
+      const cuisine = cuisineTypes?.find(c => c.id === id);
+      if (cuisine) {
+        filters.push({
+          type: 'cuisine',
+          value: id,
+          label: cuisine.name
+        });
+      }
+    });
+
+    // Distance
+    selectedDistances.forEach(id => {
+      const distance = distanceRanges?.find(d => d.id === id);
+      if (distance) {
+        filters.push({
+          type: 'distance',
+          value: id,
+          label: distance.display_text
+        });
+      }
+    });
+
+    // Rating
+    selectedRatings.forEach(id => {
+      const rating = ratingOptions?.find(r => r.id === id);
+      if (rating) {
+        filters.push({
+          type: 'rating',
+          value: id,
+          label: rating.display_text
+        });
+      }
+    });
+
+    // Establishments
+    selectedEstablishments.forEach(id => {
+      const establishment = establishmentTypes?.find(e => e.id === id);
+      if (establishment) {
+        filters.push({
+          type: 'establishment',
+          value: id,
+          label: establishment.name
+        });
+      }
+    });
+
+    // Services
+    selectedServices.forEach(id => {
+      const service = services?.find(s => s.id === id);
+      if (service) {
+        filters.push({
+          type: 'service',
+          value: id,
+          label: service.name
+        });
+      }
+    });
+
+    // Price ranges
+    selectedPriceRanges.forEach(value => {
+      const priceRange = priceRanges?.find(p => p.value === value);
+      if (priceRange) {
+        filters.push({
+          type: 'price',
+          value: value,
+          label: priceRange.display_text
+        });
+      }
+    });
+
+    // Time ranges
+    selectedTimeRanges.forEach(id => {
+      const timeRange = timeRanges?.find(t => t.id === id);
+      if (timeRange) {
+        filters.push({
+          type: 'time',
+          value: id,
+          label: timeRange.display_text
+        });
+      }
+    });
+
+    return filters;
+  };
+
   const TagButton = ({ 
     children, 
     isSelected, 
@@ -133,6 +273,22 @@ export default function FoodieSpotLayout() {
     </button>
   );
 
+  const FilterTag = ({ 
+    children, 
+    onRemove
+  }: {
+    children: React.ReactNode;
+    onRemove: () => void;
+  }) => (
+    <button
+      onClick={onRemove}
+      className="h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-primary text-primary-foreground hover:!bg-primary/90 border-primary flex items-center"
+    >
+      <span className="flex items-center">{children}</span>
+      <X className="ml-1 h-3 w-3 flex-shrink-0" />
+    </button>
+  );
+
   const renderContent = () => {
     if (activeBottomTab === 'dishes') {
       return (
@@ -151,6 +307,8 @@ export default function FoodieSpotLayout() {
         </div>
       );
     }
+
+    const activeFiltersDisplay = getActiveFiltersDisplay();
 
     // Default restaurants content
     return (
@@ -177,7 +335,7 @@ export default function FoodieSpotLayout() {
         </div>
 
         {/* Filter Badges with VEG Mode */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-4">
           <div className="flex gap-2">
             {filterOptions.map((filter) => (
               <TagButton
@@ -197,6 +355,30 @@ export default function FoodieSpotLayout() {
             />
           </div>
         </div>
+
+        {/* Active Filters Display */}
+        {activeFiltersDisplay.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-wrap gap-2">
+                {activeFiltersDisplay.map((filter, index) => (
+                  <FilterTag
+                    key={`${filter.type}-${filter.value}-${index}`}
+                    onRemove={() => removeFilter(filter.type, filter.value)}
+                  >
+                    {filter.label}
+                  </FilterTag>
+                ))}
+              </div>
+              <button 
+                onClick={clearAllFilters}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-4 whitespace-nowrap"
+              >
+                Limpiar filtros
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

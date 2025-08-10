@@ -65,22 +65,6 @@ export default function FiltersSidebar({
     }));
   };
 
-  const clearAllFilters = () => {
-    onDistanceChange([]);
-    onRatingChange([]);
-    onEstablishmentChange([]);
-    onServiceChange([]);
-    onPriceRangeChange([]);
-    onTimeRangeChange([]);
-  };
-
-  const hasActiveFilters = (selectedDistances?.length || 0) > 0 || 
-    (selectedRatings?.length || 0) > 0 || 
-    (selectedEstablishments?.length || 0) > 0 || 
-    (selectedServices?.length || 0) > 0 || 
-    (selectedPriceRanges?.length || 0) > 0 || 
-    (selectedTimeRanges?.length || 0) > 0;
-
   const FilterSection = ({ 
     title, 
     sectionKey, 
@@ -167,20 +151,6 @@ export default function FiltersSidebar({
 
   return (
     <div className="space-y-0">
-      {/* Clear All Button */}
-      {hasActiveFilters && (
-        <div className="mb-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={clearAllFilters}
-            className="text-muted-foreground hover:text-foreground border-dashed hover:border-solid !bg-transparent !shadow-none"
-          >
-            Limpiar filtros
-          </Button>
-        </div>
-      )}
-
       {/* 1. Distancia - Tags */}
       <FilterSection
         title="Distancia"
