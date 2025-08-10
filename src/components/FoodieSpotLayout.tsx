@@ -543,7 +543,7 @@ export default function FoodieSpotLayout() {
                 placeholder="Buscar restaurantes, platos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 h-10 text-base bg-background/50 border border-gray-600 backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full focus:border-gray-700"
+                className="pl-10 pr-4 h-10 text-base bg-background/50 border border-gray-800 backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full focus:border-gray-900"
               />
             </div>
           </div>
