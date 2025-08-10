@@ -546,16 +546,16 @@ export default function FoodieSpotLayout() {
           <div className="flex items-center gap-2">
             <LanguageSelector />
             <button 
-              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition"
+              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition hover:text-primary transition-colors"
               onClick={() => setMenuModalOpen(true)}
             >
-              <Menu className="h-8 w-8" />
+              <Menu className="h-8 w-8" strokeWidth={1.5} />
             </button>
             <button 
-              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent md:hidden mode-transition"
+              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent md:hidden mode-transition hover:text-primary transition-colors"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-              <Menu className="h-8 w-8" />
+              <Menu className="h-8 w-8" strokeWidth={1.5} />
             </button>
           </div>
         </div>
