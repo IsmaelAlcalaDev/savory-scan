@@ -521,7 +521,7 @@ export default function FoodieSpotLayout() {
             <img 
               src={appLogoUrl}
               alt={`${appName} Logo`} 
-              className={`w-14 h-14 md:w-16 md:h-16 bg-transparent object-contain mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}
+              className={`w-28 h-28 md:w-32 md:h-32 bg-transparent object-contain mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}
             />
           </div>
 

@@ -144,13 +144,13 @@ export default function RestaurantCard({
       <div className="space-y-2">
         {/* Nombre del restaurante con logo y rating en la misma línea */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Logo del restaurante */}
+          {/* Logo del restaurante - increased size from w-6 h-6 to w-12 h-12 */}
           {logoUrl && (
             <div className="flex-shrink-0">
               <img 
                 src={logoUrl} 
                 alt={`${name} logo`}
-                className="w-6 h-6 rounded object-cover"
+                className="w-12 h-12 rounded object-cover"
                 onError={(e) => {
                   // Ocultar logo si falla la carga
                   const target = e.target as HTMLImageElement;
