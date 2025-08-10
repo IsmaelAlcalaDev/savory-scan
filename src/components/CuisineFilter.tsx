@@ -52,10 +52,10 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
   if (loading) {
     return (
       <div className="relative w-full">
-        <div className="flex gap-4 pb-3 px-1 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-6 pb-3 px-1 overflow-x-auto scrollbar-hide">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
-              <Skeleton className="h-12 w-12 rounded-full" />
+            <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0">
+              <Skeleton className="h-16 w-16" />
               <Skeleton className="h-3 w-16" />
             </div>
           ))}
@@ -115,7 +115,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
       
       <div 
         ref={scrollRef}
-        className="flex gap-4 pb-3 px-2 overflow-x-auto scrollbar-hide"
+        className="flex gap-6 pb-3 px-2 overflow-x-auto scrollbar-hide"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none'
@@ -125,18 +125,20 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
         {cuisineTypes.map((cuisine) => (
           <div
             key={cuisine.id}
-            className="flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-105 flex-shrink-0"
+            className="flex flex-col items-center gap-3 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0"
             onClick={() => handleCuisineToggle(cuisine.id)}
           >
-            <div className={`
-              w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-colors
-              ${selectedCuisines.includes(cuisine.id) 
-                ? 'bg-primary text-primary-foreground shadow-md' 
-                : 'bg-muted hover:bg-muted/80'
-              }
-            `}>
+            <div className="flex items-center justify-center text-4xl transition-all duration-200">
               {cuisine.icon && (
-                <span role="img" aria-label={cuisine.name}>
+                <span 
+                  role="img" 
+                  aria-label={cuisine.name}
+                  className={`transition-all duration-200 ${
+                    selectedCuisines.includes(cuisine.id) 
+                      ? 'filter brightness-110 drop-shadow-md' 
+                      : 'filter brightness-100'
+                  }`}
+                >
                   {cuisine.icon}
                 </span>
               )}
