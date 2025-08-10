@@ -14,7 +14,8 @@ interface Language {
   id: number;
   code: string;
   name: string;
-  flag: string;
+  flag?: string | null;
+  flag_url?: string | null;
   is_active: boolean;
 }
 
@@ -40,13 +41,32 @@ export default function LanguageSelector() {
     return null;
   }
 
+  const renderFlag = (language: Language, size = 24) => {
+    if (language.flag_url) {
+      return (
+        <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+          <img
+            src={language.flag_url}
+            alt={`${language.name} flag`}
+            className="w-full h-full object-cover"
+            width={size}
+            height={size}
+          />
+        </div>
+      );
+    }
+    return (
+      <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-sm">
+        {language.flag || language.code.toUpperCase()}
+      </div>
+    );
+  };
+
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="flex items-center gap-2 h-8 px-2">
-          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-sm">
-            {selectedLanguage.flag}
-          </div>
+          {renderFlag(selectedLanguage, 24)}
           <ChevronDown className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
@@ -64,9 +84,7 @@ export default function LanguageSelector() {
             onClick={() => handleLanguageChange(language)}
             className="flex items-center gap-3 cursor-pointer"
           >
-            <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-sm">
-              {language.flag}
-            </div>
+            {renderFlag(language, 20)}
             <span className="text-sm">{language.name}</span>
           </DropdownMenuItem>
         ))}

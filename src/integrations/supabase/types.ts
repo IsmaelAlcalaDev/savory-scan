@@ -1049,6 +1049,7 @@ export type Database = {
           code: string
           created_at: string | null
           flag: string | null
+          flag_url: string | null
           id: number
           is_active: boolean | null
           name: string
@@ -1057,6 +1058,7 @@ export type Database = {
           code: string
           created_at?: string | null
           flag?: string | null
+          flag_url?: string | null
           id?: number
           is_active?: boolean | null
           name: string
@@ -1065,6 +1067,7 @@ export type Database = {
           code?: string
           created_at?: string | null
           flag?: string | null
+          flag_url?: string | null
           id?: number
           is_active?: boolean | null
           name?: string

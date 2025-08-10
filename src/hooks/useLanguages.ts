@@ -6,7 +6,8 @@ interface Language {
   id: number;
   code: string;
   name: string;
-  flag: string;
+  flag?: string | null;
+  flag_url?: string | null;
   is_active: boolean;
 }
 
@@ -16,7 +17,7 @@ export const useLanguages = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('languages')
-        .select('id, code, name, flag, is_active')
+        .select('id, code, name, flag, flag_url, is_active')
         .eq('is_active', true)
         .order('name');
 
