@@ -43,6 +43,7 @@ export const useRestaurants = ({
     const fetchRestaurants = async () => {
       try {
         setLoading(true);
+        setError(null);
         console.log('Fetching restaurants with params:', {
           searchQuery,
           userLat,
@@ -53,16 +54,18 @@ export const useRestaurants = ({
           minRating
         });
 
-        // Use the existing search_restaurants function
+        // Use the correct search_restaurants function
         const { data, error } = await supabase.rpc('search_restaurants', {
-          search_query: searchQuery,
+          search_query: searchQuery || '',
           user_lat: userLat,
           user_lng: userLng,
           max_distance_km: maxDistance,
-          cuisine_type_ids: cuisineTypeIds,
-          price_ranges: priceRanges,
+          cuisine_type_ids: cuisineTypeIds || null,
+          price_ranges: priceRanges || null,
           min_rating: minRating,
-          limit_count: 20
+          has_services: null,
+          limit_count: 20,
+          offset_count: 0
         });
 
         if (error) {
