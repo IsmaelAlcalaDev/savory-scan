@@ -94,7 +94,7 @@ export default function FiltersSidebar({
     children: React.ReactNode;
     loading?: boolean;
   }) => (
-    <div className="mb-3">
+    <div className="mb-2.5">
       <Collapsible 
         open={openSections[sectionKey]} 
         onOpenChange={() => toggleSection(sectionKey)}
@@ -153,15 +153,15 @@ export default function FiltersSidebar({
     <button
       onClick={onClick}
       className={cn(
-        "h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none",
+        "h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none flex items-center",
         isSelected 
           ? "!bg-primary text-primary-foreground hover:!bg-primary/90 border-primary" 
           : "!bg-transparent hover:!bg-muted/50 text-muted-foreground hover:text-foreground border-border"
       )}
     >
-      {icon && <span className="mr-1">{icon}</span>}
-      {children}
-      {isSelected && <X className="ml-1 h-3 w-3" />}
+      {icon && <span className="mr-1 flex items-center">{icon}</span>}
+      <span className="flex items-center">{children}</span>
+      {isSelected && <X className="ml-1 h-3 w-3 flex-shrink-0" />}
     </button>
   );
 
