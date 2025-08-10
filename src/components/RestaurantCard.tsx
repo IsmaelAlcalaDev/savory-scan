@@ -44,7 +44,15 @@ export default function RestaurantCard({
   className,
   onLoginRequired
 }: RestaurantCardProps) {
-  const { user } = useAuth();
+  // Safely get auth context - handle case where component is used outside AuthProvider
+  let user = null;
+  try {
+    const authContext = useAuth();
+    user = authContext.user;
+  } catch (error) {
+    console.warn('RestaurantCard used outside AuthProvider context');
+  }
+
   const { isFavorite, isToggling, toggleFavorite } = useFavorites();
 
   const handleClick = () => {
