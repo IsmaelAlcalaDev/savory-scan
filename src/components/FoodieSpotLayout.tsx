@@ -291,8 +291,8 @@ export default function FoodieSpotLayout() {
           </div>
         </div>
 
-        {/* Tipos de Cocina sin título */}
-        <div className="border-t border-border bg-background">
+        {/* Tipos de Cocina sin separadores */}
+        <div className="bg-background">
           <div className="px-4 py-4">
             <CuisineFilter 
               selectedCuisines={selectedCuisines}

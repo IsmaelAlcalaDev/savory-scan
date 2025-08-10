@@ -2,6 +2,9 @@
 import { Badge } from '@/components/ui/badge';
 import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useRef, useState, useEffect } from 'react';
 
 interface CuisineFilterProps {
   selectedCuisines: number[];
@@ -10,8 +13,33 @@ interface CuisineFilterProps {
 
 export default function CuisineFilter({ selectedCuisines, onCuisineChange }: CuisineFilterProps) {
   const { cuisineTypes, loading, error } = useCuisineTypes();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   console.log('CuisineFilter state:', { cuisineTypes, loading, error, selectedCuisines });
+
+  const checkScrollability = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  useEffect(() => {
+    checkScrollability();
+    window.addEventListener('resize', checkScrollability);
+    return () => window.removeEventListener('resize', checkScrollability);
+  }, [cuisineTypes]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 200;
+      const newScrollLeft = scrollRef.current.scrollLeft + (direction === 'right' ? scrollAmount : -scrollAmount);
+      scrollRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+    }
+  };
 
   const handleCuisineToggle = (cuisineId: number) => {
     const newSelected = selectedCuisines.includes(cuisineId)
@@ -55,6 +83,30 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
 
   return (
     <div className="relative w-full">
+      {/* Left arrow */}
+      {canScrollLeft && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white/80 backdrop-blur-sm shadow-sm h-8 w-8 p-0"
+          onClick={() => scroll('left')}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+      )}
+
+      {/* Right arrow */}
+      {canScrollRight && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white/80 backdrop-blur-sm shadow-sm h-8 w-8 p-0"
+          onClick={() => scroll('right')}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      )}
+
       {/* Fade effect on the left */}
       <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
       
@@ -62,11 +114,13 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
       <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
       
       <div 
-        className="flex gap-4 pb-3 px-1 overflow-x-auto"
+        ref={scrollRef}
+        className="flex gap-4 pb-3 px-1 overflow-x-auto scrollbar-hide"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none'
         }}
+        onScroll={checkScrollability}
       >
         {cuisineTypes.map((cuisine) => (
           <div
@@ -101,7 +155,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
       </div>
       
       <style>{`
-        .overflow-x-auto::-webkit-scrollbar {
+        .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
       `}</style>
