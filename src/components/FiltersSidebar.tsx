@@ -1,7 +1,9 @@
+
 import { useState } from 'react';
-import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign, Clock } from 'lucide-react';
+import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -44,11 +46,11 @@ export default function FiltersSidebar({
 }: FiltersSidebarProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     distance: true,
+    price: true,
     rating: false,
+    time: false,
     establishment: false,
     services: false,
-    price: false,
-    time: false,
   });
 
   const { distanceRanges, loading: distanceLoading } = useDistanceRanges();
@@ -175,6 +177,61 @@ export default function FiltersSidebar({
     </div>
   );
 
+  const TagButton = ({ 
+    children, 
+    isSelected, 
+    onClick,
+    icon
+  }: {
+    children: React.ReactNode;
+    isSelected: boolean;
+    onClick: () => void;
+    icon?: React.ReactNode;
+  }) => (
+    <Button
+      variant={isSelected ? "default" : "outline"}
+      size="sm"
+      onClick={onClick}
+      className={cn(
+        "h-8 px-3 text-xs font-medium transition-all duration-200",
+        isSelected 
+          ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+          : "bg-background hover:bg-muted text-muted-foreground hover:text-foreground border-border"
+      )}
+    >
+      {icon && <span className="mr-1.5">{icon}</span>}
+      {children}
+      {isSelected && <X className="ml-1.5 h-3 w-3" />}
+    </Button>
+  );
+
+  const CheckboxOption = ({ 
+    id, 
+    checked, 
+    onChange, 
+    children 
+  }: {
+    id: string;
+    checked: boolean;
+    onChange: () => void;
+    children: React.ReactNode;
+  }) => (
+    <div className="flex items-center space-x-3 group py-1">
+      <Checkbox 
+        id={id}
+        checked={checked}
+        onCheckedChange={onChange}
+        className="border-2"
+      />
+      <label 
+        htmlFor={id}
+        className="text-sm text-foreground cursor-pointer flex-1 group-hover:text-primary transition-colors font-medium"
+      >
+        {children}
+      </label>
+    </div>
+  );
+
   return (
     <div className="space-y-0">
       {/* Clear All Button */}
@@ -191,7 +248,7 @@ export default function FiltersSidebar({
         </div>
       )}
 
-      {/* Distancia */}
+      {/* 1. Distancia - Radio (más importante, siempre visible) */}
       <FilterSection
         title="Distancia"
         icon={MapPin}
@@ -217,35 +274,67 @@ export default function FiltersSidebar({
         </RadioGroup>
       </FilterSection>
 
-      {/* Rango de Precios */}
+      {/* 2. Rango de Precios - Tags (visual y fácil) */}
       <FilterSection
-        title="Rango de Precios"
+        title="Presupuesto"
         icon={DollarSign}
         sectionKey="price"
         selectedCount={selectedPriceRanges?.length || 0}
         loading={priceLoading}
       >
-        <RadioGroup 
-          value={selectedPriceRanges?.[0] || ""} 
-          onValueChange={(value) => onPriceRangeChange(value ? [value] : [])}
-        >
+        <div className="flex flex-wrap gap-2">
           {(priceRanges || []).map((range) => (
-            <RadioOption
+            <TagButton
               key={range.id}
-              id={`price-${range.id}`}
-              value={range.value}
-              checked={selectedPriceRanges?.includes(range.value) || false}
-              onChange={(value) => onPriceRangeChange([value])}
+              isSelected={selectedPriceRanges?.includes(range.value) || false}
+              onClick={() => {
+                const isSelected = selectedPriceRanges?.includes(range.value);
+                if (isSelected) {
+                  onPriceRangeChange(selectedPriceRanges.filter(p => p !== range.value));
+                } else {
+                  onPriceRangeChange([range.value]);
+                }
+              }}
+              icon={<span className="text-xs">💰</span>}
             >
               {range.display_text}
-            </RadioOption>
+            </TagButton>
           ))}
-        </RadioGroup>
+        </div>
       </FilterSection>
 
-      {/* Horarios */}
+      {/* 3. Valoración - Tags con estrellas (visual atractivo) */}
       <FilterSection
-        title="Horarios"
+        title="Valoración"
+        icon={Star}
+        sectionKey="rating"
+        selectedCount={selectedRatings?.length || 0}
+        loading={ratingLoading}
+      >
+        <div className="flex flex-wrap gap-2">
+          {(ratingOptions || []).map((option) => (
+            <TagButton
+              key={option.id}
+              isSelected={selectedRatings?.includes(option.id) || false}
+              onClick={() => {
+                const isSelected = selectedRatings?.includes(option.id);
+                if (isSelected) {
+                  onRatingChange(selectedRatings.filter(r => r !== option.id));
+                } else {
+                  onRatingChange([option.id]);
+                }
+              }}
+              icon={<Star className="h-3 w-3 fill-amber-400 text-amber-400" />}
+            >
+              {option.display_text}
+            </TagButton>
+          ))}
+        </div>
+      </FilterSection>
+
+      {/* 4. Horarios - Radio (práctico) */}
+      <FilterSection
+        title="Disponibilidad"
         icon={Clock}
         sectionKey="time"
         selectedCount={selectedTimeRanges?.length || 0}
@@ -262,6 +351,7 @@ export default function FiltersSidebar({
               value={range.id.toString()}
               checked={selectedTimeRanges?.includes(range.id) || false}
               onChange={(value) => onTimeRangeChange([parseInt(value)])}
+              icon={<Clock className="h-3 w-3 text-muted-foreground" />}
             >
               {range.display_text}
             </RadioOption>
@@ -269,34 +359,7 @@ export default function FiltersSidebar({
         </RadioGroup>
       </FilterSection>
 
-      {/* Valoración */}
-      <FilterSection
-        title="Valoración"
-        icon={Star}
-        sectionKey="rating"
-        selectedCount={selectedRatings?.length || 0}
-        loading={ratingLoading}
-      >
-        <RadioGroup 
-          value={selectedRatings?.[0]?.toString() || ""} 
-          onValueChange={(value) => onRatingChange(value ? [parseInt(value)] : [])}
-        >
-          {(ratingOptions || []).map((option) => (
-            <RadioOption
-              key={option.id}
-              id={`rating-${option.id}`}
-              value={option.id.toString()}
-              checked={selectedRatings?.includes(option.id) || false}
-              onChange={(value) => onRatingChange([parseInt(value)])}
-              icon={<Star className="h-3 w-3 fill-amber-400 text-amber-400" />}
-            >
-              {option.display_text}
-            </RadioOption>
-          ))}
-        </RadioGroup>
-      </FilterSection>
-
-      {/* Tipo de Local */}
+      {/* 5. Tipo de Local - Checkboxes (permite múltiples) */}
       <FilterSection
         title="Tipo de Local"
         icon={Building}
@@ -304,48 +367,51 @@ export default function FiltersSidebar({
         selectedCount={selectedEstablishments?.length || 0}
         loading={establishmentLoading}
       >
-        <RadioGroup 
-          value={selectedEstablishments?.[0]?.toString() || ""} 
-          onValueChange={(value) => onEstablishmentChange(value ? [parseInt(value)] : [])}
-        >
-          {(establishmentTypes || []).map((type) => (
-            <RadioOption
-              key={type.id}
-              id={`establishment-${type.id}`}
-              value={type.id.toString()}
-              checked={selectedEstablishments?.includes(type.id) || false}
-              onChange={(value) => onEstablishmentChange([parseInt(value)])}
-            >
-              {type.name}
-            </RadioOption>
-          ))}
-        </RadioGroup>
+        {(establishmentTypes || []).map((type) => (
+          <CheckboxOption
+            key={type.id}
+            id={`establishment-${type.id}`}
+            checked={selectedEstablishments?.includes(type.id) || false}
+            onChange={() => {
+              const isSelected = selectedEstablishments?.includes(type.id);
+              if (isSelected) {
+                onEstablishmentChange(selectedEstablishments.filter(e => e !== type.id));
+              } else {
+                onEstablishmentChange([...selectedEstablishments, type.id]);
+              }
+            }}
+          >
+            {type.name}
+          </CheckboxOption>
+        ))}
       </FilterSection>
 
-      {/* Servicios */}
+      {/* 6. Servicios - Tags (más visual) */}
       <FilterSection
-        title="Servicios"
+        title="Servicios Especiales"
         icon={UtensilsCrossed}
         sectionKey="services"
         selectedCount={selectedServices?.length || 0}
         loading={servicesLoading}
       >
-        <RadioGroup 
-          value={selectedServices?.[0]?.toString() || ""} 
-          onValueChange={(value) => onServiceChange(value ? [parseInt(value)] : [])}
-        >
+        <div className="flex flex-wrap gap-2">
           {(services || []).map((service) => (
-            <RadioOption
+            <TagButton
               key={service.id}
-              id={`service-${service.id}`}
-              value={service.id.toString()}
-              checked={selectedServices?.includes(service.id) || false}
-              onChange={(value) => onServiceChange([parseInt(value)])}
+              isSelected={selectedServices?.includes(service.id) || false}
+              onClick={() => {
+                const isSelected = selectedServices?.includes(service.id);
+                if (isSelected) {
+                  onServiceChange(selectedServices.filter(s => s !== service.id));
+                } else {
+                  onServiceChange([...selectedServices, service.id]);
+                }
+              }}
             >
               {service.name}
-            </RadioOption>
+            </TagButton>
           ))}
-        </RadioGroup>
+        </div>
       </FilterSection>
     </div>
   );
