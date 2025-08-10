@@ -239,7 +239,7 @@ export default function FoodieSpotLayout() {
   return (
     <div className="min-h-screen bg-white pb-20 px-[7.5%]">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm -mx-[7.5%] px-[7.5%]">
+      <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%]">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -292,7 +292,7 @@ export default function FoodieSpotLayout() {
         </div>
 
         {/* Tipos de Cocina sin separadores */}
-        <div className="px-4 py-4">
+        <div className="px-4 pb-4">
           <CuisineFilter 
             selectedCuisines={selectedCuisines}
             onCuisineChange={setSelectedCuisines}
