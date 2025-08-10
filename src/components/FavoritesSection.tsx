@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -43,7 +44,7 @@ interface FavoriteEvent {
 
 export default function FavoritesSection() {
   const { user } = useAuth();
-  const { setFavoriteState } = useFavorites();
+  const { setFavoriteState, refreshFavorites } = useFavorites();
   const [activeSubTab, setActiveSubTab] = useState('restaurants');
   const [favoriteRestaurants, setFavoriteRestaurants] = useState<FavoriteRestaurant[]>([]);
   const [favoriteDishes, setFavoriteDishes] = useState<FavoriteDish[]>([]);
@@ -191,7 +192,7 @@ export default function FavoritesSection() {
 
       switch (type) {
         case 'restaurant':
-          // Optimistic update
+          // Actualización optimista inmediata
           setFavoriteState(id, false);
           setFavoriteRestaurants(prev => prev.filter(item => item.id !== id));
           
@@ -199,6 +200,11 @@ export default function FavoritesSection() {
             user_id_param: user.id,
             restaurant_id_param: id
           }));
+
+          // Actualizar el estado global después de la operación exitosa
+          if (!error) {
+            await refreshFavorites();
+          }
           break;
         case 'dish':
           // Optimistic update
