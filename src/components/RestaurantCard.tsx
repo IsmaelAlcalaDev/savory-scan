@@ -122,7 +122,7 @@ export default function RestaurantCard({
             {cuisineTypes.slice(0, 2).join(', ')}
           </span>
           <span>•</span>
-          <span className="font-medium text-foreground">{priceRange}</span>
+          <span className="text-foreground">{priceRange}</span>
           {distance && (
             <>
               <span>•</span>
