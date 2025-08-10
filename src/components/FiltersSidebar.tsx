@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -112,26 +111,25 @@ export default function FiltersSidebar({
     selectedEstablishments.length > 0 || selectedServices.length > 0 || selectedPriceRanges.length > 0;
 
   return (
-    <div className="space-y-4">
-      {/* Header con Clear All */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Filtros</h2>
-        {hasActiveFilters && (
+    <div className="space-y-6">
+      {/* Clear All Button */}
+      {hasActiveFilters && (
+        <div className="flex justify-start">
           <Button variant="ghost" size="sm" onClick={clearAllFilters}>
             Limpiar todo
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Distancia */}
-      <Card>
+      <div>
         <Collapsible open={openSections.distance} onOpenChange={() => toggleSection('distance')}>
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer">
-              <CardTitle className="flex items-center justify-between text-base">
+            <div className="cursor-pointer mb-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  Distancia
+                  <span className="font-medium">Distancia</span>
                   {selectedDistances.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {selectedDistances.length}
@@ -142,11 +140,11 @@ export default function FiltersSidebar({
                   "h-4 w-4 transition-transform",
                   openSections.distance && "rotate-180"
                 )} />
-              </CardTitle>
-            </CardHeader>
+              </div>
+            </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="pt-0">
+            <div className="pl-6">
               {distanceLoading ? (
                 <div className="space-y-2">
                   {Array.from({ length: 4 }).map((_, i) => (
@@ -172,20 +170,20 @@ export default function FiltersSidebar({
                   ))}
                 </div>
               )}
-            </CardContent>
+            </div>
           </CollapsibleContent>
         </Collapsible>
-      </Card>
+      </div>
 
       {/* Valoración */}
-      <Card>
+      <div>
         <Collapsible open={openSections.rating} onOpenChange={() => toggleSection('rating')}>
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer">
-              <CardTitle className="flex items-center justify-between text-base">
+            <div className="cursor-pointer mb-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Star className="h-4 w-4" />
-                  Valoración
+                  <span className="font-medium">Valoración</span>
                   {selectedRatings.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {selectedRatings.length}
@@ -196,11 +194,11 @@ export default function FiltersSidebar({
                   "h-4 w-4 transition-transform",
                   openSections.rating && "rotate-180"
                 )} />
-              </CardTitle>
-            </CardHeader>
+              </div>
+            </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="pt-0">
+            <div className="pl-6">
               {ratingLoading ? (
                 <div className="space-y-2">
                   {Array.from({ length: 3 }).map((_, i) => (
@@ -227,20 +225,20 @@ export default function FiltersSidebar({
                   ))}
                 </div>
               )}
-            </CardContent>
+            </div>
           </CollapsibleContent>
         </Collapsible>
-      </Card>
+      </div>
 
       {/* Tipo de Establecimiento */}
-      <Card>
+      <div>
         <Collapsible open={openSections.establishment} onOpenChange={() => toggleSection('establishment')}>
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer">
-              <CardTitle className="flex items-center justify-between text-base">
+            <div className="cursor-pointer mb-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Building className="h-4 w-4" />
-                  Tipo de Local
+                  <span className="font-medium">Tipo de Local</span>
                   {selectedEstablishments.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {selectedEstablishments.length}
@@ -251,11 +249,11 @@ export default function FiltersSidebar({
                   "h-4 w-4 transition-transform",
                   openSections.establishment && "rotate-180"
                 )} />
-              </CardTitle>
-            </CardHeader>
+              </div>
+            </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="pt-0">
+            <div className="pl-6">
               {establishmentLoading ? (
                 <div className="space-y-2">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -286,20 +284,20 @@ export default function FiltersSidebar({
                   ))}
                 </div>
               )}
-            </CardContent>
+            </div>
           </CollapsibleContent>
         </Collapsible>
-      </Card>
+      </div>
 
       {/* Rango de Precios */}
-      <Card>
+      <div>
         <Collapsible open={openSections.price} onOpenChange={() => toggleSection('price')}>
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer">
-              <CardTitle className="flex items-center justify-between text-base">
+            <div className="cursor-pointer mb-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  Rango de Precios
+                  <span className="font-medium">Rango de Precios</span>
                   {selectedPriceRanges.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {selectedPriceRanges.length}
@@ -310,11 +308,11 @@ export default function FiltersSidebar({
                   "h-4 w-4 transition-transform",
                   openSections.price && "rotate-180"
                 )} />
-              </CardTitle>
-            </CardHeader>
+              </div>
+            </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="pt-0">
+            <div className="pl-6">
               <div className="space-y-3">
                 {priceRangeOptions.map((option) => (
                   <div key={option.id} className="flex items-center space-x-2">
@@ -332,20 +330,20 @@ export default function FiltersSidebar({
                   </div>
                 ))}
               </div>
-            </CardContent>
+            </div>
           </CollapsibleContent>
         </Collapsible>
-      </Card>
+      </div>
 
       {/* Servicios */}
-      <Card>
+      <div>
         <Collapsible open={openSections.services} onOpenChange={() => toggleSection('services')}>
           <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer">
-              <CardTitle className="flex items-center justify-between text-base">
+            <div className="cursor-pointer mb-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <UtensilsCrossed className="h-4 w-4" />
-                  Servicios
+                  <span className="font-medium">Servicios</span>
                   {selectedServices.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       {selectedServices.length}
@@ -356,11 +354,11 @@ export default function FiltersSidebar({
                   "h-4 w-4 transition-transform",
                   openSections.services && "rotate-180"
                 )} />
-              </CardTitle>
-            </CardHeader>
+              </div>
+            </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="pt-0">
+            <div className="pl-6">
               {servicesLoading ? (
                 <div className="space-y-2">
                   {Array.from({ length: 6 }).map((_, i) => (
@@ -391,10 +389,10 @@ export default function FiltersSidebar({
                   ))}
                 </div>
               )}
-            </CardContent>
+            </div>
           </CollapsibleContent>
         </Collapsible>
-      </Card>
+      </div>
     </div>
   );
 }
