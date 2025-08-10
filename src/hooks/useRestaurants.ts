@@ -14,13 +14,15 @@ interface Restaurant {
   establishment_type?: string;
 }
 
+type PriceRange = '€' | '€€' | '€€€' | '€€€€';
+
 interface UseRestaurantsProps {
   searchQuery?: string;
   userLat?: number;
   userLng?: number;
   maxDistance?: number;
   cuisineTypeIds?: number[];
-  priceRanges?: string[];
+  priceRanges?: PriceRange[];
   minRating?: number;
 }
 
@@ -47,7 +49,7 @@ export const useRestaurants = ({
           user_lng: userLng,
           max_distance_km: maxDistance,
           cuisine_type_ids: cuisineTypeIds,
-          price_ranges: priceRanges,
+          price_ranges: priceRanges as PriceRange[] | null,
           min_rating: minRating,
           limit_count: 20
         });
