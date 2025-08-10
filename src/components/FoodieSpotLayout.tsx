@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, User, Menu, X } from 'lucide-react';
+import { Search, MapPin, Menu, X, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import LocationModal from './LocationModal';
 import VegModeToggle from './VegModeToggle';
 import BottomNavigation from './BottomNavigation';
 import AccountModal from './AccountModal';
+import MenuModal from './MenuModal';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useIPLocation } from '@/hooks/useIPLocation';
 import { useDistanceRanges } from '@/hooks/useDistanceRanges';
@@ -50,6 +51,7 @@ export default function FoodieSpotLayout() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState('Detectando ubicación...');
   const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>('restaurants');
+  const [menuModalOpen, setMenuModalOpen] = useState(false);
 
   const { location: ipLocation, loading: ipLoading } = useIPLocation();
   const { distanceRanges } = useDistanceRanges();
@@ -541,9 +543,9 @@ export default function FoodieSpotLayout() {
               variant="ghost" 
               size="sm" 
               className="mode-transition"
-              onClick={() => setAccountModalOpen(true)}
+              onClick={() => setMenuModalOpen(true)}
             >
-              <User className="h-5 w-5" />
+              <Menu className="h-5 w-5" />
             </Button>
             <Button 
               variant="ghost" 
@@ -609,6 +611,12 @@ export default function FoodieSpotLayout() {
       <AccountModal
         open={accountModalOpen}
         onOpenChange={setAccountModalOpen}
+      />
+
+      {/* Menu Modal */}
+      <MenuModal
+        open={menuModalOpen}
+        onOpenChange={setMenuModalOpen}
       />
 
       {/* Location Modal */}
