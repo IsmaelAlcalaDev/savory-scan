@@ -59,39 +59,44 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={cn(
-            "grid w-full grid-cols-4 mb-6 transition-all duration-300",
-            isVegMode 
-              ? "bg-green-50 border border-green-200" 
-              : "bg-red-50 border border-red-200"
-          )}>
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <TabsTrigger 
-                  key={tab.id} 
-                  value={tab.id}
-                  className={cn(
-                    "flex items-center gap-2 text-sm transition-all duration-300",
-                    "data-[state=active]:shadow-sm",
-                    isVegMode
-                      ? "data-[state=active]:bg-green-100 data-[state=active]:text-green-700 hover:bg-green-50 hover:text-green-600"
-                      : "data-[state=active]:bg-red-100 data-[state=active]:text-red-700 hover:bg-red-50 hover:text-red-600"
-                  )}
-                >
-                  <Icon className={cn(
-                    "h-4 w-4 transition-colors duration-300",
-                    activeTab === tab.id 
-                      ? (isVegMode ? "text-green-600" : "text-red-600")
-                      : "text-muted-foreground"
-                  )} />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+          <div className="border-b border-gray-200">
+            <div className="flex w-full">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-300 relative",
+                      "border-b-2 border-transparent hover:border-opacity-50",
+                      isActive
+                        ? isVegMode
+                          ? "bg-green-600 text-white border-b-green-600"
+                          : "bg-red-600 text-white border-b-red-600"
+                        : cn(
+                            "text-gray-600 hover:text-white",
+                            isVegMode
+                              ? "hover:bg-green-400 hover:border-b-green-400"
+                              : "hover:bg-red-400 hover:border-b-red-400"
+                          )
+                    )}
+                  >
+                    <Icon className={cn(
+                      "h-4 w-4 transition-colors duration-300",
+                      isActive 
+                        ? "text-white"
+                        : "text-gray-500"
+                    )} />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-          <div className="overflow-y-auto max-h-[calc(80vh-120px)]">
+          <div className="overflow-y-auto max-h-[calc(80vh-120px)] mt-6">
             <TabsContent value="profile" className="space-y-4">
               <ProfileSection />
             </TabsContent>
