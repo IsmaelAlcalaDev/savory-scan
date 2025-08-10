@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, AlertTriangle, User, Calendar } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 
@@ -31,32 +30,10 @@ export default function SecurityAuditLog() {
     
     setLoading(true);
     try {
-      // Try to use the RPC function first, with fallback to empty array
-      try {
-        const { data, error } = await supabase.rpc('get_security_audit_log', {
-          limit_count: 50
-        });
-        
-        if (error) {
-          console.warn('Security audit log function not available:', error);
-          setAuditLogs([]);
-          return;
-        }
-        
-        // Type assertion with runtime validation
-        const logs = Array.isArray(data) ? data as AuditLogEntry[] : [];
-        let filteredData = logs;
-        
-        if (filter !== 'all') {
-          filteredData = logs.filter((log: AuditLogEntry) => log.action_type === filter);
-        }
-        
-        setAuditLogs(filteredData);
-      } catch (rpcError) {
-        console.warn('RPC call failed, using fallback:', rpcError);
-        // Fallback: show mock data or empty state
-        setAuditLogs([]);
-      }
+      // Since the security audit log function is not available yet, 
+      // we'll show a placeholder state
+      console.log('Security audit log requested - infrastructure not yet available');
+      setAuditLogs([]);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       setAuditLogs([]);
@@ -139,60 +116,11 @@ export default function SecurityAuditLog() {
       <CardContent>
         {loading ? (
           <div className="text-center py-4">Loading audit logs...</div>
-        ) : auditLogs.length === 0 ? (
+        ) : (
           <div className="text-center py-8 text-muted-foreground">
             <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No audit log entries found for the selected filter.</p>
-            <p className="text-sm mt-2">Security logging functions may not be available yet.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {auditLogs.map((log) => (
-              <div
-                key={log.id}
-                className="border border-glass rounded-lg p-4 bg-background/50"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge 
-                        className={`${getActionBadgeColor(log.action_type)} text-white`}
-                      >
-                        {log.action_type}
-                      </Badge>
-                      {log.entity_type && (
-                        <Badge variant="outline">
-                          {log.entity_type}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        <span>User: {log.user_id}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>{new Date(log.created_at).toLocaleString()}</span>
-                      </div>
-                      {log.entity_id && (
-                        <div>
-                          <span className="font-medium">Entity ID:</span> {log.entity_id}
-                        </div>
-                      )}
-                      {log.details && Object.keys(log.details).length > 0 && (
-                        <div>
-                          <span className="font-medium">Details:</span>
-                          <pre className="mt-1 text-xs bg-muted p-2 rounded overflow-auto">
-                            {JSON.stringify(log.details, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+            <p>Security audit logging infrastructure is being set up.</p>
+            <p className="text-sm mt-2">Audit logs will be available once the backend functions are deployed.</p>
           </div>
         )}
       </CardContent>

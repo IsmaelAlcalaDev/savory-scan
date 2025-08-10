@@ -14,8 +14,7 @@ export const useSecureAdminActions = () => {
     details?: any
   ) => {
     try {
-      // Try to call the security logging function if it exists
-      // Since the function isn't in TypeScript definitions yet, we'll use a fallback approach
+      // Log to console for now until the database function is available
       console.log('Security Event:', {
         action: actionType,
         entity: entityType,
@@ -24,15 +23,6 @@ export const useSecureAdminActions = () => {
         timestamp: new Date().toISOString(),
         user: (await supabase.auth.getUser()).data.user?.id
       });
-      
-      // TODO: Once the database function is available in types, uncomment this:
-      // const { error } = await supabase.rpc('log_security_event', {
-      //   p_action_type: actionType,
-      //   p_entity_type: entityType,
-      //   p_entity_id: entityId,
-      //   p_details: details || {}
-      // });
-      
     } catch (error) {
       console.warn('Failed to log security event:', error);
     }
@@ -129,22 +119,9 @@ export const useSecureAdminActions = () => {
     return executeSecureAction(
       'Get Security Audit Log',
       async () => {
-        try {
-          // Since the function isn't available in types yet, return empty array with logging
-          console.log('Security audit log requested - function not yet available in types');
-          return [];
-          
-          // TODO: Once the database function is available in types, uncomment this:
-          // const { data, error } = await supabase.rpc('get_security_audit_log', {
-          //   limit_count: limit
-          // });
-          // 
-          // if (error) throw error;
-          // return data;
-        } catch (error) {
-          console.warn('Security audit log function not available:', error);
-          return [];
-        }
+        // Return empty array for now until the infrastructure is set up
+        console.log('Security audit log requested - infrastructure not yet available');
+        return [];
       },
       'system',
       'security_audit_log'
