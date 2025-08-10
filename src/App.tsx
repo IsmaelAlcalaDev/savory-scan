@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import RestaurantProfile from "./pages/RestaurantProfile";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
+import SuperAdminPanel from "./pages/SuperAdminPanel";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import FoodieSpot from "./pages/FoodieSpot";
@@ -33,6 +34,14 @@ const App = () => (
                 element={
                   <ProtectedRoute requiredRole="admin">
                     <SecureAdminPanel />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/superadmin" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <SuperAdminPanel />
                   </ProtectedRoute>
                 } 
               />
