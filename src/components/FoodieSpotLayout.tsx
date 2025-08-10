@@ -530,13 +530,13 @@ export default function FoodieSpotLayout() {
     <div className={`min-h-screen bg-white pb-20 px-[7.5%] mode-transition`}>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between py-3 px-4">
           {/* Left Section: Logo */}
           <div className="flex items-center flex-shrink-0">
             <img 
               src={appLogoUrl}
               alt={`${appName} Logo`} 
-              className={`w-28 h-28 md:w-32 md:h-32 bg-transparent object-contain mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}
+              className={`w-12 h-12 bg-transparent object-contain mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}
             />
           </div>
 
@@ -588,7 +588,7 @@ export default function FoodieSpotLayout() {
         </div>
 
         {/* Tipos de Cocina */}
-        <div className="px-4 pb-4 pt-3">
+        <div className="px-4 pb-4 pt-2">
           <CuisineFilter 
             selectedCuisines={selectedCuisines}
             onCuisineChange={setSelectedCuisines}
