@@ -372,16 +372,20 @@ export default function FoodieSpotLayout() {
 
         {/* Filter Badges with VEG Mode */}
         <div className="flex items-center gap-4 mb-4">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 min-w-0">
-            {filterOptions.map((filter) => (
-              <TagButton
-                key={filter.id}
-                isSelected={activeFilters.includes(filter.id)}
-                onClick={() => handleFilterToggle(filter.id)}
-              >
-                {filter.label}
-              </TagButton>
-            ))}
+          <div className="relative flex-1 min-w-0">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              {filterOptions.map((filter) => (
+                <TagButton
+                  key={filter.id}
+                  isSelected={activeFilters.includes(filter.id)}
+                  onClick={() => handleFilterToggle(filter.id)}
+                >
+                  {filter.label}
+                </TagButton>
+              ))}
+            </div>
+            {/* Fade gradient for overflow */}
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" />
           </div>
           
           <div className={`flex-shrink-0 ${isVegMode ? 'animate-leaf-sway' : ''}`}>
@@ -396,15 +400,19 @@ export default function FoodieSpotLayout() {
         {activeFiltersDisplay.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center gap-4">
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 min-w-0">
-                {activeFiltersDisplay.map((filter, index) => (
-                  <FilterTag
-                    key={`${filter.type}-${filter.value}-${index}`}
-                    onRemove={() => removeFilter(filter.type, filter.value)}
-                  >
-                    {filter.label}
-                  </FilterTag>
-                ))}
+              <div className="relative flex-1 min-w-0">
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                  {activeFiltersDisplay.map((filter, index) => (
+                    <FilterTag
+                      key={`${filter.type}-${filter.value}-${index}`}
+                      onRemove={() => removeFilter(filter.type, filter.value)}
+                    >
+                      {filter.label}
+                    </FilterTag>
+                  ))}
+                </div>
+                {/* Fade gradient for overflow */}
+                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" />
               </div>
               <button 
                 onClick={clearAllFilters}
@@ -558,7 +566,7 @@ export default function FoodieSpotLayout() {
 
         {/* Main Content */}
         <main className="flex-1 min-w-0">
-          <div className="p-4 mx-4 md:mx-8 lg:mx-12">
+          <div className="p-4 ml-6 md:ml-8 lg:ml-12 mr-4 md:mr-8 lg:mr-12">
             {renderContent()}
           </div>
         </main>
