@@ -239,7 +239,7 @@ export default function FiltersSidebar({
               checked={selectedDistances.includes(range.id)}
               onChange={(value) => onDistanceChange([parseInt(value)])}
             >
-              {range.name}
+              {range.display_text}
             </RadioOption>
           ))}
         </RadioGroup>
