@@ -31,24 +31,32 @@ export default function SecurityAuditLog() {
     
     setLoading(true);
     try {
-      // Use raw SQL query to access the security_audit_log table
-      const { data, error } = await supabase.rpc('get_security_audit_log', {
-        limit_count: 50
-      });
-      
-      if (error) {
-        console.error('Error fetching audit logs:', error);
-        // Fallback to empty array if function doesn't exist yet
+      // Try to use the RPC function first, with fallback to empty array
+      try {
+        const { data, error } = await supabase.rpc('get_security_audit_log', {
+          limit_count: 50
+        });
+        
+        if (error) {
+          console.warn('Security audit log function not available:', error);
+          setAuditLogs([]);
+          return;
+        }
+        
+        // Type assertion with runtime validation
+        const logs = Array.isArray(data) ? data as AuditLogEntry[] : [];
+        let filteredData = logs;
+        
+        if (filter !== 'all') {
+          filteredData = logs.filter((log: AuditLogEntry) => log.action_type === filter);
+        }
+        
+        setAuditLogs(filteredData);
+      } catch (rpcError) {
+        console.warn('RPC call failed, using fallback:', rpcError);
+        // Fallback: show mock data or empty state
         setAuditLogs([]);
-        return;
       }
-      
-      let filteredData = data || [];
-      if (filter !== 'all') {
-        filteredData = filteredData.filter((log: AuditLogEntry) => log.action_type === filter);
-      }
-      
-      setAuditLogs(filteredData);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       setAuditLogs([]);
@@ -75,10 +83,13 @@ export default function SecurityAuditLog() {
   const getActionBadgeColor = (actionType: string) => {
     switch (actionType) {
       case 'admin_action':
+      case 'admin_action_attempt':
+      case 'admin_action_success':
         return 'bg-blue-500';
       case 'role_change':
         return 'bg-orange-500';
       case 'security_violation':
+      case 'admin_action_error':
         return 'bg-red-500';
       case 'login':
         return 'bg-green-500';
@@ -132,6 +143,7 @@ export default function SecurityAuditLog() {
           <div className="text-center py-8 text-muted-foreground">
             <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No audit log entries found for the selected filter.</p>
+            <p className="text-sm mt-2">Security logging functions may not be available yet.</p>
           </div>
         ) : (
           <div className="space-y-3">

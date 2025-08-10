@@ -205,8 +205,8 @@ export default function SuperAdminPanel() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span>Security Audit Logging</span>
-                  <Badge variant="outline" className="bg-green-50 text-green-700">
-                    Active
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
+                    Pending Setup
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
