@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -74,10 +73,10 @@ export const useDishes = ({
           searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, categoryIds, dietFilters, priceRangeIds, orderBy
         });
 
-        // Usamos la vista existente "dishes_full"
+        // Select only existing columns on the dishes_full view
         let query = supabase
           .from('dishes_full')
-          .select('id, name, base_price, image_url, restaurant_id, restaurant_name, restaurant_slug, category_id, category_name, is_vegetarian, is_vegan, is_gluten_free, is_lactose_free, is_healthy');
+          .select('id, name, base_price, image_url, restaurant_id, restaurant_name, restaurant_slug, category_id, category_name, diet_types');
 
         if (searchQuery && searchQuery.trim().length > 0) {
           query = query.ilike('name', `%${searchQuery.trim()}%`);
@@ -87,7 +86,6 @@ export const useDishes = ({
           query = query.in('category_id', categoryIds);
         }
 
-        // Apply .returns<>() after all filtering operations
         const { data, error } = await query
           .limit(200)
           .returns<Array<{
@@ -100,11 +98,7 @@ export const useDishes = ({
             restaurant_slug: string;
             category_id: number | null;
             category_name: string | null;
-            is_vegetarian: boolean | null;
-            is_vegan: boolean | null;
-            is_gluten_free: boolean | null;
-            is_lactose_free: boolean | null;
-            is_healthy: boolean | null;
+            diet_types: any; // jsonb from view (usually string[])
           }>>();
 
         if (error) {
@@ -114,47 +108,84 @@ export const useDishes = ({
 
         const rows = data ?? [];
 
-        // Filtro cliente por dietas
+        // Helper: normalize diet_types jsonb to array<string>
+        const normalizeDietArray = (val: any): string[] => {
+          if (!val) return [];
+          if (Array.isArray(val)) {
+            return val
+              .map((x) => (typeof x === 'string' ? x.toLowerCase() : ''))
+              .filter(Boolean);
+          }
+          // If it's an object or string, try to coerce
+          if (typeof val === 'string') {
+            try {
+              const parsed = JSON.parse(val);
+              if (Array.isArray(parsed)) {
+                return parsed
+                  .map((x) => (typeof x === 'string' ? x.toLowerCase() : ''))
+                  .filter(Boolean);
+              }
+              return [];
+            } catch {
+              return [val.toLowerCase()];
+            }
+          }
+          return [];
+        };
+
+        // Client-side filter by diet using diet_types
         const dietSet = new Set((dietFilters ?? []).map((d) => d.toLowerCase()));
         const filteredByDiet = rows.filter((row) => {
           if (dietSet.size === 0) return true;
-          // Requiere que todos los filtros estén en true
+          const diets = normalizeDietArray(row.diet_types);
+          const has = (slug: string) => diets.includes(slug);
+          // require all selected slugs to be present
           for (const slug of dietSet) {
-            const field = dietSlugToField[slug];
-            if (!field) continue; // slug desconocido, lo ignoramos
-            if (!row[field]) return false;
+            // Support common aliases
+            const match =
+              (slug === 'vegetarian' || slug === 'vegetariano') ? has('vegetarian') :
+              (slug === 'vegan' || slug === 'vegano') ? has('vegan') :
+              (slug === 'gluten_free' || slug === 'sin-gluten') ? has('gluten_free') :
+              (slug === 'lactose_free' || slug === 'sin-lactosa') ? has('lactose_free') :
+              (slug === 'healthy' || slug === 'saludable') ? has('healthy') :
+              has(slug);
+            if (!match) return false;
           }
           return true;
         });
 
-        // Filtro cliente por cocinas (si la vista ofrece info, aquí no la tenemos -> ignoramos por ahora)
-        const filteredByCuisine = filteredByDiet; // mantener igual por ahora
+        // Cuisine filtering not available in view -> keep as-is for now
+        const filteredByCuisine = filteredByDiet;
 
-        // TODO: aplicar filtrado cliente por rangos de precio si se dispone de sus min/max en contexto
+        const formatted: Dish[] = filteredByCuisine.map((row) => {
+          const diets = normalizeDietArray(row.diet_types);
+          const has = (slug: string) => diets.includes(slug);
 
-        const formatted: Dish[] = filteredByCuisine.map((row) => ({
-          id: row.id,
-          name: row.name,
-          base_price: Number(row.base_price ?? 0),
-          image_url: row.image_url,
-          restaurant_id: row.restaurant_id,
-          restaurant_name: row.restaurant_name,
-          restaurant_slug: row.restaurant_slug,
-          distance_km: null, // la vista no trae distancia
-          cuisine_types: [], // no disponible en la vista
-          category_id: row.category_id ?? null,
-          category_name: row.category_name ?? null,
-          is_vegetarian: !!row.is_vegetarian,
-          is_vegan: !!row.is_vegan,
-          is_gluten_free: !!row.is_gluten_free,
-          is_lactose_free: !!row.is_lactose_free,
-          is_healthy: !!row.is_healthy,
-          favorites_count: 0,
-          favorites_count_week: 0,
-          favorites_count_month: 0,
-        }));
+          return {
+            id: row.id,
+            name: row.name,
+            base_price: Number(row.base_price ?? 0),
+            image_url: row.image_url,
+            restaurant_id: row.restaurant_id,
+            restaurant_name: row.restaurant_name,
+            restaurant_slug: row.restaurant_slug,
+            distance_km: null, // not provided by view
+            cuisine_types: [], // not available in this view
+            category_id: row.category_id ?? null,
+            category_name: row.category_name ?? null,
+            // derive diet flags from diet_types jsonb
+            is_vegetarian: has('vegetarian'),
+            is_vegan: has('vegan'),
+            is_gluten_free: has('gluten_free'),
+            is_lactose_free: has('lactose_free'),
+            is_healthy: has('healthy'),
+            favorites_count: 0,
+            favorites_count_week: 0,
+            favorites_count_month: 0,
+          };
+        });
 
-        // Ordenaciones básicas en cliente
+        // Sorting in client
         const sorted = [...formatted].sort((a, b) => {
           switch (orderBy) {
             case 'price_asc': return a.base_price - b.base_price;
@@ -209,7 +240,7 @@ export const useDishes = ({
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, categoryIds, dietFilters, priceRangeIds, orderBy, dietSlugToField]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, categoryIds, dietFilters, priceRangeIds, orderBy]);
 
   return { dishes, loading, error };
 };
