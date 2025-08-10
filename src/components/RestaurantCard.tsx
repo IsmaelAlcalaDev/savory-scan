@@ -48,28 +48,6 @@ export default function RestaurantCard({
     }
   };
 
-  const renderServices = () => {
-    if (services.length === 0) return null;
-    
-    const visibleServices = services.slice(0, 2);
-    const remainingCount = services.length - 2;
-    
-    return (
-      <div className="flex gap-1 flex-wrap">
-        {visibleServices.map((service, index) => (
-          <Badge key={index} variant="outline" className="text-xs px-2 py-0.5">
-            {service}
-          </Badge>
-        ))}
-        {remainingCount > 0 && (
-          <Badge variant="outline" className="text-xs px-2 py-0.5">
-            +{remainingCount}
-          </Badge>
-        )}
-      </div>
-    );
-  };
-
   // Elegir la mejor imagen disponible
   const displayImage = coverImageUrl || logoUrl;
 
@@ -81,8 +59,8 @@ export default function RestaurantCard({
       )}
       onClick={handleClick}
     >
-      {/* Imagen redondeada */}
-      <div className="aspect-square relative overflow-hidden rounded-2xl mb-3">
+      {/* Imagen rectangular redondeada */}
+      <div className="aspect-[4/3] relative overflow-hidden rounded-2xl mb-3">
         {displayImage ? (
           <img 
             src={displayImage} 
@@ -119,8 +97,8 @@ export default function RestaurantCard({
           {name}
         </h3>
         
-        {/* Tipo de cocina · Rating */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        {/* Tipo de cocina · Rating · Distancia · Precio en una sola línea */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
           <span className="line-clamp-1">
             {cuisineTypes.slice(0, 2).join(', ')}
           </span>
@@ -136,23 +114,15 @@ export default function RestaurantCard({
               </div>
             </>
           )}
-        </div>
-
-        {/* Distancia • Rango de precio */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           {distance && (
             <>
-              <span className="flex-shrink-0">{distance.toFixed(1)}km</span>
               <span>•</span>
+              <span className="flex-shrink-0">{distance.toFixed(1)}km</span>
             </>
           )}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <span className="font-medium text-foreground">{priceRange}</span>
-          </div>
+          <span>•</span>
+          <span className="font-medium text-foreground">{priceRange}</span>
         </div>
-
-        {/* Servicios como tags */}
-        {renderServices()}
       </div>
     </div>
   );
