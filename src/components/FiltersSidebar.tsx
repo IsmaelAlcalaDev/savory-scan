@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -172,25 +172,26 @@ export default function FiltersSidebar({
     </div>
   );
 
-  const CheckboxOption = ({ 
+  const RadioOption = ({ 
     id, 
+    value,
     checked, 
     onChange, 
     children, 
     icon 
   }: {
     id: string;
+    value: string;
     checked: boolean;
-    onChange: () => void;
+    onChange: (value: string) => void;
     children: React.ReactNode;
     icon?: React.ReactNode;
   }) => (
     <div className="flex items-center space-x-3 group py-1">
-      <Checkbox 
+      <RadioGroupItem 
+        value={value}
         id={id}
-        checked={checked}
-        onCheckedChange={onChange}
-        className="border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+        className="border-2"
       />
       <label 
         htmlFor={id}
@@ -226,16 +227,22 @@ export default function FiltersSidebar({
         selectedCount={selectedDistances.length}
         loading={distanceLoading}
       >
-        {distanceRanges.map((range) => (
-          <CheckboxOption
-            key={range.id}
-            id={`distance-${range.id}`}
-            checked={selectedDistances.includes(range.id)}
-            onChange={() => handleDistanceToggle(range.id)}
-          >
-            {range.name}
-          </CheckboxOption>
-        ))}
+        <RadioGroup 
+          value={selectedDistances[0]?.toString() || ""} 
+          onValueChange={(value) => onDistanceChange(value ? [parseInt(value)] : [])}
+        >
+          {distanceRanges.map((range) => (
+            <RadioOption
+              key={range.id}
+              id={`distance-${range.id}`}
+              value={range.id.toString()}
+              checked={selectedDistances.includes(range.id)}
+              onChange={(value) => onDistanceChange([parseInt(value)])}
+            >
+              {range.name}
+            </RadioOption>
+          ))}
+        </RadioGroup>
       </FilterSection>
 
       {/* Rango de Precios */}
@@ -245,16 +252,22 @@ export default function FiltersSidebar({
         sectionKey="price"
         selectedCount={selectedPriceRanges.length}
       >
-        {priceRangeOptions.map((option) => (
-          <CheckboxOption
-            key={option.id}
-            id={`price-${option.id}`}
-            checked={selectedPriceRanges.includes(option.value)}
-            onChange={() => handlePriceRangeToggle(option.value)}
-          >
-            {option.label}
-          </CheckboxOption>
-        ))}
+        <RadioGroup 
+          value={selectedPriceRanges[0] || ""} 
+          onValueChange={(value) => onPriceRangeChange(value ? [value] : [])}
+        >
+          {priceRangeOptions.map((option) => (
+            <RadioOption
+              key={option.id}
+              id={`price-${option.id}`}
+              value={option.value}
+              checked={selectedPriceRanges.includes(option.value)}
+              onChange={(value) => onPriceRangeChange([value])}
+            >
+              {option.label}
+            </RadioOption>
+          ))}
+        </RadioGroup>
       </FilterSection>
 
       {/* Valoración */}
@@ -265,17 +278,23 @@ export default function FiltersSidebar({
         selectedCount={selectedRatings.length}
         loading={ratingLoading}
       >
-        {ratingOptions.map((option) => (
-          <CheckboxOption
-            key={option.id}
-            id={`rating-${option.id}`}
-            checked={selectedRatings.includes(option.id)}
-            onChange={() => handleRatingToggle(option.id)}
-            icon={<Star className="h-3 w-3 fill-amber-400 text-amber-400" />}
-          >
-            {option.display_text}
-          </CheckboxOption>
-        ))}
+        <RadioGroup 
+          value={selectedRatings[0]?.toString() || ""} 
+          onValueChange={(value) => onRatingChange(value ? [parseInt(value)] : [])}
+        >
+          {ratingOptions.map((option) => (
+            <RadioOption
+              key={option.id}
+              id={`rating-${option.id}`}
+              value={option.id.toString()}
+              checked={selectedRatings.includes(option.id)}
+              onChange={(value) => onRatingChange([parseInt(value)])}
+              icon={<Star className="h-3 w-3 fill-amber-400 text-amber-400" />}
+            >
+              {option.display_text}
+            </RadioOption>
+          ))}
+        </RadioGroup>
       </FilterSection>
 
       {/* Tipo de Local */}
@@ -286,21 +305,22 @@ export default function FiltersSidebar({
         selectedCount={selectedEstablishments.length}
         loading={establishmentLoading}
       >
-        {establishmentTypes.map((type) => (
-          <CheckboxOption
-            key={type.id}
-            id={`establishment-${type.id}`}
-            checked={selectedEstablishments.includes(type.id)}
-            onChange={() => handleEstablishmentToggle(type.id)}
-            icon={type.icon && (
-              <span className="text-sm" role="img" aria-label={type.name}>
-                {type.icon}
-              </span>
-            )}
-          >
-            {type.name}
-          </CheckboxOption>
-        ))}
+        <RadioGroup 
+          value={selectedEstablishments[0]?.toString() || ""} 
+          onValueChange={(value) => onEstablishmentChange(value ? [parseInt(value)] : [])}
+        >
+          {establishmentTypes.map((type) => (
+            <RadioOption
+              key={type.id}
+              id={`establishment-${type.id}`}
+              value={type.id.toString()}
+              checked={selectedEstablishments.includes(type.id)}
+              onChange={(value) => onEstablishmentChange([parseInt(value)])}
+            >
+              {type.name}
+            </RadioOption>
+          ))}
+        </RadioGroup>
       </FilterSection>
 
       {/* Servicios */}
@@ -311,16 +331,22 @@ export default function FiltersSidebar({
         selectedCount={selectedServices.length}
         loading={servicesLoading}
       >
-        {services.map((service) => (
-          <CheckboxOption
-            key={service.id}
-            id={`service-${service.id}`}
-            checked={selectedServices.includes(service.id)}
-            onChange={() => handleServiceToggle(service.id)}
-          >
-            {service.name}
-          </CheckboxOption>
-        ))}
+        <RadioGroup 
+          value={selectedServices[0]?.toString() || ""} 
+          onValueChange={(value) => onServiceChange(value ? [parseInt(value)] : [])}
+        >
+          {services.map((service) => (
+            <RadioOption
+              key={service.id}
+              id={`service-${service.id}`}
+              value={service.id.toString()}
+              checked={selectedServices.includes(service.id)}
+              onChange={(value) => onServiceChange([parseInt(value)])}
+            >
+              {service.name}
+            </RadioOption>
+          ))}
+        </RadioGroup>
       </FilterSection>
     </div>
   );
