@@ -88,10 +88,10 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
         <Button
           variant="ghost"
           size="sm"
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white/80 backdrop-blur-sm shadow-sm h-8 w-8 p-0"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm shadow-soft border border-border/20 h-7 w-7 p-0 rounded-full opacity-80 hover:opacity-100 transition-opacity"
           onClick={() => scroll('left')}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-3 w-3" />
         </Button>
       )}
 
@@ -100,22 +100,22 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
         <Button
           variant="ghost"
           size="sm"
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white/80 backdrop-blur-sm shadow-sm h-8 w-8 p-0"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm shadow-soft border border-border/20 h-7 w-7 p-0 rounded-full opacity-80 hover:opacity-100 transition-opacity"
           onClick={() => scroll('right')}
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-3 w-3" />
         </Button>
       )}
 
       {/* Fade effect on the left */}
-      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white via-white/60 to-transparent z-10 pointer-events-none" />
       
       {/* Fade effect on the right */}
-      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white via-white/60 to-transparent z-10 pointer-events-none" />
       
       <div 
         ref={scrollRef}
-        className="flex gap-4 pb-3 px-1 overflow-x-auto scrollbar-hide"
+        className="flex gap-4 pb-3 px-2 overflow-x-auto scrollbar-hide"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none'
