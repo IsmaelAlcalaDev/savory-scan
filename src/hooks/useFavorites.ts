@@ -45,7 +45,7 @@ export const useFavorites = () => {
     }
   };
 
-  const toggleFavorite = async (restaurantId: number, openLoginModal?: () => void) => {
+  const toggleFavorite = async (restaurantId: number, openLoginModal?: () => void): Promise<boolean> => {
     if (!user) {
       toast({
         title: "Inicia sesión",
@@ -53,17 +53,25 @@ export const useFavorites = () => {
         variant: "destructive"
       });
       
-      // Si se proporciona la función para abrir el modal de login, la ejecutamos
       if (openLoginModal) {
         openLoginModal();
       }
-      return;
+      return false;
     }
 
     // Evitar múltiples clicks
-    if (loading[restaurantId]) return;
+    if (loading[restaurantId]) return favorites[restaurantId] || false;
 
     setLoading(prev => ({ ...prev, [restaurantId]: true }));
+
+    // Optimistic update - cambiar el estado inmediatamente
+    const currentState = favorites[restaurantId] || false;
+    const newState = !currentState;
+    
+    setFavorites(prev => ({
+      ...prev,
+      [restaurantId]: newState
+    }));
 
     try {
       const { data, error } = await supabase.rpc('toggle_restaurant_favorite', {
@@ -73,7 +81,7 @@ export const useFavorites = () => {
 
       if (error) throw error;
 
-      // Actualizar estado local inmediatamente
+      // Confirmar el estado real desde la BD
       setFavorites(prev => ({
         ...prev,
         [restaurantId]: data
@@ -84,13 +92,24 @@ export const useFavorites = () => {
         description: data ? "El restaurante se ha guardado en tus favoritos" : "El restaurante se ha eliminado de tus favoritos"
       });
 
+      return data;
+
     } catch (error) {
       console.error('Error toggling favorite:', error);
+      
+      // Revertir optimistic update en caso de error
+      setFavorites(prev => ({
+        ...prev,
+        [restaurantId]: currentState
+      }));
+      
       toast({
         title: "Error",
         description: "No se pudo actualizar el favorito. Inténtalo de nuevo.",
         variant: "destructive"
       });
+      
+      return currentState;
     } finally {
       setLoading(prev => ({ ...prev, [restaurantId]: false }));
     }

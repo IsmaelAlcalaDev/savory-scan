@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
 
 interface RestaurantCardProps {
   id: number;
@@ -54,6 +55,9 @@ export default function RestaurantCard({
   }
 
   const { isFavorite, isToggling, toggleFavorite } = useFavorites();
+  
+  // Local state para manejar el contador de favoritos
+  const [localFavoritesCount, setLocalFavoritesCount] = useState(favoritesCount);
 
   const handleClick = () => {
     if (onClick) {
@@ -63,7 +67,7 @@ export default function RestaurantCard({
     }
   };
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que se active el click de la card
     
     if (!user && onLoginRequired) {
@@ -71,7 +75,21 @@ export default function RestaurantCard({
       return;
     }
     
-    toggleFavorite(id, onLoginRequired);
+    // Update local count optimistically
+    const wasLiked = isFavorite(id);
+    const newCount = wasLiked ? localFavoritesCount - 1 : localFavoritesCount + 1;
+    setLocalFavoritesCount(Math.max(0, newCount)); // No permitir números negativos
+    
+    try {
+      const result = await toggleFavorite(id, onLoginRequired);
+      // Si el resultado final no coincide con lo que esperábamos, corregir
+      if (result !== !wasLiked) {
+        setLocalFavoritesCount(wasLiked ? localFavoritesCount : localFavoritesCount);
+      }
+    } catch (error) {
+      // Revertir el cambio optimista en caso de error
+      setLocalFavoritesCount(localFavoritesCount);
+    }
   };
 
   // Elegir la mejor imagen disponible
@@ -139,7 +157,7 @@ export default function RestaurantCard({
                 isToggling(id) && "animate-pulse"
               )} 
             />
-            <span className="text-xs font-medium">{favoritesCount}</span>
+            <span className="text-xs font-medium">{localFavoritesCount}</span>
           </button>
         </div>
       </div>

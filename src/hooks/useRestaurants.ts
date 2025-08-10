@@ -160,28 +160,6 @@ export const useRestaurants = ({
         console.log('Final formatted restaurants:', sortedData.length);
         setRestaurants(sortedData);
 
-        // Configurar listener para cambios en tiempo real en favorites
-        const channel = supabase
-          .channel('restaurants-favorites')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'user_saved_restaurants'
-            },
-            (payload) => {
-              console.log('Favorite change detected:', payload);
-              // Recargar datos cuando cambie algún favorito
-              fetchRestaurants();
-            }
-          )
-          .subscribe();
-
-        return () => {
-          supabase.removeChannel(channel);
-        };
-
       } catch (err) {
         console.error('Error fetching restaurants:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar restaurantes');
@@ -192,6 +170,47 @@ export const useRestaurants = ({
     };
 
     fetchRestaurants();
+
+    // Configurar listener para cambios en tiempo real en favorites
+    const channel = supabase
+      .channel('restaurants-favorites')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_saved_restaurants'
+        },
+        (payload) => {
+          console.log('Favorite change detected:', payload);
+          // Actualizar solo el contador de favoritos para el restaurante específico
+          if (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) {
+            const restaurantId = payload.new.restaurant_id;
+            setRestaurants(prevRestaurants => 
+              prevRestaurants.map(restaurant => {
+                if (restaurant.id === restaurantId) {
+                  const increment = payload.eventType === 'INSERT' && payload.new.is_active ? 1 : 
+                                  payload.eventType === 'UPDATE' && payload.old && 
+                                  payload.old.is_active !== payload.new.is_active ? 
+                                  (payload.new.is_active ? 1 : -1) : 0;
+                  return {
+                    ...restaurant,
+                    favorites_count: Math.max(0, restaurant.favorites_count + increment)
+                  };
+                }
+                return restaurant;
+              })
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup function para remover el listener
+    return () => {
+      supabase.removeChannel(channel);
+    };
+
   }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, minRating]);
 
   return { restaurants, loading, error };
