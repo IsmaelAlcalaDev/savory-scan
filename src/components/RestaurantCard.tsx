@@ -111,11 +111,15 @@ export default function RestaurantCard({
           "absolute inset-0 transition-smooth",
           displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
         )} />
-        <div className="absolute top-3 left-3">
+        
+        {/* Establishment type badge moved to bottom right */}
+        <div className="absolute bottom-3 right-3">
           <Badge variant="secondary" className="bg-white text-foreground text-xs shadow-sm pointer-events-none">
             {establishmentType}
           </Badge>
         </div>
+        
+        {/* Favorites button in top right */}
         <div className="absolute top-3 right-3">
           <button
             onClick={handleFavoriteClick}

@@ -379,24 +379,46 @@ export default function FoodieSpotLayout() {
 
     const activeFiltersDisplay = getActiveFiltersDisplay();
 
+    // Dynamic title based on location
+    const getDynamicTitle = () => {
+      if (userLocation) {
+        return `${restaurants.length} restaurantes cerca de ti`;
+      }
+      
+      if (ipLocation) {
+        const locationName = ipLocation.city || 'tu ubicación';
+        return `${restaurants.length} restaurantes en ${locationName}`;
+      }
+      
+      return `${restaurants.length} restaurantes`;
+    };
+
+    const getLocationNote = () => {
+      if (ipLocation && ipLocation.accuracy === 'ip') {
+        return 'ubicación aproximada';
+      }
+      if (userLocation) {
+        return 'ordenados por distancia';
+      }
+      return null;
+    };
+
     // Default restaurants content (siempre mostrar cuando no sea 'dishes')
     return (
       <>
-        {/* Results Header */}
+        {/* Results Header with Dynamic Title */}
         <div className="flex items-center justify-between mb-3">
           <div>
             <h2 className={`text-xl font-semibold mb-1 mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
-              {userLocation ? 'Restaurantes cerca de ti' : 'Restaurantes'}
+              {loading ? 'Cargando restaurantes...' : getDynamicTitle()}
             </h2>
-            <p className="text-sm text-muted-foreground">
-              {loading ? 'Cargando...' : `${restaurants.length} resultados`}
-              {userLocation && ' • Ordenados por distancia'}
-              {ipLocation && ipLocation.accuracy === 'ip' && (
-                <span className="text-xs text-muted-foreground ml-1">
-                  (ubicación aproximada)
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {getLocationNote() && (
+                <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
+                  {getLocationNote()}
                 </span>
               )}
-            </p>
+            </div>
             {error && (
               <p className="text-sm text-destructive mt-1">Error: {error}</p>
             )}
@@ -584,10 +606,10 @@ export default function FoodieSpotLayout() {
           <div className="flex items-center gap-12 flex-shrink-0">
             <LanguageSelector />
             <button 
-              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition text-red-500 hover:text-foreground transition-colors"
+              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition text-gray-800 hover:text-gray-600 transition-colors"
               onClick={() => setMenuModalOpen(true)}
             >
-              <Menu className="h-8 w-8" strokeWidth={1.5} />
+              <Menu className="h-8 w-8" strokeWidth={2} />
             </button>
           </div>
         </div>
