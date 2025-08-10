@@ -60,18 +60,22 @@ export default function FiltersModal({
   return (
     <ModalWrapper open={open} onOpenChange={setOpen}>
       <ModalTrigger asChild>
-        <Button
-          variant="outline"
-          className="h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full bg-transparent hover:bg-muted/50 text-muted-foreground hover:text-foreground border-border flex items-center gap-2 whitespace-nowrap flex-shrink-0"
-        >
-          <Filter className="h-3 w-3" />
-          Filtros
+        <div className="relative">
+          <Button
+            variant="ghost"
+            className="w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white hover:text-white p-0 flex items-center justify-center flex-shrink-0 transition-colors"
+          >
+            <Filter className="h-3.5 w-3.5" />
+          </Button>
           {totalActiveFilters > 0 && (
-            <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-primary text-primary-foreground font-medium ml-1">
+            <Badge 
+              variant="secondary" 
+              className="absolute -top-1 -right-1 text-xs px-1.5 py-0.5 bg-primary text-primary-foreground font-medium min-w-[18px] h-[18px] rounded-full flex items-center justify-center"
+            >
               {totalActiveFilters}
             </Badge>
           )}
-        </Button>
+        </div>
       </ModalTrigger>
       <ModalContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <ModalHeader>
