@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,17 +29,17 @@ interface FiltersSidebarProps {
 }
 
 export default function FiltersSidebar({
-  selectedDistances,
+  selectedDistances = [],
   onDistanceChange,
-  selectedRatings,
+  selectedRatings = [],
   onRatingChange,
-  selectedEstablishments,
+  selectedEstablishments = [],
   onEstablishmentChange,
-  selectedServices,
+  selectedServices = [],
   onServiceChange,
-  selectedPriceRanges,
+  selectedPriceRanges = [],
   onPriceRangeChange,
-  selectedTimeRanges,
+  selectedTimeRanges = [],
   onTimeRangeChange,
 }: FiltersSidebarProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -75,9 +74,12 @@ export default function FiltersSidebar({
     onTimeRangeChange([]);
   };
 
-  const hasActiveFilters = selectedDistances.length > 0 || selectedRatings.length > 0 || 
-    selectedEstablishments.length > 0 || selectedServices.length > 0 || 
-    selectedPriceRanges.length > 0 || selectedTimeRanges.length > 0;
+  const hasActiveFilters = (selectedDistances?.length || 0) > 0 || 
+    (selectedRatings?.length || 0) > 0 || 
+    (selectedEstablishments?.length || 0) > 0 || 
+    (selectedServices?.length || 0) > 0 || 
+    (selectedPriceRanges?.length || 0) > 0 || 
+    (selectedTimeRanges?.length || 0) > 0;
 
   const FilterSection = ({ 
     title, 
@@ -194,19 +196,19 @@ export default function FiltersSidebar({
         title="Distancia"
         icon={MapPin}
         sectionKey="distance"
-        selectedCount={selectedDistances.length}
+        selectedCount={selectedDistances?.length || 0}
         loading={distanceLoading}
       >
         <RadioGroup 
-          value={selectedDistances[0]?.toString() || ""} 
+          value={selectedDistances?.[0]?.toString() || ""} 
           onValueChange={(value) => onDistanceChange(value ? [parseInt(value)] : [])}
         >
-          {distanceRanges.map((range) => (
+          {(distanceRanges || []).map((range) => (
             <RadioOption
               key={range.id}
               id={`distance-${range.id}`}
               value={range.id.toString()}
-              checked={selectedDistances.includes(range.id)}
+              checked={selectedDistances?.includes(range.id) || false}
               onChange={(value) => onDistanceChange([parseInt(value)])}
             >
               {range.display_text}
@@ -220,19 +222,19 @@ export default function FiltersSidebar({
         title="Rango de Precios"
         icon={DollarSign}
         sectionKey="price"
-        selectedCount={selectedPriceRanges.length}
+        selectedCount={selectedPriceRanges?.length || 0}
         loading={priceLoading}
       >
         <RadioGroup 
-          value={selectedPriceRanges[0] || ""} 
+          value={selectedPriceRanges?.[0] || ""} 
           onValueChange={(value) => onPriceRangeChange(value ? [value] : [])}
         >
-          {priceRanges.map((range) => (
+          {(priceRanges || []).map((range) => (
             <RadioOption
               key={range.id}
               id={`price-${range.id}`}
               value={range.value}
-              checked={selectedPriceRanges.includes(range.value)}
+              checked={selectedPriceRanges?.includes(range.value) || false}
               onChange={(value) => onPriceRangeChange([value])}
             >
               {range.display_text}
@@ -246,19 +248,19 @@ export default function FiltersSidebar({
         title="Horarios"
         icon={Clock}
         sectionKey="time"
-        selectedCount={selectedTimeRanges.length}
+        selectedCount={selectedTimeRanges?.length || 0}
         loading={timeLoading}
       >
         <RadioGroup 
-          value={selectedTimeRanges[0]?.toString() || ""} 
+          value={selectedTimeRanges?.[0]?.toString() || ""} 
           onValueChange={(value) => onTimeRangeChange(value ? [parseInt(value)] : [])}
         >
-          {timeRanges.map((range) => (
+          {(timeRanges || []).map((range) => (
             <RadioOption
               key={range.id}
               id={`time-${range.id}`}
               value={range.id.toString()}
-              checked={selectedTimeRanges.includes(range.id)}
+              checked={selectedTimeRanges?.includes(range.id) || false}
               onChange={(value) => onTimeRangeChange([parseInt(value)])}
             >
               {range.display_text}
@@ -272,19 +274,19 @@ export default function FiltersSidebar({
         title="Valoración"
         icon={Star}
         sectionKey="rating"
-        selectedCount={selectedRatings.length}
+        selectedCount={selectedRatings?.length || 0}
         loading={ratingLoading}
       >
         <RadioGroup 
-          value={selectedRatings[0]?.toString() || ""} 
+          value={selectedRatings?.[0]?.toString() || ""} 
           onValueChange={(value) => onRatingChange(value ? [parseInt(value)] : [])}
         >
-          {ratingOptions.map((option) => (
+          {(ratingOptions || []).map((option) => (
             <RadioOption
               key={option.id}
               id={`rating-${option.id}`}
               value={option.id.toString()}
-              checked={selectedRatings.includes(option.id)}
+              checked={selectedRatings?.includes(option.id) || false}
               onChange={(value) => onRatingChange([parseInt(value)])}
               icon={<Star className="h-3 w-3 fill-amber-400 text-amber-400" />}
             >
@@ -299,19 +301,19 @@ export default function FiltersSidebar({
         title="Tipo de Local"
         icon={Building}
         sectionKey="establishment"
-        selectedCount={selectedEstablishments.length}
+        selectedCount={selectedEstablishments?.length || 0}
         loading={establishmentLoading}
       >
         <RadioGroup 
-          value={selectedEstablishments[0]?.toString() || ""} 
+          value={selectedEstablishments?.[0]?.toString() || ""} 
           onValueChange={(value) => onEstablishmentChange(value ? [parseInt(value)] : [])}
         >
-          {establishmentTypes.map((type) => (
+          {(establishmentTypes || []).map((type) => (
             <RadioOption
               key={type.id}
               id={`establishment-${type.id}`}
               value={type.id.toString()}
-              checked={selectedEstablishments.includes(type.id)}
+              checked={selectedEstablishments?.includes(type.id) || false}
               onChange={(value) => onEstablishmentChange([parseInt(value)])}
             >
               {type.name}
@@ -325,19 +327,19 @@ export default function FiltersSidebar({
         title="Servicios"
         icon={UtensilsCrossed}
         sectionKey="services"
-        selectedCount={selectedServices.length}
+        selectedCount={selectedServices?.length || 0}
         loading={servicesLoading}
       >
         <RadioGroup 
-          value={selectedServices[0]?.toString() || ""} 
+          value={selectedServices?.[0]?.toString() || ""} 
           onValueChange={(value) => onServiceChange(value ? [parseInt(value)] : [])}
         >
-          {services.map((service) => (
+          {(services || []).map((service) => (
             <RadioOption
               key={service.id}
               id={`service-${service.id}`}
               value={service.id.toString()}
-              checked={selectedServices.includes(service.id)}
+              checked={selectedServices?.includes(service.id) || false}
               onChange={(value) => onServiceChange([parseInt(value)])}
             >
               {service.name}

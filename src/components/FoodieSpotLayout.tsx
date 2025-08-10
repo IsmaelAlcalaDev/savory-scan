@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Search, MapPin, User, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,7 @@ export default function FoodieSpotLayout() {
   const [selectedEstablishments, setSelectedEstablishments] = useState<number[]>([]);
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
+  const [selectedTimeRanges, setSelectedTimeRanges] = useState<number[]>([]);
   const [activeFilters, setActiveFilters] = useState<string[]>(['nearby']);
   const [isVegMode, setIsVegMode] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -318,6 +320,8 @@ export default function FoodieSpotLayout() {
               onServiceChange={setSelectedServices}
               selectedPriceRanges={selectedPriceRanges}
               onPriceRangeChange={setSelectedPriceRanges}
+              selectedTimeRanges={selectedTimeRanges}
+              onTimeRangeChange={setSelectedTimeRanges}
             />
           </div>
         </aside>
