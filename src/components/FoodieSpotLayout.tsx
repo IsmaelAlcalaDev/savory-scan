@@ -511,10 +511,12 @@ export default function FoodieSpotLayout() {
       <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
         <div className="flex items-center justify-between p-4">
           {/* Left Section: Logo */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <div className={`w-8 h-8 bg-primary rounded-full flex items-center justify-center mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
-              <span className="text-primary-foreground font-bold text-sm">F</span>
-            </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <img 
+              src="https://w7.pngwing.com/pngs/256/867/png-transparent-zomato-logo-thumbnail.png" 
+              alt="FoodieSpot Logo" 
+              className={`w-10 h-10 object-contain mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}
+            />
             <div>
               <h1 className="font-bold text-lg mode-transition">FoodieSpot</h1>
               <p className="text-xs text-muted-foreground">Food delivery</p>
@@ -550,7 +552,7 @@ export default function FoodieSpotLayout() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
-                  className="pl-10 pr-4 h-10 text-base bg-background/50 border border-muted-foreground backdrop-blur-sm rounded-full focus:border-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="pl-10 pr-4 h-10 text-base bg-background/50 border border-muted-foreground backdrop-blur-sm rounded-full focus:border-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none"
                 />
               </div>
             </div>
