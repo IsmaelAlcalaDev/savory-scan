@@ -20,7 +20,7 @@ export default function FoodieSpotLayout({ children }: FoodieSpotLayoutProps) {
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [isVegMode, setIsVegMode] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes' | 'account'>('restaurants');
 
   const { location: ipLocation } = useIPLocation();
 
