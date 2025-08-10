@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, User, Menu } from 'lucide-react';
+import { Search, MapPin, User, Menu, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -110,6 +110,29 @@ export default function FoodieSpotLayout() {
     console.log('Updated location name:', currentLocationName);
   };
 
+  const TagButton = ({ 
+    children, 
+    isSelected, 
+    onClick
+  }: {
+    children: React.ReactNode;
+    isSelected: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      onClick={onClick}
+      className={cn(
+        "h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none flex items-center",
+        isSelected 
+          ? "!bg-primary text-primary-foreground hover:!bg-primary/90 border-primary" 
+          : "!bg-transparent hover:!bg-muted/50 text-muted-foreground hover:text-foreground border-border"
+      )}
+    >
+      <span className="flex items-center">{children}</span>
+      {isSelected && <X className="ml-1 h-3 w-3 flex-shrink-0" />}
+    </button>
+  );
+
   const renderContent = () => {
     if (activeBottomTab === 'dishes') {
       return (
@@ -157,14 +180,13 @@ export default function FoodieSpotLayout() {
         <div className="flex items-center gap-4 mb-6">
           <div className="flex gap-2">
             {filterOptions.map((filter) => (
-              <Badge
+              <TagButton
                 key={filter.id}
-                variant={activeFilters.includes(filter.id) ? "default" : "outline"}
-                className="cursor-pointer"
+                isSelected={activeFilters.includes(filter.id)}
                 onClick={() => handleFilterToggle(filter.id)}
               >
                 {filter.label}
-              </Badge>
+              </TagButton>
             ))}
           </div>
           
