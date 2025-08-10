@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Search, MapPin, User, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -223,7 +222,7 @@ export default function FoodieSpotLayout() {
               ))}
             </div>
 
-            {/* Restaurant Grid */}
+            {/* Restaurant Grid - 3 columns on desktop */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
@@ -260,6 +259,8 @@ export default function FoodieSpotLayout() {
                     distance={restaurant.distance_km}
                     cuisineTypes={restaurant.cuisine_types}
                     establishmentType={restaurant.establishment_type}
+                    services={restaurant.services}
+                    favoritesCount={restaurant.favorites_count}
                   />
                 ))
               )}

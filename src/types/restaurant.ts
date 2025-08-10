@@ -1,0 +1,21 @@
+
+export interface Restaurant {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  price_range: string;
+  google_rating?: number;
+  distance_km?: number;
+  cuisine_types: string[];
+  establishment_type?: string;
+  services: string[];
+  favorites_count: number;
+}
+
+export interface RestaurantService {
+  id: number;
+  name: string;
+  icon?: string;
+  description?: string;
+}
