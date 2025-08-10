@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,50 +9,50 @@ All colors MUST be HSL.
 
 @layer base {
 :root {
-    /* Restaurant discovery platform color palette */
+    /* Restaurant discovery platform color palette - Carmín Red */
     --background: 0 0% 100%;
-    --foreground: 20 14% 4.1%;
+    --foreground: 0 0% 4.1%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 14% 4.1%;
+    --card-foreground: 0 0% 4.1%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 14% 4.1%;
+    --popover-foreground: 0 0% 4.1%;
 
-    /* Primary - vibrant orange/red for food and warmth */
-    --primary: 15 78% 54%;
-    --primary-light: 15 78% 64%;
+    /* Primary - vibrant carmín red */
+    --primary: 348 83% 47%;
+    --primary-light: 348 83% 57%;
     --primary-foreground: 0 0% 98%;
 
     /* Secondary - warm cream for elegance */
     --secondary: 40 22% 94%;
-    --secondary-foreground: 20 14% 4.1%;
+    --secondary-foreground: 0 0% 4.1%;
 
     --muted: 40 22% 94%;
     --muted-foreground: 40 3.8% 46.1%;
 
-    /* Accent - golden yellow for highlights */
-    --accent: 42 78% 60%;
-    --accent-foreground: 20 14% 4.1%;
+    /* Accent - deeper red for highlights */
+    --accent: 355 85% 55%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 40 22% 87%;
     --input: 40 22% 87%;
-    --ring: 15 78% 54%;
+    --ring: 348 83% 47%;
 
     --radius: 0.75rem;
 
-    /* Custom gradients and effects */
-    --gradient-hero: linear-gradient(135deg, hsl(15 78% 54%), hsl(25 85% 58%));
+    /* Custom gradients and effects - Carmín Red */
+    --gradient-hero: linear-gradient(135deg, hsl(348 83% 47%), hsl(355 85% 55%));
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(40 22% 97%));
-    --gradient-search: linear-gradient(135deg, hsl(15 78% 54%), hsl(42 78% 60%));
+    --gradient-search: linear-gradient(135deg, hsl(348 83% 47%), hsl(355 85% 55%));
     
     /* Shadows for depth */
-    --shadow-soft: 0 4px 20px hsl(15 78% 54% / 0.1);
-    --shadow-card: 0 8px 32px hsl(15 78% 54% / 0.15);
-    --shadow-float: 0 12px 40px hsl(15 78% 54% / 0.2);
+    --shadow-soft: 0 4px 20px hsl(348 83% 47% / 0.1);
+    --shadow-card: 0 8px 32px hsl(348 83% 47% / 0.15);
+    --shadow-float: 0 12px 40px hsl(348 83% 47% / 0.2);
     
     /* Glass effects */
     --glass-bg: hsl(0 0% 100% / 0.8);
@@ -62,63 +63,81 @@ All colors MUST be HSL.
     --motion-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 348 83% 47%;
+  }
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  /* VEG Mode - Ecological Green Theme */
+  .veg-mode {
+    /* Primary - ecological green */
+    --primary: 142 76% 36%;
+    --primary-light: 142 76% 46%;
+    --primary-foreground: 0 0% 98%;
+
+    /* Accent - nature green for highlights */
+    --accent: 134 74% 45%;
+    --accent-foreground: 0 0% 98%;
+
+    --ring: 142 76% 36%;
+
+    /* Custom gradients - Green Nature */
+    --gradient-hero: linear-gradient(135deg, hsl(142 76% 36%), hsl(134 74% 45%));
+    --gradient-search: linear-gradient(135deg, hsl(142 76% 36%), hsl(134 74% 45%));
+    
+    /* Green shadows */
+    --shadow-soft: 0 4px 20px hsl(142 76% 36% / 0.1);
+    --shadow-card: 0 8px 32px hsl(142 76% 36% / 0.15);
+    --shadow-float: 0 12px 40px hsl(142 76% 36% / 0.2);
+
+    --sidebar-ring: 142 76% 36%;
   }
 
 .dark {
-    --background: 20 14% 4.1%;
+    --background: 0 0% 4.1%;
     --foreground: 0 0% 98%;
 
-    --card: 20 14% 4.1%;
+    --card: 0 0% 4.1%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 20 14% 4.1%;
+    --popover: 0 0% 4.1%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 15 78% 54%;
-    --primary-light: 15 78% 64%;
+    --primary: 348 83% 47%;
+    --primary-light: 348 83% 57%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 20 8% 12%;
+    --secondary: 0 8% 12%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 20 8% 12%;
-    --muted-foreground: 20 5.9% 45.1%;
+    --muted: 0 8% 12%;
+    --muted-foreground: 0 5.9% 45.1%;
 
-    --accent: 42 78% 60%;
-    --accent-foreground: 20 14% 4.1%;
+    --accent: 355 85% 55%;
+    --accent-foreground: 0 0% 4.1%;
 
     --destructive: 0 62.8% 45.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 20 8% 12%;
-    --input: 20 8% 12%;
-    --ring: 15 78% 54%;
+    --border: 0 8% 12%;
+    --input: 0 8% 12%;
+    --ring: 348 83% 47%;
 
     /* Dark mode adaptations */
-    --gradient-hero: linear-gradient(135deg, hsl(15 78% 54%), hsl(25 85% 48%));
-    --gradient-card: linear-gradient(145deg, hsl(20 14% 4.1%), hsl(20 8% 6%));
-    --gradient-search: linear-gradient(135deg, hsl(15 78% 54%), hsl(42 78% 50%));
+    --gradient-hero: linear-gradient(135deg, hsl(348 83% 47%), hsl(355 85% 45%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 4.1%), hsl(0 8% 6%));
+    --gradient-search: linear-gradient(135deg, hsl(348 83% 47%), hsl(355 85% 45%));
     
     --shadow-soft: 0 4px 20px hsl(0 0% 0% / 0.3);
     --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.4);
     --shadow-float: 0 12px 40px hsl(0 0% 0% / 0.5);
     
-    --glass-bg: hsl(20 14% 4.1% / 0.8);
-    --glass-border: hsl(20 8% 12% / 0.3);
+    --glass-bg: hsl(0 0% 4.1% / 0.8);
+    --glass-border: hsl(0 8% 12% / 0.3);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -126,7 +145,21 @@ All colors MUST be HSL.
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 348 83% 47%;
+  }
+
+  /* Dark VEG Mode */
+  .dark.veg-mode {
+    --primary: 142 76% 40%;
+    --primary-light: 142 76% 50%;
+    --accent: 134 74% 50%;
+    --ring: 142 76% 40%;
+    --gradient-hero: linear-gradient(135deg, hsl(142 76% 40%), hsl(134 74% 50%));
+    --gradient-search: linear-gradient(135deg, hsl(142 76% 40%), hsl(134 74% 50%));
+    --shadow-soft: 0 4px 20px hsl(142 76% 40% / 0.2);
+    --shadow-card: 0 8px 32px hsl(142 76% 40% / 0.3);
+    --shadow-float: 0 12px 40px hsl(142 76% 40% / 0.4);
+    --sidebar-ring: 142 76% 40%;
   }
 }
 
@@ -137,5 +170,61 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Vegetable animations for VEG mode */
+@layer utilities {
+  @keyframes leaf-sway {
+    0%, 100% { 
+      transform: rotate(-2deg) translateY(0px);
+    }
+    50% { 
+      transform: rotate(2deg) translateY(-2px);
+    }
+  }
+
+  @keyframes grow-bounce {
+    0% { 
+      transform: scale(1);
+    }
+    50% { 
+      transform: scale(1.05);
+    }
+    100% { 
+      transform: scale(1);
+    }
+  }
+
+  @keyframes shimmer-green {
+    0% { 
+      background-position: -200% 0;
+    }
+    100% { 
+      background-position: 200% 0;
+    }
+  }
+
+  .veg-mode .animate-leaf-sway {
+    animation: leaf-sway 3s ease-in-out infinite;
+  }
+
+  .veg-mode .animate-grow-bounce {
+    animation: grow-bounce 2s ease-in-out infinite;
+  }
+
+  .veg-mode .animate-shimmer-green {
+    background: linear-gradient(90deg, 
+      hsl(142 76% 36%) 0%, 
+      hsl(134 74% 45%) 50%, 
+      hsl(142 76% 36%) 100%);
+    background-size: 200% 100%;
+    animation: shimmer-green 3s ease-in-out infinite;
+  }
+
+  /* Smooth transition for mode changes */
+  .mode-transition {
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }

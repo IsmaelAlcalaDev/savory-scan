@@ -69,6 +69,25 @@ export default function FoodieSpotLayout() {
     }
   }, [ipLocation, userLocation]);
 
+  useEffect(() => {
+    const bodyElement = document.body;
+    const htmlElement = document.documentElement;
+    
+    if (isVegMode) {
+      bodyElement.classList.add('veg-mode');
+      htmlElement.classList.add('veg-mode');
+    } else {
+      bodyElement.classList.remove('veg-mode');
+      htmlElement.classList.remove('veg-mode');
+    }
+    
+    // Cleanup function
+    return () => {
+      bodyElement.classList.remove('veg-mode');
+      htmlElement.classList.remove('veg-mode');
+    };
+  }, [isVegMode]);
+
   const { restaurants, loading, error } = useRestaurants({
     searchQuery,
     userLat: userLocation?.lat,
@@ -333,7 +352,7 @@ export default function FoodieSpotLayout() {
         {/* Results Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold mb-1">
+            <h2 className={`text-xl font-semibold mb-1 mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
               {userLocation ? 'Restaurantes cerca de ti' : 'Restaurantes'}
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -353,7 +372,7 @@ export default function FoodieSpotLayout() {
 
         {/* Filter Badges with VEG Mode */}
         <div className="flex items-center gap-4 mb-4">
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
             {filterOptions.map((filter) => (
               <TagButton
                 key={filter.id}
@@ -365,7 +384,7 @@ export default function FoodieSpotLayout() {
             ))}
           </div>
           
-          <div className="ml-auto">
+          <div className={`ml-auto ${isVegMode ? 'animate-leaf-sway' : ''}`}>
             <VegModeToggle 
               isVegMode={isVegMode}
               onToggle={setIsVegMode}
@@ -377,7 +396,7 @@ export default function FoodieSpotLayout() {
         {activeFiltersDisplay.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex flex-wrap gap-2 overflow-x-auto">
+              <div className="flex flex-wrap gap-2 overflow-x-auto scrollbar-hide">
                 {activeFiltersDisplay.map((filter, index) => (
                   <FilterTag
                     key={`${filter.type}-${filter.value}-${index}`}
@@ -450,16 +469,16 @@ export default function FoodieSpotLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-20 px-[7.5%]">
+    <div className={`min-h-screen bg-white pb-20 px-[7.5%] mode-transition ${isVegMode ? 'animate-shimmer-green' : ''}`}>
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%]">
+      <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+            <div className={`w-8 h-8 bg-primary rounded-full flex items-center justify-center mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
               <span className="text-primary-foreground font-bold text-sm">F</span>
             </div>
             <div>
-              <h1 className="font-bold text-lg">FoodieSpot</h1>
+              <h1 className="font-bold text-lg mode-transition">FoodieSpot</h1>
               <p className="text-xs text-muted-foreground">Food delivery</p>
             </div>
           </div>
@@ -484,20 +503,20 @@ export default function FoodieSpotLayout() {
                 placeholder="Buscar restaurantes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-10 rounded-full"
+                className="pl-10 h-10 rounded-full mode-transition"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="mode-transition">
               <User className="h-5 w-5" />
             </Button>
             <Button 
               variant="ghost" 
               size="sm"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden"
+              className="md:hidden mode-transition"
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -516,7 +535,7 @@ export default function FoodieSpotLayout() {
       <div className="flex">
         {/* Sidebar - Filters */}
         <aside className={cn(
-          "w-80 bg-white transition-transform duration-300 md:translate-x-0 fixed md:static h-full z-40 overflow-y-auto",
+          "w-80 bg-white transition-transform duration-300 md:translate-x-0 fixed md:static h-full z-40 overflow-y-auto mode-transition",
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}>
           <div className="p-4">
