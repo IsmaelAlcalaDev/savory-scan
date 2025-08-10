@@ -1,5 +1,5 @@
 
-import { Star, MapPin, Euro, Heart } from 'lucide-react';
+import { Star, Euro, Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -66,66 +66,56 @@ export default function RestaurantCard({
               {establishmentType}
             </Badge>
           </div>
-          {distance && (
-            <div className="absolute top-3 right-3">
-              <Badge variant="outline" className="bg-glass backdrop-blur-sm border-glass">
-                <MapPin className="h-3 w-3 mr-1" />
-                {distance.toFixed(1)}km
-              </Badge>
-            </div>
-          )}
         </div>
 
-        <div className="p-4 space-y-3 pb-12">
-          {/* Nombre del restaurante */}
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-smooth">
+        <div className="p-4 space-y-3">
+          {/* Nombre del restaurante con corazón */}
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-smooth flex-1 min-w-0">
               {name}
             </h3>
-            
-            {/* Tipo de cocina • Rating */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="line-clamp-1">
-                {cuisineTypes.slice(0, 2).join(', ')}
-              </span>
-              {googleRating && (
-                <>
-                  <span>•</span>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-accent text-accent" />
-                    <span className="font-medium text-foreground">{googleRating}</span>
-                  </div>
-                </>
-              )}
+            <div className="flex items-center gap-1 bg-glass backdrop-blur-sm rounded-full px-2 py-1 border border-glass flex-shrink-0">
+              <Heart className="h-3 w-3 text-red-500" />
+              <span className="text-xs font-medium">{favoritesCount}</span>
             </div>
-
-            {/* Distancia • Rango de precio */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {distance && (
-                <>
-                  <span>{distance.toFixed(1)}km</span>
-                  <span>•</span>
-                </>
-              )}
-              <div className="flex items-center gap-1">
-                <Euro className="h-3 w-3" />
-                <span className="font-medium text-foreground">{priceRange}</span>
-              </div>
-            </div>
-
-            {/* Servicios */}
-            {services.length > 0 && (
-              <div className="text-sm text-muted-foreground">
-                {formatServices(services)}
-              </div>
+          </div>
+          
+          {/* Tipo de cocina • Rating */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="line-clamp-1 flex-1 min-w-0">
+              {cuisineTypes.slice(0, 2).join(', ')}
+            </span>
+            {googleRating && (
+              <>
+                <span>•</span>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Star className="h-3 w-3 fill-accent text-accent" />
+                  <span className="font-medium text-foreground">{googleRating}</span>
+                </div>
+              </>
             )}
           </div>
-        </div>
 
-        {/* Corazón con favoritos en la esquina inferior derecha */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-glass backdrop-blur-sm rounded-full px-2 py-1 border border-glass">
-          <Heart className="h-3 w-3 text-red-500" />
-          <span className="text-xs font-medium">{favoritesCount}</span>
+          {/* Distancia • Rango de precio */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {distance && (
+              <>
+                <span className="flex-shrink-0">{distance.toFixed(1)}km</span>
+                <span>•</span>
+              </>
+            )}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <Euro className="h-3 w-3" />
+              <span className="font-medium text-foreground">{priceRange}</span>
+            </div>
+          </div>
+
+          {/* Servicios */}
+          {services.length > 0 && (
+            <div className="text-sm text-muted-foreground line-clamp-1">
+              {formatServices(services)}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
