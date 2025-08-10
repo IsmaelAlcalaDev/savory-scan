@@ -1,0 +1,41 @@
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
+interface CuisineType {
+  id: number;
+  name: string;
+  slug: string;
+  icon?: string;
+  icon_url?: string;
+}
+
+export const useCuisineTypes = () => {
+  const [cuisineTypes, setCuisineTypes] = useState<CuisineType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCuisineTypes = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('cuisine_types')
+          .select('id, name, slug, icon, icon_url')
+          .order('name');
+
+        if (error) throw error;
+        setCuisineTypes(data || []);
+      } catch (err) {
+        console.error('Error fetching cuisine types:', err);
+        setError(err instanceof Error ? err.message : 'Error al cargar tipos de cocina');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCuisineTypes();
+  }, []);
+
+  return { cuisineTypes, loading, error };
+};

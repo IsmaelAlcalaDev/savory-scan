@@ -4,72 +4,14 @@ import { Search, MapPin, Heart, User, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import CuisineFilter from './CuisineFilter';
 import DistanceFilter from './DistanceFilter';
 import RatingFilter from './RatingFilter';
 import RestaurantCard from './RestaurantCard';
-
-interface Restaurant {
-  id: number;
-  name: string;
-  slug: string;
-  cuisine: string;
-  rating: number;
-  reviewCount: number;
-  distance: string;
-  priceRange: string;
-  isOpen: boolean;
-  features: string[];
-  isFavorite: boolean;
-  image?: string;
-}
-
-const mockRestaurants: Restaurant[] = [
-  {
-    id: 1,
-    name: 'Bar Manolo',
-    slug: 'bar-manolo',
-    cuisine: 'Española',
-    rating: 4.3,
-    reviewCount: 234,
-    distance: '390.0km',
-    priceRange: '€€€€',
-    isOpen: true,
-    features: ['Terraza/Exterior', 'WiFi', 'Pago'],
-    isFavorite: true,
-    image: '/placeholder.svg'
-  },
-  {
-    id: 2,
-    name: 'La Taberna del Puerto', 
-    slug: 'la-taberna-del-puerto',
-    cuisine: 'Española',
-    rating: 4.5,
-    reviewCount: 127,
-    distance: '390.1km',
-    priceRange: '€',
-    isOpen: true,
-    features: ['Terraza/Exterior', 'WiFi', 'Reservas'],
-    isFavorite: false,
-    image: '/placeholder.svg'
-  },
-  {
-    id: 3,
-    name: 'Pizzeria Bella Napoli',
-    slug: 'pizzeria-bella-napoli', 
-    cuisine: 'Italiana',
-    rating: 4.2,
-    reviewCount: 89,
-    distance: '390.9km',
-    priceRange: '€',
-    isOpen: true,
-    features: ['Terraza/Exterior', 'Para llevar', 'Delivery'],
-    isFavorite: true,
-    image: '/placeholder.svg'
-  },
-];
+import LocationModal from './LocationModal';
+import { useRestaurants } from '@/hooks/useRestaurants';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const filterOptions = [
   { id: 'nearby', label: 'Cerca de mí', active: true },
@@ -80,12 +22,25 @@ const filterOptions = [
 
 export default function FoodieSpotLayout() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
-  const [selectedDistances, setSelectedDistances] = useState<string[]>([]);
-  const [selectedRatings, setSelectedRatings] = useState<string[]>([]);
+  const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
+  const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
+  const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [activeFilters, setActiveFilters] = useState<string[]>(['nearby']);
   const [isVegMode, setIsVegMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [currentLocationName, setCurrentLocationName] = useState('Tu ubicación actual');
+
+  // Use real restaurant data
+  const { restaurants, loading, error } = useRestaurants({
+    searchQuery,
+    userLat: userLocation?.lat,
+    userLng: userLocation?.lng,
+    maxDistance: 10,
+    cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
+    minRating: selectedRatings.length > 0 ? Math.min(...selectedRatings) : 0
+  });
 
   const handleFilterToggle = (filterId: string) => {
     setActiveFilters(prev => 
@@ -93,6 +48,25 @@ export default function FoodieSpotLayout() {
         ? prev.filter(id => id !== filterId)
         : [...prev, filterId]
     );
+  };
+
+  const handleLocationSelect = (location: { type: string; data?: any }) => {
+    if (location.type === 'gps') {
+      setUserLocation({
+        lat: location.data.latitude,
+        lng: location.data.longitude
+      });
+      setCurrentLocationName('Tu ubicación actual');
+    } else if (location.type === 'city') {
+      setUserLocation({
+        lat: location.data.latitude,
+        lng: location.data.longitude
+      });
+      setCurrentLocationName(location.data.name);
+    } else if (location.type === 'manual') {
+      // For manual location, we'd need geocoding - for now just update the name
+      setCurrentLocationName(location.data.query);
+    }
   };
 
   return (
@@ -110,10 +84,14 @@ export default function FoodieSpotLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Button
+            variant="ghost"
+            onClick={() => setLocationModalOpen(true)}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          >
             <MapPin className="h-4 w-4" />
-            <span>Tu ubicación actual</span>
-          </div>
+            <span className="max-w-40 truncate">{currentLocationName}</span>
+          </Button>
 
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm">
@@ -178,7 +156,9 @@ export default function FoodieSpotLayout() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-semibold mb-1">Restaurantes cerca de ti</h2>
-                <p className="text-sm text-muted-foreground">4 resultados</p>
+                <p className="text-sm text-muted-foreground">
+                  {loading ? 'Cargando...' : `${restaurants.length} resultados`}
+                </p>
               </div>
               
               <div className="flex items-center gap-3">
@@ -216,78 +196,50 @@ export default function FoodieSpotLayout() {
 
             {/* Restaurant Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {mockRestaurants.map((restaurant) => (
-                <Card key={restaurant.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="relative">
-                    <img 
-                      src={restaurant.image} 
-                      alt={restaurant.name}
-                      className="w-full h-48 object-cover"
-                    />
-                    <div className="absolute top-3 left-3">
-                      <Badge 
-                        variant={restaurant.isOpen ? "default" : "secondary"}
-                        className={restaurant.isOpen ? "bg-green-500" : ""}
-                      >
-                        {restaurant.isOpen ? 'Abierto' : 'Cerrado'}
-                      </Badge>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-3 right-3 h-8 w-8 p-0 bg-white/80 hover:bg-white"
-                    >
-                      <Heart 
-                        className={cn(
-                          "h-4 w-4",
-                          restaurant.isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground"
-                        )}
-                      />
-                    </Button>
+              {loading ? (
+                // Loading skeletons
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
                   </div>
-                  
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-lg">{restaurant.name}</h3>
-                      <div className="flex items-center gap-1">
-                        <Heart className="h-4 w-4 text-red-500" />
-                        <span className="text-sm">{restaurant.isFavorite ? '1' : '4'}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-4 mb-3">
-                      <span className="text-sm text-muted-foreground">{restaurant.cuisine}</span>
-                      <div className="flex items-center gap-1">
-                        <div className="w-4 h-4 bg-accent rounded-full flex items-center justify-center">
-                          <span className="text-xs">★</span>
-                        </div>
-                        <span className="text-sm font-medium">{restaurant.rating}</span>
-                        <span className="text-sm text-muted-foreground">({restaurant.reviewCount})</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">{restaurant.distance}</span>
-                      </div>
-                      <span className="text-sm font-medium">{restaurant.priceRange}</span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-1">
-                      {restaurant.features.map((feature, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                ))
+              ) : error ? (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-muted-foreground">Error al cargar restaurantes: {error}</p>
+                </div>
+              ) : restaurants.length === 0 ? (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-muted-foreground">No se encontraron restaurantes</p>
+                </div>
+              ) : (
+                restaurants.map((restaurant) => (
+                  <RestaurantCard
+                    key={restaurant.id}
+                    id={restaurant.id}
+                    name={restaurant.name}
+                    slug={restaurant.slug}
+                    description={restaurant.description}
+                    priceRange={restaurant.price_range}
+                    googleRating={restaurant.google_rating}
+                    distance={restaurant.distance_km}
+                    cuisineTypes={restaurant.cuisine_types}
+                    establishmentType={restaurant.establishment_type}
+                  />
+                ))
+              )}
             </div>
           </div>
         </main>
       </div>
+
+      {/* Location Modal */}
+      <LocationModal
+        open={locationModalOpen}
+        onOpenChange={setLocationModalOpen}
+        onLocationSelect={handleLocationSelect}
+      />
     </div>
   );
 }

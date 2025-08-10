@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { MapPin, Navigation, Search } from 'lucide-react';
 import {
@@ -9,16 +10,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCities } from '@/hooks/useCities';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface LocationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLocationSelect: (location: { type: 'gps' | 'manual'; data?: any }) => void;
+  onLocationSelect: (location: { type: 'gps' | 'manual' | 'city'; data?: any }) => void;
 }
 
 export default function LocationModal({ open, onOpenChange, onLocationSelect }: LocationModalProps) {
   const [manualLocation, setManualLocation] = useState('');
   const [isLoadingGPS, setIsLoadingGPS] = useState(false);
+  const { cities, loading: loadingCities } = useCities();
 
   const handleGPSLocation = async () => {
     setIsLoadingGPS(true);
@@ -58,6 +63,18 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
     }
   };
 
+  const handleCitySelect = (city: any) => {
+    onLocationSelect({
+      type: 'city',
+      data: {
+        name: city.name,
+        latitude: city.latitude,
+        longitude: city.longitude
+      }
+    });
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-gradient-card border-glass">
@@ -80,7 +97,7 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
                     Detectaremos automáticamente tu ubicación usando GPS
                   </p>
                   <Button 
-                    variant="search" 
+                    variant="default" 
                     className="w-full" 
                     onClick={handleGPSLocation}
                     disabled={isLoadingGPS}
@@ -120,6 +137,41 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Popular Cities */}
+          <Card className="bg-glass border-glass">
+            <CardContent className="p-4">
+              <h3 className="font-medium mb-3">Ciudades populares</h3>
+              <ScrollArea className="h-32">
+                {loadingCities ? (
+                  <div className="space-y-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Skeleton key={i} className="h-8 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {cities.map((city) => (
+                      <Button
+                        key={city.id}
+                        variant="ghost"
+                        className="w-full justify-start text-sm h-8"
+                        onClick={() => handleCitySelect(city)}
+                      >
+                        <MapPin className="h-3 w-3 mr-2" />
+                        {city.name}
+                        {city.population && (
+                          <span className="text-xs text-muted-foreground ml-auto">
+                            {city.population.toLocaleString()} hab.
+                          </span>
+                        )}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
