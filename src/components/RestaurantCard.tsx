@@ -43,10 +43,26 @@ export default function RestaurantCard({
     }
   };
 
-  const formatServices = (services: string[]) => {
-    if (services.length === 0) return '';
-    if (services.length <= 2) return services.join(', ');
-    return `${services.slice(0, 2).join(', ')} +${services.length - 2}`;
+  const renderServices = () => {
+    if (services.length === 0) return null;
+    
+    const visibleServices = services.slice(0, 2);
+    const remainingCount = services.length - 2;
+    
+    return (
+      <div className="flex gap-1 flex-wrap">
+        {visibleServices.map((service, index) => (
+          <Badge key={index} variant="outline" className="text-xs px-2 py-0.5">
+            {service}
+          </Badge>
+        ))}
+        {remainingCount > 0 && (
+          <Badge variant="outline" className="text-xs px-2 py-0.5">
+            +{remainingCount}
+          </Badge>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -86,13 +102,10 @@ export default function RestaurantCard({
               {cuisineTypes.slice(0, 2).join(', ')}
             </span>
             {googleRating && (
-              <>
-                <span>•</span>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <Star className="h-3 w-3 fill-accent text-accent" />
-                  <span className="font-medium text-foreground">{googleRating}</span>
-                </div>
-              </>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Star className="h-3 w-3 fill-accent text-accent" />
+                <span className="font-medium text-foreground">{googleRating}</span>
+              </div>
             )}
           </div>
 
@@ -110,12 +123,8 @@ export default function RestaurantCard({
             </div>
           </div>
 
-          {/* Servicios */}
-          {services.length > 0 && (
-            <div className="text-sm text-muted-foreground line-clamp-1">
-              {formatServices(services)}
-            </div>
-          )}
+          {/* Servicios como tags */}
+          {renderServices()}
         </div>
       </CardContent>
     </Card>
