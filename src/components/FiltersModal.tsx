@@ -81,7 +81,7 @@ export default function FiltersModal({
         </Button>
       </ModalTrigger>
       
-      <ModalContent className="max-w-4xl max-h-[85vh] p-0 overflow-hidden">
+      <ModalContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
         {/* Modern Header with gradient */}
         <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6">
           <ModalHeader>
@@ -98,9 +98,9 @@ export default function FiltersModal({
                   variant="ghost"
                   size="sm"
                   onClick={clearAllFilters}
-                  className="text-white hover:bg-white/20 transition-colors"
+                  className="text-white hover:bg-white/20 transition-colors flex items-center gap-2"
                 >
-                  <RotateCcw className="h-4 w-4 mr-2" />
+                  <RotateCcw className="h-4 w-4" />
                   Limpiar todo
                 </Button>
               )}
@@ -115,8 +115,8 @@ export default function FiltersModal({
         </div>
 
         {/* Content Area */}
-        <div className="bg-gradient-to-b from-gray-50/50 to-white">
-          <ScrollArea className="h-[60vh]">
+        <div className="bg-gradient-to-b from-gray-50/50 to-white flex-1">
+          <ScrollArea className="h-[calc(90vh-140px)]">
             <div className="p-6">
               <FiltersSidebar
                 selectedDistances={selectedDistances}
@@ -136,28 +136,6 @@ export default function FiltersModal({
               />
             </div>
           </ScrollArea>
-        </div>
-
-        {/* Modern Footer */}
-        <div className="border-t bg-white p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              {hasActiveFilters ? (
-                <span className="text-red-600 font-medium">
-                  Filtros aplicados - Refinando resultados
-                </span>
-              ) : (
-                "Selecciona filtros para personalizar tu búsqueda"
-              )}
-            </div>
-            
-            <Button
-              onClick={() => setOpen(false)}
-              className="bg-red-600 hover:bg-red-700 text-white px-6"
-            >
-              Aplicar Filtros
-            </Button>
-          </div>
         </div>
       </ModalContent>
     </ModalWrapper>
