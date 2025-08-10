@@ -299,7 +299,7 @@ export default function FoodieSpotLayout() {
   }) => (
     <button
       onClick={onRemove}
-      className="h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent text-foreground hover:!bg-muted/50 border-border flex items-center"
+      className="h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full bg-transparent text-primary border-primary hover:bg-primary/5 flex items-center"
     >
       <span className="flex items-center">{children}</span>
       <X className="ml-1 h-3 w-3 flex-shrink-0" />

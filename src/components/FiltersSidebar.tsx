@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { ChevronDown, Star, X } from 'lucide-react';
+import { ChevronDown, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -145,7 +144,6 @@ export default function FiltersSidebar({
     >
       {icon && <span className="mr-1 flex items-center">{icon}</span>}
       <span className="flex items-center">{children}</span>
-      {isSelected && <X className="ml-1 h-3 w-3 flex-shrink-0" />}
     </button>
   );
 
