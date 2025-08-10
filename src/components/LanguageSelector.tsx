@@ -6,7 +6,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
 import { useLanguages } from '@/hooks/useLanguages';
 
 interface Language {
@@ -63,9 +62,9 @@ export default function LanguageSelector() {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="flex items-center gap-2 h-8 px-2">
+        <button className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent flex items-center">
           {renderFlag(selectedLanguage, 24)}
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="start" 

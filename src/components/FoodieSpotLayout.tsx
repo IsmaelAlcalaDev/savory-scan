@@ -549,13 +549,13 @@ export default function FoodieSpotLayout() {
               className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition"
               onClick={() => setMenuModalOpen(true)}
             >
-              <Menu className="h-10 w-10" />
+              <Menu className="h-8 w-8" />
             </button>
             <button 
               className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent md:hidden mode-transition"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-              <Menu className="h-10 w-10" />
+              <Menu className="h-8 w-8" />
             </button>
           </div>
         </div>
