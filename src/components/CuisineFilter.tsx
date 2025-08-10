@@ -24,13 +24,13 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
 
   if (loading) {
     return (
-      <ScrollArea className="w-full">
-        <div className="flex gap-2 pb-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-8 w-20 rounded-full" />
+      <div className="w-full overflow-hidden">
+        <div className="flex gap-3 pb-3 px-1">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-24 rounded-full flex-shrink-0" />
           ))}
         </div>
-      </ScrollArea>
+      </div>
     );
   }
 
@@ -52,20 +52,26 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
   }
 
   return (
-    <ScrollArea className="w-full">
-      <div className="flex gap-2 pb-2">
-        {cuisineTypes.map((cuisine) => (
-          <Badge
-            key={cuisine.id}
-            variant={selectedCuisines.includes(cuisine.id) ? "default" : "outline"}
-            className="cursor-pointer whitespace-nowrap hover:bg-primary/90 transition-colors"
-            onClick={() => handleCuisineToggle(cuisine.id)}
-          >
-            {cuisine.icon && <span className="mr-1">{cuisine.icon}</span>}
-            {cuisine.name}
-          </Badge>
-        ))}
-      </div>
-    </ScrollArea>
+    <div className="w-full">
+      <ScrollArea className="w-full">
+        <div className="flex gap-3 pb-3 px-1" style={{ width: 'max-content' }}>
+          {cuisineTypes.map((cuisine) => (
+            <Badge
+              key={cuisine.id}
+              variant={selectedCuisines.includes(cuisine.id) ? "default" : "outline"}
+              className="cursor-pointer whitespace-nowrap hover:bg-primary/90 transition-colors flex items-center gap-2 py-2 px-4 text-sm font-medium flex-shrink-0"
+              onClick={() => handleCuisineToggle(cuisine.id)}
+            >
+              {cuisine.icon && (
+                <span className="text-lg" role="img" aria-label={cuisine.name}>
+                  {cuisine.icon}
+                </span>
+              )}
+              <span>{cuisine.name}</span>
+            </Badge>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
   );
 }

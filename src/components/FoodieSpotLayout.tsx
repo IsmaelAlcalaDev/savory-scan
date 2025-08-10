@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, MapPin, User, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -290,12 +289,15 @@ export default function FoodieSpotLayout() {
           </div>
         </div>
 
-        {/* Cuisine Filter */}
-        <div className="px-4 pb-4">
-          <CuisineFilter 
-            selectedCuisines={selectedCuisines}
-            onCuisineChange={setSelectedCuisines}
-          />
+        {/* Tipos de Cocina con Scroll Horizontal */}
+        <div className="border-t border-border bg-background">
+          <div className="px-4 py-4">
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Tipos de Cocina</h3>
+            <CuisineFilter 
+              selectedCuisines={selectedCuisines}
+              onCuisineChange={setSelectedCuisines}
+            />
+          </div>
         </div>
       </header>
 
