@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import SearchBar from './SearchBar';
@@ -16,9 +17,17 @@ export default function FoodieSpotLayout() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [userLocation, setUserLocation] = useState<{ lat?: number; lng?: number } | null>(null);
 
   const { user } = useAuth();
-  const { restaurants, loading, error } = useRestaurants();
+  const { restaurants, loading, error } = useRestaurants({
+    searchQuery,
+    userLat: userLocation?.lat,
+    userLng: userLocation?.lng,
+    maxDistance: 50,
+    minRating: 0
+  });
 
   const handleAccountClick = () => {
     if (user) {
@@ -33,6 +42,27 @@ export default function FoodieSpotLayout() {
       handleAccountClick();
     } else {
       setActiveTab(tab);
+    }
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleLocationSelect = () => {
+    // Get user's current location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        }
+      );
     }
   };
 
@@ -121,10 +151,15 @@ export default function FoodieSpotLayout() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-6">
-          <FiltersSidebar isOpen={showFilters} onClose={() => setShowFilters(false)} />
+          {showFilters && (
+            <FiltersSidebar onClose={() => setShowFilters(false)} />
+          )}
           
           <div className="flex-1 space-y-6">
-            <SearchBar />
+            <SearchBar 
+              onSearchChange={handleSearchChange}
+              onLocationSelect={handleLocationSelect}
+            />
             {activeTab === 'restaurants' && renderContent()}
             {activeTab === 'dishes' && (
               <div className="text-center py-12">
