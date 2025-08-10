@@ -72,10 +72,8 @@ export const useUserPreferences = () => {
       }
 
       if (data?.preferences) {
-        // Type-safe parsing of JSON preferences
         const rawPrefs = data.preferences;
         
-        // Ensure it's an object and not an array
         if (rawPrefs && typeof rawPrefs === 'object' && !Array.isArray(rawPrefs)) {
           const userPrefs = rawPrefs as Record<string, any>;
           
@@ -120,7 +118,26 @@ export const useUserPreferences = () => {
 
     setSaving(true);
     try {
-      const updatedPreferences = { ...preferences, ...newPreferences };
+      // Create a complete preferences object by merging current preferences with updates
+      const updatedPreferences: UserPreferences = {
+        language: newPreferences.language ?? preferences.language,
+        theme: newPreferences.theme ?? preferences.theme,
+        notifications: {
+          email: newPreferences.notifications?.email ?? preferences.notifications.email,
+          push: newPreferences.notifications?.push ?? preferences.notifications.push,
+          sms: newPreferences.notifications?.sms ?? preferences.notifications.sms,
+        },
+        diet: {
+          vegetarian: newPreferences.diet?.vegetarian ?? preferences.diet.vegetarian,
+          vegan: newPreferences.diet?.vegan ?? preferences.diet.vegan,
+          gluten_free: newPreferences.diet?.gluten_free ?? preferences.diet.gluten_free,
+          lactose_free: newPreferences.diet?.lactose_free ?? preferences.diet.lactose_free,
+        },
+        location: {
+          auto_detect: newPreferences.location?.auto_detect ?? preferences.location.auto_detect,
+          default_radius: newPreferences.location?.default_radius ?? preferences.location.default_radius,
+        }
+      };
       
       const { error } = await supabase
         .from('users')
