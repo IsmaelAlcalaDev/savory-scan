@@ -125,7 +125,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
         {cuisineTypes.map((cuisine) => (
           <div
             key={cuisine.id}
-            className="flex flex-col items-center gap-3 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0"
+            className="flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0"
             onClick={() => handleCuisineToggle(cuisine.id)}
           >
             <div className="flex items-center justify-center text-4xl transition-all duration-200">
@@ -144,7 +144,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
               )}
             </div>
             <span className={`
-              text-xs font-light text-center whitespace-nowrap transition-colors text-black
+              text-xs font-medium text-center whitespace-nowrap transition-colors text-black
               ${selectedCuisines.includes(cuisine.id) 
                 ? 'text-primary' 
                 : 'text-black'

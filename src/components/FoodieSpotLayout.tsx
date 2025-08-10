@@ -543,7 +543,7 @@ export default function FoodieSpotLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-3">
             <LanguageSelector />
             <button 
               className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition hover:text-primary transition-colors"
@@ -561,7 +561,7 @@ export default function FoodieSpotLayout() {
         </div>
 
         {/* Tipos de Cocina sin separadores */}
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 pt-2">
           <CuisineFilter 
             selectedCuisines={selectedCuisines}
             onCuisineChange={setSelectedCuisines}
