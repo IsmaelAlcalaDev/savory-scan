@@ -68,6 +68,16 @@ export default function FoodieSpotLayout() {
         lng: location.data.longitude
       });
       setCurrentLocationName(location.data.name);
+    } else if (location.type === 'suggestion') {
+      setUserLocation({
+        lat: location.data.latitude,
+        lng: location.data.longitude
+      });
+      // Mostrar nombre con contexto si está disponible
+      const locationDisplay = location.data.parent 
+        ? `${location.data.name}, ${location.data.parent.split(',')[0]}`
+        : location.data.name;
+      setCurrentLocationName(locationDisplay);
     } else if (location.type === 'manual') {
       setCurrentLocationName(location.data.query);
     }
