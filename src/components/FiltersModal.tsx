@@ -60,7 +60,7 @@ export default function FiltersModal({
   return (
     <ModalWrapper open={open} onOpenChange={setOpen}>
       <ModalTrigger asChild>
-        <div className="relative h-10 w-10 flex items-center justify-center overflow-visible z-10">
+        <div className="relative h-10 p-10 w-10 flex items-center justify-center overflow-visible z-10">
           <Button
             variant="ghost"
             className="w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white hover:text-white p-0 flex items-center justify-center flex-shrink-0 transition-colors"
