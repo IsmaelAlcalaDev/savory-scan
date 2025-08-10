@@ -54,44 +54,89 @@ export const useRestaurants = ({
           minRating
         });
 
-        // Use the correct search_restaurants function
-        const { data, error } = await supabase.rpc('search_restaurants', {
-          search_query: searchQuery || '',
-          user_lat: userLat,
-          user_lng: userLng,
-          max_distance_km: maxDistance,
-          cuisine_type_ids: cuisineTypeIds || null,
-          price_ranges: priceRanges || null,
-          min_rating: minRating,
-          has_services: null,
-          limit_count: 20,
-          offset_count: 0
-        });
+        // First try to get restaurants directly from the table instead of the function
+        let query = supabase
+          .from('restaurants')
+          .select(`
+            id,
+            name,
+            slug,
+            description,
+            price_range,
+            google_rating,
+            latitude,
+            longitude,
+            establishment_types!inner(name),
+            restaurant_cuisines!inner(
+              cuisine_types!inner(name)
+            )
+          `)
+          .eq('is_active', true)
+          .eq('is_published', true)
+          .is('deleted_at', null);
+
+        // Add search filter if provided
+        if (searchQuery) {
+          query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        }
+
+        // Add rating filter
+        if (minRating > 0) {
+          query = query.gte('google_rating', minRating);
+        }
+
+        // Add price range filter
+        if (priceRanges && priceRanges.length > 0) {
+          query = query.in('price_range', priceRanges);
+        }
+
+        const { data, error } = await query.limit(20);
 
         if (error) {
           console.error('Supabase error:', error);
           throw error;
         }
 
-        console.log('Raw data from search_restaurants:', data);
+        console.log('Raw data from restaurants table:', data);
 
-        const formattedData = data?.map((restaurant: any) => ({
-          id: restaurant.restaurant_id,
-          name: restaurant.name,
-          slug: restaurant.slug,
-          description: restaurant.description,
-          price_range: restaurant.price_range,
-          google_rating: restaurant.google_rating,
-          distance_km: restaurant.distance_km,
-          cuisine_types: restaurant.cuisine_types || [],
-          establishment_type: restaurant.establishment_type
-        })) || [];
+        const formattedData = data?.map((restaurant: any) => {
+          // Calculate distance if user location is provided
+          let distance_km = null;
+          if (userLat && userLng && restaurant.latitude && restaurant.longitude) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (restaurant.latitude - userLat) * Math.PI / 180;
+            const dLon = (restaurant.longitude - userLng) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(userLat * Math.PI / 180) * Math.cos(restaurant.latitude * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            distance_km = R * c;
+          }
+
+          // Skip if distance exceeds max distance
+          if (distance_km && distance_km > maxDistance) {
+            return null;
+          }
+
+          return {
+            id: restaurant.id,
+            name: restaurant.name,
+            slug: restaurant.slug,
+            description: restaurant.description,
+            price_range: restaurant.price_range,
+            google_rating: restaurant.google_rating,
+            distance_km,
+            cuisine_types: restaurant.restaurant_cuisines?.map((rc: any) => rc.cuisine_types?.name).filter(Boolean) || [],
+            establishment_type: restaurant.establishment_types?.name
+          };
+        }).filter(Boolean) || [];
 
         console.log('Formatted restaurants:', formattedData);
         setRestaurants(formattedData);
       } catch (err) {
         console.error('Error fetching restaurants:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar restaurantes');
+        setRestaurants([]);
       } finally {
         setLoading(false);
       }
