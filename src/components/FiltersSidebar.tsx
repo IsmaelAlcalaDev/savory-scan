@@ -160,7 +160,7 @@ export default function FiltersSidebar({
       size="sm"
       onClick={onClick}
       className={cn(
-        "h-8 px-3 text-xs font-medium transition-all duration-200 border",
+        "h-8 px-3 text-xs font-medium transition-all duration-200 border rounded-full",
         isSelected 
           ? "bg-primary text-primary-foreground hover:bg-primary/90 border-primary" 
           : "bg-background hover:bg-muted text-muted-foreground hover:text-foreground border-border"
@@ -216,7 +216,7 @@ export default function FiltersSidebar({
         </div>
       </FilterSection>
 
-      {/* 2. Rango de Precios - Tags solo con € */}
+      {/* 2. Rango de Precios - Tags sin € */}
       <FilterSection
         title="Presupuesto"
         icon={DollarSign}
@@ -237,7 +237,6 @@ export default function FiltersSidebar({
                   onPriceRangeChange([range.value]);
                 }
               }}
-              icon={<span className="text-xs">€</span>}
             >
               {range.display_text}
             </TagButton>
@@ -274,7 +273,7 @@ export default function FiltersSidebar({
         </div>
       </FilterSection>
 
-      {/* 4. Horarios - Tags sin icono de reloj */}
+      {/* 4. Horarios - Tags sin icono */}
       <FilterSection
         title="Disponibilidad"
         icon={DollarSign}
