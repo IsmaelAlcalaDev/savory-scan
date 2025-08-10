@@ -32,14 +32,14 @@ export default function FoodieSpotLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [currentLocationName, setCurrentLocationName] = useState('Tu ubicación actual');
+  const [currentLocationName, setCurrentLocationName] = useState('Seleccionar ubicación');
 
-  // Use real restaurant data
+  // Usar datos reales de restaurantes
   const { restaurants, loading, error } = useRestaurants({
     searchQuery,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
-    maxDistance: 10,
+    maxDistance: 50, // Rango amplio para asegurar resultados
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     minRating: selectedRatings.length > 0 ? Math.min(...selectedRatings) : 0
   });
@@ -61,7 +61,15 @@ export default function FoodieSpotLayout() {
         lat: location.data.latitude,
         lng: location.data.longitude
       });
-      setCurrentLocationName('Tu ubicación actual');
+      // Mostrar el nombre de la ubicación detectada si está disponible
+      if (location.data.name && location.data.parent) {
+        const locationDisplay = `${location.data.name}, ${location.data.parent.split(',')[0]}`;
+        setCurrentLocationName(locationDisplay);
+      } else if (location.data.address) {
+        setCurrentLocationName(location.data.address);
+      } else {
+        setCurrentLocationName('Ubicación detectada');
+      }
     } else if (location.type === 'city') {
       setUserLocation({
         lat: location.data.latitude,
@@ -81,6 +89,7 @@ export default function FoodieSpotLayout() {
     } else if (location.type === 'manual') {
       setCurrentLocationName(location.data.query);
     }
+    console.log('Updated location name:', currentLocationName);
   };
 
   return (
@@ -169,9 +178,12 @@ export default function FoodieSpotLayout() {
             {/* Results Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-semibold mb-1">Restaurantes cerca de ti</h2>
+                <h2 className="text-xl font-semibold mb-1">
+                  {userLocation ? 'Restaurantes cerca de ti' : 'Restaurantes'}
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   {loading ? 'Cargando...' : `${restaurants.length} resultados`}
+                  {userLocation && ' • Ordenados por distancia'}
                 </p>
                 {error && (
                   <p className="text-sm text-destructive mt-1">Error: {error}</p>

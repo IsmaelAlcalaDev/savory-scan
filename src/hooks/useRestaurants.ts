@@ -30,7 +30,7 @@ export const useRestaurants = ({
   searchQuery = '',
   userLat,
   userLng,
-  maxDistance = 10,
+  maxDistance = 50, // Aumentamos el rango por defecto
   cuisineTypeIds,
   priceRanges,
   minRating = 0
@@ -54,7 +54,7 @@ export const useRestaurants = ({
           minRating
         });
 
-        // First try to get restaurants directly from the table instead of the function
+        // Obtener restaurantes de la tabla
         let query = supabase
           .from('restaurants')
           .select(`
@@ -75,22 +75,22 @@ export const useRestaurants = ({
           .eq('is_published', true)
           .is('deleted_at', null);
 
-        // Add search filter if provided
+        // Agregar filtro de búsqueda si se proporciona
         if (searchQuery) {
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         }
 
-        // Add rating filter
+        // Agregar filtro de rating
         if (minRating > 0) {
           query = query.gte('google_rating', minRating);
         }
 
-        // Add price range filter
+        // Agregar filtro de rango de precios
         if (priceRanges && priceRanges.length > 0) {
           query = query.in('price_range', priceRanges);
         }
 
-        const { data, error } = await query.limit(20);
+        const { data, error } = await query.limit(50); // Aumentamos el límite
 
         if (error) {
           console.error('Supabase error:', error);
@@ -100,10 +100,10 @@ export const useRestaurants = ({
         console.log('Raw data from restaurants table:', data);
 
         const formattedData = data?.map((restaurant: any) => {
-          // Calculate distance if user location is provided
+          // Calcular distancia si se proporciona la ubicación del usuario
           let distance_km = null;
           if (userLat && userLng && restaurant.latitude && restaurant.longitude) {
-            const R = 6371; // Earth's radius in km
+            const R = 6371; // Radio de la Tierra en km
             const dLat = (restaurant.latitude - userLat) * Math.PI / 180;
             const dLon = (restaurant.longitude - userLng) * Math.PI / 180;
             const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -111,11 +111,6 @@ export const useRestaurants = ({
               Math.sin(dLon/2) * Math.sin(dLon/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             distance_km = R * c;
-          }
-
-          // Skip if distance exceeds max distance
-          if (distance_km && distance_km > maxDistance) {
-            return null;
           }
 
           return {
@@ -131,8 +126,19 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        console.log('Formatted restaurants:', formattedData);
-        setRestaurants(formattedData);
+        // Si hay ubicación del usuario, ordenar por distancia pero NO filtrar por distancia máxima
+        // Solo calculamos la distancia para mostrarla, pero mostramos todos los restaurantes
+        let sortedData = formattedData;
+        if (userLat && userLng) {
+          sortedData = formattedData
+            .filter(restaurant => restaurant.distance_km !== null)
+            .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
+          
+          console.log('Restaurants sorted by distance:', sortedData.slice(0, 5));
+        }
+
+        console.log('Final formatted restaurants:', sortedData.length);
+        setRestaurants(sortedData);
       } catch (err) {
         console.error('Error fetching restaurants:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar restaurantes');
