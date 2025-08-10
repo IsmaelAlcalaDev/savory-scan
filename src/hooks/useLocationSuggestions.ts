@@ -8,7 +8,7 @@ interface LocationSuggestion {
   type: 'city' | 'municipality' | 'district' | 'poi';
   latitude: number;
   longitude: number;
-  parent?: string; // Para mostrar información adicional como "Madrid, España"
+  parent?: string;
   description?: string;
   is_famous?: boolean;
 }
@@ -81,7 +81,7 @@ export const useLocationSuggestions = (query: string) => {
           .ilike('name', `%${query}%`)
           .limit(5);
 
-        // Buscar en puntos de interés
+        // Buscar en puntos de interés gastronómico (filtrado por tipo)
         const { data: pois } = await supabase
           .from('points_of_interest')
           .select(`
@@ -100,6 +100,7 @@ export const useLocationSuggestions = (query: string) => {
             )
           `)
           .ilike('name', `%${query}%`)
+          .in('type', ['gastronomic_area', 'food_district', 'culinary_zone', 'restaurant_cluster'])
           .eq('is_active', true)
           .limit(5);
 
@@ -143,7 +144,7 @@ export const useLocationSuggestions = (query: string) => {
           });
         });
 
-        // Formatear puntos de interés
+        // Formatear puntos de interés gastronómico
         pois?.forEach(poi => {
           allSuggestions.push({
             id: poi.id,
@@ -174,7 +175,7 @@ export const useLocationSuggestions = (query: string) => {
           return a.name.localeCompare(b.name);
         });
 
-        setSuggestions(sortedSuggestions.slice(0, 8)); // Limitar a 8 sugerencias
+        setSuggestions(sortedSuggestions.slice(0, 8));
         console.log('Location suggestions found:', sortedSuggestions.slice(0, 8));
       } catch (error) {
         console.error('Error searching locations:', error);
