@@ -12,6 +12,8 @@ import VegModeToggle from './VegModeToggle';
 import BottomNavigation from './BottomNavigation';
 import AccountModal from './AccountModal';
 import MenuModal from './MenuModal';
+import LanguageSelector from './LanguageSelector';
+import SearchBar from './SearchBar';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useIPLocation } from '@/hooks/useIPLocation';
 import { useDistanceRanges } from '@/hooks/useDistanceRanges';
@@ -525,20 +527,14 @@ export default function FoodieSpotLayout() {
               </span>
             </Button>
 
-            {/* Search Bar en el nav */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Buscar restaurantes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-10 rounded-full mode-transition"
-              />
-            </div>
+            <SearchBar
+              onSearchChange={setSearchQuery}
+              onLocationSelect={handleLocationSelect}
+            />
           </div>
 
           <div className="flex items-center gap-2">
+            <LanguageSelector />
             <Button 
               variant="ghost" 
               size="sm" 
