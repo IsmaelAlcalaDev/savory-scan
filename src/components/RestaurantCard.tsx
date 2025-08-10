@@ -3,6 +3,7 @@ import { Star, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface RestaurantCardProps {
   id: number;
@@ -21,6 +22,7 @@ interface RestaurantCardProps {
   logoUrl?: string;
   onClick?: () => void;
   className?: string;
+  onAuthRequired?: () => void;
 }
 
 export default function RestaurantCard({
@@ -39,8 +41,10 @@ export default function RestaurantCard({
   coverImageUrl,
   logoUrl,
   onClick,
-  className
+  className,
+  onAuthRequired
 }: RestaurantCardProps) {
+  const { user } = useAuth();
   const { isFavorite, isToggling, toggleFavorite } = useFavorites();
 
   const handleClick = () => {
@@ -52,14 +56,19 @@ export default function RestaurantCard({
   };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evitar que se active el click de la card
+    e.stopPropagation();
+    
+    if (!user) {
+      onAuthRequired?.();
+      return;
+    }
+    
     toggleFavorite(id);
   };
 
   // Elegir la mejor imagen disponible
   const displayImage = coverImageUrl || logoUrl;
 
-  // Formatear la distancia
   const formatDistance = (distanceKm: number) => {
     if (distanceKm < 1) {
       return `${Math.round(distanceKm * 1000)}m`;
@@ -75,7 +84,6 @@ export default function RestaurantCard({
       )}
       onClick={handleClick}
     >
-      {/* Imagen rectangular con menos redondeo */}
       <div className="aspect-[4/3] relative overflow-hidden rounded-lg mb-3">
         {displayImage ? (
           <img 
@@ -83,7 +91,6 @@ export default function RestaurantCard({
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
-              // Fallback to gradient if image fails to load
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
             }}
@@ -111,7 +118,7 @@ export default function RestaurantCard({
             <Heart 
               className={cn(
                 "h-3 w-3 transition-all duration-200",
-                isFavorite(id) 
+                user && isFavorite(id) 
                   ? "text-red-500 fill-red-500" 
                   : "text-red-500",
                 isToggling(id) && "animate-pulse"
@@ -124,7 +131,6 @@ export default function RestaurantCard({
 
       {/* Datos fuera de la imagen, sin bordes */}
       <div className="space-y-2">
-        {/* Nombre del restaurante y rating en la misma línea */}
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-smooth">
             {name}
@@ -140,7 +146,6 @@ export default function RestaurantCard({
           )}
         </div>
         
-        {/* Tipo de cocina · Rango de precio · Distancia en una sola línea */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
           <span className="line-clamp-1">
             {cuisineTypes.slice(0, 2).join(', ')}
