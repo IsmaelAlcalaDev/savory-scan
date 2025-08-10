@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLocationSuggestions } from '@/hooks/useLocationSuggestions';
 import { useLocationHistory } from '@/hooks/useLocationHistory';
-import { useReverseGeocoding } from '@/hooks/useReverseGeocoding';
+import { useNearestLocation } from '@/hooks/useNearestLocation';
 import { Skeleton } from '@/components/ui/skeleton';
 import LocationInfo from './LocationInfo';
 
@@ -26,14 +26,14 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
   const [searchQuery, setSearchQuery] = useState('');
   const [showLocationInfo, setShowLocationInfo] = useState<any>(null);
   const [isLoadingGPS, setIsLoadingGPS] = useState(false);
-  const [detectedAddress, setDetectedAddress] = useState<string>('');
+  const [detectedLocation, setDetectedLocation] = useState<string>('');
   const { suggestions, loading: loadingSuggestions } = useLocationSuggestions(searchQuery);
   const { history, addToHistory, clearHistory } = useLocationHistory();
-  const { reverseGeocode } = useReverseGeocoding();
+  const { findNearestLocation } = useNearestLocation();
 
   const handleGPSLocation = async () => {
     setIsLoadingGPS(true);
-    setDetectedAddress('');
+    setDetectedLocation('');
     
     try {
       if ('geolocation' in navigator) {
@@ -41,21 +41,39 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
           async (position) => {
             const { latitude, longitude } = position.coords;
             
-            // Obtener la dirección mediante geocodificación inversa
-            const geocodeResult = await reverseGeocode(latitude, longitude);
+            // Encontrar la ubicación más cercana en la base de datos
+            const nearestLocation = await findNearestLocation(latitude, longitude);
             
-            if (geocodeResult) {
-              setDetectedAddress(geocodeResult.address);
+            if (nearestLocation) {
+              const locationText = nearestLocation.parent 
+                ? `${nearestLocation.name}, ${nearestLocation.parent}`
+                : nearestLocation.name;
+              
+              setDetectedLocation(locationText);
+              
+              onLocationSelect({
+                type: 'gps',
+                data: {
+                  latitude,
+                  longitude,
+                  name: nearestLocation.name,
+                  type: nearestLocation.type,
+                  parent: nearestLocation.parent,
+                  address: locationText
+                }
+              });
+            } else {
+              setDetectedLocation('Ubicación detectada');
+              onLocationSelect({
+                type: 'gps',
+                data: {
+                  latitude,
+                  longitude,
+                  address: 'Ubicación detectada'
+                }
+              });
             }
             
-            onLocationSelect({
-              type: 'gps',
-              data: {
-                latitude,
-                longitude,
-                address: geocodeResult?.address || 'Ubicación detectada'
-              }
-            });
             onOpenChange(false);
             setIsLoadingGPS(false);
           },
@@ -136,11 +154,11 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
             {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
           </Button>
 
-          {/* Detected Address Display */}
-          {detectedAddress && (
+          {/* Detected Location Display */}
+          {detectedLocation && (
             <div className="p-3 bg-muted rounded-md">
               <p className="text-sm text-muted-foreground mb-1">Ubicación detectada:</p>
-              <p className="text-sm font-medium">{detectedAddress}</p>
+              <p className="text-sm font-medium">{detectedLocation}</p>
             </div>
           )}
 
