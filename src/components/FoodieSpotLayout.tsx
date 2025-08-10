@@ -404,7 +404,7 @@ export default function FoodieSpotLayout() {
         </div>
 
         {/* Filter Badges with VEG Mode */}
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-4 mb-4 pt-2">
           <div className="relative flex-1 min-w-0">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               <FiltersModal
