@@ -2,7 +2,6 @@ import { Star, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect, useRef } from 'react';
 
 interface RestaurantCardProps {
@@ -46,14 +45,6 @@ export default function RestaurantCard({
   onLoginRequired,
   layout = 'grid'
 }: RestaurantCardProps) {
-  let user = null;
-  try {
-    const authContext = useAuth();
-    user = authContext.user;
-  } catch (error) {
-    console.warn('RestaurantCard used outside AuthProvider context');
-  }
-
   const { isFavorite, isToggling, toggleFavorite } = useFavorites();
   
   const [localFavoritesCount, setLocalFavoritesCount] = useState(favoritesCount);
@@ -91,11 +82,7 @@ export default function RestaurantCard({
     
     console.log('RestaurantCard: Toggling favorite for restaurant:', id);
     
-    if (!user && onLoginRequired) {
-      onLoginRequired();
-      return;
-    }
-    
+    // Delegamos completamente en el contexto, que ya muestra toast y abre modal si es necesario
     await toggleFavorite(id, onLoginRequired);
   };
 

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,29 @@ const DishCard: React.FC<DishCardProps> = ({
   onLoginRequired
 }) => {
   const { isFavorite, isToggling, toggleFavorite } = useDishFavorites();
+
+  // Contador local sincronizado con el estado de favorito
+  const [localFavoritesCount, setLocalFavoritesCount] = useState<number>(favoritesCount);
+  const previousIsFavoriteRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    setLocalFavoritesCount(favoritesCount);
+  }, [favoritesCount]);
+
+  useEffect(() => {
+    const currentIsFavorite = isFavorite(id);
+
+    if (previousIsFavoriteRef.current !== null && previousIsFavoriteRef.current !== currentIsFavorite) {
+      if (currentIsFavorite && !previousIsFavoriteRef.current) {
+        setLocalFavoritesCount(prev => prev + 1);
+      } else if (!currentIsFavorite && previousIsFavoriteRef.current) {
+        setLocalFavoritesCount(prev => Math.max(0, prev - 1));
+      }
+    }
+
+    previousIsFavoriteRef.current = currentIsFavorite;
+    // Dependemos del valor booleano de isFavorite(id) para reaccionar a cambios (incluye realtime)
+  }, [isFavorite(id), id]);
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -81,7 +104,7 @@ const DishCard: React.FC<DishCardProps> = ({
 
         <div className="flex items-center justify-between pt-1">
           <span className="text-xs text-muted-foreground">
-            {favoritesCount} favoritos
+            {localFavoritesCount} favoritos
           </span>
         </div>
       </CardContent>
