@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Search, MapPin, User, Menu, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -132,6 +133,7 @@ export default function FoodieSpotLayout() {
     setSelectedServices([]);
     setSelectedPriceRanges([]);
     setSelectedTimeRanges([]);
+    setActiveFilters([]);
   };
 
   const removeFilter = (filterType: string, value: any) => {
@@ -157,11 +159,28 @@ export default function FoodieSpotLayout() {
       case 'time':
         setSelectedTimeRanges(prev => prev.filter(id => id !== value));
         break;
+      case 'quick':
+        setActiveFilters(prev => prev.filter(id => id !== value));
+        break;
     }
   };
 
   const getActiveFiltersDisplay = () => {
     const filters = [];
+
+    // Quick filters (except 'nearby' as it's default)
+    activeFilters.forEach(filterId => {
+      if (filterId !== 'nearby') {
+        const quickFilter = filterOptions.find(f => f.id === filterId);
+        if (quickFilter) {
+          filters.push({
+            type: 'quick',
+            value: filterId,
+            label: quickFilter.label
+          });
+        }
+      }
+    });
 
     // Cuisines
     selectedCuisines.forEach(id => {
@@ -269,7 +288,6 @@ export default function FoodieSpotLayout() {
       )}
     >
       <span className="flex items-center">{children}</span>
-      {isSelected && <X className="ml-1 h-3 w-3 flex-shrink-0" />}
     </button>
   );
 

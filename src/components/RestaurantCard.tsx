@@ -67,8 +67,8 @@ export default function RestaurantCard({
       )}
       onClick={handleClick}
     >
-      {/* Imagen rectangular redondeada */}
-      <div className="aspect-[4/3] relative overflow-hidden rounded-2xl mb-3">
+      {/* Imagen rectangular con menos redondeo */}
+      <div className="aspect-[4/3] relative overflow-hidden rounded-lg mb-3">
         {displayImage ? (
           <img 
             src={displayImage} 
