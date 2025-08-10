@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +7,7 @@ import { Star, MapPin, Heart, UtensilsCrossed, Calendar, Trash2, Loader2 } from 
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface FavoriteRestaurant {
   id: number;
@@ -43,6 +43,7 @@ interface FavoriteEvent {
 
 export default function FavoritesSection() {
   const { user } = useAuth();
+  const { setFavoriteState } = useFavorites();
   const [activeSubTab, setActiveSubTab] = useState('restaurants');
   const [favoriteRestaurants, setFavoriteRestaurants] = useState<FavoriteRestaurant[]>([]);
   const [favoriteDishes, setFavoriteDishes] = useState<FavoriteDish[]>([]);
@@ -190,31 +191,32 @@ export default function FavoritesSection() {
 
       switch (type) {
         case 'restaurant':
+          // Optimistic update
+          setFavoriteState(id, false);
+          setFavoriteRestaurants(prev => prev.filter(item => item.id !== id));
+          
           ({ error } = await supabase.rpc('toggle_restaurant_favorite', {
             user_id_param: user.id,
             restaurant_id_param: id
           }));
-          if (!error) {
-            setFavoriteRestaurants(prev => prev.filter(item => item.id !== id));
-          }
           break;
         case 'dish':
+          // Optimistic update
+          setFavoriteDishes(prev => prev.filter(item => item.id !== id));
+          
           ({ error } = await supabase.rpc('toggle_dish_favorite', {
             user_id_param: user.id,
             dish_id_param: id
           }));
-          if (!error) {
-            setFavoriteDishes(prev => prev.filter(item => item.id !== id));
-          }
           break;
         case 'event':
+          // Optimistic update
+          setFavoriteEvents(prev => prev.filter(item => item.id !== id));
+          
           ({ error } = await supabase.rpc('toggle_event_favorite', {
             user_id_param: user.id,
             event_id_param: id
           }));
-          if (!error) {
-            setFavoriteEvents(prev => prev.filter(item => item.id !== id));
-          }
           break;
       }
 
@@ -227,6 +229,13 @@ export default function FavoritesSection() {
 
     } catch (error) {
       console.error('Error removing favorite:', error);
+      
+      // Revert optimistic updates on error
+      if (type === 'restaurant') {
+        setFavoriteState(id, true);
+        await loadFavorites(); // Reload to restore correct state
+      }
+      
       toast({
         title: "Error",
         description: "No se pudo eliminar de favoritos",

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface RestaurantCardProps {
   id: number;
@@ -59,6 +59,11 @@ export default function RestaurantCard({
   // Local state para manejar el contador de favoritos
   const [localFavoritesCount, setLocalFavoritesCount] = useState(favoritesCount);
 
+  // Sincronizar el contador local cuando cambie el prop favoritesCount
+  useEffect(() => {
+    setLocalFavoritesCount(favoritesCount);
+  }, [favoritesCount]);
+
   const handleClick = () => {
     if (onClick) {
       onClick();
@@ -95,7 +100,6 @@ export default function RestaurantCard({
   // Elegir la mejor imagen disponible
   const displayImage = coverImageUrl || logoUrl;
 
-  // Formatear la distancia
   const formatDistance = (distanceKm: number) => {
     if (distanceKm < 1) {
       return `${Math.round(distanceKm * 1000)}m`;

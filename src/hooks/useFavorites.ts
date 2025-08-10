@@ -22,6 +22,48 @@ export const useFavorites = () => {
     }
   }, [user]);
 
+  // Real-time subscription for favorites changes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('user-favorites')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_saved_restaurants',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Favorite change detected:', payload);
+          
+          if (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) {
+            const restaurantId = payload.new.restaurant_id;
+            const isActive = payload.new.is_active;
+            
+            setFavorites(prev => ({
+              ...prev,
+              [restaurantId]: isActive
+            }));
+          } else if (payload.old && typeof payload.old === 'object' && 'restaurant_id' in payload.old) {
+            const restaurantId = payload.old.restaurant_id;
+            
+            setFavorites(prev => ({
+              ...prev,
+              [restaurantId]: false
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const loadUserFavorites = async () => {
     if (!user) return;
 
@@ -43,6 +85,17 @@ export const useFavorites = () => {
     } catch (error) {
       console.error('Error loading favorites:', error);
     }
+  };
+
+  const refreshFavorites = async () => {
+    await loadUserFavorites();
+  };
+
+  const setFavoriteState = (restaurantId: number, isFavorite: boolean) => {
+    setFavorites(prev => ({
+      ...prev,
+      [restaurantId]: isFavorite
+    }));
   };
 
   const toggleFavorite = async (restaurantId: number, openLoginModal?: () => void): Promise<boolean> => {
@@ -126,6 +179,8 @@ export const useFavorites = () => {
   return {
     isFavorite,
     isToggling,
-    toggleFavorite
+    toggleFavorite,
+    setFavoriteState,
+    refreshFavorites
   };
 };
