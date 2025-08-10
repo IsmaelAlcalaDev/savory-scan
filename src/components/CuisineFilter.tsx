@@ -65,8 +65,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
         className="flex gap-4 pb-3 px-1 overflow-x-auto"
         style={{ 
           scrollbarWidth: 'none', 
-          msOverflowStyle: 'none',
-          WebkitScrollbar: { display: 'none' } as any
+          msOverflowStyle: 'none'
         }}
       >
         {cuisineTypes.map((cuisine) => (
