@@ -10,7 +10,7 @@ interface RestaurantCardProps {
   description?: string;
   priceRange: string;
   googleRating?: number;
-  reviewCount?: number;
+  googleRatingCount?: number;
   distance?: number;
   cuisineTypes: string[];
   establishmentType?: string;
@@ -29,7 +29,7 @@ export default function RestaurantCard({
   description,
   priceRange,
   googleRating,
-  reviewCount,
+  googleRatingCount,
   distance,
   cuisineTypes,
   establishmentType,
@@ -109,8 +109,8 @@ export default function RestaurantCard({
             <div className="flex items-center gap-1 flex-shrink-0">
               <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
               <span className="font-medium text-foreground text-sm">{googleRating}</span>
-              {reviewCount && (
-                <span className="text-muted-foreground text-sm">({reviewCount})</span>
+              {googleRatingCount && (
+                <span className="text-muted-foreground text-sm">({googleRatingCount})</span>
               )}
             </div>
           )}
