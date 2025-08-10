@@ -15,27 +15,27 @@ export default function VegModeToggle({ isVegMode, onToggle, className }: VegMod
       <button
         onClick={() => onToggle(!isVegMode)}
         className={cn(
-          "relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2",
+          "relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none",
           isVegMode 
-            ? "bg-gradient-to-r from-green-500 to-green-600 shadow-lg shadow-green-500/25" 
-            : "bg-gray-300 hover:bg-gray-400"
+            ? "bg-gradient-to-r from-green-500 to-green-600" 
+            : "bg-muted hover:bg-muted/80"
         )}
       >
         <div
           className={cn(
-            "inline-block h-5 w-5 transform rounded-full bg-white transition-all duration-300 shadow-lg",
+            "inline-block h-4 w-4 transform rounded-full bg-white transition-all duration-300 shadow-sm",
             "flex items-center justify-center",
             isVegMode 
-              ? "translate-x-6 shadow-green-500/25" 
-              : "translate-x-0.5"
+              ? "translate-x-7" 
+              : "translate-x-1"
           )}
         >
           <Leaf 
             className={cn(
-              "h-3 w-3 transition-all duration-300",
+              "h-2.5 w-2.5 transition-all duration-300",
               isVegMode 
-                ? "text-green-600 scale-100" 
-                : "text-gray-400 scale-75"
+                ? "text-green-600" 
+                : "text-muted-foreground"
             )} 
           />
         </div>
