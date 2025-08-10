@@ -551,7 +551,7 @@ export default function FoodieSpotLayout() {
               className="mode-transition"
               onClick={() => setMenuModalOpen(true)}
             >
-              <Menu className="h-8 w-8" />
+              <Menu className="h-10 w-10" />
             </Button>
             <Button 
               variant="ghost" 
@@ -559,7 +559,7 @@ export default function FoodieSpotLayout() {
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="md:hidden mode-transition"
             >
-              <Menu className="h-8 w-8" />
+              <Menu className="h-10 w-10" />
             </Button>
           </div>
         </div>
