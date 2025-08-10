@@ -2,114 +2,123 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
-interface UserPreferences {
-  language?: string;
-  theme?: 'light' | 'dark' | 'system';
-  notifications?: {
-    email?: boolean;
-    push?: boolean;
-    marketing?: boolean;
+export interface UserPreferences {
+  language: string;
+  theme: 'light' | 'dark' | 'system';
+  notifications: {
+    email: boolean;
+    push: boolean;
+    sms: boolean;
   };
-  dietary?: {
-    vegetarian?: boolean;
-    vegan?: boolean;
-    glutenFree?: boolean;
-    lactoseFree?: boolean;
+  diet: {
+    vegetarian: boolean;
+    vegan: boolean;
+    gluten_free: boolean;
+    lactose_free: boolean;
   };
-  location?: {
-    defaultRadius?: number;
-    rememberLastLocation?: boolean;
+  location: {
+    auto_detect: boolean;
+    default_radius: number;
   };
 }
 
+const defaultPreferences: UserPreferences = {
+  language: 'es',
+  theme: 'system',
+  notifications: {
+    email: true,
+    push: true,
+    sms: false,
+  },
+  diet: {
+    vegetarian: false,
+    vegan: false,
+    gluten_free: false,
+    lactose_free: false,
+  },
+  location: {
+    auto_detect: true,
+    default_radius: 5,
+  },
+};
+
 export const useUserPreferences = () => {
   const { user } = useAuth();
-  const [preferences, setPreferences] = useState<UserPreferences>({});
+  const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchPreferences();
     } else {
-      setPreferences({});
+      setPreferences(defaultPreferences);
       setLoading(false);
     }
   }, [user]);
 
   const fetchPreferences = async () => {
-    if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from('users')
         .select('preferences')
-        .eq('id', user.id)
+        .eq('auth_user_id', user?.id)
         .single();
 
-      if (error) {
-        console.error('Error fetching preferences:', error);
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (data?.preferences) {
+        // Safely parse preferences with proper type checking
+        const userPrefs = data.preferences as unknown;
+        if (typeof userPrefs === 'object' && userPrefs !== null) {
+          setPreferences({ ...defaultPreferences, ...(userPrefs as Partial<UserPreferences>) });
+        } else {
+          setPreferences(defaultPreferences);
+        }
       } else {
-        setPreferences(data?.preferences || {});
+        setPreferences(defaultPreferences);
       }
     } catch (error) {
       console.error('Error fetching preferences:', error);
+      toast.error('Error al cargar preferencias');
+      setPreferences(defaultPreferences);
     } finally {
       setLoading(false);
     }
   };
 
   const updatePreferences = async (newPreferences: Partial<UserPreferences>) => {
-    if (!user) return false;
+    if (!user) return;
 
-    setUpdating(true);
+    setSaving(true);
     try {
-      const mergedPreferences = { ...preferences, ...newPreferences };
+      const updatedPreferences = { ...preferences, ...newPreferences };
       
       const { error } = await supabase
         .from('users')
-        .update({ 
-          preferences: mergedPreferences,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+        .update({ preferences: updatedPreferences })
+        .eq('auth_user_id', user.id);
 
-      if (error) {
-        console.error('Error updating preferences:', error);
-        toast({
-          title: "Error",
-          description: "No se pudieron actualizar las preferencias",
-          variant: "destructive"
-        });
-        return false;
-      } else {
-        setPreferences(mergedPreferences);
-        toast({
-          title: "Preferencias actualizadas",
-          description: "Tus preferencias se han guardado correctamente"
-        });
-        return true;
-      }
+      if (error) throw error;
+
+      setPreferences(updatedPreferences);
+      toast.success('Preferencias actualizadas');
     } catch (error) {
       console.error('Error updating preferences:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron actualizar las preferencias",
-        variant: "destructive"
-      });
-      return false;
+      toast.error('Error al actualizar preferencias');
     } finally {
-      setUpdating(false);
+      setSaving(false);
     }
   };
 
   return {
     preferences,
     loading,
-    updating,
+    saving,
     updatePreferences,
-    refetch: fetchPreferences
   };
 };
