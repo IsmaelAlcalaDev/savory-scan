@@ -404,9 +404,9 @@ export default function FoodieSpotLayout() {
         </div>
 
         {/* Filter Badges with VEG Mode */}
-        <div className="flex items-center gap-4 mb-4 pt-2">
+        <div className="flex items-center gap-4 mb-4 pt-3 pb-1">
           <div className="relative flex-1 min-w-0">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-1 pr-4">
               <FiltersModal
                 selectedDistances={selectedDistances}
                 onDistanceChange={setSelectedDistances}
@@ -450,7 +450,7 @@ export default function FoodieSpotLayout() {
           <div className="mb-6">
             <div className="flex items-center gap-6">
               <div className="relative flex-1 min-w-0">
-                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-1 pr-4">
                   {activeFiltersDisplay.map((filter, index) => (
                     <FilterTag
                       key={`${filter.type}-${filter.value}-${index}`}
