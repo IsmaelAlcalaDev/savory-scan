@@ -406,7 +406,7 @@ export default function FoodieSpotLayout() {
         {/* Filter Badges with VEG Mode */}
         <div className="flex items-center gap-4 mb-2 pt-1 pb-1">
           <div className="relative flex-1 min-w-0">
-            <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-20 pr-4">
+            <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-14 pr-4">
               {filterOptions.map((filter) => (
                 <TagButton
                   key={filter.id}
@@ -418,7 +418,7 @@ export default function FoodieSpotLayout() {
               ))}
             </div>
             {/* Botón de filtros fijo */}
-            <div className="absolute left-0 top-0 bottom-0 flex items-center z-20 bg-white pr-3">
+            <div className="absolute left-0 top-0 bottom-0 flex items-center z-20 bg-white pr-2">
               <FiltersModal
                 selectedDistances={selectedDistances}
                 onDistanceChange={setSelectedDistances}
