@@ -549,7 +549,7 @@ export default function FoodieSpotLayout() {
           </div>
 
           {/* Actions Section */}
-          <div className="flex items-center gap-6 flex-shrink-0">
+          <div className="flex items-center gap-12 flex-shrink-0">
             <LanguageSelector />
             <button 
               className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition hover:text-primary transition-colors"
