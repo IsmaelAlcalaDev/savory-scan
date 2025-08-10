@@ -17,15 +17,6 @@ export const useNearestLocation = () => {
     try {
       console.log('Finding nearest location for:', { latitude, longitude });
 
-      // Buscar en ciudades (con límite de distancia para evitar resultados muy lejanos)
-      const { data: cities } = await supabase
-        .rpc('calculate_distance_km', {
-          lat1: latitude,
-          lon1: longitude,
-          lat2: latitude, // Placeholder, se calculará en el servidor
-          lon2: longitude
-        });
-
       // Buscar ciudades cercanas
       const { data: nearestCities } = await supabase
         .from('cities')
@@ -39,7 +30,7 @@ export const useNearestLocation = () => {
             countries!inner(name)
           )
         `)
-        .limit(5);
+        .limit(10);
 
       // Buscar municipios cercanos
       const { data: nearestMunicipalities } = await supabase
@@ -54,7 +45,7 @@ export const useNearestLocation = () => {
             countries!inner(name)
           )
         `)
-        .limit(5);
+        .limit(10);
 
       // Buscar distritos cercanos
       const { data: nearestDistricts } = await supabase
@@ -72,7 +63,7 @@ export const useNearestLocation = () => {
             )
           )
         `)
-        .limit(5);
+        .limit(10);
 
       // Calcular distancias manualmente y encontrar el más cercano
       const allLocations: (NearestLocationResult & { id: number })[] = [];
