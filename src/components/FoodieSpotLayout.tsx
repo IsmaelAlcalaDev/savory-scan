@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import CuisineFilter from './CuisineFilter';
-import FiltersSidebar from './FiltersSidebar';
+import FiltersModal from './FiltersModal';
 import RestaurantCard from './RestaurantCard';
 import LocationModal from './LocationModal';
 import VegModeToggle from './VegModeToggle';
@@ -48,7 +48,6 @@ export default function FoodieSpotLayout() {
   const [selectedDietTypes, setSelectedDietTypes] = useState<string[]>([]);
   const [activeFilters, setActiveFilters] = useState<string[]>(['nearby']);
   const [isVegMode, setIsVegMode] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -408,6 +407,22 @@ export default function FoodieSpotLayout() {
         <div className="flex items-center gap-4 mb-4">
           <div className="relative flex-1 min-w-0">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              <FiltersModal
+                selectedDistances={selectedDistances}
+                onDistanceChange={setSelectedDistances}
+                selectedRatings={selectedRatings}
+                onRatingChange={setSelectedRatings}
+                selectedEstablishments={selectedEstablishments}
+                onEstablishmentChange={setSelectedEstablishments}
+                selectedServices={selectedServices}
+                onServiceChange={setSelectedServices}
+                selectedPriceRanges={selectedPriceRanges}
+                onPriceRangeChange={setSelectedPriceRanges}
+                selectedTimeRanges={selectedTimeRanges}
+                onTimeRangeChange={setSelectedTimeRanges}
+                selectedDietTypes={selectedDietTypes}
+                onDietTypeChange={setSelectedDietTypes}
+              />
               {filterOptions.map((filter) => (
                 <TagButton
                   key={filter.id}
@@ -569,12 +584,6 @@ export default function FoodieSpotLayout() {
             >
               <Menu className="h-8 w-8" strokeWidth={1.5} />
             </button>
-            <button 
-              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent md:hidden mode-transition text-red-500 hover:text-foreground transition-colors"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              <Menu className="h-8 w-8" strokeWidth={1.5} />
-            </button>
           </div>
         </div>
 
@@ -587,38 +596,11 @@ export default function FoodieSpotLayout() {
         </div>
       </header>
 
-      <div className="flex">
-        {/* Sidebar - Filters */}
-        <aside className={cn(
-          "w-80 bg-white transition-transform duration-300 md:translate-x-0 fixed md:static h-full z-40 overflow-y-auto mode-transition",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        )}>
-          <div className="p-4">
-            <FiltersSidebar
-              selectedDistances={selectedDistances}
-              onDistanceChange={setSelectedDistances}
-              selectedRatings={selectedRatings}
-              onRatingChange={setSelectedRatings}
-              selectedEstablishments={selectedEstablishments}
-              onEstablishmentChange={setSelectedEstablishments}
-              selectedServices={selectedServices}
-              onServiceChange={setSelectedServices}
-              selectedPriceRanges={selectedPriceRanges}
-              onPriceRangeChange={setSelectedPriceRanges}
-              selectedTimeRanges={selectedTimeRanges}
-              onTimeRangeChange={setSelectedTimeRanges}
-              selectedDietTypes={selectedDietTypes}
-              onDietTypeChange={setSelectedDietTypes}
-            />
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 min-w-0">
-          <div className="p-4 ml-8 md:ml-10 lg:ml-14 mr-4 md:mr-8 lg:mr-12">
-            {renderContent()}
-          </div>
-        </main>
+      {/* Main Content - Full Width */}
+      <div className="w-full">
+        <div className="p-4">
+          {renderContent()}
+        </div>
       </div>
 
       {/* Bottom Navigation */}
@@ -645,14 +627,6 @@ export default function FoodieSpotLayout() {
         onOpenChange={setLocationModalOpen}
         onLocationSelect={handleLocationSelect}
       />
-
-      {/* Overlay for mobile sidebar */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
       
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
