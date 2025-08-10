@@ -1,4 +1,3 @@
-
 import { Star, Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -93,24 +92,33 @@ export default function RestaurantCard({
                 </div>
               </div>
               
-              {/* Tipo de cocina seguido inmediatamente del rating */}
+              {/* Tipo de cocina seguido del tipo de establecimiento */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="line-clamp-1">
                   {cuisineTypes.slice(0, 2).join(', ')}
                 </span>
-                {googleRating && (
+                {establishmentType && (
                   <>
                     <span>•</span>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                      <span className="font-medium text-foreground">{googleRating}</span>
-                      {reviewCount && (
-                        <span className="text-muted-foreground">({reviewCount})</span>
-                      )}
-                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {establishmentType}
+                    </Badge>
                   </>
                 )}
               </div>
+
+              {/* Rating */}
+              {googleRating && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                    <span className="font-medium text-foreground">{googleRating}</span>
+                    {reviewCount && (
+                      <span className="text-muted-foreground">({reviewCount})</span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Distancia • Rango de precio */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -132,11 +140,6 @@ export default function RestaurantCard({
             {/* Image - on the right side, SQUARE */}
             <div className="w-24 h-24 bg-gradient-hero relative overflow-hidden flex-shrink-0 self-start mt-4 mr-4 rounded-lg">
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-smooth" />
-              <div className="absolute top-1 right-1">
-                <Badge variant="secondary" className="bg-glass backdrop-blur-sm text-xs">
-                  {establishmentType}
-                </Badge>
-              </div>
             </div>
           </div>
         </CardContent>
