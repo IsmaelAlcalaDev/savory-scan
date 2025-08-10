@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, MapPin, Menu, X, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -522,7 +521,7 @@ export default function FoodieSpotLayout() {
           </div>
 
           {/* Location Section - Centered */}
-          <div className="flex-1 flex justify-center px-2">
+          <div className="flex-1 flex justify-center">
             <Button
               variant="ghost"
               onClick={() => setLocationModalOpen(true)}
