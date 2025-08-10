@@ -509,8 +509,9 @@ export default function FoodieSpotLayout() {
     <div className={`min-h-screen bg-white pb-20 px-[7.5%] mode-transition`}>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center p-4">
+          {/* Logo Section */}
+          <div className="flex items-center gap-1 flex-shrink-0">
             <div className={`w-8 h-8 bg-primary rounded-full flex items-center justify-center mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
               <span className="text-primary-foreground font-bold text-sm">F</span>
             </div>
@@ -520,7 +521,8 @@ export default function FoodieSpotLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 flex-1 max-w-2xl mx-2">
+          {/* Location Section - Centered */}
+          <div className="flex-1 flex justify-center px-4">
             <Button
               variant="ghost"
               onClick={() => setLocationModalOpen(true)}
@@ -531,8 +533,11 @@ export default function FoodieSpotLayout() {
                 {ipLoading ? 'Detectando...' : currentLocationName}
               </span>
             </Button>
+          </div>
 
-            <div className="relative flex-1">
+          {/* Search Section */}
+          <div className="flex-1 max-w-md">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10" />
               <Input
                 type="text"
@@ -544,7 +549,8 @@ export default function FoodieSpotLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Actions Section */}
+          <div className="flex items-center gap-4 flex-shrink-0 ml-4">
             <LanguageSelector />
             <button 
               className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition hover:text-primary transition-colors"
