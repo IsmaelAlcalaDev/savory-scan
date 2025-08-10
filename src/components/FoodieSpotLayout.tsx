@@ -217,10 +217,6 @@ export default function FoodieSpotLayout() {
               </div>
               
               <div className="flex items-center gap-4">
-                <VegModeToggle 
-                  isVegMode={isVegMode}
-                  onToggle={setIsVegMode}
-                />
                 <ViewModeToggle 
                   viewMode={viewMode}
                   onViewModeChange={setViewMode}
@@ -228,18 +224,25 @@ export default function FoodieSpotLayout() {
               </div>
             </div>
 
-            {/* Filter Badges */}
-            <div className="flex gap-2 mb-6">
-              {filterOptions.map((filter) => (
-                <Badge
-                  key={filter.id}
-                  variant={activeFilters.includes(filter.id) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => handleFilterToggle(filter.id)}
-                >
-                  {filter.label}
-                </Badge>
-              ))}
+            {/* Filter Badges with VEG Mode */}
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div className="flex gap-2">
+                {filterOptions.map((filter) => (
+                  <Badge
+                    key={filter.id}
+                    variant={activeFilters.includes(filter.id) ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => handleFilterToggle(filter.id)}
+                  >
+                    {filter.label}
+                  </Badge>
+                ))}
+              </div>
+              
+              <VegModeToggle 
+                isVegMode={isVegMode}
+                onToggle={setIsVegMode}
+              />
             </div>
 
             {/* Restaurant Grid/List */}

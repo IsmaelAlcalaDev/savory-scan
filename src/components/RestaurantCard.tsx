@@ -75,24 +75,15 @@ export default function RestaurantCard({
         className={cn(
           "group cursor-pointer bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] overflow-hidden relative",
           "shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_8px_25px_0_rgba(0,0,0,0.15)]",
+          "border-l-4 border-l-primary/20 hover:border-l-primary/40",
           className
         )}
         onClick={handleClick}
       >
         <CardContent className="p-0">
           <div className="flex">
-            {/* Image - smaller in list mode */}
-            <div className="w-32 h-24 bg-gradient-hero relative overflow-hidden flex-shrink-0">
-              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-smooth" />
-              <div className="absolute top-1 left-1">
-                <Badge variant="secondary" className="bg-glass backdrop-blur-sm text-xs">
-                  {establishmentType}
-                </Badge>
-              </div>
-            </div>
-
             {/* Content area with white background */}
-            <div className="flex-1 bg-white p-4 space-y-2">
+            <div className="flex-1 bg-white p-4 space-y-2 min-w-0">
               {/* Nombre del restaurante con corazón */}
               <div className="flex items-start justify-between gap-2">
                 <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth flex-1 min-w-0 break-words">
@@ -139,6 +130,16 @@ export default function RestaurantCard({
               {/* Servicios como tags */}
               {renderServices()}
             </div>
+
+            {/* Image - on the right side, full height */}
+            <div className="w-32 bg-gradient-hero relative overflow-hidden flex-shrink-0 self-stretch">
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-smooth" />
+              <div className="absolute top-2 right-2">
+                <Badge variant="secondary" className="bg-glass backdrop-blur-sm text-xs">
+                  {establishmentType}
+                </Badge>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -150,13 +151,14 @@ export default function RestaurantCard({
       className={cn(
         "group cursor-pointer bg-white border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden relative",
         "shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_8px_25px_0_rgba(0,0,0,0.15)]",
+        "border-l-4 border-l-primary/20 hover:border-l-primary/40",
         className
       )}
       onClick={handleClick}
     >
       <CardContent className="p-0">
         {/* Image placeholder - Reduced height */}
-        <div className="h-32 bg-gradient-hero relative overflow-hidden">
+        <div className="h-28 bg-gradient-hero relative overflow-hidden">
           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-smooth" />
           <div className="absolute top-2 left-2">
             <Badge variant="secondary" className="bg-glass backdrop-blur-sm text-xs">
