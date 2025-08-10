@@ -77,7 +77,19 @@ export const useDishes = ({
         // Usamos la vista existente "dishes_full"
         let query = supabase
           .from('dishes_full')
-          .select('id, name, base_price, image_url, restaurant_id, restaurant_name, restaurant_slug, category_id, category_name, is_vegetarian, is_vegan, is_gluten_free, is_lactose_free, is_healthy')
+          .select('id, name, base_price, image_url, restaurant_id, restaurant_name, restaurant_slug, category_id, category_name, is_vegetarian, is_vegan, is_gluten_free, is_lactose_free, is_healthy');
+
+        if (searchQuery && searchQuery.trim().length > 0) {
+          query = query.ilike('name', `%${searchQuery.trim()}%`);
+        }
+
+        if (categoryIds && categoryIds.length > 0) {
+          query = query.in('category_id', categoryIds);
+        }
+
+        // Apply .returns<>() after all filtering operations
+        const { data, error } = await query
+          .limit(200)
           .returns<Array<{
             id: number;
             name: string;
@@ -94,17 +106,6 @@ export const useDishes = ({
             is_lactose_free: boolean | null;
             is_healthy: boolean | null;
           }>>();
-
-        if (searchQuery && searchQuery.trim().length > 0) {
-          query = query.ilike('name', `%${searchQuery.trim()}%`);
-        }
-
-        if (categoryIds && categoryIds.length > 0) {
-          query = query.in('category_id', categoryIds);
-        }
-
-        // Nota: filtros por cocina y rangos de precio se aplicarán en cliente (no hay join disponible aquí)
-        const { data, error } = await query.limit(200);
 
         if (error) {
           console.error('Supabase error fetching dishes (dishes_full):', error);
