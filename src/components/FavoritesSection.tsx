@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,10 +8,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useFavorites } from '@/hooks/useFavorites';
+import RestaurantCard from '@/components/RestaurantCard';
 
 interface FavoriteRestaurant {
   id: number;
   name: string;
+  slug: string;
   cuisine_types: string[];
   google_rating?: number;
   google_rating_count?: number;
@@ -20,6 +21,8 @@ interface FavoriteRestaurant {
   cover_image_url?: string;
   logo_url?: string;
   price_range: string;
+  establishment_type?: string;
+  favorites_count?: number;
   saved_at: string;
 }
 
@@ -64,7 +67,7 @@ export default function FavoritesSection() {
     try {
       setLoading(true);
 
-      // Cargar restaurantes favoritos
+      // Load favorite restaurants with all needed data
       const { data: restaurants, error: restaurantsError } = await supabase
         .from('user_saved_restaurants')
         .select(`
@@ -73,11 +76,14 @@ export default function FavoritesSection() {
           restaurants!inner(
             id,
             name,
+            slug,
             price_range,
             google_rating,
             google_rating_count,
             cover_image_url,
             logo_url,
+            favorites_count,
+            establishment_types(name),
             restaurant_cuisines(
               cuisine_types(name)
             )
@@ -92,18 +98,20 @@ export default function FavoritesSection() {
       const formattedRestaurants = restaurants?.map((item: any) => ({
         id: item.restaurants.id,
         name: item.restaurants.name,
+        slug: item.restaurants.slug,
         cuisine_types: item.restaurants.restaurant_cuisines?.map((rc: any) => rc.cuisine_types?.name).filter(Boolean) || [],
         google_rating: item.restaurants.google_rating,
         google_rating_count: item.restaurants.google_rating_count,
         price_range: item.restaurants.price_range,
         cover_image_url: item.restaurants.cover_image_url,
         logo_url: item.restaurants.logo_url,
+        establishment_type: item.restaurants.establishment_types?.name,
+        favorites_count: item.restaurants.favorites_count || 0,
         saved_at: item.saved_at
       })) || [];
 
       setFavoriteRestaurants(formattedRestaurants);
 
-      // Cargar platos favoritos
       const { data: dishes, error: dishesError } = await supabase
         .from('user_saved_dishes')
         .select(`
@@ -135,7 +143,6 @@ export default function FavoritesSection() {
 
       setFavoriteDishes(formattedDishes);
 
-      // Cargar eventos favoritos
       const { data: events, error: eventsError } = await supabase
         .from('user_saved_events')
         .select(`
@@ -201,13 +208,11 @@ export default function FavoritesSection() {
             restaurant_id_param: id
           }));
 
-          // Update global state after successful operation
           if (!error) {
             await refreshFavorites();
           }
           break;
         case 'dish':
-          // Optimistic update
           setFavoriteDishes(prev => prev.filter(item => item.id !== id));
           
           ({ error } = await supabase.rpc('toggle_dish_favorite', {
@@ -216,7 +221,6 @@ export default function FavoritesSection() {
           }));
           break;
         case 'event':
-          // Optimistic update
           setFavoriteEvents(prev => prev.filter(item => item.id !== id));
           
           ({ error } = await supabase.rpc('toggle_event_favorite', {
@@ -236,10 +240,9 @@ export default function FavoritesSection() {
     } catch (error) {
       console.error('Error removing favorite:', error);
       
-      // Revert optimistic updates on error
       if (type === 'restaurant') {
         setFavoriteState(id, true);
-        await loadFavorites(); // Reload to restore correct state
+        await loadFavorites();
       }
       
       toast({
@@ -292,47 +295,40 @@ export default function FavoritesSection() {
               <p className="text-muted-foreground">No tienes restaurantes favoritos aún</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {favoriteRestaurants.map((restaurant) => (
-                <Card key={restaurant.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <img 
-                        src={restaurant.cover_image_url || restaurant.logo_url || "/placeholder.svg"} 
-                        alt={restaurant.name}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{restaurant.name}</h4>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Badge variant="secondary">{restaurant.cuisine_types.slice(0, 2).join(', ')}</Badge>
-                          {restaurant.google_rating && (
-                            <div className="flex items-center gap-1">
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                              <span>{restaurant.google_rating}</span>
-                              {restaurant.google_rating_count && (
-                                <span className="text-xs">({restaurant.google_rating_count})</span>
-                              )}
-                            </div>
-                          )}
-                          <span>{restaurant.price_range}</span>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => removeFavorite('restaurant', restaurant.id)}
-                        disabled={removing[`restaurant-${restaurant.id}`]}
-                      >
-                        {removing[`restaurant-${restaurant.id}`] ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        )}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div key={restaurant.id} className="relative">
+                  <RestaurantCard
+                    id={restaurant.id}
+                    name={restaurant.name}
+                    slug={restaurant.slug}
+                    priceRange={restaurant.price_range}
+                    googleRating={restaurant.google_rating}
+                    googleRatingCount={restaurant.google_rating_count}
+                    cuisineTypes={restaurant.cuisine_types}
+                    establishmentType={restaurant.establishment_type}
+                    favoritesCount={restaurant.favorites_count}
+                    coverImageUrl={restaurant.cover_image_url}
+                    logoUrl={restaurant.logo_url}
+                    layout="list"
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeFavorite('restaurant', restaurant.id);
+                    }}
+                    disabled={removing[`restaurant-${restaurant.id}`]}
+                    className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-sm"
+                  >
+                    {removing[`restaurant-${restaurant.id}`] ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    )}
+                  </Button>
+                </div>
               ))}
             </div>
           )}

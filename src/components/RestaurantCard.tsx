@@ -1,4 +1,3 @@
-
 import { Star, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -24,6 +23,7 @@ interface RestaurantCardProps {
   onClick?: () => void;
   className?: string;
   onLoginRequired?: () => void;
+  layout?: 'grid' | 'list';
 }
 
 export default function RestaurantCard({
@@ -43,9 +43,9 @@ export default function RestaurantCard({
   logoUrl,
   onClick,
   className,
-  onLoginRequired
+  onLoginRequired,
+  layout = 'grid'
 }: RestaurantCardProps) {
-  // Safely get auth context - handle case where component is used outside AuthProvider
   let user = null;
   try {
     const authContext = useAuth();
@@ -56,26 +56,20 @@ export default function RestaurantCard({
 
   const { isFavorite, isToggling, toggleFavorite } = useFavorites();
   
-  // Local state para manejar el contador de favoritos
   const [localFavoritesCount, setLocalFavoritesCount] = useState(favoritesCount);
   const previousIsFavoriteRef = useRef<boolean | null>(null);
 
-  // Sincronizar el contador local cuando cambie el prop favoritesCount
   useEffect(() => {
     setLocalFavoritesCount(favoritesCount);
   }, [favoritesCount]);
 
-  // Sync with global favorites context
   useEffect(() => {
     const currentIsFavorite = isFavorite(id);
     
-    // Only adjust count if this is not the first render and the favorite state actually changed
     if (previousIsFavoriteRef.current !== null && previousIsFavoriteRef.current !== currentIsFavorite) {
       if (currentIsFavorite && !previousIsFavoriteRef.current) {
-        // Changed from not favorite to favorite
         setLocalFavoritesCount(prev => prev + 1);
       } else if (!currentIsFavorite && previousIsFavoriteRef.current) {
-        // Changed from favorite to not favorite
         setLocalFavoritesCount(prev => Math.max(0, prev - 1));
       }
     }
@@ -92,18 +86,16 @@ export default function RestaurantCard({
   };
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Evitar que se active el click de la card
+    e.stopPropagation();
     
     if (!user && onLoginRequired) {
       onLoginRequired();
       return;
     }
     
-    // The global context will handle optimistic updates
     await toggleFavorite(id, onLoginRequired);
   };
 
-  // Elegir la mejor imagen disponible
   const displayImage = coverImageUrl || logoUrl;
 
   const formatDistance = (distanceKm: number) => {
@@ -113,6 +105,110 @@ export default function RestaurantCard({
     return `${distanceKm.toFixed(1)}km`;
   };
 
+  if (layout === 'list') {
+    return (
+      <div 
+        className={cn(
+          "group cursor-pointer transition-all duration-300 hover:scale-[1.01] flex items-center gap-4 p-4 rounded-lg border bg-card",
+          className
+        )}
+        onClick={handleClick}
+      >
+        <div className="w-24 h-24 relative overflow-hidden rounded-lg flex-shrink-0">
+          {displayImage ? (
+            <img 
+              src={displayImage} 
+              alt={name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
+          ) : null}
+          <div className={cn(
+            "absolute inset-0 transition-smooth",
+            displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
+          )} />
+          
+          <div className="absolute top-2 left-2">
+            <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
+              {establishmentType}
+            </Badge>
+          </div>
+          
+          <div className="absolute bottom-2 right-2">
+            <button
+              onClick={handleFavoriteClick}
+              disabled={isToggling(id)}
+              className={cn(
+                "flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 border border-white/20",
+                "hover:bg-white transition-all duration-200",
+                "disabled:opacity-50 disabled:cursor-not-allowed"
+              )}
+            >
+              <Heart 
+                className={cn(
+                  "h-3 w-3 transition-all duration-200",
+                  isFavorite(id) 
+                    ? "text-red-500 fill-red-500" 
+                    : "text-red-500",
+                  isToggling(id) && "animate-pulse"
+                )} 
+              />
+              <span className="text-xs font-medium">{localFavoritesCount}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {logoUrl && (
+              <div className="flex-shrink-0">
+                <img 
+                  src={logoUrl} 
+                  alt={`${name} logo`}
+                  className="w-8 h-8 rounded object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+            
+            <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth">
+              {name}
+            </h3>
+            {googleRating && (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <span className="font-medium text-foreground text-sm">{googleRating}</span>
+                {googleRatingCount && (
+                  <span className="text-muted-foreground text-sm">({googleRatingCount})</span>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+            <span className="line-clamp-1">
+              {cuisineTypes.slice(0, 2).join(', ')}
+            </span>
+            <span>•</span>
+            <span className="text-foreground">{priceRange}</span>
+            {distance && (
+              <>
+                <span>•</span>
+                <span className="flex-shrink-0">{formatDistance(distance)}</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       className={cn(
@@ -121,7 +217,6 @@ export default function RestaurantCard({
       )}
       onClick={handleClick}
     >
-      {/* Imagen rectangular con menos altura - cambiado de aspect-[4/3] a aspect-[5/3] */}
       <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
         {displayImage ? (
           <img 
@@ -129,7 +224,6 @@ export default function RestaurantCard({
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
-              // Fallback to gradient if image fails to load
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
             }}
@@ -140,15 +234,13 @@ export default function RestaurantCard({
           displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
         )} />
         
-        {/* Establishment type badge moved to bottom right */}
-        <div className="absolute bottom-3 right-3">
-          <Badge variant="secondary" className="bg-white text-foreground text-xs shadow-sm pointer-events-none">
+        <div className="absolute top-3 left-3">
+          <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
             {establishmentType}
           </Badge>
         </div>
         
-        {/* Favorites button in top right */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute bottom-3 right-3">
           <button
             onClick={handleFavoriteClick}
             disabled={isToggling(id)}
@@ -172,11 +264,8 @@ export default function RestaurantCard({
         </div>
       </div>
 
-      {/* Datos fuera de la imagen, con menos espacio - reducido el space-y de 2 a 1 */}
       <div className="space-y-1">
-        {/* Nombre del restaurante con logo y rating en la misma línea */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Logo del restaurante - increased size from w-6 h-6 to w-12 h-12 */}
           {logoUrl && (
             <div className="flex-shrink-0">
               <img 
@@ -184,7 +273,6 @@ export default function RestaurantCard({
                 alt={`${name} logo`}
                 className="w-12 h-12 rounded object-cover"
                 onError={(e) => {
-                  // Ocultar logo si falla la carga
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                 }}
@@ -206,7 +294,6 @@ export default function RestaurantCard({
           )}
         </div>
         
-        {/* Tipo de cocina · Rango de precio · Distancia en una sola línea */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
           <span className="line-clamp-1">
             {cuisineTypes.slice(0, 2).join(', ')}
