@@ -1,6 +1,5 @@
 
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -24,10 +23,13 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
 
   if (loading) {
     return (
-      <div className="w-full overflow-hidden">
-        <div className="flex gap-3 pb-3 px-1">
+      <div className="relative w-full">
+        <div className="flex gap-4 pb-3 px-1 overflow-x-auto scrollbar-hide">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 w-24 rounded-full flex-shrink-0" />
+            <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <Skeleton className="h-3 w-16" />
+            </div>
           ))}
         </div>
       </div>
@@ -52,26 +54,51 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
   }
 
   return (
-    <div className="w-full">
-      <ScrollArea className="w-full">
-        <div className="flex gap-3 pb-3 px-1" style={{ width: 'max-content' }}>
-          {cuisineTypes.map((cuisine) => (
-            <Badge
-              key={cuisine.id}
-              variant={selectedCuisines.includes(cuisine.id) ? "default" : "outline"}
-              className="cursor-pointer whitespace-nowrap hover:bg-primary/90 transition-colors flex items-center gap-2 py-2 px-4 text-sm font-medium flex-shrink-0"
-              onClick={() => handleCuisineToggle(cuisine.id)}
-            >
+    <div className="relative w-full">
+      {/* Fade effect on the left */}
+      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+      
+      {/* Fade effect on the right */}
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+      
+      <div className="flex gap-4 pb-3 px-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {cuisineTypes.map((cuisine) => (
+          <div
+            key={cuisine.id}
+            className="flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-105 flex-shrink-0"
+            onClick={() => handleCuisineToggle(cuisine.id)}
+          >
+            <div className={`
+              w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-colors
+              ${selectedCuisines.includes(cuisine.id) 
+                ? 'bg-primary text-primary-foreground shadow-md' 
+                : 'bg-muted hover:bg-muted/80'
+              }
+            `}>
               {cuisine.icon && (
-                <span className="text-lg" role="img" aria-label={cuisine.name}>
+                <span role="img" aria-label={cuisine.name}>
                   {cuisine.icon}
                 </span>
               )}
-              <span>{cuisine.name}</span>
-            </Badge>
-          ))}
-        </div>
-      </ScrollArea>
+            </div>
+            <span className={`
+              text-xs font-medium text-center whitespace-nowrap transition-colors
+              ${selectedCuisines.includes(cuisine.id) 
+                ? 'text-primary' 
+                : 'text-muted-foreground'
+              }
+            `}>
+              {cuisine.name}
+            </span>
+          </div>
+        ))}
+      </div>
+      
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 }
