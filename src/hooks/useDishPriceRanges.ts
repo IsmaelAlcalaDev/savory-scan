@@ -20,16 +20,25 @@ export const useDishPriceRanges = () => {
       try {
         setLoading(true);
         console.info('Fetching dish price ranges from price_ranges...');
-        // Adaptamos a la tabla existente "price_ranges"
+        
         const { data, error } = await supabase
           .from('price_ranges')
           .select('id, name, display_text, min_price, max_price, is_active, display_order')
           .eq('is_active', true)
-          .order('display_order', { ascending: true });
+          .order('display_order', { ascending: true })
+          .returns<Array<{
+            id: number;
+            name: string;
+            display_text: string;
+            min_price: number | null;
+            max_price: number | null;
+            is_active: boolean;
+            display_order: number;
+          }>>();
 
         if (error) throw error;
 
-        const mapped: DishPriceRange[] = (data ?? []).map((r: any) => ({
+        const mapped: DishPriceRange[] = (data ?? []).map((r) => ({
           id: r.id,
           name: r.name,
           display_text: r.display_text,

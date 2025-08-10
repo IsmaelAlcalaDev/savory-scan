@@ -77,7 +77,23 @@ export const useDishes = ({
         // Usamos la vista existente "dishes_full"
         let query = supabase
           .from('dishes_full')
-          .select('id, name, base_price, image_url, restaurant_id, restaurant_name, restaurant_slug, category_id, category_name, is_vegetarian, is_vegan, is_gluten_free, is_lactose_free, is_healthy');
+          .select('id, name, base_price, image_url, restaurant_id, restaurant_name, restaurant_slug, category_id, category_name, is_vegetarian, is_vegan, is_gluten_free, is_lactose_free, is_healthy')
+          .returns<Array<{
+            id: number;
+            name: string;
+            base_price: number;
+            image_url: string | null;
+            restaurant_id: number;
+            restaurant_name: string;
+            restaurant_slug: string;
+            category_id: number | null;
+            category_name: string | null;
+            is_vegetarian: boolean | null;
+            is_vegan: boolean | null;
+            is_gluten_free: boolean | null;
+            is_lactose_free: boolean | null;
+            is_healthy: boolean | null;
+          }>>();
 
         if (searchQuery && searchQuery.trim().length > 0) {
           query = query.ilike('name', `%${searchQuery.trim()}%`);
@@ -95,7 +111,7 @@ export const useDishes = ({
           throw error;
         }
 
-        const rows: any[] = data ?? [];
+        const rows = data ?? [];
 
         // Filtro cliente por dietas
         const dietSet = new Set((dietFilters ?? []).map((d) => d.toLowerCase()));
@@ -115,7 +131,7 @@ export const useDishes = ({
 
         // TODO: aplicar filtrado cliente por rangos de precio si se dispone de sus min/max en contexto
 
-        const formatted: Dish[] = filteredByCuisine.map((row: any) => ({
+        const formatted: Dish[] = filteredByCuisine.map((row) => ({
           id: row.id,
           name: row.name,
           base_price: Number(row.base_price ?? 0),
