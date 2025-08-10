@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Filter, X } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   ModalWrapper,
@@ -49,19 +49,17 @@ export default function FiltersModal({
   return (
     <ModalWrapper open={open} onOpenChange={setOpen}>
       <ModalTrigger asChild>
-        <div className="relative h-10 w-10 flex items-center justify-center overflow-visible z-10">
-          <Button
-            variant="ghost"
-            className="w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white hover:text-white p-0 flex items-center justify-center flex-shrink-0 transition-colors"
-          >
-            <Filter className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          className="w-12 h-8 rounded-lg bg-red-600 hover:bg-red-700 text-white hover:text-white shadow-md hover:shadow-lg transition-all duration-200 border-0 p-0 flex items-center justify-center"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+        </Button>
       </ModalTrigger>
       <ModalContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <ModalHeader>
           <ModalTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+            <SlidersHorizontal className="h-5 w-5" />
             Filtros de Búsqueda
           </ModalTitle>
         </ModalHeader>
