@@ -1,3 +1,4 @@
+
 import { Star, Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -92,33 +93,30 @@ export default function RestaurantCard({
                 </div>
               </div>
               
-              {/* Tipo de cocina seguido del tipo de establecimiento */}
+              {/* Tipo de comercio · Tipo de cocina · Rating */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                {establishmentType && (
+                  <>
+                    <span className="text-foreground font-medium">{establishmentType}</span>
+                    <span>•</span>
+                  </>
+                )}
                 <span className="line-clamp-1">
                   {cuisineTypes.slice(0, 2).join(', ')}
                 </span>
-                {establishmentType && (
+                {googleRating && (
                   <>
                     <span>•</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {establishmentType}
-                    </Badge>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                      <span className="font-medium text-foreground">{googleRating}</span>
+                      {reviewCount && (
+                        <span className="text-muted-foreground">({reviewCount})</span>
+                      )}
+                    </div>
                   </>
                 )}
               </div>
-
-              {/* Rating */}
-              {googleRating && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                    <span className="font-medium text-foreground">{googleRating}</span>
-                    {reviewCount && (
-                      <span className="text-muted-foreground">({reviewCount})</span>
-                    )}
-                  </div>
-                </div>
-              )}
 
               {/* Distancia • Rango de precio */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -179,8 +177,14 @@ export default function RestaurantCard({
             </div>
           </div>
           
-          {/* Tipo de cocina seguido inmediatamente del rating */}
+          {/* Tipo de comercio · Tipo de cocina · Rating */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {establishmentType && (
+              <>
+                <span className="text-foreground font-medium">{establishmentType}</span>
+                <span>•</span>
+              </>
+            )}
             <span className="line-clamp-1">
               {cuisineTypes.slice(0, 2).join(', ')}
             </span>
