@@ -8,7 +8,6 @@ interface CuisineType {
   slug: string;
   icon?: string;
   icon_url?: string;
-  icon_emoji?: string;
 }
 
 export const useCuisineTypes = () => {
@@ -20,19 +19,12 @@ export const useCuisineTypes = () => {
     const fetchCuisineTypes = async () => {
       try {
         setLoading(true);
-        console.log('Fetching cuisine types...');
-        
         const { data, error } = await supabase
           .from('cuisine_types')
-          .select('id, name, slug, icon, icon_url, icon_emoji')
+          .select('id, name, slug, icon, icon_url')
           .order('name');
 
-        if (error) {
-          console.error('Supabase error fetching cuisine types:', error);
-          throw error;
-        }
-        
-        console.log('Raw cuisine types data:', data);
+        if (error) throw error;
         setCuisineTypes(data || []);
       } catch (err) {
         console.error('Error fetching cuisine types:', err);
