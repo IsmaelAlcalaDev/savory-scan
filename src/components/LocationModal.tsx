@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { MapPin, Navigation, Search, Star, Building, MapPinIcon } from 'lucide-react';
+import { Search, MapPin, Navigation, Clock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,11 +9,11 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useCities } from '@/hooks/useCities';
 import { useLocationSuggestions } from '@/hooks/useLocationSuggestions';
+import { useLocationHistory } from '@/hooks/useLocationHistory';
 import { Skeleton } from '@/components/ui/skeleton';
+import LocationInfo from './LocationInfo';
 
 interface LocationModalProps {
   open: boolean;
@@ -21,41 +21,12 @@ interface LocationModalProps {
   onLocationSelect: (location: { type: 'gps' | 'manual' | 'city' | 'suggestion'; data?: any }) => void;
 }
 
-const getLocationIcon = (type: string, is_famous?: boolean) => {
-  switch (type) {
-    case 'city':
-      return <Building className="h-4 w-4 text-blue-500" />;
-    case 'district':
-      return is_famous ? <Star className="h-4 w-4 text-yellow-500" /> : <MapPinIcon className="h-4 w-4 text-green-500" />;
-    case 'municipality':
-      return <MapPinIcon className="h-4 w-4 text-purple-500" />;
-    case 'poi':
-      return <MapPin className="h-4 w-4 text-red-500" />;
-    default:
-      return <MapPin className="h-4 w-4" />;
-  }
-};
-
-const getLocationTypeLabel = (type: string, is_famous?: boolean) => {
-  switch (type) {
-    case 'city':
-      return 'Ciudad';
-    case 'district':
-      return is_famous ? 'Barrio famoso' : 'Distrito';
-    case 'municipality':
-      return 'Municipio';
-    case 'poi':
-      return 'Punto de interés';
-    default:
-      return type;
-  }
-};
-
 export default function LocationModal({ open, onOpenChange, onLocationSelect }: LocationModalProps) {
-  const [manualLocation, setManualLocation] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showLocationInfo, setShowLocationInfo] = useState<any>(null);
   const [isLoadingGPS, setIsLoadingGPS] = useState(false);
-  const { cities, loading: loadingCities } = useCities();
-  const { suggestions, loading: loadingSuggestions } = useLocationSuggestions(manualLocation);
+  const { suggestions, loading: loadingSuggestions } = useLocationSuggestions(searchQuery);
+  const { history, addToHistory, clearHistory } = useLocationHistory();
 
   const handleGPSLocation = async () => {
     setIsLoadingGPS(true);
@@ -85,29 +56,16 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
     }
   };
 
-  const handleManualLocation = () => {
-    if (manualLocation.trim()) {
-      onLocationSelect({
-        type: 'manual',
-        data: { query: manualLocation }
-      });
-      onOpenChange(false);
-    }
-  };
-
-  const handleCitySelect = (city: any) => {
-    onLocationSelect({
-      type: 'city',
-      data: {
-        name: city.name,
-        latitude: city.latitude,
-        longitude: city.longitude
-      }
-    });
-    onOpenChange(false);
-  };
-
   const handleSuggestionSelect = (suggestion: any) => {
+    // Add to history
+    addToHistory({
+      name: suggestion.name,
+      type: suggestion.type,
+      latitude: suggestion.latitude,
+      longitude: suggestion.longitude,
+      parent: suggestion.parent
+    });
+
     onLocationSelect({
       type: 'suggestion',
       data: {
@@ -121,162 +79,163 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
     onOpenChange(false);
   };
 
+  const handleHistorySelect = (item: any) => {
+    onLocationSelect({
+      type: 'suggestion',
+      data: {
+        name: item.name,
+        latitude: item.latitude,
+        longitude: item.longitude,
+        type: item.type,
+        parent: item.parent
+      }
+    });
+    onOpenChange(false);
+  };
+
+  const showInfo = (location: any) => {
+    if (location.type === 'poi' && location.description) {
+      setShowLocationInfo(location);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-gradient-card border-glass">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-primary" />
+            <MapPin className="h-5 w-5" />
             Seleccionar Ubicación
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* GPS Option */}
-          <Card className="bg-glass border-glass">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Navigation className="h-5 w-5 text-primary mt-1" />
-                <div className="flex-1 space-y-2">
-                  <h3 className="font-medium">Usar mi ubicación actual</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Detectaremos automáticamente tu ubicación usando GPS
-                  </p>
-                  <Button 
-                    variant="default" 
-                    className="w-full" 
-                    onClick={handleGPSLocation}
-                    disabled={isLoadingGPS}
-                  >
-                    {isLoadingGPS ? 'Detectando...' : 'Detectar Ubicación'}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* GPS Button */}
+          <Button 
+            variant="outline" 
+            className="w-full justify-start gap-2" 
+            onClick={handleGPSLocation}
+            disabled={isLoadingGPS}
+          >
+            <Navigation className="h-4 w-4" />
+            {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
+          </Button>
 
-          {/* Manual Search with Suggestions */}
-          <Card className="bg-glass border-glass">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Search className="h-5 w-5 text-primary mt-1" />
-                <div className="flex-1 space-y-2">
-                  <h3 className="font-medium">Buscar ubicación</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Busca ciudades, barrios, distritos o puntos de interés
-                  </p>
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="Ej: Centro, Sevilla, Museo del Prado..."
-                      value={manualLocation}
-                      onChange={(e) => setManualLocation(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleManualLocation()}
-                      className="bg-background/50 border-glass"
-                    />
-                    
-                    {/* Suggestions */}
-                    {manualLocation.length >= 2 && (
-                      <div className="border border-glass rounded-md bg-background/30 max-h-40 overflow-hidden">
-                        <ScrollArea className="max-h-40">
-                          {loadingSuggestions ? (
-                            <div className="p-2 space-y-2">
-                              {Array.from({ length: 3 }).map((_, i) => (
-                                <Skeleton key={i} className="h-8 w-full" />
-                              ))}
-                            </div>
-                          ) : suggestions.length > 0 ? (
-                            <div className="p-1">
-                              {suggestions.map((suggestion) => (
-                                <Button
-                                  key={`${suggestion.type}-${suggestion.id}`}
-                                  variant="ghost"
-                                  className="w-full justify-start text-left h-auto p-2 hover:bg-primary/10"
-                                  onClick={() => handleSuggestionSelect(suggestion)}
-                                >
-                                  <div className="flex items-start gap-2 w-full">
-                                    {getLocationIcon(suggestion.type, suggestion.is_famous)}
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-medium truncate">{suggestion.name}</span>
-                                        {suggestion.is_famous && (
-                                          <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                                        )}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground space-y-1">
-                                        <div className="flex items-center gap-1">
-                                          <span className="text-primary">
-                                            {getLocationTypeLabel(suggestion.type, suggestion.is_famous)}
-                                          </span>
-                                          {suggestion.parent && (
-                                            <span>• {suggestion.parent}</span>
-                                          )}
-                                        </div>
-                                        {suggestion.description && (
-                                          <p className="truncate">{suggestion.description}</p>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </Button>
-                              ))}
-                            </div>
-                          ) : manualLocation.length >= 2 && (
-                            <div className="p-3 text-center text-sm text-muted-foreground">
-                              No se encontraron ubicaciones
-                            </div>
-                          )}
-                        </ScrollArea>
-                      </div>
-                    )}
-                    
-                    <Button 
-                      variant="outline" 
-                      onClick={handleManualLocation}
-                      disabled={!manualLocation.trim()}
-                      className="w-full"
-                    >
-                      Buscar "{manualLocation}"
-                    </Button>
+          {/* Search Input */}
+          <div className="relative">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar ubicación..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* Location Info Popup */}
+            {showLocationInfo && (
+              <LocationInfo
+                location={showLocationInfo}
+                onClose={() => setShowLocationInfo(null)}
+              />
+            )}
+          </div>
+
+          {/* Suggestions */}
+          {searchQuery.length >= 2 && (
+            <div className="border rounded-md bg-background max-h-48 overflow-hidden">
+              <ScrollArea className="max-h-48">
+                {loadingSuggestions ? (
+                  <div className="p-2 space-y-2">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton key={i} className="h-10 w-full" />
+                    ))}
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Popular Cities */}
-          <Card className="bg-glass border-glass">
-            <CardContent className="p-4">
-              <h3 className="font-medium mb-3">Ciudades populares</h3>
-              <ScrollArea className="h-32">
-                {loadingCities ? (
-                  <div className="space-y-2">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Skeleton key={i} className="h-8 w-full" />
+                ) : suggestions.length > 0 ? (
+                  <div className="p-1">
+                    {suggestions.map((suggestion) => (
+                      <div key={`${suggestion.type}-${suggestion.id}`} className="flex">
+                        <Button
+                          variant="ghost"
+                          className="flex-1 justify-start text-left h-auto p-3 hover:bg-muted/50"
+                          onClick={() => handleSuggestionSelect(suggestion)}
+                        >
+                          <div className="w-full">
+                            <div className="font-medium">{suggestion.name}</div>
+                            {suggestion.parent && (
+                              <div className="text-xs text-muted-foreground">
+                                {suggestion.parent}
+                              </div>
+                            )}
+                          </div>
+                        </Button>
+                        {suggestion.type === 'poi' && suggestion.description && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="px-2"
+                            onClick={() => showInfo(suggestion)}
+                          >
+                            <div className="w-4 h-4 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold">
+                              i
+                            </div>
+                          </Button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="space-y-1">
-                    {cities.map((city) => (
-                      <Button
-                        key={city.id}
-                        variant="ghost"
-                        className="w-full justify-start text-sm h-8"
-                        onClick={() => handleCitySelect(city)}
-                      >
-                        <Building className="h-3 w-3 mr-2 text-blue-500" />
-                        {city.name}
-                        {city.population && (
-                          <span className="text-xs text-muted-foreground ml-auto">
-                            {city.population.toLocaleString()} hab.
-                          </span>
-                        )}
-                      </Button>
-                    ))}
+                  <div className="p-3 text-center text-sm text-muted-foreground">
+                    No se encontraron ubicaciones
                   </div>
                 )}
               </ScrollArea>
-            </CardContent>
-          </Card>
+            </div>
+          )}
+
+          {/* Location History */}
+          {history.length > 0 && searchQuery.length < 2 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Ubicaciones recientes
+                </h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearHistory}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Limpiar
+                </Button>
+              </div>
+              <div className="border rounded-md bg-background max-h-40 overflow-hidden">
+                <ScrollArea className="max-h-40">
+                  <div className="p-1">
+                    {history.map((item) => (
+                      <Button
+                        key={item.id}
+                        variant="ghost"
+                        className="w-full justify-start text-left h-auto p-3 hover:bg-muted/50"
+                        onClick={() => handleHistorySelect(item)}
+                      >
+                        <div className="w-full">
+                          <div className="font-medium">{item.name}</div>
+                          {item.parent && (
+                            <div className="text-xs text-muted-foreground">
+                              {item.parent}
+                            </div>
+                          )}
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
