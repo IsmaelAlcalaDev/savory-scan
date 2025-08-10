@@ -25,6 +25,7 @@ import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { useDietTypes } from '@/hooks/useDietTypes';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import DishesSection from './DishesSection';
 
 const filterOptions = [
   { id: 'nearby', label: 'Cerca de mí', active: true },
@@ -370,10 +371,11 @@ export default function FoodieSpotLayout() {
   const renderContent = () => {
     if (activeBottomTab === 'dishes') {
       return (
-        <div className="text-center py-16">
-          <h2 className="text-xl font-semibold mb-2">Platos</h2>
-          <p className="text-muted-foreground">Próximamente disponible</p>
-        </div>
+        <DishesSection
+          searchQuery={searchQuery}
+          userLocation={userLocation}
+          onLoginRequired={handleLoginRequired}
+        />
       );
     }
 
@@ -498,7 +500,7 @@ export default function FoodieSpotLayout() {
           </div>
         )}
 
-        {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
+        {/* Restaurant Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {loading ? (
             Array.from({ length: 12 }).map((_, i) => (
