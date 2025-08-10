@@ -473,10 +473,10 @@ export default function FoodieSpotLayout() {
           </div>
         )}
 
-        {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {loading ? (
-            Array.from({ length: 9 }).map((_, i) => (
+            Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="space-y-3">
                 <Skeleton className="h-48 w-full rounded-lg" />
                 <div className="p-4 space-y-3">
