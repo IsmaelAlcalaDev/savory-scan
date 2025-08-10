@@ -532,13 +532,13 @@ export default function FoodieSpotLayout() {
             </Button>
 
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground z-10" />
               <Input
                 type="text"
                 placeholder="Buscar restaurantes, platos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 h-12 text-base bg-background/50 border-border/30 backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full"
+                className="pl-10 pr-4 h-12 text-base bg-background/50 border-2 border-gray-600 backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full focus:border-gray-700"
               />
             </div>
           </div>
