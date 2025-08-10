@@ -72,10 +72,26 @@ export const useUserPreferences = () => {
       }
 
       if (data?.preferences) {
-        // Safely parse preferences with proper type checking
-        const userPrefs = data.preferences as unknown;
-        if (typeof userPrefs === 'object' && userPrefs !== null) {
-          setPreferences({ ...defaultPreferences, ...(userPrefs as Partial<UserPreferences>) });
+        // Parse preferences safely
+        const userPrefs = data.preferences;
+        if (userPrefs && typeof userPrefs === 'object') {
+          const parsedPrefs = {
+            language: userPrefs.language || defaultPreferences.language,
+            theme: userPrefs.theme || defaultPreferences.theme,
+            notifications: {
+              ...defaultPreferences.notifications,
+              ...(userPrefs.notifications || {})
+            },
+            diet: {
+              ...defaultPreferences.diet,
+              ...(userPrefs.diet || {})
+            },
+            location: {
+              ...defaultPreferences.location,
+              ...(userPrefs.location || {})
+            }
+          } as UserPreferences;
+          setPreferences(parsedPrefs);
         } else {
           setPreferences(defaultPreferences);
         }
