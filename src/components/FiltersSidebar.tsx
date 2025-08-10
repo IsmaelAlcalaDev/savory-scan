@@ -160,10 +160,10 @@ export default function FiltersSidebar({
       size="sm"
       onClick={onClick}
       className={cn(
-        "h-8 px-3 text-xs font-medium transition-all duration-200 border rounded-full shadow-none",
+        "h-8 px-3 text-xs font-medium transition-all duration-200 border rounded-full shadow-none bg-transparent backdrop-blur-none",
         isSelected 
           ? "bg-primary text-primary-foreground hover:bg-primary/90 border-primary" 
-          : "bg-background hover:bg-muted text-muted-foreground hover:text-foreground border-border"
+          : "bg-transparent hover:bg-muted/50 text-muted-foreground hover:text-foreground border-border"
       )}
     >
       {icon && <span className="mr-1.5">{icon}</span>}
@@ -181,7 +181,7 @@ export default function FiltersSidebar({
             variant="outline" 
             size="sm" 
             onClick={clearAllFilters}
-            className="text-muted-foreground hover:text-foreground border-dashed hover:border-solid"
+            className="text-muted-foreground hover:text-foreground border-dashed hover:border-solid bg-transparent shadow-none"
           >
             Limpiar filtros
           </Button>
