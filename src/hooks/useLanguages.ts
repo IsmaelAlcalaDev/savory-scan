@@ -18,7 +18,6 @@ export const useLanguages = () => {
       const { data, error } = await supabase
         .from('languages')
         .select('id, code, name, flag_url, is_active')
-        .eq('is_active', true)
         .order('name');
 
       if (error) {

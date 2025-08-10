@@ -40,14 +40,14 @@ export default function SearchBar({ onSearchChange, onLocationSelect, className 
             placeholder="Buscar restaurantes, platos..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="pl-12 pr-4 h-14 text-base bg-background/50 border-glass backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full border-2"
+            className="pl-12 pr-4 h-14 text-base bg-background/50 border-border/30 backdrop-blur-sm focus:bg-background/80 transition-smooth rounded-full border-2 focus:border-border/50"
           />
         </div>
         <Button 
           variant="outline" 
           size="lg"
           onClick={onLocationSelect}
-          className="flex items-center gap-2 px-6 h-14 rounded-full"
+          className="flex items-center gap-2 px-6 h-14 rounded-full border-border/30 hover:border-border/50"
         >
           <MapPin className="h-4 w-4" />
           Ubicación

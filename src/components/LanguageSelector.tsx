@@ -33,7 +33,6 @@ export default function LanguageSelector() {
 
   const handleLanguageChange = (language: Language) => {
     setSelectedLanguage(language);
-    // Aquí se implementaría la lógica para cambiar el idioma de la aplicación
     console.log('Changing language to:', language.code);
   };
 
@@ -57,7 +56,7 @@ export default function LanguageSelector() {
     }
     return (
       <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-sm">
-        {language.flag || language.code.toUpperCase()}
+        {language.code.toUpperCase()}
       </div>
     );
   };
