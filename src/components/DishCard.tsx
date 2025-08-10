@@ -29,8 +29,11 @@ const DishCard: React.FC<DishCardProps> = ({
 }) => {
   const { isFavorite, isToggling, toggleFavorite } = useDishFavorites();
 
-  const handleToggleFavorite = () => {
-    toggleFavorite(id, onLoginRequired);
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('DishCard: Toggling favorite for dish:', id);
+    await toggleFavorite(id, onLoginRequired);
   };
 
   return (

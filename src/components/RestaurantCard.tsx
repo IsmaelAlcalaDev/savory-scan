@@ -87,6 +87,9 @@ export default function RestaurantCard({
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+    
+    console.log('RestaurantCard: Toggling favorite for restaurant:', id);
     
     if (!user && onLoginRequired) {
       onLoginRequired();

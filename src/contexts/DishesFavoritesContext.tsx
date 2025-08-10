@@ -29,19 +29,28 @@ export const DishesFavoritesProvider: React.FC<{ children: React.ReactNode }> = 
   const channelRef = useRef<any>(null);
 
   const loadUserFavorites = async () => {
-    if (!user) return;
+    if (!user) {
+      setFavoritesMap({});
+      return;
+    }
+    
     try {
+      console.log('Loading dish favorites for user:', user.id);
       const { data, error } = await supabase
         .from('user_saved_dishes')
         .select('dish_id, is_active')
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading dish favorites:', error);
+        throw error;
+      }
 
       const map: Record<number, boolean> = {};
       data?.forEach((row: any) => {
         map[row.dish_id] = !!row.is_active;
       });
+      console.log('Loaded dish favorites map:', map);
       setFavoritesMap(map);
     } catch (e) {
       console.error('Error loading dish favorites:', e);
@@ -56,10 +65,12 @@ export const DishesFavoritesProvider: React.FC<{ children: React.ReactNode }> = 
 
     loadUserFavorites();
 
+    // Clean up previous channel
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
 
+    // Set up real-time subscription
     const channel = supabase
       .channel(`user-dish-favorites-${user.id}`)
       .on(
@@ -115,10 +126,13 @@ export const DishesFavoritesProvider: React.FC<{ children: React.ReactNode }> = 
 
     if (loadingMap[dishId]) return favoritesMap[dishId] || false;
 
+    console.log('Toggling dish favorite:', dishId, 'current state:', favoritesMap[dishId]);
     setLoadingMap(prev => ({ ...prev, [dishId]: true }));
 
     const currentState = favoritesMap[dishId] || false;
     const newState = !currentState;
+    
+    // Optimistic update
     setFavoritesMap(prev => ({ ...prev, [dishId]: newState }));
 
     try {
@@ -127,8 +141,14 @@ export const DishesFavoritesProvider: React.FC<{ children: React.ReactNode }> = 
         dish_id_param: dishId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error toggling dish favorite:', error);
+        throw error;
+      }
 
+      console.log('Toggle dish favorite result:', data);
+      
+      // Update with actual result from database
       setFavoritesMap(prev => ({ ...prev, [dishId]: !!data }));
 
       toast({
@@ -139,6 +159,7 @@ export const DishesFavoritesProvider: React.FC<{ children: React.ReactNode }> = 
       return !!data;
     } catch (e) {
       console.error('Error toggling dish favorite:', e);
+      // Revert optimistic update on error
       setFavoritesMap(prev => ({ ...prev, [dishId]: currentState }));
       toast({
         title: "Error",
@@ -161,4 +182,3 @@ export const DishesFavoritesProvider: React.FC<{ children: React.ReactNode }> = 
 
   return <DishesFavoritesContext.Provider value={value}>{children}</DishesFavoritesContext.Provider>;
 };
-

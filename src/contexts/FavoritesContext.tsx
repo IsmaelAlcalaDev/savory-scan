@@ -28,31 +28,36 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loadingMap, setLoadingMap] = useState<Record<number, boolean>>({});
   const channelRef = useRef<any>(null);
 
-  // Load user favorites
   const loadUserFavorites = async () => {
-    if (!user) return;
+    if (!user) {
+      setFavoritesMap({});
+      return;
+    }
 
     try {
+      console.log('Loading restaurant favorites for user:', user.id);
       const { data, error } = await supabase
         .from('user_saved_restaurants')
-        .select('restaurant_id')
-        .eq('user_id', user.id)
-        .eq('is_active', true);
+        .select('restaurant_id, is_active')
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading restaurant favorites:', error);
+        throw error;
+      }
 
       const newFavoritesMap: Record<number, boolean> = {};
       data?.forEach(item => {
-        newFavoritesMap[item.restaurant_id] = true;
+        newFavoritesMap[item.restaurant_id] = !!item.is_active;
       });
 
+      console.log('Loaded restaurant favorites map:', newFavoritesMap);
       setFavoritesMap(newFavoritesMap);
     } catch (error) {
       console.error('Error loading favorites:', error);
     }
   };
 
-  // Setup real-time subscription
   useEffect(() => {
     if (!user) {
       setFavoritesMap({});
@@ -78,7 +83,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Favorite change detected:', payload);
+          console.log('Restaurant favorite change detected:', payload);
           
           if (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) {
             const restaurantId = payload.new.restaurant_id;
@@ -138,6 +143,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // Prevent multiple clicks
     if (loadingMap[restaurantId]) return favoritesMap[restaurantId] || false;
 
+    console.log('Toggling restaurant favorite:', restaurantId, 'current state:', favoritesMap[restaurantId]);
     setLoadingMap(prev => ({ ...prev, [restaurantId]: true }));
 
     // Optimistic update
@@ -155,7 +161,12 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         restaurant_id_param: restaurantId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error toggling restaurant favorite:', error);
+        throw error;
+      }
+
+      console.log('Toggle restaurant favorite result:', data);
 
       // Confirm real state from DB
       setFavoritesMap(prev => ({
