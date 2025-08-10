@@ -83,35 +83,15 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
 
   return (
     <div className="relative w-full">
-      {/* Left arrow */}
+      {/* Fade effect on the left - only show when can scroll left */}
       {canScrollLeft && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm shadow-soft border border-border/20 h-7 w-7 p-0 rounded-full opacity-80 hover:opacity-100 transition-opacity"
-          onClick={() => scroll('left')}
-        >
-          <ChevronLeft className="h-3 w-3" />
-        </Button>
+        <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white via-white/60 to-transparent z-10 pointer-events-none" />
       )}
-
-      {/* Right arrow */}
-      {canScrollRight && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm shadow-soft border border-border/20 h-7 w-7 p-0 rounded-full opacity-80 hover:opacity-100 transition-opacity"
-          onClick={() => scroll('right')}
-        >
-          <ChevronRight className="h-3 w-3" />
-        </Button>
-      )}
-
-      {/* Fade effect on the left */}
-      <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white via-white/60 to-transparent z-10 pointer-events-none" />
       
-      {/* Fade effect on the right */}
-      <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white via-white/60 to-transparent z-10 pointer-events-none" />
+      {/* Fade effect on the right - only show when can scroll right */}
+      {canScrollRight && (
+        <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white via-white/60 to-transparent z-10 pointer-events-none" />
+      )}
       
       <div 
         ref={scrollRef}
