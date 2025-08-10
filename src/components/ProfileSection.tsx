@@ -1,16 +1,71 @@
 
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Phone, Mail, Edit2 } from 'lucide-react';
+import { MapPin, Phone, Mail, Edit2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 export default function ProfileSection() {
+  const { profile, loading, updating, updateProfile, getInitials, getMemberSince } = useUserProfile();
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone: '',
+    address: ''
+  });
+
   // Check if VEG mode is active from body class
   const isVegMode = typeof document !== 'undefined' && document.body.classList.contains('veg-mode');
+
+  // Initialize form data when profile loads
+  React.useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        phone: profile.phone || '',
+        address: profile.address || ''
+      });
+    }
+  }, [profile]);
+
+  const handleSave = async () => {
+    const success = await updateProfile(formData);
+    if (success) {
+      setEditMode(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        phone: profile.phone || '',
+        address: profile.address || ''
+      });
+    }
+    setEditMode(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No se pudo cargar el perfil</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -23,17 +78,18 @@ export default function ProfileSection() {
           <div className="flex items-center gap-6">
             <div className="relative">
               <Avatar className="h-20 w-20">
-                <AvatarImage src="" />
+                <AvatarImage src={profile.avatar_url || ""} />
                 <AvatarFallback className={cn(
                   "text-lg font-semibold transition-colors duration-300",
                   isVegMode ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                 )}>
-                  JD
+                  {getInitials()}
                 </AvatarFallback>
               </Avatar>
               <Button 
                 size="sm" 
                 variant="outline"
+                onClick={() => setEditMode(!editMode)}
                 className={cn(
                   "absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 transition-all duration-300",
                   isVegMode 
@@ -49,8 +105,12 @@ export default function ProfileSection() {
             </div>
             
             <div className="flex-1">
-              <h3 className="text-xl font-semibold mb-1">Juan Díaz</h3>
-              <p className="text-muted-foreground mb-2">Miembro desde Enero 2024</p>
+              <h3 className="text-xl font-semibold mb-1">
+                {profile.full_name || 'Usuario'}
+              </h3>
+              <p className="text-muted-foreground mb-2">
+                Miembro desde {getMemberSince()}
+              </p>
               <div className="flex gap-2">
                 <Badge variant="secondary" className={cn(
                   "transition-colors duration-300",
@@ -58,15 +118,7 @@ export default function ProfileSection() {
                     ? "bg-green-100 text-green-700 hover:bg-green-200" 
                     : "bg-red-100 text-red-700 hover:bg-red-200"
                 )}>
-                  Cliente Frecuente
-                </Badge>
-                <Badge variant="outline" className={cn(
-                  "transition-colors duration-300",
-                  isVegMode 
-                    ? "border-green-300 text-green-600" 
-                    : "border-red-300 text-red-600"
-                )}>
-                  15 pedidos
+                  Usuario Registrado
                 </Badge>
               </div>
             </div>
@@ -99,10 +151,10 @@ export default function ProfileSection() {
                 <Input 
                   id="email" 
                   type="email" 
-                  value="juan.diaz@email.com" 
+                  value={profile.email || ''} 
                   readOnly 
                   className={cn(
-                    "transition-colors duration-300",
+                    "transition-colors duration-300 bg-muted",
                     isVegMode 
                       ? "focus:border-green-400 focus:ring-green-200" 
                       : "focus:border-red-400 focus:ring-red-200"
@@ -121,9 +173,13 @@ export default function ProfileSection() {
                 <Input 
                   id="phone" 
                   type="tel" 
+                  value={editMode ? formData.phone : (profile.phone || '')}
+                  onChange={(e) => editMode && setFormData({...formData, phone: e.target.value})}
+                  readOnly={!editMode}
                   placeholder="+34 600 000 000"
                   className={cn(
                     "transition-colors duration-300",
+                    !editMode && "bg-muted",
                     isVegMode 
                       ? "focus:border-green-400 focus:ring-green-200" 
                       : "focus:border-red-400 focus:ring-red-200"
@@ -131,6 +187,24 @@ export default function ProfileSection() {
                 />
               </div>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="full_name">Nombre Completo</Label>
+            <Input 
+              id="full_name" 
+              value={editMode ? formData.full_name : (profile.full_name || '')}
+              onChange={(e) => editMode && setFormData({...formData, full_name: e.target.value})}
+              readOnly={!editMode}
+              placeholder="Tu nombre completo"
+              className={cn(
+                "transition-colors duration-300",
+                !editMode && "bg-muted",
+                isVegMode 
+                  ? "focus:border-green-400 focus:ring-green-200" 
+                  : "focus:border-red-400 focus:ring-red-200"
+              )}
+            />
           </div>
           
           <div className="space-y-2">
@@ -142,9 +216,13 @@ export default function ProfileSection() {
               )} />
               <Input 
                 id="address" 
-                placeholder="Calle Principal 123, Madrid"
+                value={editMode ? formData.address : (profile.address || '')}
+                onChange={(e) => editMode && setFormData({...formData, address: e.target.value})}
+                readOnly={!editMode}
+                placeholder="Tu dirección"
                 className={cn(
                   "transition-colors duration-300",
+                  !editMode && "bg-muted",
                   isVegMode 
                     ? "focus:border-green-400 focus:ring-green-200" 
                     : "focus:border-red-400 focus:ring-red-200"
@@ -153,69 +231,48 @@ export default function ProfileSection() {
             </div>
           </div>
           
-          <Button className={cn(
-            "w-full md:w-auto transition-all duration-300",
-            isVegMode 
-              ? "bg-green-600 hover:bg-green-700 text-white" 
-              : "bg-red-600 hover:bg-red-700 text-white"
-          )}>
-            Guardar Cambios
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Statistics */}
-      <Card className={cn(
-        "transition-all duration-300",
-        isVegMode ? "border-green-200" : "border-red-200"
-      )}>
-        <CardHeader>
-          <CardTitle className={cn(
-            "text-lg transition-colors duration-300",
-            isVegMode ? "text-green-700" : "text-red-700"
-          )}>
-            Estadísticas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className={cn(
-                "text-2xl font-bold transition-colors duration-300",
-                isVegMode ? "text-green-600" : "text-red-600"
-              )}>
-                15
-              </div>
-              <div className="text-sm text-muted-foreground">Pedidos</div>
+          {editMode ? (
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleSave}
+                disabled={updating}
+                className={cn(
+                  "transition-all duration-300",
+                  isVegMode 
+                    ? "bg-green-600 hover:bg-green-700 text-white" 
+                    : "bg-red-600 hover:bg-red-700 text-white"
+                )}
+              >
+                {updating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  'Guardar Cambios'
+                )}
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={handleCancel}
+                disabled={updating}
+              >
+                Cancelar
+              </Button>
             </div>
-            <div className="text-center">
-              <div className={cn(
-                "text-2xl font-bold transition-colors duration-300",
-                isVegMode ? "text-green-600" : "text-red-600"
-              )}>
-                €247
-              </div>
-              <div className="text-sm text-muted-foreground">Total gastado</div>
-            </div>
-            <div className="text-center">
-              <div className={cn(
-                "text-2xl font-bold transition-colors duration-300",
-                isVegMode ? "text-green-600" : "text-red-600"
-              )}>
-                8
-              </div>
-              <div className="text-sm text-muted-foreground">Favoritos</div>
-            </div>
-            <div className="text-center">
-              <div className={cn(
-                "text-2xl font-bold transition-colors duration-300",
-                isVegMode ? "text-green-600" : "text-red-600"
-              )}>
-                3
-              </div>
-              <div className="text-sm text-muted-foreground">Reseñas</div>
-            </div>
-          </div>
+          ) : (
+            <Button 
+              onClick={() => setEditMode(true)}
+              className={cn(
+                "w-full md:w-auto transition-all duration-300",
+                isVegMode 
+                  ? "bg-green-600 hover:bg-green-700 text-white" 
+                  : "bg-red-600 hover:bg-red-700 text-white"
+              )}
+            >
+              Editar Perfil
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>
