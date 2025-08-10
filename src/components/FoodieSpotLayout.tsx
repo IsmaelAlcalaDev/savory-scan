@@ -509,7 +509,7 @@ export default function FoodieSpotLayout() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
         <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <div className={`w-8 h-8 bg-primary rounded-full flex items-center justify-center mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
               <span className="text-primary-foreground font-bold text-sm">F</span>
             </div>
@@ -519,7 +519,7 @@ export default function FoodieSpotLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 flex-1 max-w-2xl mx-4">
+          <div className="flex items-center gap-2 flex-1 max-w-2xl mx-2">
             <Button
               variant="ghost"
               onClick={() => setLocationModalOpen(true)}
@@ -543,7 +543,7 @@ export default function FoodieSpotLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <LanguageSelector />
             <button 
               className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition hover:text-primary transition-colors"
