@@ -33,14 +33,21 @@ export default function LanguageSelector() {
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="flex items-center gap-2 h-8 px-2">
           <span className="text-lg">{selectedLanguage.flag}</span>
           <ChevronDown className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent 
+        align="start" 
+        className="w-40 z-[9999]"
+        side="bottom"
+        sideOffset={4}
+        avoidCollisions={true}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         {languages.map((language) => (
           <DropdownMenuItem
             key={language.code}
