@@ -24,6 +24,7 @@ import { useTimeRanges } from '@/hooks/useTimeRanges';
 import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { useDietTypes } from '@/hooks/useDietTypes';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 const filterOptions = [
   { id: 'nearby', label: 'Cerca de mí', active: true },
@@ -64,6 +65,11 @@ export default function FoodieSpotLayout() {
   const { timeRanges } = useTimeRanges();
   const { cuisineTypes } = useCuisineTypes();
   const { dietTypes } = useDietTypes();
+
+  // Cargar configuración de branding desde la BD
+  const { data: appSettings } = useAppSettings();
+  const appName = appSettings?.appName ?? 'FoodieSpot';
+  const appLogoUrl = appSettings?.logoUrl ?? 'https://w7.pngwing.com/pngs/256/867/png-transparent-zomato-logo-thumbnail.png';
 
   useEffect(() => {
     if (ipLocation && !userLocation) {
@@ -513,12 +519,12 @@ export default function FoodieSpotLayout() {
           {/* Left Section: Logo */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <img 
-              src="https://w7.pngwing.com/pngs/256/867/png-transparent-zomato-logo-thumbnail.png" 
-              alt="FoodieSpot Logo" 
+              src={appLogoUrl}
+              alt={`${appName} Logo`} 
               className={`w-10 h-10 object-contain mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}
             />
             <div>
-              <h1 className="font-bold text-lg mode-transition">FoodieSpot</h1>
+              <h1 className="font-bold text-lg mode-transition">{appName}</h1>
               <p className="text-xs text-muted-foreground">Food delivery</p>
             </div>
           </div>
@@ -576,7 +582,7 @@ export default function FoodieSpotLayout() {
           </div>
         </div>
 
-        {/* Tipos de Cocina sin separadores */}
+        {/* Tipos de Cocina */}
         <div className="px-4 pb-4 pt-3">
           <CuisineFilter 
             selectedCuisines={selectedCuisines}

@@ -92,6 +92,36 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: number
+          is_public: boolean
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          is_public?: boolean
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          is_public?: boolean
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           city_type: string | null
@@ -1048,7 +1078,6 @@ export type Database = {
         Row: {
           code: string
           created_at: string | null
-          flag: string | null
           flag_url: string | null
           id: number
           is_active: boolean | null
@@ -1057,7 +1086,6 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string | null
-          flag?: string | null
           flag_url?: string | null
           id?: number
           is_active?: boolean | null
@@ -1066,7 +1094,6 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string | null
-          flag?: string | null
           flag_url?: string | null
           id?: number
           is_active?: boolean | null
