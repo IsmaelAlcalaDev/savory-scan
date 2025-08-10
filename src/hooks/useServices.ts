@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Service {
+export interface Service {
   id: number;
   name: string;
   slug: string;
@@ -18,17 +18,18 @@ export const useServices = () => {
     const fetchServices = async () => {
       try {
         setLoading(true);
+        setError(null);
         console.log('Fetching services...');
         
-        const { data, error } = await supabase
+        const { data, error: supabaseError } = await supabase
           .from('services')
           .select('id, name, slug, icon')
           .eq('is_active', true)
           .order('name');
 
-        if (error) {
-          console.error('Supabase error fetching services:', error);
-          throw error;
+        if (supabaseError) {
+          console.error('Supabase error fetching services:', supabaseError);
+          throw supabaseError;
         }
         
         console.log('Raw services data:', data);
@@ -36,6 +37,7 @@ export const useServices = () => {
       } catch (err) {
         console.error('Error fetching services:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar servicios');
+        setServices([]);
       } finally {
         setLoading(false);
       }
