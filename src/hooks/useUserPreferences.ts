@@ -24,6 +24,27 @@ export interface UserPreferences {
   };
 }
 
+// Define a simple JSON-compatible type for the database
+type PreferencesJson = {
+  language?: string;
+  theme?: string;
+  notifications?: {
+    email?: boolean;
+    push?: boolean;
+    sms?: boolean;
+  };
+  diet?: {
+    vegetarian?: boolean;
+    vegan?: boolean;
+    gluten_free?: boolean;
+    lactose_free?: boolean;
+  };
+  location?: {
+    auto_detect?: boolean;
+    default_radius?: number;
+  };
+};
+
 const defaultPreferences: UserPreferences = {
   language: 'es',
   theme: 'system',
@@ -64,7 +85,7 @@ export const useUserPreferences = () => {
       const { data, error } = await supabase
         .from('users')
         .select('preferences')
-        .eq('auth_user_id', user?.id)
+        .eq('id', user?.id)
         .single();
 
       if (error && error.code !== 'PGRST116') {
@@ -72,35 +93,31 @@ export const useUserPreferences = () => {
       }
 
       if (data?.preferences) {
-        const rawPrefs = data.preferences;
+        const rawPrefs = data.preferences as PreferencesJson;
         
-        if (rawPrefs && typeof rawPrefs === 'object' && !Array.isArray(rawPrefs)) {
-          const userPrefs = rawPrefs as any;
-          
-          const parsedPrefs: UserPreferences = {
-            language: typeof userPrefs.language === 'string' ? userPrefs.language : defaultPreferences.language,
-            theme: ['light', 'dark', 'system'].includes(userPrefs.theme) ? userPrefs.theme : defaultPreferences.theme,
-            notifications: {
-              email: typeof userPrefs.notifications?.email === 'boolean' ? userPrefs.notifications.email : defaultPreferences.notifications.email,
-              push: typeof userPrefs.notifications?.push === 'boolean' ? userPrefs.notifications.push : defaultPreferences.notifications.push,
-              sms: typeof userPrefs.notifications?.sms === 'boolean' ? userPrefs.notifications.sms : defaultPreferences.notifications.sms,
-            },
-            diet: {
-              vegetarian: typeof userPrefs.diet?.vegetarian === 'boolean' ? userPrefs.diet.vegetarian : defaultPreferences.diet.vegetarian,
-              vegan: typeof userPrefs.diet?.vegan === 'boolean' ? userPrefs.diet.vegan : defaultPreferences.diet.vegan,
-              gluten_free: typeof userPrefs.diet?.gluten_free === 'boolean' ? userPrefs.diet.gluten_free : defaultPreferences.diet.gluten_free,
-              lactose_free: typeof userPrefs.diet?.lactose_free === 'boolean' ? userPrefs.diet.lactose_free : defaultPreferences.diet.lactose_free,
-            },
-            location: {
-              auto_detect: typeof userPrefs.location?.auto_detect === 'boolean' ? userPrefs.location.auto_detect : defaultPreferences.location.auto_detect,
-              default_radius: typeof userPrefs.location?.default_radius === 'number' ? userPrefs.location.default_radius : defaultPreferences.location.default_radius,
-            }
-          };
-          
-          setPreferences(parsedPrefs);
-        } else {
-          setPreferences(defaultPreferences);
-        }
+        const parsedPrefs: UserPreferences = {
+          language: rawPrefs.language || defaultPreferences.language,
+          theme: (['light', 'dark', 'system'].includes(rawPrefs.theme || '')) 
+            ? (rawPrefs.theme as 'light' | 'dark' | 'system') 
+            : defaultPreferences.theme,
+          notifications: {
+            email: rawPrefs.notifications?.email ?? defaultPreferences.notifications.email,
+            push: rawPrefs.notifications?.push ?? defaultPreferences.notifications.push,
+            sms: rawPrefs.notifications?.sms ?? defaultPreferences.notifications.sms,
+          },
+          diet: {
+            vegetarian: rawPrefs.diet?.vegetarian ?? defaultPreferences.diet.vegetarian,
+            vegan: rawPrefs.diet?.vegan ?? defaultPreferences.diet.vegan,
+            gluten_free: rawPrefs.diet?.gluten_free ?? defaultPreferences.diet.gluten_free,
+            lactose_free: rawPrefs.diet?.lactose_free ?? defaultPreferences.diet.lactose_free,
+          },
+          location: {
+            auto_detect: rawPrefs.location?.auto_detect ?? defaultPreferences.location.auto_detect,
+            default_radius: rawPrefs.location?.default_radius ?? defaultPreferences.location.default_radius,
+          }
+        };
+        
+        setPreferences(parsedPrefs);
       } else {
         setPreferences(defaultPreferences);
       }
@@ -118,8 +135,8 @@ export const useUserPreferences = () => {
 
     setSaving(true);
     try {
-      // Create the updated preferences object
-      const updatedPrefs = {
+      // Create a simple JSON payload
+      const preferencesPayload: PreferencesJson = {
         language: newPreferences.language || preferences.language,
         theme: newPreferences.theme || preferences.theme,
         notifications: {
@@ -141,10 +158,31 @@ export const useUserPreferences = () => {
       
       const { error } = await supabase
         .from('users')
-        .update({ preferences: updatedPrefs as any })
-        .eq('auth_user_id', user.id);
+        .update({ preferences: preferencesPayload })
+        .eq('id', user.id);
 
       if (error) throw error;
+
+      // Update local state with the full UserPreferences object
+      const updatedPrefs: UserPreferences = {
+        language: preferencesPayload.language!,
+        theme: preferencesPayload.theme! as 'light' | 'dark' | 'system',
+        notifications: {
+          email: preferencesPayload.notifications!.email!,
+          push: preferencesPayload.notifications!.push!,
+          sms: preferencesPayload.notifications!.sms!,
+        },
+        diet: {
+          vegetarian: preferencesPayload.diet!.vegetarian!,
+          vegan: preferencesPayload.diet!.vegan!,
+          gluten_free: preferencesPayload.diet!.gluten_free!,
+          lactose_free: preferencesPayload.diet!.lactose_free!,
+        },
+        location: {
+          auto_detect: preferencesPayload.location!.auto_detect!,
+          default_radius: preferencesPayload.location!.default_radius!,
+        }
+      };
 
       setPreferences(updatedPrefs);
       toast.success('Preferencias actualizadas');
