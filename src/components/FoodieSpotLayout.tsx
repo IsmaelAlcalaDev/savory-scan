@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Search, MapPin, User, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -5,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import CuisineFilter from './CuisineFilter';
-import DistanceFilter from './DistanceFilter';
-import RatingFilter from './RatingFilter';
+import FiltersSidebar from './FiltersSidebar';
 import RestaurantCard from './RestaurantCard';
 import LocationModal from './LocationModal';
 import VegModeToggle from './VegModeToggle';
@@ -30,6 +30,9 @@ export default function FoodieSpotLayout() {
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
+  const [selectedEstablishments, setSelectedEstablishments] = useState<number[]>([]);
+  const [selectedServices, setSelectedServices] = useState<number[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [activeFilters, setActiveFilters] = useState<string[]>(['nearby']);
   const [isVegMode, setIsVegMode] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -304,17 +307,21 @@ export default function FoodieSpotLayout() {
       <div className="flex">
         {/* Sidebar - Filters */}
         <aside className={cn(
-          "w-80 bg-white transition-transform duration-300 md:translate-x-0 fixed md:static h-full z-40",
+          "w-80 bg-white transition-transform duration-300 md:translate-x-0 fixed md:static h-full z-40 overflow-y-auto",
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}>
-          <div className="p-4 space-y-4">
-            <DistanceFilter 
+          <div className="p-4">
+            <FiltersSidebar
               selectedDistances={selectedDistances}
               onDistanceChange={setSelectedDistances}
-            />
-            <RatingFilter 
               selectedRatings={selectedRatings}
               onRatingChange={setSelectedRatings}
+              selectedEstablishments={selectedEstablishments}
+              onEstablishmentChange={setSelectedEstablishments}
+              selectedServices={selectedServices}
+              onServiceChange={setSelectedServices}
+              selectedPriceRanges={selectedPriceRanges}
+              onPriceRangeChange={setSelectedPriceRanges}
             />
           </div>
         </aside>
