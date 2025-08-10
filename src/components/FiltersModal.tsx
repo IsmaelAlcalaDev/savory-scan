@@ -51,9 +51,9 @@ export default function FiltersModal({
       <ModalTrigger asChild>
         <Button
           variant="ghost"
-          className="w-12 h-8 rounded-lg bg-red-600 hover:bg-red-700 text-white hover:text-white shadow-md hover:shadow-lg transition-all duration-200 border-0 p-0 flex items-center justify-center"
+          className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 text-white hover:text-white shadow-md hover:shadow-lg transition-all duration-200 border-0 p-0 flex items-center justify-center"
         >
-          <SlidersHorizontal className="h-4 w-4" />
+          <SlidersHorizontal className="h-5 w-5" />
         </Button>
       </ModalTrigger>
       <ModalContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
