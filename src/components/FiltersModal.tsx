@@ -81,9 +81,17 @@ export default function FiltersModal({
         </Button>
       </ModalTrigger>
       
-      <ModalContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+      <ModalContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden relative">
+        {/* Botón de cerrar personalizado más grande */}
+        <button
+          onClick={() => setOpen(false)}
+          className="absolute right-4 top-4 z-10 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center"
+        >
+          <X className="h-6 w-6 text-white font-bold" strokeWidth={3} />
+        </button>
+
         {/* Modern Header with gradient */}
-        <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6">
+        <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 pr-16">
           <ModalHeader>
             <div className="flex items-center justify-between">
               <ModalTitle className="flex items-center gap-3 text-xl font-bold">

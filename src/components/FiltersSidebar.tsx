@@ -1,7 +1,6 @@
+
 import { useState } from 'react';
-import { ChevronDown, Star, Leaf } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Star, Leaf } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -46,16 +45,6 @@ export default function FiltersSidebar({
   selectedDietTypes = [],
   onDietTypeChange,
 }: FiltersSidebarProps) {
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    distance: true,
-    price: true,
-    rating: false,
-    time: false,
-    establishment: false,
-    services: false,
-    diet: false,
-  });
-
   const { distanceRanges, loading: distanceLoading } = useDistanceRanges();
   const { ratingOptions, loading: ratingLoading } = useRatingOptions();
   const { establishmentTypes, loading: establishmentLoading } = useEstablishmentTypes();
@@ -64,68 +53,42 @@ export default function FiltersSidebar({
   const { timeRanges, loading: timeLoading } = useTimeRanges();
   const { dietTypes, loading: dietLoading } = useDietTypes();
 
-  const toggleSection = (section: string) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
   const FilterSection = ({ 
     title, 
-    sectionKey, 
     selectedCount, 
     children, 
     loading = false 
   }: {
     title: string;
-    sectionKey: string;
     selectedCount: number;
     children: React.ReactNode;
     loading?: boolean;
   }) => (
-    <div className={cn("mb-4", sectionKey === 'distance' && "mb-2.5")}>
-      <Collapsible 
-        open={openSections[sectionKey]} 
-        onOpenChange={() => toggleSection(sectionKey)}
-      >
-        <CollapsibleTrigger asChild>
-          <div className="w-full py-1.5 hover:bg-muted/30 transition-colors cursor-pointer rounded-lg px-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-foreground text-base">{title}</span>
-                {selectedCount > 0 && (
-                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-primary text-primary-foreground font-medium">
-                    {selectedCount}
-                  </Badge>
-                )}
+    <div className="mb-6">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="font-bold text-foreground text-base">{title}</span>
+        {selectedCount > 0 && (
+          <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-primary text-primary-foreground font-medium">
+            {selectedCount}
+          </Badge>
+        )}
+      </div>
+      <div className="px-2">
+        {loading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center space-x-2">
+                <Skeleton className="h-3 w-3 rounded" />
+                <Skeleton className="h-3 flex-1" />
               </div>
-              <ChevronDown className={cn(
-                "h-4 w-4 text-muted-foreground transition-transform duration-200",
-                openSections[sectionKey] && "rotate-180"
-              )} />
-            </div>
+            ))}
           </div>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="px-2 pb-1 pt-1">
-            {loading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex items-center space-x-2">
-                    <Skeleton className="h-3 w-3 rounded" />
-                    <Skeleton className="h-3 flex-1" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-1.5 overflow-x-auto">
-                {children}
-              </div>
-            )}
+        ) : (
+          <div className="flex flex-wrap gap-1.5 overflow-x-auto">
+            {children}
           </div>
-        </CollapsibleContent>
-      </Collapsible>
+        )}
+      </div>
     </div>
   );
 
@@ -156,10 +119,9 @@ export default function FiltersSidebar({
 
   return (
     <div className="space-y-0">
-      {/* 1. Distancia - Tags acumulables */}
+      {/* 1. Distancia */}
       <FilterSection
         title="Distancia"
-        sectionKey="distance"
         selectedCount={selectedDistances?.length || 0}
         loading={distanceLoading}
       >
@@ -181,10 +143,9 @@ export default function FiltersSidebar({
         ))}
       </FilterSection>
 
-      {/* 2. Rango de Precios - Tags acumulables */}
+      {/* 2. Rango de Precios */}
       <FilterSection
         title="Presupuesto"
-        sectionKey="price"
         selectedCount={selectedPriceRanges?.length || 0}
         loading={priceLoading}
       >
@@ -206,10 +167,9 @@ export default function FiltersSidebar({
         ))}
       </FilterSection>
 
-      {/* 3. Tipos de Dieta - Tags acumulables */}
+      {/* 3. Tipos de Dieta */}
       <FilterSection
         title="Tipos de Dieta"
-        sectionKey="diet"
         selectedCount={selectedDietTypes?.length || 0}
         loading={dietLoading}
       >
@@ -232,10 +192,9 @@ export default function FiltersSidebar({
         ))}
       </FilterSection>
 
-      {/* 4. Valoración - Tags acumulables */}
+      {/* 4. Valoración */}
       <FilterSection
         title="Valoración"
-        sectionKey="rating"
         selectedCount={selectedRatings?.length || 0}
         loading={ratingLoading}
       >
@@ -258,10 +217,9 @@ export default function FiltersSidebar({
         ))}
       </FilterSection>
 
-      {/* 5. Horarios - Tags acumulables */}
+      {/* 5. Horarios */}
       <FilterSection
         title="Disponibilidad"
-        sectionKey="time"
         selectedCount={selectedTimeRanges?.length || 0}
         loading={timeLoading}
       >
@@ -283,10 +241,9 @@ export default function FiltersSidebar({
         ))}
       </FilterSection>
 
-      {/* 6. Tipo de Local - Tags acumulables */}
+      {/* 6. Tipo de Local */}
       <FilterSection
         title="Tipo de Local"
-        sectionKey="establishment"
         selectedCount={selectedEstablishments?.length || 0}
         loading={establishmentLoading}
       >
@@ -308,10 +265,9 @@ export default function FiltersSidebar({
         ))}
       </FilterSection>
 
-      {/* 7. Servicios - Tags acumulables */}
+      {/* 7. Servicios */}
       <FilterSection
         title="Servicios Especiales"
-        sectionKey="services"
         selectedCount={selectedServices?.length || 0}
         loading={servicesLoading}
       >
