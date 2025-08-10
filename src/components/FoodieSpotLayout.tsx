@@ -246,12 +246,12 @@ export default function FoodieSpotLayout() {
               ))}
             </div>
 
-            {/* Restaurant Grid - More columns on larger screens */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            {/* Restaurant Grid - Máximo 4 columnas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {loading ? (
-                Array.from({ length: 10 }).map((_, i) => (
+                Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="space-y-3">
-                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-40 w-full" />
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
                   </div>

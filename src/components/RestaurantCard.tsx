@@ -76,8 +76,8 @@ export default function RestaurantCard({
       onClick={handleClick}
     >
       <CardContent className="p-0">
-        {/* Image placeholder - Reduced height */}
-        <div className="h-32 bg-gradient-hero relative overflow-hidden">
+        {/* Image placeholder - Tamaño medio */}
+        <div className="h-40 bg-gradient-hero relative overflow-hidden">
           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-smooth" />
           <div className="absolute top-2 left-2">
             <Badge variant="secondary" className="bg-glass backdrop-blur-sm text-xs">
@@ -86,7 +86,7 @@ export default function RestaurantCard({
           </div>
         </div>
 
-        <div className="p-3 space-y-2">
+        <div className="p-4 space-y-2">
           {/* Nombre del restaurante con corazón */}
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-smooth flex-1 min-w-0 break-words">
