@@ -144,10 +144,10 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
               )}
             </div>
             <span className={`
-              text-xs font-medium text-center whitespace-nowrap transition-colors
+              text-xs font-light text-center whitespace-nowrap transition-colors text-black
               ${selectedCuisines.includes(cuisine.id) 
                 ? 'text-primary' 
-                : 'text-muted-foreground'
+                : 'text-black'
               }
             `}>
               {cuisine.name}
