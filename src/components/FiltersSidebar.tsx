@@ -113,7 +113,7 @@ export default function FiltersSidebar({
                 ))}
               </div>
             ) : (
-              <div className="space-y-1.5">
+              <div className="flex flex-wrap gap-1.5 overflow-x-auto">
                 {children}
               </div>
             )}
@@ -137,7 +137,7 @@ export default function FiltersSidebar({
     <button
       onClick={onClick}
       className={cn(
-        "h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none flex items-center",
+        "h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none flex items-center flex-shrink-0",
         isSelected 
           ? "!bg-primary text-primary-foreground hover:!bg-primary/90 border-primary" 
           : "!bg-transparent hover:!bg-muted/50 text-muted-foreground hover:text-foreground border-border"
@@ -151,167 +151,155 @@ export default function FiltersSidebar({
 
   return (
     <div className="space-y-0">
-      {/* 1. Distancia - Tags */}
+      {/* 1. Distancia - Tags acumulables */}
       <FilterSection
         title="Distancia"
         sectionKey="distance"
         selectedCount={selectedDistances?.length || 0}
         loading={distanceLoading}
       >
-        <div className="flex flex-wrap gap-1.5">
-          {(distanceRanges || []).map((range) => (
-            <TagButton
-              key={range.id}
-              isSelected={selectedDistances?.includes(range.id) || false}
-              onClick={() => {
-                const isSelected = selectedDistances?.includes(range.id);
-                if (isSelected) {
-                  onDistanceChange([]);
-                } else {
-                  onDistanceChange([range.id]);
-                }
-              }}
-            >
-              {range.display_text}
-            </TagButton>
-          ))}
-        </div>
+        {(distanceRanges || []).map((range) => (
+          <TagButton
+            key={range.id}
+            isSelected={selectedDistances?.includes(range.id) || false}
+            onClick={() => {
+              const isSelected = selectedDistances?.includes(range.id);
+              if (isSelected) {
+                onDistanceChange(selectedDistances.filter(id => id !== range.id));
+              } else {
+                onDistanceChange([...selectedDistances, range.id]);
+              }
+            }}
+          >
+            {range.display_text}
+          </TagButton>
+        ))}
       </FilterSection>
 
-      {/* 2. Rango de Precios - Tags sin € */}
+      {/* 2. Rango de Precios - Tags acumulables */}
       <FilterSection
         title="Presupuesto"
         sectionKey="price"
         selectedCount={selectedPriceRanges?.length || 0}
         loading={priceLoading}
       >
-        <div className="flex flex-wrap gap-1.5">
-          {(priceRanges || []).map((range) => (
-            <TagButton
-              key={range.id}
-              isSelected={selectedPriceRanges?.includes(range.value) || false}
-              onClick={() => {
-                const isSelected = selectedPriceRanges?.includes(range.value);
-                if (isSelected) {
-                  onPriceRangeChange([]);
-                } else {
-                  onPriceRangeChange([range.value]);
-                }
-              }}
-            >
-              {range.display_text}
-            </TagButton>
-          ))}
-        </div>
+        {(priceRanges || []).map((range) => (
+          <TagButton
+            key={range.id}
+            isSelected={selectedPriceRanges?.includes(range.value) || false}
+            onClick={() => {
+              const isSelected = selectedPriceRanges?.includes(range.value);
+              if (isSelected) {
+                onPriceRangeChange(selectedPriceRanges.filter(p => p !== range.value));
+              } else {
+                onPriceRangeChange([...selectedPriceRanges, range.value]);
+              }
+            }}
+          >
+            {range.display_text}
+          </TagButton>
+        ))}
       </FilterSection>
 
-      {/* 3. Valoración - Tags con estrellas */}
+      {/* 3. Valoración - Tags acumulables */}
       <FilterSection
         title="Valoración"
         sectionKey="rating"
         selectedCount={selectedRatings?.length || 0}
         loading={ratingLoading}
       >
-        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
-          {(ratingOptions || []).map((option) => (
-            <TagButton
-              key={option.id}
-              isSelected={selectedRatings?.includes(option.id) || false}
-              onClick={() => {
-                const isSelected = selectedRatings?.includes(option.id);
-                if (isSelected) {
-                  onRatingChange([]);
-                } else {
-                  onRatingChange([option.id]);
-                }
-              }}
-              icon={<Star className="h-3 w-3 fill-amber-400 text-amber-400" />}
-            >
-              {option.display_text}
-            </TagButton>
-          ))}
-        </div>
+        {(ratingOptions || []).map((option) => (
+          <TagButton
+            key={option.id}
+            isSelected={selectedRatings?.includes(option.id) || false}
+            onClick={() => {
+              const isSelected = selectedRatings?.includes(option.id);
+              if (isSelected) {
+                onRatingChange(selectedRatings.filter(id => id !== option.id));
+              } else {
+                onRatingChange([...selectedRatings, option.id]);
+              }
+            }}
+            icon={<Star className="h-3 w-3 fill-amber-400 text-amber-400" />}
+          >
+            {option.display_text}
+          </TagButton>
+        ))}
       </FilterSection>
 
-      {/* 4. Horarios - Tags sin icono */}
+      {/* 4. Horarios - Tags acumulables */}
       <FilterSection
         title="Disponibilidad"
         sectionKey="time"
         selectedCount={selectedTimeRanges?.length || 0}
         loading={timeLoading}
       >
-        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
-          {(timeRanges || []).map((range) => (
-            <TagButton
-              key={range.id}
-              isSelected={selectedTimeRanges?.includes(range.id) || false}
-              onClick={() => {
-                const isSelected = selectedTimeRanges?.includes(range.id);
-                if (isSelected) {
-                  onTimeRangeChange([]);
-                } else {
-                  onTimeRangeChange([range.id]);
-                }
-              }}
-            >
-              {range.display_text}
-            </TagButton>
-          ))}
-        </div>
+        {(timeRanges || []).map((range) => (
+          <TagButton
+            key={range.id}
+            isSelected={selectedTimeRanges?.includes(range.id) || false}
+            onClick={() => {
+              const isSelected = selectedTimeRanges?.includes(range.id);
+              if (isSelected) {
+                onTimeRangeChange(selectedTimeRanges.filter(id => id !== range.id));
+              } else {
+                onTimeRangeChange([...selectedTimeRanges, range.id]);
+              }
+            }}
+          >
+            {range.display_text}
+          </TagButton>
+        ))}
       </FilterSection>
 
-      {/* 5. Tipo de Local - Tags */}
+      {/* 5. Tipo de Local - Tags acumulables */}
       <FilterSection
         title="Tipo de Local"
         sectionKey="establishment"
         selectedCount={selectedEstablishments?.length || 0}
         loading={establishmentLoading}
       >
-        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
-          {(establishmentTypes || []).map((type) => (
-            <TagButton
-              key={type.id}
-              isSelected={selectedEstablishments?.includes(type.id) || false}
-              onClick={() => {
-                const isSelected = selectedEstablishments?.includes(type.id);
-                if (isSelected) {
-                  onEstablishmentChange(selectedEstablishments.filter(e => e !== type.id));
-                } else {
-                  onEstablishmentChange([...selectedEstablishments, type.id]);
-                }
-              }}
-            >
-              {type.name}
-            </TagButton>
-          ))}
-        </div>
+        {(establishmentTypes || []).map((type) => (
+          <TagButton
+            key={type.id}
+            isSelected={selectedEstablishments?.includes(type.id) || false}
+            onClick={() => {
+              const isSelected = selectedEstablishments?.includes(type.id);
+              if (isSelected) {
+                onEstablishmentChange(selectedEstablishments.filter(e => e !== type.id));
+              } else {
+                onEstablishmentChange([...selectedEstablishments, type.id]);
+              }
+            }}
+          >
+            {type.name}
+          </TagButton>
+        ))}
       </FilterSection>
 
-      {/* 6. Servicios - Tags */}
+      {/* 6. Servicios - Tags acumulables */}
       <FilterSection
         title="Servicios Especiales"
         sectionKey="services"
         selectedCount={selectedServices?.length || 0}
         loading={servicesLoading}
       >
-        <div className="flex flex-wrap gap-1.5 min-h-[28px]">
-          {(services || []).map((service) => (
-            <TagButton
-              key={service.id}
-              isSelected={selectedServices?.includes(service.id) || false}
-              onClick={() => {
-                const isSelected = selectedServices?.includes(service.id);
-                if (isSelected) {
-                  onServiceChange(selectedServices.filter(s => s !== service.id));
-                } else {
-                  onServiceChange([...selectedServices, service.id]);
-                }
-              }}
-            >
-              {service.name}
-            </TagButton>
-          ))}
-        </div>
+        {(services || []).map((service) => (
+          <TagButton
+            key={service.id}
+            isSelected={selectedServices?.includes(service.id) || false}
+            onClick={() => {
+              const isSelected = selectedServices?.includes(service.id);
+              if (isSelected) {
+                onServiceChange(selectedServices.filter(s => s !== service.id));
+              } else {
+                onServiceChange([...selectedServices, service.id]);
+              }
+            }}
+          >
+            {service.name}
+          </TagButton>
+        ))}
       </FilterSection>
     </div>
   );

@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from 'react';
 import { Search, MapPin, User, Menu, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -300,7 +301,7 @@ export default function FoodieSpotLayout() {
   }) => (
     <button
       onClick={onRemove}
-      className="h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-primary text-primary-foreground hover:!bg-primary/90 border-primary flex items-center"
+      className="h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent text-foreground hover:!bg-muted/50 border-border flex items-center"
     >
       <span className="flex items-center">{children}</span>
       <X className="ml-1 h-3 w-3 flex-shrink-0" />
@@ -378,7 +379,7 @@ export default function FoodieSpotLayout() {
         {activeFiltersDisplay.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 overflow-x-auto">
                 {activeFiltersDisplay.map((filter, index) => (
                   <FilterTag
                     key={`${filter.type}-${filter.value}-${index}`}
