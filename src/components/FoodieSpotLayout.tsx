@@ -560,13 +560,13 @@ export default function FoodieSpotLayout() {
           <div className="flex items-center gap-12 flex-shrink-0">
             <LanguageSelector />
             <button 
-              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition hover:text-primary transition-colors"
+              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition text-red-500 hover:text-foreground transition-colors"
               onClick={() => setMenuModalOpen(true)}
             >
               <Menu className="h-8 w-8" strokeWidth={1.5} />
             </button>
             <button 
-              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent md:hidden mode-transition hover:text-primary transition-colors"
+              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent md:hidden mode-transition text-red-500 hover:text-foreground transition-colors"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
               <Menu className="h-8 w-8" strokeWidth={1.5} />
