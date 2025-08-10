@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, MapPin, Star, UtensilsCrossed, Building, DollarSign, X } from 'lucide-react';
+import { ChevronDown, Star, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -82,34 +82,29 @@ export default function FiltersSidebar({
 
   const FilterSection = ({ 
     title, 
-    icon: Icon, 
     sectionKey, 
     selectedCount, 
     children, 
     loading = false 
   }: {
     title: string;
-    icon: any;
     sectionKey: string;
     selectedCount: number;
     children: React.ReactNode;
     loading?: boolean;
   }) => (
-    <div className="mb-6">
+    <div className="mb-4">
       <Collapsible 
         open={openSections[sectionKey]} 
         onOpenChange={() => toggleSection(sectionKey)}
       >
         <CollapsibleTrigger asChild>
-          <div className="w-full py-3 hover:bg-muted/30 transition-colors cursor-pointer rounded-lg px-3">
+          <div className="w-full py-2 hover:bg-muted/30 transition-colors cursor-pointer rounded-lg px-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-primary/10">
-                  <Icon className="h-4 w-4 text-primary" />
-                </div>
-                <span className="font-semibold text-foreground text-base">{title}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground text-sm">{title}</span>
                 {selectedCount > 0 && (
-                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-primary text-primary-foreground font-medium">
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-primary text-primary-foreground font-medium">
                     {selectedCount}
                   </Badge>
                 )}
@@ -122,18 +117,18 @@ export default function FiltersSidebar({
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="px-3 pb-2 pt-2">
+          <div className="px-2 pb-1 pt-1">
             {loading ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex items-center space-x-3">
-                    <Skeleton className="h-4 w-4 rounded" />
-                    <Skeleton className="h-4 flex-1" />
+                  <div key={i} className="flex items-center space-x-2">
+                    <Skeleton className="h-3 w-3 rounded" />
+                    <Skeleton className="h-3 flex-1" />
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="space-y-3 ml-6">
+              <div className="space-y-2">
                 {children}
               </div>
             )}
@@ -157,15 +152,15 @@ export default function FiltersSidebar({
     <button
       onClick={onClick}
       className={cn(
-        "h-8 px-3 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none",
+        "h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none",
         isSelected 
           ? "!bg-primary text-primary-foreground hover:!bg-primary/90 border-primary" 
           : "!bg-transparent hover:!bg-muted/50 text-muted-foreground hover:text-foreground border-border"
       )}
     >
-      {icon && <span className="mr-1.5">{icon}</span>}
+      {icon && <span className="mr-1">{icon}</span>}
       {children}
-      {isSelected && <X className="ml-1.5 h-3 w-3" />}
+      {isSelected && <X className="ml-1 h-3 w-3" />}
     </button>
   );
 
@@ -173,7 +168,7 @@ export default function FiltersSidebar({
     <div className="space-y-0">
       {/* Clear All Button */}
       {hasActiveFilters && (
-        <div className="mb-6">
+        <div className="mb-4">
           <Button 
             variant="outline" 
             size="sm" 
@@ -188,12 +183,11 @@ export default function FiltersSidebar({
       {/* 1. Distancia - Tags */}
       <FilterSection
         title="Distancia"
-        icon={MapPin}
         sectionKey="distance"
         selectedCount={selectedDistances?.length || 0}
         loading={distanceLoading}
       >
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {(distanceRanges || []).map((range) => (
             <TagButton
               key={range.id}
@@ -216,12 +210,11 @@ export default function FiltersSidebar({
       {/* 2. Rango de Precios - Tags sin € */}
       <FilterSection
         title="Presupuesto"
-        icon={DollarSign}
         sectionKey="price"
         selectedCount={selectedPriceRanges?.length || 0}
         loading={priceLoading}
       >
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {(priceRanges || []).map((range) => (
             <TagButton
               key={range.id}
@@ -244,12 +237,11 @@ export default function FiltersSidebar({
       {/* 3. Valoración - Tags con estrellas */}
       <FilterSection
         title="Valoración"
-        icon={Star}
         sectionKey="rating"
         selectedCount={selectedRatings?.length || 0}
         loading={ratingLoading}
       >
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {(ratingOptions || []).map((option) => (
             <TagButton
               key={option.id}
@@ -273,12 +265,11 @@ export default function FiltersSidebar({
       {/* 4. Horarios - Tags sin icono */}
       <FilterSection
         title="Disponibilidad"
-        icon={DollarSign}
         sectionKey="time"
         selectedCount={selectedTimeRanges?.length || 0}
         loading={timeLoading}
       >
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {(timeRanges || []).map((range) => (
             <TagButton
               key={range.id}
@@ -301,12 +292,11 @@ export default function FiltersSidebar({
       {/* 5. Tipo de Local - Tags */}
       <FilterSection
         title="Tipo de Local"
-        icon={Building}
         sectionKey="establishment"
         selectedCount={selectedEstablishments?.length || 0}
         loading={establishmentLoading}
       >
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {(establishmentTypes || []).map((type) => (
             <TagButton
               key={type.id}
@@ -329,12 +319,11 @@ export default function FiltersSidebar({
       {/* 6. Servicios - Tags */}
       <FilterSection
         title="Servicios Especiales"
-        icon={UtensilsCrossed}
         sectionKey="services"
         selectedCount={selectedServices?.length || 0}
         loading={servicesLoading}
       >
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {(services || []).map((service) => (
             <TagButton
               key={service.id}
