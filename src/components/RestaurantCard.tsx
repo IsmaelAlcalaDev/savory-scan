@@ -96,17 +96,20 @@ export default function RestaurantCard({
             </div>
           </div>
           
-          {/* Tipo de cocina • Rating */}
+          {/* Rating • Tipo de cocina */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {googleRating && (
+              <>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Star className="h-3 w-3 fill-accent text-accent" />
+                  <span className="font-medium text-foreground">{googleRating}</span>
+                </div>
+                <span>•</span>
+              </>
+            )}
             <span className="line-clamp-1 flex-1 min-w-0">
               {cuisineTypes.slice(0, 2).join(', ')}
             </span>
-            {googleRating && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <Star className="h-3 w-3 fill-accent text-accent" />
-                <span className="font-medium text-foreground">{googleRating}</span>
-              </div>
-            )}
           </div>
 
           {/* Distancia • Rango de precio */}
