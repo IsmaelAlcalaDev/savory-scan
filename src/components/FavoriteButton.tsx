@@ -5,11 +5,12 @@ import { cn } from '@/lib/utils';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import AuthModal from './AuthModal';
 
 interface FavoriteButtonProps {
   restaurantId: number;
   favoritesCount: number;
-  onLoginRequired: () => void;
+  onLoginRequired?: () => void;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
 }
@@ -24,6 +25,15 @@ export default function FavoriteButton({
   const { user } = useAuth();
   const { isFavorite, isToggling, toggleFavorite } = useFavorites();
   const [localCount, setLocalCount] = useState(favoritesCount);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const handleLoginRequired = () => {
+    if (onLoginRequired) {
+      onLoginRequired();
+    } else {
+      setShowAuthModal(true);
+    }
+  };
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -35,7 +45,7 @@ export default function FavoriteButton({
         description: "Debes iniciar sesión para guardar restaurantes favoritos",
         variant: "destructive"
       });
-      onLoginRequired();
+      handleLoginRequired();
       return;
     }
 
@@ -45,7 +55,7 @@ export default function FavoriteButton({
     setLocalCount(prev => previousState ? prev - 1 : prev + 1);
     
     try {
-      const result = await toggleFavorite(restaurantId, onLoginRequired);
+      const result = await toggleFavorite(restaurantId, handleLoginRequired);
       
       // Actualizar contador basado en el resultado real
       if (result !== previousState) {
@@ -94,36 +104,43 @@ export default function FavoriteButton({
   };
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={isLoading}
-      title={getTooltipText()}
-      className={cn(
-        "flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full border border-white/20",
-        "hover:bg-white transition-all duration-200",
-        "disabled:opacity-50 disabled:cursor-not-allowed",
-        paddingClasses[size],
-        className
-      )}
-    >
-      {isLoading ? (
-        <Loader2 className={cn("animate-spin", sizeClasses[size])} />
-      ) : (
-        <Heart 
-          className={cn(
-            "transition-all duration-200",
-            sizeClasses[size],
-            getHeartStyle(),
-            isLoading && "animate-pulse"
-          )} 
-        />
-      )}
-      <span className={cn(
-        "font-medium text-gray-700",
-        size === 'sm' ? "text-xs" : size === 'lg' ? "text-sm" : "text-xs"
-      )}>
-        {localCount}
-      </span>
-    </button>
+    <>
+      <button
+        onClick={handleClick}
+        disabled={isLoading}
+        title={getTooltipText()}
+        className={cn(
+          "flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full border border-white/20",
+          "hover:bg-white transition-all duration-200",
+          "disabled:opacity-50 disabled:cursor-not-allowed",
+          paddingClasses[size],
+          className
+        )}
+      >
+        {isLoading ? (
+          <Loader2 className={cn("animate-spin", sizeClasses[size])} />
+        ) : (
+          <Heart 
+            className={cn(
+              "transition-all duration-200",
+              sizeClasses[size],
+              getHeartStyle(),
+              isLoading && "animate-pulse"
+            )} 
+          />
+        )}
+        <span className={cn(
+          "font-medium text-gray-700",
+          size === 'sm' ? "text-xs" : size === 'lg' ? "text-sm" : "text-xs"
+        )}>
+          {localCount}
+        </span>
+      </button>
+
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
+    </>
   );
 }
