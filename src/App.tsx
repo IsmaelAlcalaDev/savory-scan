@@ -21,6 +21,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
     },
   },
 });
@@ -32,45 +33,38 @@ const App = () => {
     <ErrorBoundary>
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
-          <ErrorBoundary>
-            <AuthProvider>
-              <ErrorBoundary>
-                <FavoritesProvider>
-                  <TooltipProvider>
-                    <Toaster />
-                    <Sonner />
-                    <BrowserRouter>
-                      <ErrorBoundary>
-                        <Routes>
-                          <Route path="/" element={<FoodieSpot />} />
-                          <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
-                          <Route 
-                            path="/admin" 
-                            element={
-                              <ProtectedRoute requiredRole="admin">
-                                <SecureAdminPanel />
-                              </ProtectedRoute>
-                            } 
-                          />
-                          <Route 
-                            path="/superadmin" 
-                            element={
-                              <ProtectedRoute requiredRole="admin">
-                                <SuperAdminPanel />
-                              </ProtectedRoute>
-                            } 
-                          />
-                          <Route path="/auth" element={<Auth />} />
-                          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </ErrorBoundary>
-                    </BrowserRouter>
-                  </TooltipProvider>
-                </FavoritesProvider>
-              </ErrorBoundary>
-            </AuthProvider>
-          </ErrorBoundary>
+          <AuthProvider>
+            <FavoritesProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<FoodieSpot />} />
+                    <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
+                    <Route 
+                      path="/admin" 
+                      element={
+                        <ProtectedRoute requiredRole="admin">
+                          <SecureAdminPanel />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/superadmin" 
+                      element={
+                        <ProtectedRoute requiredRole="admin">
+                          <SuperAdminPanel />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </TooltipProvider>
+            </FavoritesProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </HelmetProvider>
     </ErrorBoundary>
