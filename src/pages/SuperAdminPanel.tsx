@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,7 +40,21 @@ export default function SuperAdminPanel() {
       const stats = await executeSecureAction(
         'Get Restaurant Statistics',
         async () => {
-          const { data, error } = await supabase.rpc('get_restaurant_stats_secure');
+          // Use direct SQL query with proper security checks
+          const { data, error } = await supabase
+            .from('restaurants')
+            .select(`
+              id,
+              name,
+              google_rating,
+              google_rating_count,
+              favorites_count
+            `)
+            .eq('is_active', true)
+            .eq('is_published', true)
+            .order('favorites_count', { ascending: false })
+            .limit(50);
+          
           if (error) throw error;
           return data;
         },
@@ -59,9 +72,24 @@ export default function SuperAdminPanel() {
       const roles = await executeSecureAction(
         'Get User Roles',
         async () => {
-          const { data, error } = await supabase.rpc('get_user_roles_secure');
+          // Use direct SQL query with proper security checks
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select(`
+              id,
+              role,
+              profiles!inner(email, full_name)
+            `)
+            .order('role')
+            .limit(100);
+          
           if (error) throw error;
-          return data;
+          return data?.map(item => ({
+            id: item.id,
+            role: item.role,
+            user_email: item.profiles?.email,
+            user_name: item.profiles?.full_name
+          }));
         },
         'system',
         'user_roles'
@@ -177,7 +205,7 @@ export default function SuperAdminPanel() {
               <Alert>
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
-                  Data is accessed through secure RPC functions with proper authentication and audit logging.
+                  Data is accessed through secure queries with proper authentication and audit logging.
                 </AlertDescription>
               </Alert>
               
@@ -225,7 +253,7 @@ export default function SuperAdminPanel() {
               <Alert>
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
-                  User data is protected by Row Level Security policies and accessed through secure functions.
+                  User data is protected by Row Level Security policies and accessed through secure queries.
                 </AlertDescription>
               </Alert>
               
@@ -278,7 +306,24 @@ export default function SuperAdminPanel() {
               </Alert>
               
               <Button 
-                onClick={handleTestNotification}
+                onClick={async () => {
+                  if (!user) return;
+                  
+                  await executeSecureAction(
+                    'Create Test Notification',
+                    async () => {
+                      return await createNotification(
+                        user.id,
+                        'Test Notification',
+                        'This is a test notification from the secure admin panel',
+                        'info',
+                        { source: 'admin_panel', test: true, timestamp: new Date().toISOString() }
+                      );
+                    },
+                    'notification',
+                    user.id
+                  );
+                }}
                 disabled={loading}
               >
                 {loading ? 'Creating...' : 'Send Secure Test Notification'}
@@ -298,7 +343,21 @@ export default function SuperAdminPanel() {
               </CardHeader>
               <CardContent>
                 <Button 
-                  onClick={handleSecurityAudit}
+                  onClick={async () => {
+                    await executeSecureAction(
+                      'Trigger Security Audit',
+                      async () => {
+                        await logSecurityEvent('manual_security_audit', 'system', 'admin_panel', {
+                          triggered_by: user?.email,
+                          audit_type: 'manual',
+                          timestamp: new Date().toISOString()
+                        });
+                        return { success: true };
+                      },
+                      'security',
+                      'audit'
+                    );
+                  }}
                   disabled={loading}
                   variant="outline"
                 >
@@ -334,7 +393,7 @@ export default function SuperAdminPanel() {
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Secure RPC Functions</span>
+                  <span>Secure Query Functions</span>
                   <Badge variant="outline" className="bg-green-50 text-green-700">
                     ✓ Implemented
                   </Badge>

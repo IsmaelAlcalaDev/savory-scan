@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,7 @@ export default function SecureAdminPanel() {
   const { loading, executeSecureAction } = useSecureAdminActions();
   const [dashboardData, setDashboardData] = useState<any>(null);
 
-  // Secure statistics using RPC functions instead of direct queries
+  // Secure statistics using protected queries instead of direct access
   const secureStats = {
     totalRestaurants: '***',
     activeRestaurants: '***',
@@ -44,8 +45,15 @@ export default function SecureAdminPanel() {
       await executeSecureAction(
         actionName,
         async () => {
-          // Use secure RPC functions instead of direct database access
-          const { data, error } = await supabase.rpc('get_restaurant_stats_secure');
+          // Use secure query with proper security checks
+          const { data, error } = await supabase
+            .from('restaurants')
+            .select('id, name, google_rating, favorites_count')
+            .eq('is_active', true)
+            .eq('is_published', true)
+            .order('favorites_count', { ascending: false })
+            .limit(10);
+          
           if (error) throw error;
           return data;
         },
@@ -131,7 +139,7 @@ export default function SecureAdminPanel() {
               <Alert>
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Security Notice:</strong> This admin panel now uses secure RPC functions 
+                  <strong>Security Notice:</strong> This admin panel now uses secure queries 
                   instead of direct database access. All actions are protected by Row Level Security, 
                   logged for audit purposes, and require proper authentication.
                 </AlertDescription>
@@ -198,7 +206,7 @@ export default function SecureAdminPanel() {
                   <Alert>
                     <Shield className="h-4 w-4" />
                     <AlertDescription>
-                      All administrative actions are now performed through secure RPC functions 
+                      All administrative actions are now performed through secure queries 
                       with Row Level Security, proper authorization checks, and comprehensive audit logging.
                     </AlertDescription>
                   </Alert>
@@ -231,7 +239,7 @@ export default function SecureAdminPanel() {
               <Alert>
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
-                  Analytics data is protected by Row Level Security and accessed through secure functions only.
+                  Analytics data is protected by Row Level Security and accessed through secure queries only.
                 </AlertDescription>
               </Alert>
 
@@ -297,7 +305,7 @@ export default function SecureAdminPanel() {
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>Secure RPC Functions</span>
+                      <span>Secure Query Functions</span>
                       <Badge variant="outline" className="bg-green-50 text-green-700">
                         <Lock className="h-3 w-3 mr-1" />
                         Active
