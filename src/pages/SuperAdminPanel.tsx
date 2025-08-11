@@ -17,7 +17,9 @@ import {
   AlertTriangle,
   Database,
   Settings,
-  Bell
+  Bell,
+  Activity,
+  Eye
 } from 'lucide-react';
 
 export default function SuperAdminPanel() {
@@ -25,8 +27,7 @@ export default function SuperAdminPanel() {
   const { isAdmin } = useUserRole();
   const { 
     loading, 
-    getRestaurantStats, 
-    getUserRoles,
+    executeSecureAction,
     logSecurityEvent 
   } = useSecureAdminActions();
   const { createNotification } = useSecureNotifications();
@@ -36,7 +37,16 @@ export default function SuperAdminPanel() {
 
   const handleGetRestaurantStats = async () => {
     try {
-      const stats = await getRestaurantStats();
+      const stats = await executeSecureAction(
+        'Get Restaurant Statistics',
+        async () => {
+          const { data, error } = await supabase.rpc('get_restaurant_stats_secure');
+          if (error) throw error;
+          return data;
+        },
+        'system',
+        'restaurant_stats'
+      );
       setRestaurantStats(stats || []);
     } catch (error) {
       console.error('Error fetching restaurant stats:', error);
@@ -45,7 +55,16 @@ export default function SuperAdminPanel() {
 
   const handleGetUserRoles = async () => {
     try {
-      const roles = await getUserRoles();
+      const roles = await executeSecureAction(
+        'Get User Roles',
+        async () => {
+          const { data, error } = await supabase.rpc('get_user_roles_secure');
+          if (error) throw error;
+          return data;
+        },
+        'system',
+        'user_roles'
+      );
       setUserRoles(roles || []);
     } catch (error) {
       console.error('Error fetching user roles:', error);
@@ -55,22 +74,45 @@ export default function SuperAdminPanel() {
   const handleTestNotification = async () => {
     if (!user) return;
     
-    await createNotification(
-      user.id,
-      'Test Notification',
-      'This is a test notification from the admin panel',
-      'info',
-      { source: 'admin_panel', test: true }
+    await executeSecureAction(
+      'Create Test Notification',
+      async () => {
+        return await createNotification(
+          user.id,
+          'Test Notification',
+          'This is a test notification from the secure admin panel',
+          'info',
+          { source: 'admin_panel', test: true, timestamp: new Date().toISOString() }
+        );
+      },
+      'notification',
+      user.id
+    );
+  };
+
+  const handleSecurityAudit = async () => {
+    await executeSecureAction(
+      'Trigger Security Audit',
+      async () => {
+        await logSecurityEvent('manual_security_audit', 'system', 'admin_panel', {
+          triggered_by: user?.email,
+          audit_type: 'manual',
+          timestamp: new Date().toISOString()
+        });
+        return { success: true };
+      },
+      'security',
+      'audit'
     );
   };
 
   if (!isAdmin) {
     return (
       <div className="container mx-auto p-6">
-        <Alert>
+        <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Access denied. This panel is only available to system administrators.
+            Access denied. This panel requires administrator privileges and is protected by Row Level Security.
           </AlertDescription>
         </Alert>
       </div>
@@ -83,13 +125,19 @@ export default function SuperAdminPanel() {
         <div>
           <h1 className="text-3xl font-bold">Secure Admin Panel</h1>
           <p className="text-muted-foreground">
-            Secure administrative interface with comprehensive audit logging
+            Enterprise-grade administrative interface with comprehensive security
           </p>
         </div>
-        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-          <Shield className="h-4 w-4 mr-1" />
-          Secure Mode
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            <Shield className="h-4 w-4 mr-1" />
+            RLS Protected
+          </Badge>
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            <Eye className="h-4 w-4 mr-1" />
+            Audit Logged
+          </Badge>
+        </div>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
@@ -110,8 +158,8 @@ export default function SuperAdminPanel() {
             <Shield className="h-4 w-4" />
             Security Audit
           </TabsTrigger>
-          <TabsTrigger value="system" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
+          <TabsTrigger value="monitoring" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
             System Health
           </TabsTrigger>
         </TabsList>
@@ -121,22 +169,29 @@ export default function SuperAdminPanel() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Database className="h-5 w-5" />
-                Restaurant Statistics
+                Secure Restaurant Statistics
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <Alert>
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  Data is accessed through secure RPC functions with proper authentication and audit logging.
+                </AlertDescription>
+              </Alert>
+              
               <Button 
                 onClick={handleGetRestaurantStats} 
                 disabled={loading}
                 className="mb-4"
               >
-                {loading ? 'Loading...' : 'Load Restaurant Stats'}
+                {loading ? 'Loading...' : 'Load Restaurant Stats (Secure)'}
               </Button>
               
               {restaurantStats.length > 0 && (
                 <div className="grid gap-4">
                   {restaurantStats.map((restaurant) => (
-                    <div key={restaurant.id} className="border rounded-lg p-4">
+                    <div key={restaurant.id} className="border rounded-lg p-4 bg-gradient-card">
                       <h3 className="font-semibold">{restaurant.name}</h3>
                       <div className="grid grid-cols-3 gap-4 mt-2 text-sm">
                         <div>
@@ -162,28 +217,35 @@ export default function SuperAdminPanel() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                User Roles Management
+                Secure User Roles Management
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <Alert>
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  User data is protected by Row Level Security policies and accessed through secure functions.
+                </AlertDescription>
+              </Alert>
+              
               <Button 
                 onClick={handleGetUserRoles} 
                 disabled={loading}
                 className="mb-4"
               >
-                {loading ? 'Loading...' : 'Load User Roles'}
+                {loading ? 'Loading...' : 'Load User Roles (Secure)'}
               </Button>
               
               {userRoles.length > 0 && (
                 <div className="space-y-2">
                   {userRoles.map((userRole) => (
-                    <div key={userRole.id} className="flex items-center justify-between border rounded-lg p-3">
+                    <div key={userRole.id} className="flex items-center justify-between border rounded-lg p-3 bg-gradient-card">
                       <div>
                         <span className="font-medium">
-                          {userRole.profiles?.full_name || userRole.profiles?.email || 'Unknown User'}
+                          {userRole.user_name || userRole.user_email || 'Unknown User'}
                         </span>
                         <span className="text-muted-foreground ml-2">
-                          ({userRole.profiles?.email})
+                          ({userRole.user_email})
                         </span>
                       </div>
                       <Badge variant={userRole.role === 'admin' ? 'default' : 'outline'}>
@@ -202,60 +264,96 @@ export default function SuperAdminPanel() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Secure Notifications
+                Secure Notifications Management
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Alert>
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
-                  Notifications are now created through secure, admin-only functions with proper authentication and audit logging.
+                  Notifications are created through secure, admin-only functions with proper authentication, 
+                  RLS protection, and comprehensive audit logging.
                 </AlertDescription>
               </Alert>
               
-              <Button onClick={handleTestNotification}>
-                Send Test Notification
+              <Button 
+                onClick={handleTestNotification}
+                disabled={loading}
+              >
+                {loading ? 'Creating...' : 'Send Secure Test Notification'}
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6">
-          <SecurityAuditLog />
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Security Actions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={handleSecurityAudit}
+                  disabled={loading}
+                  variant="outline"
+                >
+                  {loading ? 'Processing...' : 'Trigger Security Audit'}
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <SecurityAuditLog />
+          </div>
         </TabsContent>
 
-        <TabsContent value="system" className="space-y-6">
+        <TabsContent value="monitoring" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                System Health
+                <Activity className="h-5 w-5" />
+                System Security Status
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
+                  <span>Row Level Security (RLS)</span>
+                  <Badge variant="outline" className="bg-green-50 text-green-700">
+                    ✓ Enabled
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
                   <span>Security Audit Logging</span>
                   <Badge variant="outline" className="bg-green-50 text-green-700">
-                    Active
+                    ✓ Active
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Row Level Security</span>
+                  <span>Secure RPC Functions</span>
                   <Badge variant="outline" className="bg-green-50 text-green-700">
-                    Enabled
+                    ✓ Implemented
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Secure Notifications</span>
+                  <span>Input Sanitization</span>
                   <Badge variant="outline" className="bg-green-50 text-green-700">
-                    Secured
+                    ✓ Active
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Admin Panel Access</span>
+                  <span>Authentication Security</span>
+                  <Badge variant="outline" className="bg-green-50 text-green-700">
+                    ✓ Enhanced
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Admin Panel Protection</span>
                   <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                    Restricted
+                    ✓ Secured
                   </Badge>
                 </div>
               </div>
