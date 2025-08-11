@@ -4731,6 +4731,10 @@ export type Database = {
         Args: { user_id_param: string; restaurant_id_param: number }
         Returns: boolean
       }
+      toggle_restaurant_favorite_v2: {
+        Args: { restaurant_id_param: number; saved_from_param?: string }
+        Returns: Json
+      }
       toggle_restaurant_status: {
         Args: { restaurant_id_param: number; new_status?: boolean }
         Returns: boolean
