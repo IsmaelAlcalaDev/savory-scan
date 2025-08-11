@@ -14,12 +14,17 @@ export const useSecurityLogger = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase.rpc('log_security_event', {
-        action_type: actionType,
-        entity_type: entityType,
-        entity_id: entityId,
-        details: details || {}
-      });
+      // Use direct table insertion instead of RPC function
+      const { error } = await supabase
+        .from('analytics_events')
+        .insert({
+          user_id: user.id,
+          event_type: `security_${actionType}`,
+          entity_type: entityType,
+          entity_id: entityId ? parseInt(entityId) : null,
+          properties: details || {},
+          session_id: `security_${Date.now()}`
+        });
 
       if (error) {
         console.error('Failed to log security event:', error);
