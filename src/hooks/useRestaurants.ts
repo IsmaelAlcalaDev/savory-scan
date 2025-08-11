@@ -171,7 +171,7 @@ export const useRestaurants = ({
 
     fetchRestaurants();
 
-    // Configurar listener para cambios en tiempo real en favorites
+    // Setup real-time subscription for favorites count updates
     const channel = supabase
       .channel('restaurants-favorites')
       .on(
@@ -182,17 +182,30 @@ export const useRestaurants = ({
           table: 'user_saved_restaurants'
         },
         (payload) => {
-          console.log('Favorite change detected:', payload);
-          // Actualizar solo el contador de favoritos para el restaurante específico
+          console.log('Favorite change detected in restaurants list:', payload);
+          
+          // Update the favorites count for the affected restaurant
           if (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) {
             const restaurantId = payload.new.restaurant_id;
+            const isActive = payload.new.is_active;
+            
             setRestaurants(prevRestaurants => 
               prevRestaurants.map(restaurant => {
                 if (restaurant.id === restaurantId) {
-                  const increment = payload.eventType === 'INSERT' && payload.new.is_active ? 1 : 
-                                  payload.eventType === 'UPDATE' && payload.old && 
-                                  payload.old.is_active !== payload.new.is_active ? 
-                                  (payload.new.is_active ? 1 : -1) : 0;
+                  let increment = 0;
+                  
+                  if (payload.eventType === 'INSERT' && isActive) {
+                    increment = 1;
+                  } else if (payload.eventType === 'UPDATE' && payload.old) {
+                    if (isActive && !payload.old.is_active) {
+                      increment = 1;
+                    } else if (!isActive && payload.old.is_active) {
+                      increment = -1;
+                    }
+                  } else if (payload.eventType === 'DELETE') {
+                    increment = -1;
+                  }
+                  
                   return {
                     ...restaurant,
                     favorites_count: Math.max(0, restaurant.favorites_count + increment)
@@ -206,7 +219,6 @@ export const useRestaurants = ({
       )
       .subscribe();
 
-    // Cleanup function para remover el listener
     return () => {
       supabase.removeChannel(channel);
     };

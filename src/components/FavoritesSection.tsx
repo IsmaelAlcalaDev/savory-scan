@@ -58,8 +58,46 @@ export default function FavoritesSection() {
   useEffect(() => {
     if (user) {
       loadFavorites();
+      setupRealtimeSubscription();
     }
   }, [user]);
+
+  const setupRealtimeSubscription = () => {
+    if (!user) return;
+
+    // Subscribe to changes in user's saved restaurants
+    const channel = supabase
+      .channel(`favorites-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_saved_restaurants',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Favorites change detected:', payload);
+          
+          if (payload.eventType === 'DELETE' || 
+              (payload.eventType === 'UPDATE' && payload.new && !payload.new.is_active)) {
+            // Remove from local state immediately
+            const restaurantId = payload.old?.restaurant_id || payload.new?.restaurant_id;
+            if (restaurantId) {
+              setFavoriteRestaurants(prev => prev.filter(item => item.id !== restaurantId));
+            }
+          } else if (payload.eventType === 'INSERT' && payload.new?.is_active) {
+            // Reload favorites to get the new one with full data
+            loadFavorites();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
 
   const loadFavorites = async () => {
     if (!user) return;
@@ -188,6 +226,13 @@ export default function FavoritesSection() {
     }
   };
 
+  const handleFavoriteChange = (restaurantId: number, isFavorite: boolean) => {
+    if (!isFavorite) {
+      // Remove from local state immediately for better UX
+      setFavoriteRestaurants(prev => prev.filter(item => item.id !== restaurantId));
+    }
+  };
+
   const removeFavorite = async (type: 'restaurant' | 'dish' | 'event', id: number) => {
     if (!user) return;
 
@@ -305,12 +350,14 @@ export default function FavoritesSection() {
                     priceRange={restaurant.price_range}
                     googleRating={restaurant.google_rating}
                     googleRatingCount={restaurant.google_rating_count}
+                    distance={restaurant.distance_km}
                     cuisineTypes={restaurant.cuisine_types}
                     establishmentType={restaurant.establishment_type}
                     favoritesCount={restaurant.favorites_count}
                     coverImageUrl={restaurant.cover_image_url}
                     logoUrl={restaurant.logo_url}
                     layout="list"
+                    onFavoriteChange={handleFavoriteChange}
                   />
                   <Button 
                     variant="ghost" 

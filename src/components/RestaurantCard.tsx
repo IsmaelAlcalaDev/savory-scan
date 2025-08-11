@@ -24,6 +24,7 @@ interface RestaurantCardProps {
   className?: string;
   onLoginRequired?: () => void;
   layout?: 'grid' | 'list';
+  onFavoriteChange?: (restaurantId: number, isFavorite: boolean) => void;
 }
 
 export default function RestaurantCard({
@@ -44,7 +45,8 @@ export default function RestaurantCard({
   onClick,
   className,
   onLoginRequired,
-  layout = 'grid'
+  layout = 'grid',
+  onFavoriteChange
 }: RestaurantCardProps) {
   let user = null;
   try {
@@ -93,7 +95,12 @@ export default function RestaurantCard({
       return;
     }
     
-    await toggleFavorite(id, onLoginRequired);
+    const result = await toggleFavorite(id, onLoginRequired);
+    
+    // Call the callback to notify parent component
+    if (onFavoriteChange) {
+      onFavoriteChange(id, result);
+    }
   };
 
   const displayImage = coverImageUrl || logoUrl;
