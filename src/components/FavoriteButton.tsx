@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Heart, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useFavorites } from '@/hooks/useFavorites';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import AuthModal from './AuthModal';
@@ -13,6 +13,7 @@ interface FavoriteButtonProps {
   onLoginRequired?: () => void;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  savedFrom?: string;
 }
 
 export default function FavoriteButton({
@@ -20,12 +21,14 @@ export default function FavoriteButton({
   favoritesCount,
   onLoginRequired,
   className,
-  size = 'md'
+  size = 'md',
+  savedFrom = 'button'
 }: FavoriteButtonProps) {
   const { user } = useAuth();
   const { isFavorite, isToggling, toggleFavorite } = useFavorites();
   const [localCount, setLocalCount] = useState(favoritesCount);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const handleLoginRequired = () => {
     if (onLoginRequired) {
@@ -37,8 +40,9 @@ export default function FavoriteButton({
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     
-    // PASO 2: VERIFICACIÓN DE AUTENTICACIÓN
+    // Check authentication
     if (!user) {
       toast({
         title: "Inicia sesión",
@@ -51,18 +55,22 @@ export default function FavoriteButton({
 
     const previousState = isFavorite(restaurantId);
     
-    // Optimistic update del contador
+    // Animate heart
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 300);
+    
+    // Optimistic update of counter
     setLocalCount(prev => previousState ? prev - 1 : prev + 1);
     
     try {
-      const result = await toggleFavorite(restaurantId, handleLoginRequired);
+      const result = await toggleFavorite(restaurantId, savedFrom, handleLoginRequired);
       
-      // Actualizar contador basado en el resultado real
+      // Adjust counter based on actual result
       if (result !== previousState) {
         setLocalCount(prev => result ? prev + 1 : prev - 1);
       }
     } catch (error) {
-      // Revertir optimistic update en caso de error
+      // Revert optimistic update on error
       setLocalCount(favoritesCount);
     }
   };
@@ -70,19 +78,19 @@ export default function FavoriteButton({
   const isLoading = isToggling(restaurantId);
   const isFav = isFavorite(restaurantId);
 
-  // Estados visuales según autenticación
+  // Visual states based on authentication
   const getHeartStyle = () => {
     if (!user) {
-      // Gris: Usuario no logueado
+      // Gray: User not logged in
       return "text-gray-400";
     }
     
     if (isFav) {
-      // Rojo lleno: Usuario logueado, en favoritos
+      // Red filled: User logged in, favorited
       return "text-red-500 fill-red-500";
     }
     
-    // Rojo vacío: Usuario logueado, no en favoritos
+    // Red empty: User logged in, not favorited
     return "text-red-500";
   };
 
@@ -113,6 +121,7 @@ export default function FavoriteButton({
           "flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full border border-white/20",
           "hover:bg-white transition-all duration-200",
           "disabled:opacity-50 disabled:cursor-not-allowed",
+          "focus:outline-none focus:ring-2 focus:ring-red-500/20",
           paddingClasses[size],
           className
         )}
@@ -125,7 +134,8 @@ export default function FavoriteButton({
               "transition-all duration-200",
               sizeClasses[size],
               getHeartStyle(),
-              isLoading && "animate-pulse"
+              isLoading && "animate-pulse",
+              isAnimating && "animate-pulse scale-125"
             )} 
           />
         )}

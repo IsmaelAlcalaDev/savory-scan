@@ -1,7 +1,7 @@
+
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useState, useEffect, useRef } from 'react';
 import FavoriteButton from './FavoriteButton';
 
 interface RestaurantCardProps {
@@ -101,6 +101,7 @@ export default function RestaurantCard({
               restaurantId={id}
               favoritesCount={favoritesCount}
               onLoginRequired={onLoginRequired}
+              savedFrom={layout === 'list' ? 'list_card' : 'grid_card'}
               size="sm"
             />
           </div>
@@ -190,6 +191,7 @@ export default function RestaurantCard({
             restaurantId={id}
             favoritesCount={favoritesCount}
             onLoginRequired={onLoginRequired}
+            savedFrom={layout === 'list' ? 'list_card' : 'grid_card'}
             size="md"
           />
         </div>

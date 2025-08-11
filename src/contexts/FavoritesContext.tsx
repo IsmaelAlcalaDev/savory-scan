@@ -8,9 +8,10 @@ import { useSecurityLogger } from '@/hooks/useSecurityLogger';
 interface FavoritesContextType {
   isFavorite: (restaurantId: number) => boolean;
   isToggling: (restaurantId: number) => boolean;
-  toggleFavorite: (restaurantId: number, openLoginModal?: () => void) => Promise<boolean>;
+  toggleFavorite: (restaurantId: number, savedFrom?: string, openLoginModal?: () => void) => Promise<boolean>;
   setFavoriteState: (restaurantId: number, isFavorite: boolean) => void;
   refreshFavorites: () => Promise<void>;
+  favoritesCount: number;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
@@ -26,13 +27,16 @@ export const useFavorites = () => {
 export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const { logSecurityEvent } = useSecurityLogger();
-  const [favoritesMap, setFavoritesMap] = useState<Record<number, boolean>>({});
+  const [favoritesSet, setFavoritesSet] = useState<Set<number>>(new Set());
   const [loadingMap, setLoadingMap] = useState<Record<number, boolean>>({});
   const channelRef = useRef<any>(null);
 
-  // Load user favorites
+  // Load user favorites into Set for O(1) lookup
   const loadUserFavorites = async () => {
-    if (!user) return;
+    if (!user) {
+      setFavoritesSet(new Set());
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -43,22 +47,22 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (error) throw error;
 
-      const newFavoritesMap: Record<number, boolean> = {};
+      const newFavoritesSet = new Set<number>();
       data?.forEach(item => {
-        newFavoritesMap[item.restaurant_id] = true;
+        newFavoritesSet.add(item.restaurant_id);
       });
 
-      setFavoritesMap(newFavoritesMap);
+      setFavoritesSet(newFavoritesSet);
     } catch (error) {
       console.error('Error loading favorites:', error);
       await logSecurityEvent('favorites_load_error', 'user', user.id, { error: String(error) });
     }
   };
 
-  // Setup real-time subscription
+  // Setup real-time subscription for multi-tab sync
   useEffect(() => {
     if (!user) {
-      setFavoritesMap({});
+      setFavoritesSet(new Set());
       return;
     }
 
@@ -69,7 +73,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       supabase.removeChannel(channelRef.current);
     }
 
-    // Create new channel for this user
+    // Create new channel for this user with realtime updates
     const channel = supabase
       .channel(`user-favorites-${user.id}`)
       .on(
@@ -81,22 +85,38 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Favorite change detected:', payload);
+          console.log('Favorite change detected via realtime:', payload);
           
           if (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) {
             const restaurantId = payload.new.restaurant_id;
             const isActive = payload.new.is_active;
             
-            setFavoritesMap(prev => ({
-              ...prev,
-              [restaurantId]: isActive
+            setFavoritesSet(prev => {
+              const newSet = new Set(prev);
+              if (isActive) {
+                newSet.add(restaurantId);
+              } else {
+                newSet.delete(restaurantId);
+              }
+              return newSet;
+            });
+
+            // Emit custom event for other components to listen
+            window.dispatchEvent(new CustomEvent('favoriteToggled', {
+              detail: { restaurantId, isFavorite: isActive }
             }));
+            
           } else if (payload.old && typeof payload.old === 'object' && 'restaurant_id' in payload.old) {
             const restaurantId = payload.old.restaurant_id;
             
-            setFavoritesMap(prev => ({
-              ...prev,
-              [restaurantId]: false
+            setFavoritesSet(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(restaurantId);
+              return newSet;
+            });
+
+            window.dispatchEvent(new CustomEvent('favoriteToggled', {
+              detail: { restaurantId, isFavorite: false }
             }));
           }
         }
@@ -118,14 +138,23 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const setFavoriteState = (restaurantId: number, isFavorite: boolean) => {
-    setFavoritesMap(prev => ({
-      ...prev,
-      [restaurantId]: isFavorite
-    }));
+    setFavoritesSet(prev => {
+      const newSet = new Set(prev);
+      if (isFavorite) {
+        newSet.add(restaurantId);
+      } else {
+        newSet.delete(restaurantId);
+      }
+      return newSet;
+    });
   };
 
-  const toggleFavorite = async (restaurantId: number, openLoginModal?: () => void): Promise<boolean> => {
-    // PASO 2: VERIFICACIÓN DE AUTENTICACIÓN (CRÍTICO)
+  const toggleFavorite = async (
+    restaurantId: number, 
+    savedFrom: string = 'toggle',
+    openLoginModal?: () => void
+  ): Promise<boolean> => {
+    // Check authentication
     if (!user) {
       await logSecurityEvent('unauthorized_favorite_attempt', 'restaurant', String(restaurantId));
       
@@ -141,12 +170,12 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return false;
     }
 
-    // Evitar dobles clics mientras hay petición en curso
+    // Prevent double clicks
     if (loadingMap[restaurantId]) {
-      return favoritesMap[restaurantId] || false;
+      return favoritesSet.has(restaurantId);
     }
 
-    // PASO 3: VALIDACIÓN DE SESIÓN Y USUARIO ACTIVO
+    // Validate session
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
     if (!sessionData?.session || sessionData.session.user.id !== user.id) {
@@ -166,7 +195,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return false;
     }
 
-    // PASO 4: VERIFICAR USUARIO ACTIVO
+    // Verify active user
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('is_active, deleted_at')
@@ -187,65 +216,64 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return false;
     }
 
-    // Estado actual antes de cambiar nada (para posibles reversiones)
-    const currentState = favoritesMap[restaurantId] || false;
+    const currentState = favoritesSet.has(restaurantId);
     
     setLoadingMap(prev => ({ ...prev, [restaurantId]: true }));
 
+    // Optimistic update
+    setFavoriteState(restaurantId, !currentState);
+
     try {
-      // PASO 5: LÓGICA DE TOGGLE usando la función RPC existente
-      const { data, error } = await supabase.rpc('toggle_restaurant_favorite', {
-        user_id_param: user.id,
-        restaurant_id_param: restaurantId
+      // Call the new v2 RPC function with analytics and anti-fraud
+      const { data, error } = await supabase.rpc('toggle_restaurant_favorite_v2', {
+        restaurant_id_param: restaurantId,
+        saved_from_param: savedFrom
       });
 
       if (error) throw error;
 
-      // Actualizar estado local con resultado de la base de datos
-      setFavoritesMap(prev => ({
-        ...prev,
-        [restaurantId]: data
+      const result = data as { success: boolean; is_favorite: boolean; action: string };
+      
+      // Update state with server result (in case optimistic update was wrong)
+      setFavoriteState(restaurantId, result.is_favorite);
+
+      // Emit custom event for other components
+      window.dispatchEvent(new CustomEvent('favoriteToggled', {
+        detail: { restaurantId, isFavorite: result.is_favorite, action: result.action }
       }));
 
-      // PASO 7: REGISTRO DE ACTIVIDAD
+      // Log security event
       await logSecurityEvent('favorite_toggled', 'restaurant', String(restaurantId), {
-        newState: data,
+        newState: result.is_favorite,
         previousState: currentState,
-        method: 'rpc_toggle'
+        action: result.action,
+        savedFrom
       });
 
-      // PASO 8: RESPUESTA AL FRONTEND
+      // Show success toast
       toast({
-        title: data ? "Restaurante guardado" : "Eliminado de favoritos",
-        description: data 
+        title: result.is_favorite ? "Restaurante guardado" : "Eliminado de favoritos",
+        description: result.is_favorite 
           ? "El restaurante se ha añadido a tus favoritos" 
           : "El restaurante se ha eliminado de tus favoritos"
       });
 
-      return data;
+      return result.is_favorite;
 
     } catch (error: any) {
-      console.error('Error toggling favorite:', {
-        error,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint,
-        message: error?.message
-      });
+      console.error('Error toggling favorite:', error);
       
       // Log security event for error
       await logSecurityEvent('favorite_toggle_error', 'restaurant', String(restaurantId), {
         error: error?.message,
         code: error?.code,
         userId: user.id,
-        currentState
+        currentState,
+        savedFrom
       });
       
-      // Revertir estado en caso de error
-      setFavoritesMap(prev => ({
-        ...prev,
-        [restaurantId]: currentState
-      }));
+      // Revert optimistic update
+      setFavoriteState(restaurantId, currentState);
       
       toast({
         title: "Error",
@@ -260,7 +288,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const isFavorite = (restaurantId: number) => {
-    return favoritesMap[restaurantId] || false;
+    return favoritesSet.has(restaurantId);
   };
 
   const isToggling = (restaurantId: number) => {
@@ -272,7 +300,8 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     isToggling,
     toggleFavorite,
     setFavoriteState,
-    refreshFavorites
+    refreshFavorites,
+    favoritesCount: favoritesSet.size
   };
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;

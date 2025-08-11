@@ -1,12 +1,13 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Star, MapPin, Heart, UtensilsCrossed, Calendar, Trash2, Loader2 } from 'lucide-react';
+import { Heart, UtensilsCrossed, Calendar, Trash2, Loader2, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { useFavorites } from '@/hooks/useFavorites';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { useSecurityLogger } from '@/hooks/useSecurityLogger';
 import RestaurantCard from '@/components/RestaurantCard';
 
@@ -47,7 +48,7 @@ interface FavoriteEvent {
 
 export default function FavoritesSection() {
   const { user } = useAuth();
-  const { setFavoriteState, refreshFavorites } = useFavorites();
+  const { setFavoriteState, refreshFavorites, favoritesCount } = useFavorites();
   const { logSecurityEvent } = useSecurityLogger();
   const [activeSubTab, setActiveSubTab] = useState('restaurants');
   const [favoriteRestaurants, setFavoriteRestaurants] = useState<FavoriteRestaurant[]>([]);
@@ -63,12 +64,26 @@ export default function FavoritesSection() {
     }
   }, [user]);
 
+  // Listen to favoriteToggled events for real-time updates
+  useEffect(() => {
+    const handleFavoriteToggled = (event: CustomEvent) => {
+      const { restaurantId, isFavorite } = event.detail;
+      if (!isFavorite) {
+        setFavoriteRestaurants(prev => prev.filter(item => item.id !== restaurantId));
+      }
+    };
+
+    window.addEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
+    return () => {
+      window.removeEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
+    };
+  }, []);
+
   const setupRealtimeSubscription = () => {
     if (!user) return;
 
-    // Subscribe to changes in user's saved restaurants
     const channel = supabase
-      .channel(`favorites-${user.id}`)
+      .channel(`favorites-section-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -78,12 +93,11 @@ export default function FavoritesSection() {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Favorites change detected:', payload);
+          console.log('Favorites section change detected:', payload);
           
           if (payload.eventType === 'DELETE' || 
               (payload.eventType === 'UPDATE' && payload.new && 
                typeof payload.new === 'object' && 'is_active' in payload.new && !payload.new.is_active)) {
-            // Remove from local state immediately
             const restaurantId = (payload.old && typeof payload.old === 'object' && 'restaurant_id' in payload.old) 
               ? payload.old.restaurant_id 
               : (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) 
@@ -95,7 +109,6 @@ export default function FavoritesSection() {
             }
           } else if (payload.eventType === 'INSERT' && payload.new && 
                      typeof payload.new === 'object' && 'is_active' in payload.new && payload.new.is_active) {
-            // Reload favorites to get the new one with full data
             loadFavorites();
           }
         }
@@ -158,6 +171,7 @@ export default function FavoritesSection() {
 
       setFavoriteRestaurants(formattedRestaurants);
 
+      // Load favorite dishes
       const { data: dishes, error: dishesError } = await supabase
         .from('user_saved_dishes')
         .select(`
@@ -189,6 +203,7 @@ export default function FavoritesSection() {
 
       setFavoriteDishes(formattedDishes);
 
+      // Load favorite events
       const { data: events, error: eventsError } = await supabase
         .from('user_saved_events')
         .select(`
@@ -237,26 +252,12 @@ export default function FavoritesSection() {
 
   const handleFavoriteChange = (restaurantId: number, isFavorite: boolean) => {
     if (!isFavorite) {
-      // Remove from local state immediately for better UX
       setFavoriteRestaurants(prev => prev.filter(item => item.id !== restaurantId));
     }
   };
 
   const removeFavorite = async (type: 'restaurant' | 'dish' | 'event', id: number) => {
     if (!user) return;
-
-    // Verificar sesión antes de llamar RPC
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    
-    if (!sessionData?.session || sessionData.session.user.id !== user.id) {
-      await logSecurityEvent('invalid_session_remove_favorite', type, String(id));
-      toast({
-        title: "Sesión no válida",
-        description: "Vuelve a iniciar sesión para gestionar tus favoritos.",
-        variant: "destructive"
-      });
-      return;
-    }
 
     const key = `${type}-${id}`;
     setRemoving(prev => ({ ...prev, [key]: true }));
@@ -266,13 +267,12 @@ export default function FavoritesSection() {
 
       switch (type) {
         case 'restaurant':
-          // Immediate optimistic updates
           setFavoriteState(id, false);
           setFavoriteRestaurants(prev => prev.filter(item => item.id !== id));
           
-          ({ error } = await supabase.rpc('toggle_restaurant_favorite', {
-            user_id_param: user.id,
-            restaurant_id_param: id
+          ({ error } = await supabase.rpc('toggle_restaurant_favorite_v2', {
+            restaurant_id_param: id,
+            saved_from_param: 'favorites_page'
           }));
 
           if (!error) {
@@ -337,9 +337,9 @@ export default function FavoritesSection() {
   };
 
   const subTabs = [
-    { id: 'restaurants', label: 'Restaurantes', icon: UtensilsCrossed },
-    { id: 'dishes', label: 'Platos', icon: Heart },
-    { id: 'events', label: 'Eventos', icon: Calendar }
+    { id: 'restaurants', label: 'Restaurantes', icon: UtensilsCrossed, count: favoriteRestaurants.length },
+    { id: 'dishes', label: 'Platos', icon: Heart, count: favoriteDishes.length },
+    { id: 'events', label: 'Eventos', icon: Calendar, count: favoriteEvents.length }
   ];
 
   if (loading) {
@@ -352,6 +352,13 @@ export default function FavoritesSection() {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Mis Favoritos</h2>
+        <span className="text-sm text-muted-foreground">
+          {favoritesCount} total
+        </span>
+      </div>
+
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           {subTabs.map((tab) => {
@@ -364,6 +371,11 @@ export default function FavoritesSection() {
               >
                 <Icon className="h-4 w-4" />
                 {tab.label}
+                {tab.count > 0 && (
+                  <span className="ml-1 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                    {tab.count}
+                  </span>
+                )}
               </TabsTrigger>
             );
           })}
@@ -371,9 +383,16 @@ export default function FavoritesSection() {
 
         <TabsContent value="restaurants" className="space-y-4 mt-6">
           {favoriteRestaurants.length === 0 ? (
-            <div className="text-center py-8">
-              <UtensilsCrossed className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No tienes restaurantes favoritos aún</p>
+            <div className="text-center py-12">
+              <UtensilsCrossed className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">No tienes restaurantes favoritos aún</h3>
+              <p className="text-muted-foreground mb-4">
+                Explora restaurantes y guarda tus favoritos para encontrarlos fácilmente
+              </p>
+              <Button onClick={() => window.location.href = '/'} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Explorar restaurantes
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -419,9 +438,16 @@ export default function FavoritesSection() {
 
         <TabsContent value="dishes" className="space-y-4 mt-6">
           {favoriteDishes.length === 0 ? (
-            <div className="text-center py-8">
-              <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No tienes platos favoritos aún</p>
+            <div className="text-center py-12">
+              <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">No tienes platos favoritos aún</h3>
+              <p className="text-muted-foreground mb-4">
+                Explora menús de restaurantes y guarda tus platos favoritos
+              </p>
+              <Button onClick={() => window.location.href = '/'} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Explorar platos
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
@@ -461,9 +487,16 @@ export default function FavoritesSection() {
 
         <TabsContent value="events" className="space-y-4 mt-6">
           {favoriteEvents.length === 0 ? (
-            <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No tienes eventos favoritos aún</p>
+            <div className="text-center py-12">
+              <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">No tienes eventos favoritos aún</h3>
+              <p className="text-muted-foreground mb-4">
+                Descubre eventos en restaurantes y guarda los que te interesen
+              </p>
+              <Button onClick={() => window.location.href = '/'} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Explorar eventos
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
