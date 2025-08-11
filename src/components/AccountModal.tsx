@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Loader2, User, LogOut } from 'lucide-react';
 import ProfileSection from './ProfileSection';
 import FavoritesSection from './FavoritesSection';
@@ -238,7 +239,7 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
         <DialogHeader>
           <DialogTitle>Iniciar Sesión</DialogTitle>
           <DialogDescription>
-            Accede a tu cuenta para guardar favoritos y más
+            Accede a tu cuenta para guardar favoritos y gestionar tu perfil
           </DialogDescription>
         </DialogHeader>
 
@@ -280,7 +281,7 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                O continúa con
+                O continúa con email
               </span>
             </div>
           </div>

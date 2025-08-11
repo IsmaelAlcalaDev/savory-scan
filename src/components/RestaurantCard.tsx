@@ -1,9 +1,8 @@
-import { Star, Heart } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useFavorites } from '@/hooks/useFavorites';
-import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect, useRef } from 'react';
+import FavoriteButton from './FavoriteButton';
 
 interface RestaurantCardProps {
   id: number;
@@ -44,62 +43,15 @@ export default function RestaurantCard({
   logoUrl,
   onClick,
   className,
-  onLoginRequired,
+  onLoginRequired = () => {},
   layout = 'grid',
   onFavoriteChange
 }: RestaurantCardProps) {
-  let user = null;
-  try {
-    const authContext = useAuth();
-    user = authContext.user;
-  } catch (error) {
-    console.warn('RestaurantCard used outside AuthProvider context');
-  }
-
-  const { isFavorite, isToggling, toggleFavorite } = useFavorites();
-  
-  const [localFavoritesCount, setLocalFavoritesCount] = useState(favoritesCount);
-  const previousIsFavoriteRef = useRef<boolean | null>(null);
-
-  useEffect(() => {
-    setLocalFavoritesCount(favoritesCount);
-  }, [favoritesCount]);
-
-  useEffect(() => {
-    const currentIsFavorite = isFavorite(id);
-    
-    if (previousIsFavoriteRef.current !== null && previousIsFavoriteRef.current !== currentIsFavorite) {
-      if (currentIsFavorite && !previousIsFavoriteRef.current) {
-        setLocalFavoritesCount(prev => prev + 1);
-      } else if (!currentIsFavorite && previousIsFavoriteRef.current) {
-        setLocalFavoritesCount(prev => Math.max(0, prev - 1));
-      }
-    }
-    
-    previousIsFavoriteRef.current = currentIsFavorite;
-  }, [isFavorite(id), id]);
-
   const handleClick = () => {
     if (onClick) {
       onClick();
     } else {
       window.location.href = `/restaurant/${slug}`;
-    }
-  };
-
-  const handleFavoriteClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (!user && onLoginRequired) {
-      onLoginRequired();
-      return;
-    }
-    
-    const result = await toggleFavorite(id, onLoginRequired);
-    
-    // Call the callback to notify parent component
-    if (onFavoriteChange) {
-      onFavoriteChange(id, result);
     }
   };
 
@@ -145,26 +97,12 @@ export default function RestaurantCard({
           </div>
           
           <div className="absolute bottom-2 right-2">
-            <button
-              onClick={handleFavoriteClick}
-              disabled={isToggling(id)}
-              className={cn(
-                "flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 border border-white/20",
-                "hover:bg-white transition-all duration-200",
-                "disabled:opacity-50 disabled:cursor-not-allowed"
-              )}
-            >
-              <Heart 
-                className={cn(
-                  "h-3 w-3 transition-all duration-200",
-                  isFavorite(id) 
-                    ? "text-red-500 fill-red-500" 
-                    : "text-red-500",
-                  isToggling(id) && "animate-pulse"
-                )} 
-              />
-              <span className="text-xs font-medium">{localFavoritesCount}</span>
-            </button>
+            <FavoriteButton
+              restaurantId={id}
+              favoritesCount={favoritesCount}
+              onLoginRequired={onLoginRequired}
+              size="sm"
+            />
           </div>
         </div>
 
@@ -248,26 +186,12 @@ export default function RestaurantCard({
         </div>
         
         <div className="absolute bottom-3 right-3">
-          <button
-            onClick={handleFavoriteClick}
-            disabled={isToggling(id)}
-            className={cn(
-              "flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 border border-white/20",
-              "hover:bg-white transition-all duration-200",
-              "disabled:opacity-50 disabled:cursor-not-allowed"
-            )}
-          >
-            <Heart 
-              className={cn(
-                "h-3 w-3 transition-all duration-200",
-                isFavorite(id) 
-                  ? "text-red-500 fill-red-500" 
-                  : "text-red-500",
-                isToggling(id) && "animate-pulse"
-              )} 
-            />
-            <span className="text-xs font-medium">{localFavoritesCount}</span>
-          </button>
+          <FavoriteButton
+            restaurantId={id}
+            favoritesCount={favoritesCount}
+            onLoginRequired={onLoginRequired}
+            size="md"
+          />
         </div>
       </div>
 
