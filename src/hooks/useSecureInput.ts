@@ -29,7 +29,7 @@ export const useSecureInput = (options: SecurityOptions = {}) => {
     const cleanHtml = DOMPurify.sanitize(input, {
       ALLOWED_TAGS: config.allowedTags,
       ALLOWED_ATTR: config.allowedAttributes,
-      FORBID_SCRIPT: config.stripScripts,
+      FORBID_TAGS: config.stripScripts ? ['script'] : [],
     });
     
     return config.maxLength ? cleanHtml.substring(0, config.maxLength) : cleanHtml;
