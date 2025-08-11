@@ -135,15 +135,35 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return false;
     }
 
-    // Prevent multiple clicks
+    // Evita dobles clics mientras hay petición en curso
     if (loadingMap[restaurantId]) return favoritesMap[restaurantId] || false;
+
+    // Estado actual antes de cambiar nada (para posibles reversiones)
+    const currentState = favoritesMap[restaurantId] || false;
+
+    // Verificar sesión de Supabase antes del RPC
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    console.log('Auth session before toggle', {
+      sessionError,
+      hasSession: !!sessionData?.session,
+      sessionUserId: sessionData?.session?.user?.id,
+      contextUserId: user.id,
+    });
+
+    if (!sessionData?.session || sessionData.session.user.id !== user.id) {
+      toast({
+        title: "Sesión no válida",
+        description: "Vuelve a iniciar sesión para guardar favoritos.",
+        variant: "destructive"
+      });
+      if (openLoginModal) openLoginModal();
+      return currentState;
+    }
 
     setLoadingMap(prev => ({ ...prev, [restaurantId]: true }));
 
     // Optimistic update
-    const currentState = favoritesMap[restaurantId] || false;
-    const newState = !currentState;
-    
+    const newState = !currentState;    
     setFavoritesMap(prev => ({
       ...prev,
       [restaurantId]: newState
@@ -157,7 +177,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (error) throw error;
 
-      // Confirm real state from DB
+      // Confirmar estado desde DB
       setFavoritesMap(prev => ({
         ...prev,
         [restaurantId]: data
@@ -170,10 +190,16 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       return data;
 
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
+    } catch (error: any) {
+      console.error('Error toggling favorite:', {
+        error,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        message: error?.message
+      });
       
-      // Revert optimistic update on error
+      // Revertir optimistic update
       setFavoritesMap(prev => ({
         ...prev,
         [restaurantId]: currentState
@@ -181,7 +207,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       
       toast({
         title: "Error",
-        description: "No se pudo actualizar el favorito. Inténtalo de nuevo.",
+        description: error?.message || "No se pudo actualizar el favorito. Inténtalo de nuevo.",
         variant: "destructive"
       });
       

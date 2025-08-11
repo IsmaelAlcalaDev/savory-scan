@@ -244,6 +244,24 @@ export default function FavoritesSection() {
   const removeFavorite = async (type: 'restaurant' | 'dish' | 'event', id: number) => {
     if (!user) return;
 
+    // Verificar sesión antes de llamar RPC
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    console.log('Remove favorite - auth session check', {
+      sessionError,
+      hasSession: !!sessionData?.session,
+      sessionUserId: sessionData?.session?.user?.id,
+      contextUserId: user.id,
+    });
+
+    if (!sessionData?.session || sessionData.session.user.id !== user.id) {
+      toast({
+        title: "Sesión no válida",
+        description: "Vuelve a iniciar sesión para gestionar tus favoritos.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const key = `${type}-${id}`;
     setRemoving(prev => ({ ...prev, [key]: true }));
 
@@ -260,6 +278,15 @@ export default function FavoritesSection() {
             user_id_param: user.id,
             restaurant_id_param: id
           }));
+          if (error) {
+            console.error('RPC error (restaurant):', {
+              error,
+              code: (error as any)?.code,
+              details: (error as any)?.details,
+              hint: (error as any)?.hint,
+              message: (error as any)?.message
+            });
+          }
 
           if (!error) {
             await refreshFavorites();
@@ -272,6 +299,15 @@ export default function FavoritesSection() {
             user_id_param: user.id,
             dish_id_param: id
           }));
+          if (error) {
+            console.error('RPC error (dish):', {
+              error,
+              code: (error as any)?.code,
+              details: (error as any)?.details,
+              hint: (error as any)?.hint,
+              message: (error as any)?.message
+            });
+          }
           break;
         case 'event':
           setFavoriteEvents(prev => prev.filter(item => item.id !== id));
@@ -280,6 +316,15 @@ export default function FavoritesSection() {
             user_id_param: user.id,
             event_id_param: id
           }));
+          if (error) {
+            console.error('RPC error (event):', {
+              error,
+              code: (error as any)?.code,
+              details: (error as any)?.details,
+              hint: (error as any)?.hint,
+              message: (error as any)?.message
+            });
+          }
           break;
       }
 
@@ -290,8 +335,14 @@ export default function FavoritesSection() {
         description: "El elemento se ha eliminado de tus favoritos"
       });
 
-    } catch (error) {
-      console.error('Error removing favorite:', error);
+    } catch (error: any) {
+      console.error('Error removing favorite:', {
+        error,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        message: error?.message
+      });
       
       if (type === 'restaurant') {
         setFavoriteState(id, true);
@@ -300,7 +351,7 @@ export default function FavoritesSection() {
       
       toast({
         title: "Error",
-        description: "No se pudo eliminar de favoritos",
+        description: error?.message || "No se pudo eliminar de favoritos",
         variant: "destructive"
       });
     } finally {
