@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -170,7 +171,7 @@ export const useRestaurants = ({
 
     fetchRestaurants();
 
-    // Realtime: escuchar solo updates en restaurants y aplicar favorites_count directo
+    // Simplificado: solo escuchar cambios en restaurants table para favorites_count
     const channel = supabase
       .channel('restaurants-updates')
       .on(

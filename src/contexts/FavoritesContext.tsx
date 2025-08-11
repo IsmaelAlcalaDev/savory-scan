@@ -115,7 +115,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               return newSet;
             });
 
-            // Emit custom event for other components to listen
+            // Emit custom event for other components to listen - NO counter updates here
             window.dispatchEvent(new CustomEvent('favoriteToggled', {
               detail: { restaurantId, isFavorite: isActive }
             }));
@@ -232,7 +232,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       console.log('FavoritesProvider: Calling toggle_restaurant_favorite_v2 RPC');
       
-      // Call the v2 RPC function (DB triggers update counters + realtime emits)
+      // Call the v2 RPC function (DB triggers update counters automatically)
       const { data, error } = await supabase.rpc('toggle_restaurant_favorite_v2' as any, {
         restaurant_id_param: restaurantId,
         saved_from_param: savedFrom
