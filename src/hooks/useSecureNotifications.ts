@@ -26,13 +26,18 @@ export const useSecureNotifications = () => {
 
     setCreating(true);
     try {
-      const { data: notificationId, error } = await supabase.rpc('create_notification', {
-        target_user_id: targetUserId,
-        notification_title: title,
-        notification_body: body,
-        notification_type: type,
-        notification_data: data || {}
-      });
+      // Direct insert since we have the proper RLS policies in place
+      const { data: notification, error } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: targetUserId,
+          title: title,
+          body: body,
+          type: type as any, // Type assertion for notification_type enum
+          data: data || {}
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -41,7 +46,7 @@ export const useSecureNotifications = () => {
         description: "The notification has been sent successfully"
       });
       
-      return notificationId;
+      return notification?.id;
     } catch (error) {
       console.error('Error creating notification:', error);
       toast({

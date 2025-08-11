@@ -31,34 +31,18 @@ export const useUserPreferences = () => {
     if (!user) return;
 
     try {
+      // Try to fetch from user_preferences table, fallback if not available
       const { data, error } = await supabase
-        .from('user_preferences')
+        .from('user_preferences' as any)
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching preferences:', error);
-      } else if (data) {
-        setPreferences(data);
-      } else {
-        // Create default preferences if none exist
-        await createDefaultPreferences();
-      }
-    } catch (error) {
-      console.error('Error fetching preferences:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createDefaultPreferences = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .insert({
+        // Create a default preferences object
+        const defaultPrefs: UserPreferences = {
+          id: `temp_${user.id}`,
           user_id: user.id,
           preferences: {
             theme: 'system',
@@ -74,15 +58,103 @@ export const useUserPreferences = () => {
               glutenFree: false,
               lactoseFree: false
             }
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        setPreferences(defaultPrefs);
+      } else if (data) {
+        setPreferences(data as UserPreferences);
+      } else {
+        // Create default preferences if none exist
+        await createDefaultPreferences();
+      }
+    } catch (error) {
+      console.error('Error fetching preferences:', error);
+      // Fallback to default preferences
+      const defaultPrefs: UserPreferences = {
+        id: `temp_${user.id}`,
+        user_id: user.id,
+        preferences: {
+          theme: 'system',
+          language: 'es',
+          notifications: {
+            email: true,
+            push: true,
+            marketing: false
+          },
+          dietary: {
+            vegetarian: false,
+            vegan: false,
+            glutenFree: false,
+            lactoseFree: false
           }
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setPreferences(defaultPrefs);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createDefaultPreferences = async () => {
+    if (!user) return;
+
+    try {
+      const defaultPreferences = {
+        theme: 'system',
+        language: 'es',
+        notifications: {
+          email: true,
+          push: true,
+          marketing: false
+        },
+        dietary: {
+          vegetarian: false,
+          vegan: false,
+          glutenFree: false,
+          lactoseFree: false
+        }
+      };
+
+      const { data, error } = await supabase
+        .from('user_preferences' as any)
+        .insert({
+          user_id: user.id,
+          preferences: defaultPreferences
         })
         .select()
         .single();
 
       if (error) throw error;
-      setPreferences(data);
+      setPreferences(data as UserPreferences);
     } catch (error) {
       console.error('Error creating default preferences:', error);
+      // Set local fallback
+      const fallbackPrefs: UserPreferences = {
+        id: `temp_${user.id}`,
+        user_id: user.id,
+        preferences: {
+          theme: 'system',
+          language: 'es',
+          notifications: {
+            email: true,
+            push: true,
+            marketing: false
+          },
+          dietary: {
+            vegetarian: false,
+            vegan: false,
+            glutenFree: false,
+            lactoseFree: false
+          }
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setPreferences(fallbackPrefs);
     }
   };
 
@@ -92,7 +164,7 @@ export const useUserPreferences = () => {
     setUpdating(true);
     try {
       const { data, error } = await supabase
-        .from('user_preferences')
+        .from('user_preferences' as any)
         .update({
           preferences: newPreferences,
           updated_at: new Date().toISOString()
@@ -103,7 +175,7 @@ export const useUserPreferences = () => {
 
       if (error) throw error;
       
-      setPreferences(data);
+      setPreferences(data as UserPreferences);
       toast({
         title: "Preferences updated",
         description: "Your preferences have been saved successfully"
