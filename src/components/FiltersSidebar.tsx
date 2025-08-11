@@ -63,30 +63,30 @@ export default function FiltersSidebar({
     children: React.ReactNode;
     loading?: boolean;
   }) => (
-    <div className="mb-8 bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+    <div className="mb-6 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-gray-900 text-lg">{title}</h3>
           {selectedCount > 0 && (
-            <Badge variant="secondary" className="bg-red-100 text-red-800 font-medium">
+            <Badge className="bg-primary/10 text-primary border-primary/20 font-medium">
               {selectedCount} seleccionado{selectedCount > 1 ? 's' : ''}
             </Badge>
           )}
         </div>
       </div>
       
-      <div className="p-4">
+      <div className="p-6">
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center space-x-2">
-                <Skeleton className="h-4 w-4 rounded" />
-                <Skeleton className="h-4 flex-1" />
+              <div key={i} className="flex items-center space-x-3">
+                <Skeleton className="h-5 w-5 rounded" />
+                <Skeleton className="h-5 flex-1" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {children}
           </div>
         )}
@@ -108,9 +108,9 @@ export default function FiltersSidebar({
     <button
       onClick={onClick}
       className={cn(
-        "h-9 px-4 text-sm font-medium transition-all duration-200 border rounded-full flex items-center gap-2 flex-shrink-0",
+        "h-10 px-4 text-sm font-medium transition-all duration-200 border rounded-lg flex items-center gap-2 flex-shrink-0 shadow-sm hover:shadow-md",
         isSelected 
-          ? "bg-red-600 text-white hover:bg-red-700 border-red-600" 
+          ? "bg-primary text-primary-foreground hover:bg-primary/90 border-primary shadow-primary/20" 
           : "bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400"
       )}
     >

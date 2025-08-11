@@ -57,6 +57,10 @@ export default function FiltersModal({
     onDietTypeChange([]);
   };
 
+  const applyFilters = () => {
+    setOpen(false);
+  };
+
   const hasActiveFilters = 
     selectedDistances.length > 0 ||
     selectedRatings.length > 0 ||
@@ -71,7 +75,7 @@ export default function FiltersModal({
       <ModalTrigger asChild>
         <Button
           variant="ghost"
-          className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white hover:text-white shadow-lg hover:shadow-xl transition-all duration-300 border-0 p-0 flex items-center justify-center relative group"
+          className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground hover:text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 border-0 p-0 flex items-center justify-center relative group"
         >
           <SlidersHorizontal className="h-6 w-6 transition-transform duration-300 group-hover:rotate-180" />
           {hasActiveFilters && (
@@ -82,13 +86,13 @@ export default function FiltersModal({
       
       <ModalContent className="max-w-4xl h-[90vh] p-0 overflow-hidden flex flex-col">
         {/* Header fijo */}
-        <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 flex-shrink-0 relative">
-          {/* Botón de cerrar más grande y blanco */}
+        <div className="bg-gradient-to-r from-primary to-primary/90 text-primary-foreground p-6 flex-shrink-0 relative">
+          {/* Botón de cerrar */}
           <button
             onClick={() => setOpen(false)}
             className="absolute right-4 top-4 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center"
           >
-            <X className="h-8 w-8 text-white font-bold" strokeWidth={4} />
+            <X className="h-8 w-8 text-primary-foreground font-bold" strokeWidth={4} />
           </button>
 
           <ModalHeader>
@@ -101,33 +105,14 @@ export default function FiltersModal({
               </ModalTitle>
             </div>
             
-            {hasActiveFilters && (
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-red-100 text-sm">
-                  Tienes filtros activos. Los cambios se aplican automáticamente.
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  className="text-white hover:bg-white/20 transition-colors flex items-center gap-2 bg-white/10 px-4 py-2"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Limpiar Filtros
-                </Button>
-              </div>
-            )}
-
-            {!hasActiveFilters && (
-              <p className="text-red-100 text-sm mt-2">
-                Selecciona los filtros que desees para refinar tu búsqueda.
-              </p>
-            )}
+            <p className="text-primary-foreground/90 text-sm mt-2">
+              Selecciona los filtros que desees para refinar tu búsqueda de restaurantes.
+            </p>
           </ModalHeader>
         </div>
 
         {/* Contenido scrolleable */}
-        <div className="flex-1 overflow-hidden bg-gradient-to-b from-gray-50/50 to-white">
+        <div className="flex-1 overflow-hidden bg-gray-50">
           <ScrollArea className="h-full">
             <div className="p-6">
               <FiltersSidebar
@@ -150,21 +135,39 @@ export default function FiltersModal({
           </ScrollArea>
         </div>
 
-        {/* Footer fijo con botón de limpiar alternativo */}
-        {hasActiveFilters && (
-          <div className="flex-shrink-0 bg-white border-t border-gray-200 p-4">
-            <div className="flex justify-center">
+        {/* Footer fijo con botones de acción */}
+        <div className="flex-shrink-0 bg-white border-t border-gray-200 p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  onClick={clearAllFilters}
+                  className="flex items-center gap-2"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Limpiar Filtros
+                </Button>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3">
               <Button
-                variant="outline"
-                onClick={clearAllFilters}
-                className="flex items-center gap-2 px-6 py-2"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+                className="px-6"
               >
-                <RotateCcw className="h-4 w-4" />
-                Limpiar Todos los Filtros
+                Cancelar
+              </Button>
+              <Button
+                onClick={applyFilters}
+                className="px-8 bg-primary hover:bg-primary/90"
+              >
+                Aplicar Filtros
               </Button>
             </div>
           </div>
-        )}
+        </div>
       </ModalContent>
     </ModalWrapper>
   );

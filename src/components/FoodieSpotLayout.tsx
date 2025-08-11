@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Search, MapPin, Menu, X, User, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,6 @@ import CuisineFilter from './CuisineFilter';
 import FiltersModal from './FiltersModal';
 import RestaurantCard from './RestaurantCard';
 import LocationModal from './LocationModal';
-import VegModeToggle from './VegModeToggle';
 import BottomNavigation from './BottomNavigation';
 import AccountModal from './AccountModal';
 import MenuModal from './MenuModal';
@@ -47,7 +47,6 @@ export default function FoodieSpotLayout() {
   const [selectedTimeRanges, setSelectedTimeRanges] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<string[]>([]);
   const [activeFilters, setActiveFilters] = useState<string[]>(['nearby']);
-  const [isVegMode, setIsVegMode] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -82,25 +81,6 @@ export default function FoodieSpotLayout() {
       setCurrentLocationName(locationDisplay);
     }
   }, [ipLocation, userLocation]);
-
-  useEffect(() => {
-    const bodyElement = document.body;
-    const htmlElement = document.documentElement;
-    
-    if (isVegMode) {
-      bodyElement.classList.add('veg-mode');
-      htmlElement.classList.add('veg-mode');
-    } else {
-      bodyElement.classList.remove('veg-mode');
-      htmlElement.classList.remove('veg-mode');
-    }
-    
-    // Cleanup function
-    return () => {
-      bodyElement.classList.remove('veg-mode');
-      htmlElement.classList.remove('veg-mode');
-    };
-  }, [isVegMode]);
 
   const { restaurants, loading, error } = useRestaurants({
     searchQuery,
@@ -393,39 +373,22 @@ export default function FoodieSpotLayout() {
       return `${restaurants.length} restaurantes`;
     };
 
-    const getLocationNote = () => {
-      if (ipLocation && ipLocation.accuracy === 'ip') {
-        return 'ubicación aproximada';
-      }
-      if (userLocation) {
-        return 'ordenados por distancia';
-      }
-      return null;
-    };
-
     // Default restaurants content (siempre mostrar cuando no sea 'dishes')
     return (
       <>
         {/* Results Header with Dynamic Title */}
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className={`text-xl font-semibold mb-1 mode-transition ${isVegMode ? 'animate-grow-bounce' : ''}`}>
+            <h2 className="text-xl font-semibold mb-1">
               {loading ? 'Cargando restaurantes...' : getDynamicTitle()}
             </h2>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {getLocationNote() && (
-                <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
-                  {getLocationNote()}
-                </span>
-              )}
-            </div>
             {error && (
               <p className="text-sm text-destructive mt-1">Error: {error}</p>
             )}
           </div>
         </div>
 
-        {/* Filter Badges with VEG Mode */}
+        {/* Filter Badges */}
         <div className="flex items-center gap-4 mb-2 pt-1 pb-1">
           <div className="relative flex-1 min-w-0">
             <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-14 pr-4">
@@ -460,13 +423,6 @@ export default function FoodieSpotLayout() {
             </div>
             {/* Fade gradient for overflow */}
             <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
-          </div>
-          
-          <div className={`flex-shrink-0 ${isVegMode ? 'animate-leaf-sway' : ''}`}>
-            <VegModeToggle 
-              isVegMode={isVegMode}
-              onToggle={setIsVegMode}
-            />
           </div>
         </div>
 
@@ -552,16 +508,16 @@ export default function FoodieSpotLayout() {
   };
 
   return (
-    <div className={`min-h-screen bg-white pb-20 px-[7.5%] mode-transition`}>
+    <div className="min-h-screen bg-white pb-20 px-[7.5%]">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%] mode-transition">
+      <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%]">
         <div className="flex items-center justify-between py-3 px-4">
           {/* Left Section: Logo */}
           <div className="flex items-center flex-shrink-0 relative">
             <img 
               src={appLogoUrl}
               alt={`${appName} Logo`} 
-              className={`w-24 h-24 bg-transparent object-contain mode-transition absolute top-1/2 left-0 transform -translate-y-1/2 z-10 ${isVegMode ? 'animate-grow-bounce' : ''}`}
+              className="w-24 h-24 bg-transparent object-contain absolute top-1/2 left-0 transform -translate-y-1/2 z-10"
             />
             {/* Spacer to maintain layout */}
             <div className="w-24 h-8" />
@@ -574,7 +530,7 @@ export default function FoodieSpotLayout() {
               <Button
                 variant="ghost"
                 onClick={() => setLocationModalOpen(true)}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive hover:bg-transparent whitespace-nowrap"
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary hover:bg-transparent whitespace-nowrap"
               >
                 <MapPin className="h-4 w-4" />
                 <span className="max-w-40 truncate">
@@ -587,7 +543,7 @@ export default function FoodieSpotLayout() {
             <div className="flex-1 max-w-md">
               <div className="relative">
                 <Search className={`absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors z-10 ${
-                  isSearchFocused ? 'text-red-500' : 'text-muted-foreground'
+                  isSearchFocused ? 'text-primary' : 'text-muted-foreground'
                 }`} />
                 <Input
                   type="text"
@@ -606,7 +562,7 @@ export default function FoodieSpotLayout() {
           <div className="flex items-center gap-12 flex-shrink-0">
             <LanguageSelector />
             <button 
-              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent mode-transition text-gray-800 hover:text-gray-600 transition-colors"
+              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
               onClick={() => setMenuModalOpen(true)}
             >
               <Menu className="h-8 w-8" strokeWidth={2} />
