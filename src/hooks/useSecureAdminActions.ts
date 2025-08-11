@@ -2,31 +2,12 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSecurityAuditLog } from '@/hooks/useSecurityAuditLog';
 
 export const useSecureAdminActions = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
-  const logSecurityEvent = async (
-    actionType: string,
-    entityType?: string,
-    entityId?: string,
-    details?: any
-  ) => {
-    try {
-      // Log to console for now until the database function is available
-      console.log('Security Event:', {
-        action: actionType,
-        entity: entityType,
-        id: entityId,
-        details,
-        timestamp: new Date().toISOString(),
-        user: (await supabase.auth.getUser()).data.user?.id
-      });
-    } catch (error) {
-      console.warn('Failed to log security event:', error);
-    }
-  };
+  const { logSecurityEvent } = useSecurityAuditLog();
 
   const executeSecureAction = async (
     actionName: string,
@@ -83,8 +64,16 @@ export const useSecureAdminActions = () => {
       'Get Restaurant Statistics',
       async () => {
         const { data, error } = await supabase
-          .from('restaurant_stats')
-          .select('*')
+          .from('restaurants')
+          .select(`
+            id,
+            name,
+            google_rating,
+            google_rating_count,
+            favorites_count
+          `)
+          .eq('is_active', true)
+          .eq('is_published', true)
           .limit(10);
         
         if (error) throw error;
@@ -115,25 +104,11 @@ export const useSecureAdminActions = () => {
     );
   };
 
-  const getSecurityAuditLog = async (limit = 100) => {
-    return executeSecureAction(
-      'Get Security Audit Log',
-      async () => {
-        // Return empty array for now until the infrastructure is set up
-        console.log('Security audit log requested - infrastructure not yet available');
-        return [];
-      },
-      'system',
-      'security_audit_log'
-    );
-  };
-
   return {
     loading,
     executeSecureAction,
     logSecurityEvent,
     getRestaurantStats,
-    getUserRoles,
-    getSecurityAuditLog
+    getUserRoles
   };
 };

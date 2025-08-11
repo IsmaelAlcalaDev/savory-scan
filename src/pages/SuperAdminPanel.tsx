@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useSecureAdminActions } from '@/hooks/useSecureAdminActions';
+import { useSecureNotifications } from '@/hooks/useSecureNotifications';
 import SecurityAuditLog from '@/components/SecurityAuditLog';
 import { 
   Shield, 
@@ -15,7 +16,8 @@ import {
   BarChart3, 
   AlertTriangle,
   Database,
-  Settings
+  Settings,
+  Bell
 } from 'lucide-react';
 
 export default function SuperAdminPanel() {
@@ -24,21 +26,16 @@ export default function SuperAdminPanel() {
   const { 
     loading, 
     getRestaurantStats, 
-    getUserRoles, 
-    getSecurityAuditLog,
+    getUserRoles,
     logSecurityEvent 
   } = useSecureAdminActions();
+  const { createNotification } = useSecureNotifications();
   
   const [restaurantStats, setRestaurantStats] = useState<any[]>([]);
   const [userRoles, setUserRoles] = useState<any[]>([]);
 
   const handleGetRestaurantStats = async () => {
     try {
-      await logSecurityEvent('admin_panel_access', 'system', 'restaurant_stats', {
-        action: 'view_restaurant_stats',
-        timestamp: new Date().toISOString()
-      });
-      
       const stats = await getRestaurantStats();
       setRestaurantStats(stats || []);
     } catch (error) {
@@ -48,16 +45,23 @@ export default function SuperAdminPanel() {
 
   const handleGetUserRoles = async () => {
     try {
-      await logSecurityEvent('admin_panel_access', 'system', 'user_roles', {
-        action: 'view_user_roles',
-        timestamp: new Date().toISOString()
-      });
-      
       const roles = await getUserRoles();
       setUserRoles(roles || []);
     } catch (error) {
       console.error('Error fetching user roles:', error);
     }
+  };
+
+  const handleTestNotification = async () => {
+    if (!user) return;
+    
+    await createNotification(
+      user.id,
+      'Test Notification',
+      'This is a test notification from the admin panel',
+      'info',
+      { source: 'admin_panel', test: true }
+    );
   };
 
   if (!isAdmin) {
@@ -89,7 +93,7 @@ export default function SuperAdminPanel() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overview
@@ -97,6 +101,10 @@ export default function SuperAdminPanel() {
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             User Management
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Notifications
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -138,7 +146,7 @@ export default function SuperAdminPanel() {
                           <span className="text-muted-foreground">Reviews:</span> {restaurant.google_rating_count}
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Saves:</span> {restaurant.saves_count}
+                          <span className="text-muted-foreground">Saves:</span> {restaurant.favorites_count}
                         </div>
                       </div>
                     </div>
@@ -189,6 +197,29 @@ export default function SuperAdminPanel() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="notifications" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Secure Notifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  Notifications are now created through secure, admin-only functions with proper authentication and audit logging.
+                </AlertDescription>
+              </Alert>
+              
+              <Button onClick={handleTestNotification}>
+                Send Test Notification
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="security" className="space-y-6">
           <SecurityAuditLog />
         </TabsContent>
@@ -205,14 +236,20 @@ export default function SuperAdminPanel() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span>Security Audit Logging</span>
-                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
-                    Pending Setup
+                  <Badge variant="outline" className="bg-green-50 text-green-700">
+                    Active
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Row Level Security</span>
                   <Badge variant="outline" className="bg-green-50 text-green-700">
                     Enabled
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Secure Notifications</span>
+                  <Badge variant="outline" className="bg-green-50 text-green-700">
+                    Secured
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
