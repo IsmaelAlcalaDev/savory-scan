@@ -1,14 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Star, MapPin, Heart, UtensilsCrossed, Calendar, Trash2, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useSecurityLogger } from '@/hooks/useSecurityLogger';
 import RestaurantCard from '@/components/RestaurantCard';
 
 interface FavoriteRestaurant {
@@ -49,6 +48,7 @@ interface FavoriteEvent {
 export default function FavoritesSection() {
   const { user } = useAuth();
   const { setFavoriteState, refreshFavorites } = useFavorites();
+  const { logSecurityEvent } = useSecurityLogger();
   const [activeSubTab, setActiveSubTab] = useState('restaurants');
   const [favoriteRestaurants, setFavoriteRestaurants] = useState<FavoriteRestaurant[]>([]);
   const [favoriteDishes, setFavoriteDishes] = useState<FavoriteDish[]>([]);
@@ -224,6 +224,7 @@ export default function FavoritesSection() {
 
     } catch (error) {
       console.error('Error loading favorites:', error);
+      await logSecurityEvent('favorites_load_error', 'user', user.id, { error: String(error) });
       toast({
         title: "Error",
         description: "No se pudieron cargar los favoritos",
@@ -246,14 +247,9 @@ export default function FavoritesSection() {
 
     // Verificar sesión antes de llamar RPC
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    console.log('Remove favorite - auth session check', {
-      sessionError,
-      hasSession: !!sessionData?.session,
-      sessionUserId: sessionData?.session?.user?.id,
-      contextUserId: user.id,
-    });
-
+    
     if (!sessionData?.session || sessionData.session.user.id !== user.id) {
+      await logSecurityEvent('invalid_session_remove_favorite', type, String(id));
       toast({
         title: "Sesión no válida",
         description: "Vuelve a iniciar sesión para gestionar tus favoritos.",
@@ -278,18 +274,10 @@ export default function FavoritesSection() {
             user_id_param: user.id,
             restaurant_id_param: id
           }));
-          if (error) {
-            console.error('RPC error (restaurant):', {
-              error,
-              code: (error as any)?.code,
-              details: (error as any)?.details,
-              hint: (error as any)?.hint,
-              message: (error as any)?.message
-            });
-          }
 
           if (!error) {
             await refreshFavorites();
+            await logSecurityEvent('restaurant_unfavorited', 'restaurant', String(id));
           }
           break;
         case 'dish':
@@ -299,14 +287,9 @@ export default function FavoritesSection() {
             user_id_param: user.id,
             dish_id_param: id
           }));
-          if (error) {
-            console.error('RPC error (dish):', {
-              error,
-              code: (error as any)?.code,
-              details: (error as any)?.details,
-              hint: (error as any)?.hint,
-              message: (error as any)?.message
-            });
+
+          if (!error) {
+            await logSecurityEvent('dish_unfavorited', 'dish', String(id));
           }
           break;
         case 'event':
@@ -316,14 +299,9 @@ export default function FavoritesSection() {
             user_id_param: user.id,
             event_id_param: id
           }));
-          if (error) {
-            console.error('RPC error (event):', {
-              error,
-              code: (error as any)?.code,
-              details: (error as any)?.details,
-              hint: (error as any)?.hint,
-              message: (error as any)?.message
-            });
+
+          if (!error) {
+            await logSecurityEvent('event_unfavorited', 'event', String(id));
           }
           break;
       }
@@ -336,12 +314,11 @@ export default function FavoritesSection() {
       });
 
     } catch (error: any) {
-      console.error('Error removing favorite:', {
-        error,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint,
-        message: error?.message
+      console.error('Error removing favorite:', error);
+      
+      await logSecurityEvent('remove_favorite_error', type, String(id), {
+        error: error?.message,
+        userId: user.id
       });
       
       if (type === 'restaurant') {

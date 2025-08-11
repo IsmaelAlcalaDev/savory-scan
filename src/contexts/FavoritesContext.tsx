@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { useSecurityLogger } from '@/hooks/useSecurityLogger';
 
 interface FavoritesContextType {
   isFavorite: (restaurantId: number) => boolean;
@@ -24,6 +25,7 @@ export const useFavorites = () => {
 
 export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const { logSecurityEvent } = useSecurityLogger();
   const [favoritesMap, setFavoritesMap] = useState<Record<number, boolean>>({});
   const [loadingMap, setLoadingMap] = useState<Record<number, boolean>>({});
   const channelRef = useRef<any>(null);
@@ -49,6 +51,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setFavoritesMap(newFavoritesMap);
     } catch (error) {
       console.error('Error loading favorites:', error);
+      await logSecurityEvent('favorites_load_error', 'user', user.id, { error: String(error) });
     }
   };
 
@@ -123,6 +126,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const toggleFavorite = async (restaurantId: number, openLoginModal?: () => void): Promise<boolean> => {
     if (!user) {
+      await logSecurityEvent('unauthorized_favorite_attempt', 'restaurant', String(restaurantId));
       toast({
         title: "Inicia sesión",
         description: "Debes iniciar sesión para guardar favoritos",
@@ -143,14 +147,14 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     // Verificar sesión de Supabase antes del RPC
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    console.log('Auth session before toggle', {
-      sessionError,
-      hasSession: !!sessionData?.session,
-      sessionUserId: sessionData?.session?.user?.id,
-      contextUserId: user.id,
-    });
-
+    
     if (!sessionData?.session || sessionData.session.user.id !== user.id) {
+      await logSecurityEvent('invalid_session_favorite', 'restaurant', String(restaurantId), {
+        hasSession: !!sessionData?.session,
+        sessionUserId: sessionData?.session?.user?.id,
+        contextUserId: user.id
+      });
+      
       toast({
         title: "Sesión no válida",
         description: "Vuelve a iniciar sesión para guardar favoritos.",
@@ -183,6 +187,12 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         [restaurantId]: data
       }));
 
+      // Log successful action
+      await logSecurityEvent('favorite_toggled', 'restaurant', String(restaurantId), {
+        newState: data,
+        previousState: currentState
+      });
+
       toast({
         title: data ? "Añadido a favoritos" : "Eliminado de favoritos",
         description: data ? "El restaurante se ha guardado en tus favoritos" : "El restaurante se ha eliminado de tus favoritos"
@@ -197,6 +207,13 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         details: error?.details,
         hint: error?.hint,
         message: error?.message
+      });
+      
+      // Log security event for error
+      await logSecurityEvent('favorite_toggle_error', 'restaurant', String(restaurantId), {
+        error: error?.message,
+        code: error?.code,
+        userId: user.id
       });
       
       // Revertir optimistic update
