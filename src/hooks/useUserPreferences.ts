@@ -43,32 +43,36 @@ export const useUserPreferences = () => {
       if (error) {
         console.error('Error fetching preferences:', error);
         // Create default preferences if query failed
-        const defaultPrefs: UserPreferences = createDefaultPreferences(user.id);
+        const defaultPrefs = createDefaultPreferences(user.id);
         setPreferences(defaultPrefs);
       } else if (data) {
         console.log('Found user preferences:', data);
         // Safely convert the data to UserPreferences type
-        const userPrefs: UserPreferences = {
-          id: data.id || `temp_${user.id}`,
-          user_id: data.user_id || user.id,
-          preferences: data.preferences || getDefaultPreferencesObject(),
-          created_at: data.created_at || new Date().toISOString(),
-          updated_at: data.updated_at || new Date().toISOString()
-        };
+        const userPrefs = convertToUserPreferences(data);
         setPreferences(userPrefs);
       } else {
         console.log('No preferences found, creating default');
         // Create default preferences if none exist
-        await createDefaultPreferences();
+        await createDefaultPreferencesInDB();
       }
     } catch (error) {
       console.error('Error in fetchPreferences:', error);
       // Fallback to default preferences
-      const fallbackPrefs: UserPreferences = createDefaultPreferences(user.id);
+      const fallbackPrefs = createDefaultPreferences(user.id);
       setPreferences(fallbackPrefs);
     } finally {
       setLoading(false);
     }
+  };
+
+  const convertToUserPreferences = (data: any): UserPreferences => {
+    return {
+      id: data?.id || `temp_${user?.id}`,
+      user_id: data?.user_id || user?.id || '',
+      preferences: data?.preferences || getDefaultPreferencesObject(),
+      created_at: data?.created_at || new Date().toISOString(),
+      updated_at: data?.updated_at || new Date().toISOString()
+    };
   };
 
   const getDefaultPreferencesObject = () => ({
@@ -121,13 +125,7 @@ export const useUserPreferences = () => {
 
       console.log('Created default preferences:', data);
       // Safely convert the response
-      const userPrefs: UserPreferences = {
-        id: data.id,
-        user_id: data.user_id,
-        preferences: data.preferences,
-        created_at: data.created_at,
-        updated_at: data.updated_at
-      };
+      const userPrefs = convertToUserPreferences(data);
       setPreferences(userPrefs);
     } catch (error) {
       console.error('Error creating default preferences:', error);
@@ -161,13 +159,7 @@ export const useUserPreferences = () => {
       
       console.log('Updated preferences:', data);
       // Safely convert the response
-      const userPrefs: UserPreferences = {
-        id: data.id,
-        user_id: data.user_id,
-        preferences: data.preferences,
-        created_at: data.created_at,
-        updated_at: data.updated_at
-      };
+      const userPrefs = convertToUserPreferences(data);
       setPreferences(userPrefs);
       
       toast({
