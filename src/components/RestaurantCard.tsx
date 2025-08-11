@@ -101,7 +101,7 @@ export default function RestaurantCard({
               restaurantId={id}
               favoritesCount={favoritesCount}
               onLoginRequired={onLoginRequired}
-              savedFrom={layout === 'list' ? 'list_card' : 'grid_card'}
+              savedFrom="list_card"
               size="sm"
             />
           </div>
@@ -191,7 +191,7 @@ export default function RestaurantCard({
             restaurantId={id}
             favoritesCount={favoritesCount}
             onLoginRequired={onLoginRequired}
-            savedFrom={layout === 'list' ? 'list_card' : 'grid_card'}
+            savedFrom="grid_card"
             size="md"
           />
         </div>

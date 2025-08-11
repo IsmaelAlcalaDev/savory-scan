@@ -225,7 +225,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     try {
       // Call the new v2 RPC function with analytics and anti-fraud
-      const { data, error } = await supabase.rpc('toggle_restaurant_favorite_v2', {
+      const { data, error } = await supabase.rpc('toggle_restaurant_favorite_v2' as any, {
         restaurant_id_param: restaurantId,
         saved_from_param: savedFrom
       });

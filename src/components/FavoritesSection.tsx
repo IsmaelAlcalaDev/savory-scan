@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -270,7 +269,7 @@ export default function FavoritesSection() {
           setFavoriteState(id, false);
           setFavoriteRestaurants(prev => prev.filter(item => item.id !== id));
           
-          ({ error } = await supabase.rpc('toggle_restaurant_favorite_v2', {
+          ({ error } = await supabase.rpc('toggle_restaurant_favorite_v2' as any, {
             restaurant_id_param: id,
             saved_from_param: 'favorites_page'
           }));
