@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -80,13 +81,20 @@ export default function FavoritesSection() {
           console.log('Favorites change detected:', payload);
           
           if (payload.eventType === 'DELETE' || 
-              (payload.eventType === 'UPDATE' && payload.new && !payload.new.is_active)) {
+              (payload.eventType === 'UPDATE' && payload.new && 
+               typeof payload.new === 'object' && 'is_active' in payload.new && !payload.new.is_active)) {
             // Remove from local state immediately
-            const restaurantId = payload.old?.restaurant_id || payload.new?.restaurant_id;
+            const restaurantId = (payload.old && typeof payload.old === 'object' && 'restaurant_id' in payload.old) 
+              ? payload.old.restaurant_id 
+              : (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) 
+                ? payload.new.restaurant_id 
+                : null;
+            
             if (restaurantId) {
               setFavoriteRestaurants(prev => prev.filter(item => item.id !== restaurantId));
             }
-          } else if (payload.eventType === 'INSERT' && payload.new?.is_active) {
+          } else if (payload.eventType === 'INSERT' && payload.new && 
+                     typeof payload.new === 'object' && 'is_active' in payload.new && payload.new.is_active) {
             // Reload favorites to get the new one with full data
             loadFavorites();
           }
