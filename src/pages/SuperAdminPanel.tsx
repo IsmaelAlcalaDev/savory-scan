@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,23 +73,26 @@ export default function SuperAdminPanel() {
       const roles = await executeSecureAction(
         'Get User Roles',
         async () => {
-          // Use direct SQL query with proper security checks
+          // Query user_roles table directly since it contains user_id references
           const { data, error } = await supabase
             .from('user_roles')
             .select(`
               id,
               role,
-              profiles!inner(email, full_name)
+              user_id
             `)
             .order('role')
             .limit(100);
           
           if (error) throw error;
+          
+          // Transform the data to include user_id as display info
           return data?.map(item => ({
             id: item.id,
             role: item.role,
-            user_email: item.profiles?.email,
-            user_name: item.profiles?.full_name
+            user_id: item.user_id,
+            user_email: `User ${item.user_id?.slice(0, 8)}...`, // Show partial user ID
+            user_name: `User ${item.user_id?.slice(0, 8)}...`
           }));
         },
         'system',
@@ -271,10 +275,10 @@ export default function SuperAdminPanel() {
                     <div key={userRole.id} className="flex items-center justify-between border rounded-lg p-3 bg-gradient-card">
                       <div>
                         <span className="font-medium">
-                          {userRole.user_name || userRole.user_email || 'Unknown User'}
+                          {userRole.user_name || 'Unknown User'}
                         </span>
                         <span className="text-muted-foreground ml-2">
-                          ({userRole.user_email})
+                          (ID: {userRole.user_id?.slice(0, 8)}...)
                         </span>
                       </div>
                       <Badge variant={userRole.role === 'admin' ? 'default' : 'outline'}>
