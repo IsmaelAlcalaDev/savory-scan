@@ -31,93 +31,79 @@ export const useUserPreferences = () => {
     if (!user) return;
 
     try {
-      // Try to fetch from user_preferences table, fallback if not available
+      console.log('Fetching user preferences for user:', user.id);
+      
+      // Try to fetch from user_preferences table using raw query since it's not in types yet
       const { data, error } = await supabase
         .from('user_preferences' as any)
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching preferences:', error);
-        // Create a default preferences object
-        const defaultPrefs: UserPreferences = {
-          id: `temp_${user.id}`,
-          user_id: user.id,
-          preferences: {
-            theme: 'system',
-            language: 'es',
-            notifications: {
-              email: true,
-              push: true,
-              marketing: false
-            },
-            dietary: {
-              vegetarian: false,
-              vegan: false,
-              glutenFree: false,
-              lactoseFree: false
-            }
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
+        // Create default preferences if query failed
+        const defaultPrefs: UserPreferences = createDefaultPreferences(user.id);
         setPreferences(defaultPrefs);
       } else if (data) {
-        setPreferences(data as UserPreferences);
+        console.log('Found user preferences:', data);
+        // Safely convert the data to UserPreferences type
+        const userPrefs: UserPreferences = {
+          id: data.id || `temp_${user.id}`,
+          user_id: data.user_id || user.id,
+          preferences: data.preferences || getDefaultPreferencesObject(),
+          created_at: data.created_at || new Date().toISOString(),
+          updated_at: data.updated_at || new Date().toISOString()
+        };
+        setPreferences(userPrefs);
       } else {
+        console.log('No preferences found, creating default');
         // Create default preferences if none exist
         await createDefaultPreferences();
       }
     } catch (error) {
-      console.error('Error fetching preferences:', error);
+      console.error('Error in fetchPreferences:', error);
       // Fallback to default preferences
-      const defaultPrefs: UserPreferences = {
-        id: `temp_${user.id}`,
-        user_id: user.id,
-        preferences: {
-          theme: 'system',
-          language: 'es',
-          notifications: {
-            email: true,
-            push: true,
-            marketing: false
-          },
-          dietary: {
-            vegetarian: false,
-            vegan: false,
-            glutenFree: false,
-            lactoseFree: false
-          }
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      setPreferences(defaultPrefs);
+      const fallbackPrefs: UserPreferences = createDefaultPreferences(user.id);
+      setPreferences(fallbackPrefs);
     } finally {
       setLoading(false);
     }
   };
 
-  const createDefaultPreferences = async () => {
+  const getDefaultPreferencesObject = () => ({
+    theme: 'system',
+    language: 'es',
+    notifications: {
+      email: true,
+      push: true,
+      marketing: false
+    },
+    dietary: {
+      vegetarian: false,
+      vegan: false,
+      glutenFree: false,
+      lactoseFree: false
+    }
+  });
+
+  const createDefaultPreferences = (userId?: string): UserPreferences => {
+    const defaultPrefs = getDefaultPreferencesObject();
+    return {
+      id: `temp_${userId || user?.id}`,
+      user_id: userId || user?.id || '',
+      preferences: defaultPrefs,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+  };
+
+  const createDefaultPreferencesInDB = async () => {
     if (!user) return;
 
     try {
-      const defaultPreferences = {
-        theme: 'system',
-        language: 'es',
-        notifications: {
-          email: true,
-          push: true,
-          marketing: false
-        },
-        dietary: {
-          vegetarian: false,
-          vegan: false,
-          glutenFree: false,
-          lactoseFree: false
-        }
-      };
+      console.log('Creating default preferences in DB');
+      const defaultPreferences = getDefaultPreferencesObject();
 
       const { data, error } = await supabase
         .from('user_preferences' as any)
@@ -128,32 +114,25 @@ export const useUserPreferences = () => {
         .select()
         .single();
 
-      if (error) throw error;
-      setPreferences(data as UserPreferences);
+      if (error) {
+        console.error('Error creating default preferences:', error);
+        throw error;
+      }
+
+      console.log('Created default preferences:', data);
+      // Safely convert the response
+      const userPrefs: UserPreferences = {
+        id: data.id,
+        user_id: data.user_id,
+        preferences: data.preferences,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
+      setPreferences(userPrefs);
     } catch (error) {
       console.error('Error creating default preferences:', error);
       // Set local fallback
-      const fallbackPrefs: UserPreferences = {
-        id: `temp_${user.id}`,
-        user_id: user.id,
-        preferences: {
-          theme: 'system',
-          language: 'es',
-          notifications: {
-            email: true,
-            push: true,
-            marketing: false
-          },
-          dietary: {
-            vegetarian: false,
-            vegan: false,
-            glutenFree: false,
-            lactoseFree: false
-          }
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      const fallbackPrefs = createDefaultPreferences(user.id);
       setPreferences(fallbackPrefs);
     }
   };
@@ -163,6 +142,8 @@ export const useUserPreferences = () => {
 
     setUpdating(true);
     try {
+      console.log('Updating preferences:', newPreferences);
+
       const { data, error } = await supabase
         .from('user_preferences' as any)
         .update({
@@ -173,9 +154,22 @@ export const useUserPreferences = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating preferences:', error);
+        throw error;
+      }
       
-      setPreferences(data as UserPreferences);
+      console.log('Updated preferences:', data);
+      // Safely convert the response
+      const userPrefs: UserPreferences = {
+        id: data.id,
+        user_id: data.user_id,
+        preferences: data.preferences,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
+      setPreferences(userPrefs);
+      
       toast({
         title: "Preferences updated",
         description: "Your preferences have been saved successfully"
