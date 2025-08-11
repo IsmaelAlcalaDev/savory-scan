@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Heart, UtensilsCrossed, Calendar, Trash2, Loader2, Plus } from 'lucide-react';
+import { Heart, UtensilsCrossed, Calendar, Loader2, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useSecurityLogger } from '@/hooks/useSecurityLogger';
 import RestaurantCard from '@/components/RestaurantCard';
+import FavoriteRestaurantItem from '@/components/FavoriteRestaurantItem';
 
 interface FavoriteRestaurant {
   id: number;
@@ -63,7 +64,7 @@ export default function FavoritesSection() {
     }
   }, [user]);
 
-  // Listen to favoriteToggled events for real-time updates
+  // Escuchar eventos de toggle para limpiar la lista cuando se quite de favoritos
   useEffect(() => {
     const handleFavoriteToggled = (event: CustomEvent) => {
       const { restaurantId, isFavorite } = event.detail;
@@ -77,6 +78,30 @@ export default function FavoritesSection() {
       window.removeEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
     };
   }, []);
+
+  // NUEVO: Suscripción a cambios en restaurants para refrescar favorites_count en tiempo real
+  useEffect(() => {
+    const channel = supabase
+      .channel(`restaurants-favcounts-${user?.id || 'anon'}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'restaurants' },
+        (payload) => {
+          const nextCount = (payload.new as any)?.favorites_count;
+          const rId = (payload.new as any)?.id;
+          if (typeof rId === 'number' && typeof nextCount === 'number') {
+            setFavoriteRestaurants(prev =>
+              prev.map(r => (r.id === rId ? { ...r, favorites_count: nextCount } : r))
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const setupRealtimeSubscription = () => {
     if (!user) return;
@@ -98,16 +123,16 @@ export default function FavoritesSection() {
               (payload.eventType === 'UPDATE' && payload.new && 
                typeof payload.new === 'object' && 'is_active' in payload.new && !payload.new.is_active)) {
             const restaurantId = (payload.old && typeof payload.old === 'object' && 'restaurant_id' in payload.old) 
-              ? payload.old.restaurant_id 
+              ? (payload.old as any).restaurant_id 
               : (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) 
-                ? payload.new.restaurant_id 
+                ? (payload.new as any).restaurant_id 
                 : null;
             
             if (restaurantId) {
               setFavoriteRestaurants(prev => prev.filter(item => item.id !== restaurantId));
             }
           } else if (payload.eventType === 'INSERT' && payload.new && 
-                     typeof payload.new === 'object' && 'is_active' in payload.new && payload.new.is_active) {
+                     typeof payload.new === 'object' && 'is_active' in payload.new && (payload.new as any).is_active) {
             loadFavorites();
           }
         }
@@ -255,86 +280,6 @@ export default function FavoritesSection() {
     }
   };
 
-  const removeFavorite = async (type: 'restaurant' | 'dish' | 'event', id: number) => {
-    if (!user) return;
-
-    const key = `${type}-${id}`;
-    setRemoving(prev => ({ ...prev, [key]: true }));
-
-    try {
-      let error;
-
-      switch (type) {
-        case 'restaurant':
-          setFavoriteState(id, false);
-          setFavoriteRestaurants(prev => prev.filter(item => item.id !== id));
-          
-          ({ error } = await supabase.rpc('toggle_restaurant_favorite_v2' as any, {
-            restaurant_id_param: id,
-            saved_from_param: 'favorites_page'
-          }));
-
-          if (!error) {
-            await refreshFavorites();
-            await logSecurityEvent('restaurant_unfavorited', 'restaurant', String(id));
-          }
-          break;
-        case 'dish':
-          setFavoriteDishes(prev => prev.filter(item => item.id !== id));
-          
-          ({ error } = await supabase.rpc('toggle_dish_favorite', {
-            user_id_param: user.id,
-            dish_id_param: id
-          }));
-
-          if (!error) {
-            await logSecurityEvent('dish_unfavorited', 'dish', String(id));
-          }
-          break;
-        case 'event':
-          setFavoriteEvents(prev => prev.filter(item => item.id !== id));
-          
-          ({ error } = await supabase.rpc('toggle_event_favorite', {
-            user_id_param: user.id,
-            event_id_param: id
-          }));
-
-          if (!error) {
-            await logSecurityEvent('event_unfavorited', 'event', String(id));
-          }
-          break;
-      }
-
-      if (error) throw error;
-
-      toast({
-        title: "Eliminado de favoritos",
-        description: "El elemento se ha eliminado de tus favoritos"
-      });
-
-    } catch (error: any) {
-      console.error('Error removing favorite:', error);
-      
-      await logSecurityEvent('remove_favorite_error', type, String(id), {
-        error: error?.message,
-        userId: user.id
-      });
-      
-      if (type === 'restaurant') {
-        setFavoriteState(id, true);
-        await loadFavorites();
-      }
-      
-      toast({
-        title: "Error",
-        description: error?.message || "No se pudo eliminar de favoritos",
-        variant: "destructive"
-      });
-    } finally {
-      setRemoving(prev => ({ ...prev, [key]: false }));
-    }
-  };
-
   const subTabs = [
     { id: 'restaurants', label: 'Restaurantes', icon: UtensilsCrossed, count: favoriteRestaurants.length },
     { id: 'dishes', label: 'Platos', icon: Heart, count: favoriteDishes.length },
@@ -388,48 +333,28 @@ export default function FavoritesSection() {
               <p className="text-muted-foreground mb-4">
                 Explora restaurantes y guarda tus favoritos para encontrarlos fácilmente
               </p>
-              <Button onClick={() => window.location.href = '/'} className="gap-2">
+              <Button onClick={() => (window.location.href = '/')} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Explorar restaurantes
               </Button>
             </div>
           ) : (
             <div className="space-y-3">
-              {favoriteRestaurants.map((restaurant) => (
-                <div key={restaurant.id} className="relative">
-                  <RestaurantCard
-                    id={restaurant.id}
-                    name={restaurant.name}
-                    slug={restaurant.slug}
-                    priceRange={restaurant.price_range}
-                    googleRating={restaurant.google_rating}
-                    googleRatingCount={restaurant.google_rating_count}
-                    distance={restaurant.distance_km}
-                    cuisineTypes={restaurant.cuisine_types}
-                    establishmentType={restaurant.establishment_type}
-                    favoritesCount={restaurant.favorites_count}
-                    coverImageUrl={restaurant.cover_image_url}
-                    logoUrl={restaurant.logo_url}
-                    layout="list"
-                    onFavoriteChange={handleFavoriteChange}
-                  />
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFavorite('restaurant', restaurant.id);
-                    }}
-                    disabled={removing[`restaurant-${restaurant.id}`]}
-                    className="absolute top-2 right-2 bg-white/90 hover:bg-white shadow-sm"
-                  >
-                    {removing[`restaurant-${restaurant.id}`] ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    )}
-                  </Button>
-                </div>
+              {favoriteRestaurants.map((r) => (
+                <FavoriteRestaurantItem
+                  key={r.id}
+                  id={r.id}
+                  name={r.name}
+                  slug={r.slug}
+                  priceRange={r.price_range}
+                  googleRating={r.google_rating}
+                  googleRatingCount={r.google_rating_count}
+                  cuisineTypes={r.cuisine_types}
+                  establishmentType={r.establishment_type}
+                  favoritesCount={r.favorites_count}
+                  coverImageUrl={r.cover_image_url}
+                  logoUrl={r.logo_url}
+                />
               ))}
             </div>
           )}
@@ -443,7 +368,7 @@ export default function FavoritesSection() {
               <p className="text-muted-foreground mb-4">
                 Explora menús de restaurantes y guarda tus platos favoritos
               </p>
-              <Button onClick={() => window.location.href = '/'} className="gap-2">
+              <Button onClick={() => (window.location.href = '/')} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Explorar platos
               </Button>
@@ -454,8 +379,8 @@ export default function FavoritesSection() {
                 <Card key={dish.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={dish.image_url || "/placeholder.svg"} 
+                      <img
+                        src={dish.image_url || '/placeholder.svg'}
                         alt={dish.name}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
@@ -464,18 +389,6 @@ export default function FavoritesSection() {
                         <p className="text-sm text-muted-foreground">{dish.restaurant_name}</p>
                         <p className="font-medium text-primary">€{dish.base_price}</p>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => removeFavorite('dish', dish.id)}
-                        disabled={removing[`dish-${dish.id}`]}
-                      >
-                        {removing[`dish-${dish.id}`] ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        )}
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -492,7 +405,7 @@ export default function FavoritesSection() {
               <p className="text-muted-foreground mb-4">
                 Descubre eventos en restaurantes y guarda los que te interesen
               </p>
-              <Button onClick={() => window.location.href = '/'} className="gap-2">
+              <Button onClick={() => (window.location.href = '/')} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Explorar eventos
               </Button>
@@ -503,28 +416,18 @@ export default function FavoritesSection() {
                 <Card key={event.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={event.image_url || "/placeholder.svg"} 
+                      <img
+                        src={event.image_url || '/placeholder.svg'}
                         alt={event.name}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
                       <div className="flex-1">
                         <h4 className="font-semibold">{event.name}</h4>
                         <p className="text-sm text-muted-foreground">{event.restaurant_name}</p>
-                        <p className="text-sm">{event.event_date} • {event.start_time}</p>
+                        <p className="text-sm">
+                          {event.event_date} • {event.start_time}
+                        </p>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => removeFavorite('event', event.id)}
-                        disabled={removing[`event-${event.id}`]}
-                      >
-                        {removing[`event-${event.id}`] ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        )}
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
