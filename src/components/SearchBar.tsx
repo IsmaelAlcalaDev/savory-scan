@@ -34,7 +34,7 @@ export default function SearchBar({
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   const { suggestions, loading } = useLocationSuggestions(location);
-  const { sanitizeInput, validateInput } = useSecureInput();
+  const { sanitizeText, sanitizeSearchQuery } = useSecureInput();
   
   useBodyScrollLock(showLocationDropdown);
 
@@ -51,17 +51,17 @@ export default function SearchBar({
   }, []);
 
   const handleQueryChange = (value: string) => {
-    // Sanitize and validate input
-    const sanitized = sanitizeInput(value);
-    if (validateInput(sanitized, { maxLength: 100, allowSpecialChars: false })) {
+    // Sanitize input using the correct method
+    const sanitized = sanitizeText(value);
+    if (sanitized && sanitized.length <= 100) {
       setQuery(sanitized);
     }
   };
 
   const handleLocationChange = (value: string) => {
-    // Sanitize and validate location input
-    const sanitized = sanitizeInput(value);
-    if (validateInput(sanitized, { maxLength: 50, allowSpecialChars: false })) {
+    // Sanitize location input using the correct method
+    const sanitized = sanitizeText(value);
+    if (sanitized && sanitized.length <= 50) {
       setLocation(sanitized);
       setShowLocationDropdown(value.length > 0);
     }
@@ -69,14 +69,14 @@ export default function SearchBar({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Final sanitization before search
-    const safeQuery = sanitizeInput(query);
-    const safeLocation = sanitizeInput(location);
+    // Final sanitization before search using search-specific sanitizer
+    const safeQuery = sanitizeSearchQuery(query);
+    const safeLocation = sanitizeText(location);
     onSearch(safeQuery, safeLocation);
   };
 
   const handleLocationSelect = (selectedLocation: string) => {
-    const sanitized = sanitizeInput(selectedLocation);
+    const sanitized = sanitizeText(selectedLocation);
     setLocation(sanitized);
     setShowLocationDropdown(false);
     locationInputRef.current?.blur();
@@ -161,12 +161,12 @@ export default function SearchBar({
                   <button
                     key={index}
                     type="button"
-                    onClick={() => handleLocationSelect(suggestion)}
+                    onClick={() => handleLocationSelect(suggestion.name)}
                     className="w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground transition-colors text-sm"
                   >
                     <div className="flex items-center gap-2">
                       <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                      <span className="truncate">{suggestion}</span>
+                      <span className="truncate">{suggestion.name}</span>
                     </div>
                   </button>
                 ))}

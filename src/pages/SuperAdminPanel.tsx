@@ -10,6 +10,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useSecureAdminActions } from '@/hooks/useSecureAdminActions';
 import { useSecureNotifications } from '@/hooks/useSecureNotifications';
 import SecurityAuditLog from '@/components/SecurityAuditLog';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Shield, 
   Users, 
