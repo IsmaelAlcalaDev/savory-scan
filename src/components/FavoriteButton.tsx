@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Heart, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFavorites } from '@/contexts/FavoritesContext';
@@ -30,6 +30,49 @@ export default function FavoriteButton({
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Sync local count with prop changes
+  useEffect(() => {
+    setLocalCount(favoritesCount);
+  }, [favoritesCount]);
+
+  // Listen for external favorite changes with debounce
+  useEffect(() => {
+    let debounceTimer: NodeJS.Timeout;
+
+    const handleFavoriteToggled = (event: CustomEvent) => {
+      const { restaurantId: eventRestaurantId, isFavorite: eventIsFavorite } = event.detail;
+      
+      if (eventRestaurantId === restaurantId) {
+        // Clear existing timer
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+        
+        // Debounce the update to prevent rapid changes
+        debounceTimer = setTimeout(() => {
+          setLocalCount(prev => {
+            const currentIsFavorite = isFavorite(restaurantId);
+            
+            // Sync with the actual favorite state
+            if (currentIsFavorite !== eventIsFavorite) {
+              return Math.max(0, eventIsFavorite ? prev + 1 : prev - 1);
+            }
+            return prev;
+          });
+        }, 100);
+      }
+    };
+
+    window.addEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
+    
+    return () => {
+      window.removeEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [restaurantId, isFavorite]);
+
   const handleLoginRequired = () => {
     if (onLoginRequired) {
       onLoginRequired();
@@ -59,19 +102,18 @@ export default function FavoriteButton({
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
     
-    // Optimistic update of counter
-    setLocalCount(prev => previousState ? prev - 1 : prev + 1);
+    // NO optimistic update here - let the context handle it
     
     try {
       const result = await toggleFavorite(restaurantId, savedFrom, handleLoginRequired);
       
-      // Adjust counter based on actual result
+      // Only update if there was actually a change
       if (result !== previousState) {
-        setLocalCount(prev => result ? prev + 1 : prev - 1);
+        setLocalCount(prev => Math.max(0, result ? prev + 1 : prev - 1));
       }
     } catch (error) {
-      // Revert optimistic update on error
-      setLocalCount(favoritesCount);
+      // No need to revert since we didn't do optimistic update
+      console.error('Error toggling favorite:', error);
     }
   };
 
@@ -143,7 +185,7 @@ export default function FavoriteButton({
           "font-medium text-gray-700",
           size === 'sm' ? "text-xs" : size === 'lg' ? "text-sm" : "text-xs"
         )}>
-          {localCount}
+          {Math.max(0, localCount)}
         </span>
       </button>
 
