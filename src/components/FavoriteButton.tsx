@@ -28,7 +28,13 @@ export default function FavoriteButton({
     if (onLoginRequired) onLoginRequired();
   };
 
-  const handleToggle = async () => {
+  const handleToggle = async (e?: React.MouseEvent<HTMLButtonElement>) => {
+    // Evitar navegación/click del contenedor (cards, links, etc.)
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     if (isToggling(restaurantId)) return;
 
     setIsAnimating(true);
@@ -43,6 +49,7 @@ export default function FavoriteButton({
 
   return (
     <button
+      type="button"
       onClick={handleToggle}
       disabled={loading}
       className={cn(

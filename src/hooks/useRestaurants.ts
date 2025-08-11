@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -171,48 +170,20 @@ export const useRestaurants = ({
 
     fetchRestaurants();
 
-    // Setup real-time subscription for favorites count updates
+    // Realtime: escuchar solo updates en restaurants y aplicar favorites_count directo
     const channel = supabase
-      .channel('restaurants-favorites')
+      .channel('restaurants-updates')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_saved_restaurants'
-        },
+        { event: 'UPDATE', schema: 'public', table: 'restaurants' },
         (payload) => {
-          console.log('Favorite change detected in restaurants list:', payload);
-          
-          // Update the favorites count for the affected restaurant
-          if (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) {
-            const restaurantId = payload.new.restaurant_id;
-            const isActive = payload.new.is_active;
-            
-            setRestaurants(prevRestaurants => 
-              prevRestaurants.map(restaurant => {
-                if (restaurant.id === restaurantId) {
-                  let increment = 0;
-                  
-                  if (payload.eventType === 'INSERT' && isActive) {
-                    increment = 1;
-                  } else if (payload.eventType === 'UPDATE' && payload.old) {
-                    if (isActive && !payload.old.is_active) {
-                      increment = 1;
-                    } else if (!isActive && payload.old.is_active) {
-                      increment = -1;
-                    }
-                  } else if (payload.eventType === 'DELETE') {
-                    increment = -1;
-                  }
-                  
-                  return {
-                    ...restaurant,
-                    favorites_count: Math.max(0, restaurant.favorites_count + increment)
-                  };
-                }
-                return restaurant;
-              })
+          const newRow = payload.new as any;
+          const rId = newRow?.id;
+          const nextCount = newRow?.favorites_count;
+          if (typeof rId === 'number' && typeof nextCount === 'number') {
+            console.log('Realtime restaurants UPDATE -> favorites_count', { rId, nextCount });
+            setRestaurants(prev =>
+              prev.map(r => (r.id === rId ? { ...r, favorites_count: Math.max(0, nextCount) } : r))
             );
           }
         }
