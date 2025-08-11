@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -72,7 +71,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  // Setup real-time subscription for multi-tab sync
+  // Setup real-time subscription for multi-tab sync (ONLY for favorite states, not counters)
   useEffect(() => {
     if (!user) {
       setFavoritesSet(new Set());
@@ -114,11 +113,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               }
               return newSet;
             });
-
-            // Emit custom event for other components to listen - NO counter updates here
-            window.dispatchEvent(new CustomEvent('favoriteToggled', {
-              detail: { restaurantId, isFavorite: isActive }
-            }));
             
           } else if (payload.old && typeof payload.old === 'object' && 'restaurant_id' in payload.old) {
             const restaurantId = payload.old.restaurant_id;
@@ -128,10 +122,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               newSet.delete(restaurantId);
               return newSet;
             });
-
-            window.dispatchEvent(new CustomEvent('favoriteToggled', {
-              detail: { restaurantId, isFavorite: false }
-            }));
           }
         }
       )

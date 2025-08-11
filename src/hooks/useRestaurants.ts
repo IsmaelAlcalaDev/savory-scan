@@ -171,20 +171,26 @@ export const useRestaurants = ({
 
     fetchRestaurants();
 
-    // Simplificado: solo escuchar cambios en restaurants table para favorites_count
+    // ONLY listen to restaurants table changes for favorites_count updates
+    // This eliminates duplicated updates from other sources
     const channel = supabase
-      .channel('restaurants-updates')
+      .channel('restaurants-favorites-count')
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'restaurants' },
         (payload) => {
-          const newRow = payload.new as any;
-          const rId = newRow?.id;
-          const nextCount = newRow?.favorites_count;
-          if (typeof rId === 'number' && typeof nextCount === 'number') {
-            console.log('Realtime restaurants UPDATE -> favorites_count', { rId, nextCount });
+          const updatedRestaurant = payload.new as any;
+          const restaurantId = updatedRestaurant?.id;
+          const newFavoritesCount = updatedRestaurant?.favorites_count;
+          
+          if (typeof restaurantId === 'number' && typeof newFavoritesCount === 'number') {
+            console.log('useRestaurants: Received favorites_count update from DB:', { restaurantId, newFavoritesCount });
             setRestaurants(prev =>
-              prev.map(r => (r.id === rId ? { ...r, favorites_count: Math.max(0, nextCount) } : r))
+              prev.map(r => 
+                r.id === restaurantId 
+                  ? { ...r, favorites_count: Math.max(0, newFavoritesCount) }
+                  : r
+              )
             );
           }
         }

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -79,19 +80,21 @@ export default function FavoritesSection() {
     };
   }, []);
 
-  // NUEVO: Suscripción a cambios en restaurants para refrescar favorites_count en tiempo real
+  // Listen to restaurants table changes for favorites_count updates only
   useEffect(() => {
     const channel = supabase
-      .channel(`restaurants-favcounts-${user?.id || 'anon'}`)
+      .channel(`favorites-section-restaurants-${user?.id || 'anon'}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'restaurants' },
         (payload) => {
-          const nextCount = (payload.new as any)?.favorites_count;
-          const rId = (payload.new as any)?.id;
-          if (typeof rId === 'number' && typeof nextCount === 'number') {
+          const updatedRestaurant = payload.new as any;
+          const restaurantId = updatedRestaurant?.id;
+          const newFavoritesCount = updatedRestaurant?.favorites_count;
+          
+          if (typeof restaurantId === 'number' && typeof newFavoritesCount === 'number') {
             setFavoriteRestaurants(prev =>
-              prev.map(r => (r.id === rId ? { ...r, favorites_count: nextCount } : r))
+              prev.map(r => (r.id === restaurantId ? { ...r, favorites_count: newFavoritesCount } : r))
             );
           }
         }
@@ -227,7 +230,6 @@ export default function FavoritesSection() {
 
       setFavoriteDishes(formattedDishes);
 
-      // Load favorite events
       const { data: events, error: eventsError } = await supabase
         .from('user_saved_events')
         .select(`
