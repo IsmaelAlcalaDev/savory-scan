@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +25,8 @@ export const useFavorites = () => {
 };
 
 export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('FavoritesProvider: Initializing');
+  
   const { user } = useAuth();
   const { logSecurityEvent } = useSecurityLogger();
   const [favoritesSet, setFavoritesSet] = useState<Set<number>>(new Set());
@@ -33,28 +36,39 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Load user favorites into Set for O(1) lookup
   const loadUserFavorites = async () => {
     if (!user) {
+      console.log('FavoritesProvider: No user, clearing favorites');
       setFavoritesSet(new Set());
       return;
     }
 
     try {
+      console.log('FavoritesProvider: Loading favorites for user', user.id);
+      
       const { data, error } = await supabase
         .from('user_saved_restaurants')
         .select('restaurant_id')
         .eq('user_id', user.id)
         .eq('is_active', true);
 
-      if (error) throw error;
+      if (error) {
+        console.error('FavoritesProvider: Error loading favorites:', error);
+        throw error;
+      }
 
       const newFavoritesSet = new Set<number>();
       data?.forEach(item => {
         newFavoritesSet.add(item.restaurant_id);
       });
 
+      console.log('FavoritesProvider: Loaded favorites:', newFavoritesSet.size);
       setFavoritesSet(newFavoritesSet);
     } catch (error) {
-      console.error('Error loading favorites:', error);
-      await logSecurityEvent('favorites_load_error', 'user', user.id, { error: String(error) });
+      console.error('FavoritesProvider: Error in loadUserFavorites:', error);
+      try {
+        await logSecurityEvent('favorites_load_error', 'user', user.id, { error: String(error) });
+      } catch (logError) {
+        console.error('FavoritesProvider: Error logging security event:', logError);
+      }
     }
   };
 
@@ -65,6 +79,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return;
     }
 
+    console.log('FavoritesProvider: Setting up realtime for user', user.id);
     loadUserFavorites();
 
     // Cleanup previous channel
@@ -84,7 +99,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Favorite change detected via realtime:', payload);
+          console.log('FavoritesProvider: Realtime change detected:', payload);
           
           if (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) {
             const restaurantId = payload.new.restaurant_id;
@@ -153,9 +168,16 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     savedFrom: string = 'toggle',
     openLoginModal?: () => void
   ): Promise<boolean> => {
+    console.log('FavoritesProvider: Toggle favorite called for restaurant', restaurantId);
+    
     // Check authentication
     if (!user) {
-      await logSecurityEvent('unauthorized_favorite_attempt', 'restaurant', String(restaurantId));
+      console.log('FavoritesProvider: No user, showing login prompt');
+      try {
+        await logSecurityEvent('unauthorized_favorite_attempt', 'restaurant', String(restaurantId));
+      } catch (error) {
+        console.error('FavoritesProvider: Error logging security event:', error);
+      }
       
       toast({
         title: "Inicia sesión",
@@ -171,55 +193,73 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     // Prevent double clicks
     if (loadingMap[restaurantId]) {
+      console.log('FavoritesProvider: Toggle already in progress for restaurant', restaurantId);
       return favoritesSet.has(restaurantId);
     }
 
     // Validate session
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData?.session || sessionData.session.user.id !== user.id) {
-      await logSecurityEvent('invalid_session_favorite', 'restaurant', String(restaurantId), {
-        hasSession: !!sessionData?.session,
-        sessionUserId: sessionData?.session?.user?.id,
-        contextUserId: user.id
-      });
-      
-      toast({
-        title: "Sesión no válida",
-        description: "Vuelve a iniciar sesión para guardar favoritos.",
-        variant: "destructive"
-      });
-      
-      if (openLoginModal) openLoginModal();
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session || sessionData.session.user.id !== user.id) {
+        console.error('FavoritesProvider: Invalid session detected');
+        try {
+          await logSecurityEvent('invalid_session_favorite', 'restaurant', String(restaurantId), {
+            hasSession: !!sessionData?.session,
+            sessionUserId: sessionData?.session?.user?.id,
+            contextUserId: user.id
+          });
+        } catch (error) {
+          console.error('FavoritesProvider: Error logging security event:', error);
+        }
+        
+        toast({
+          title: "Sesión no válida",
+          description: "Vuelve a iniciar sesión para guardar favoritos.",
+          variant: "destructive"
+        });
+        
+        if (openLoginModal) openLoginModal();
+        return false;
+      }
+    } catch (error) {
+      console.error('FavoritesProvider: Error validating session:', error);
       return false;
     }
-
-    // IMPORTANT: remove blocking check against public.users (may not have those columns)
-    // We rely on auth + RLS. If you want this check, we can re-add later against a known-safe table.
 
     const currentState = favoritesSet.has(restaurantId);
     setLoadingMap(prev => ({ ...prev, [restaurantId]: true }));
 
     try {
+      console.log('FavoritesProvider: Calling toggle_restaurant_favorite_v2 RPC');
+      
       // Call the v2 RPC function (DB triggers update counters + realtime emits)
       const { data, error } = await supabase.rpc('toggle_restaurant_favorite_v2' as any, {
         restaurant_id_param: restaurantId,
         saved_from_param: savedFrom
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('FavoritesProvider: RPC error:', error);
+        throw error;
+      }
 
       const result = data as { success: boolean; is_favorite: boolean; action: string };
+      console.log('FavoritesProvider: RPC result:', result);
       
       // Update local favorites set immediately; realtime will also confirm
       setFavoriteState(restaurantId, result.is_favorite);
 
       // Log security event
-      await logSecurityEvent('favorite_toggled', 'restaurant', String(restaurantId), {
-        newState: result.is_favorite,
-        previousState: currentState,
-        action: result.action,
-        savedFrom
-      });
+      try {
+        await logSecurityEvent('favorite_toggled', 'restaurant', String(restaurantId), {
+          newState: result.is_favorite,
+          previousState: currentState,
+          action: result.action,
+          savedFrom
+        });
+      } catch (error) {
+        console.error('FavoritesProvider: Error logging security event:', error);
+      }
 
       // Show success toast
       toast({
@@ -229,19 +269,22 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           : "El restaurante se ha eliminado de tus favoritos"
       });
 
-      // Do NOT dispatch window event here to avoid duplicates; realtime already does it
       return result.is_favorite;
 
     } catch (error: any) {
-      console.error('Error toggling favorite:', error);
+      console.error('FavoritesProvider: Error toggling favorite:', error);
       
-      await logSecurityEvent('favorite_toggle_error', 'restaurant', String(restaurantId), {
-        error: error?.message,
-        code: error?.code,
-        userId: user.id,
-        currentState,
-        savedFrom
-      });
+      try {
+        await logSecurityEvent('favorite_toggle_error', 'restaurant', String(restaurantId), {
+          error: error?.message,
+          code: error?.code,
+          userId: user.id,
+          currentState,
+          savedFrom
+        });
+      } catch (logError) {
+        console.error('FavoritesProvider: Error logging security event:', logError);
+      }
       
       toast({
         title: "Error",
