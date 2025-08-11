@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -176,8 +175,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     // Validate session
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    
+    const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData?.session || sessionData.session.user.id !== user.id) {
       await logSecurityEvent('invalid_session_favorite', 'restaurant', String(restaurantId), {
         hasSession: !!sessionData?.session,
@@ -195,36 +193,14 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return false;
     }
 
-    // Verify active user
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('is_active, deleted_at')
-      .eq('id', user.id)
-      .single();
-
-    if (userError || !userData?.is_active || userData?.deleted_at) {
-      await logSecurityEvent('inactive_user_favorite_attempt', 'restaurant', String(restaurantId), {
-        userData,
-        userError: userError?.message
-      });
-      
-      toast({
-        title: "Usuario inactivo",
-        description: "Tu cuenta no está activa. Contacta con soporte.",
-        variant: "destructive"
-      });
-      return false;
-    }
+    // IMPORTANT: remove blocking check against public.users (may not have those columns)
+    // We rely on auth + RLS. If you want this check, we can re-add later against a known-safe table.
 
     const currentState = favoritesSet.has(restaurantId);
-    
     setLoadingMap(prev => ({ ...prev, [restaurantId]: true }));
 
-    // Optimistic update
-    setFavoriteState(restaurantId, !currentState);
-
     try {
-      // Call the new v2 RPC function with analytics and anti-fraud
+      // Call the v2 RPC function (DB triggers update counters + realtime emits)
       const { data, error } = await supabase.rpc('toggle_restaurant_favorite_v2' as any, {
         restaurant_id_param: restaurantId,
         saved_from_param: savedFrom
@@ -234,13 +210,8 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       const result = data as { success: boolean; is_favorite: boolean; action: string };
       
-      // Update state with server result (in case optimistic update was wrong)
+      // Update local favorites set immediately; realtime will also confirm
       setFavoriteState(restaurantId, result.is_favorite);
-
-      // Emit custom event for other components
-      window.dispatchEvent(new CustomEvent('favoriteToggled', {
-        detail: { restaurantId, isFavorite: result.is_favorite, action: result.action }
-      }));
 
       // Log security event
       await logSecurityEvent('favorite_toggled', 'restaurant', String(restaurantId), {
@@ -258,12 +229,12 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           : "El restaurante se ha eliminado de tus favoritos"
       });
 
+      // Do NOT dispatch window event here to avoid duplicates; realtime already does it
       return result.is_favorite;
 
     } catch (error: any) {
       console.error('Error toggling favorite:', error);
       
-      // Log security event for error
       await logSecurityEvent('favorite_toggle_error', 'restaurant', String(restaurantId), {
         error: error?.message,
         code: error?.code,
@@ -272,15 +243,13 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         savedFrom
       });
       
-      // Revert optimistic update
-      setFavoriteState(restaurantId, currentState);
-      
       toast({
         title: "Error",
         description: error?.message || "No se pudo actualizar el favorito. Inténtalo de nuevo.",
         variant: "destructive"
       });
       
+      // Return unchanged state on error
       return currentState;
     } finally {
       setLoadingMap(prev => ({ ...prev, [restaurantId]: false }));
