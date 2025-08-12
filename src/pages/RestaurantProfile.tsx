@@ -31,11 +31,11 @@ import RestaurantGallery from '@/components/RestaurantGallery';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import FavoriteButton from '@/components/FavoriteButton';
 import DishModal from '@/components/DishModal';
+import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
-  const { sections: menuSections, loading: menuLoading } = useRestaurantMenu(restaurant?.id || 0);
   const [activeTab, setActiveTab] = useState('profile');
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
@@ -394,50 +394,10 @@ export default function RestaurantProfile() {
             </TabsContent>
 
             <TabsContent value="menu" className="space-y-6">
-              {menuLoading ? (
-                <div className="space-y-6">
-                  {[1, 2, 3].map((i) => (
-                    <Card key={i} className="bg-gradient-card border-glass shadow-card">
-                      <CardHeader>
-                        <Skeleton className="h-6 w-48" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {[1, 2, 3, 4, 5, 6].map((j) => (
-                            <div key={j} className="space-y-3">
-                              <Skeleton className="aspect-[4/3] rounded-lg" />
-                              <Skeleton className="h-5 w-3/4" />
-                              <Skeleton className="h-4 w-full" />
-                              <Skeleton className="h-4 w-1/2" />
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : menuSections.length > 0 ? (
-                <div className="space-y-8">
-                  {menuSections.map((section) => (
-                    <RestaurantMenuSection 
-                      key={section.id} 
-                      section={section}
-                      restaurantId={restaurant?.id || 0}
-                      onDishClick={handleDishClick}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <Card className="bg-gradient-card border-glass shadow-card">
-                  <CardContent className="p-12 text-center">
-                    <Utensils className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Menú no disponible</h3>
-                    <p className="text-muted-foreground">
-                      El menú de este restaurante aún no está disponible en nuestra plataforma.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
+              <RestaurantDishesGrid
+                restaurantId={restaurant?.id || 0}
+                onDishClick={handleDishClick}
+              />
             </TabsContent>
           </Tabs>
         </div>
