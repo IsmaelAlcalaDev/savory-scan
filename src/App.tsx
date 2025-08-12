@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import RestaurantProfile from "./pages/RestaurantProfile";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
 import SuperAdminPanel from "./pages/SuperAdminPanel";
+import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import FoodieSpot from "./pages/FoodieSpot";
@@ -27,7 +28,7 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  console.log('App: Starting application');
+  console.log('App: Starting application with enhanced security');
 
   return (
     <ErrorBoundary>
@@ -55,6 +56,14 @@ const App = () => {
                       element={
                         <ProtectedRoute requiredRole="admin">
                           <SuperAdminPanel />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/security" 
+                      element={
+                        <ProtectedRoute requiredRole="admin">
+                          <SecurityDashboard />
                         </ProtectedRoute>
                       } 
                     />

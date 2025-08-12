@@ -1,174 +1,169 @@
 
-import { useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSecurityLogger } from './useSecurityLogger';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SecurityEvent {
-  type: 'suspicious_activity' | 'failed_login' | 'unauthorized_access' | 'data_breach_attempt';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  details: Record<string, any>;
+  type: 'login_attempt' | 'failed_auth' | 'suspicious_activity' | 'rate_limit_exceeded';
+  timestamp: Date;
+  details: any;
+}
+
+interface SecurityMetrics {
+  failedLoginAttempts: number;
+  suspiciousActivities: number;
+  lastSecurityEvent: Date | null;
+  riskLevel: 'low' | 'medium' | 'high';
 }
 
 export const useSecurityMonitoring = () => {
   const { user } = useAuth();
+  const { logSecurityEvent } = useSecurityLogger();
+  const [securityMetrics, setSecurityMetrics] = useState<SecurityMetrics>({
+    failedLoginAttempts: 0,
+    suspiciousActivities: 0,
+    lastSecurityEvent: null,
+    riskLevel: 'low'
+  });
 
-  // Log security events
-  const logSecurityEvent = useCallback(async (event: SecurityEvent) => {
-    try {
-      await supabase.from('analytics_events').insert({
-        event_type: `security_${event.type}`,
-        entity_type: 'security',
+  const [rateLimitMap, setRateLimitMap] = useState<Map<string, number>>(new Map());
+
+  // Rate limiting function
+  const checkRateLimit = (action: string, maxAttempts: number = 10, windowMs: number = 60000): boolean => {
+    const now = Date.now();
+    const key = `${user?.id || 'anonymous'}-${action}`;
+    const attempts = rateLimitMap.get(key) || 0;
+
+    if (attempts >= maxAttempts) {
+      logSecurityEvent('rate_limit_exceeded', 'security_monitoring', undefined, {
+        action,
+        attempts,
         user_id: user?.id,
-        properties: {
-          severity: event.severity,
-          timestamp: new Date().toISOString(),
-          user_agent: navigator.userAgent,
-          referrer: document.referrer,
-          ...event.details,
-        }
+        window_ms: windowMs
       });
-
-      // For critical events, also create fraud alerts
-      if (event.severity === 'critical') {
-        await supabase.from('fraud_alerts').insert({
-          entity_type: 'user',
-          entity_id: user?.id || 'anonymous',
-          severity_level: 5,
-          status: 'pending',
-          alert_data: {
-            event_type: event.type,
-            details: event.details,
-            auto_generated: true,
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Failed to log security event:', error);
+      return false;
     }
-  }, [user]);
 
-  // Monitor for suspicious activity
-  useEffect(() => {
-    // Monitor rapid-fire clicks
-    let clickCount = 0;
-    const clickWindow = 5000; // 5 seconds
-    let clickTimer: NodeJS.Timeout;
+    // Update rate limit counter
+    setRateLimitMap(prev => new Map(prev.set(key, attempts + 1)));
 
-    const handleClick = () => {
-      clickCount++;
-      
-      if (clickCount === 1) {
-        clickTimer = setTimeout(() => {
-          clickCount = 0;
-        }, clickWindow);
-      }
-      
-      if (clickCount > 20) { // More than 20 clicks in 5 seconds
-        logSecurityEvent({
-          type: 'suspicious_activity',
-          severity: 'medium',
-          details: {
-            reason: 'rapid_clicking',
-            click_count: clickCount,
-            window_ms: clickWindow,
-          }
+    // Clear counter after window
+    setTimeout(() => {
+      setRateLimitMap(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(key);
+        return newMap;
+      });
+    }, windowMs);
+
+    return true;
+  };
+
+  // Monitor suspicious patterns
+  const detectSuspiciousActivity = (eventType: string, details: any) => {
+    const suspiciousPatterns = [
+      { pattern: 'rapid_requests', threshold: 50 },
+      { pattern: 'multiple_failed_logins', threshold: 5 },
+      { pattern: 'unusual_access_pattern', threshold: 3 },
+      { pattern: 'data_scraping_attempt', threshold: 100 }
+    ];
+
+    suspiciousPatterns.forEach(({ pattern, threshold }) => {
+      if (details[pattern] && details[pattern] > threshold) {
+        logSecurityEvent('suspicious_activity_detected', 'security_monitoring', undefined, {
+          pattern,
+          value: details[pattern],
+          threshold,
+          user_id: user?.id,
+          event_type: eventType
         });
-        clickCount = 0;
-      }
-    };
 
-    // Monitor console access attempts
-    const originalConsoleLog = console.log;
-    console.log = (...args) => {
-      if (args.some(arg => typeof arg === 'string' && 
-          (arg.includes('document.cookie') || arg.includes('localStorage') || arg.includes('sessionStorage')))) {
-        logSecurityEvent({
-          type: 'suspicious_activity',
-          severity: 'high',
-          details: {
-            reason: 'console_data_access_attempt',
-            args: args.map(arg => String(arg).substring(0, 100)), // Truncate for safety
-          }
-        });
-      }
-      originalConsoleLog.apply(console, args);
-    };
-
-    // Monitor for devtools
-    let devtoolsOpen = false;
-    const checkDevtools = () => {
-      const threshold = 160;
-      if (window.outerHeight - window.innerHeight > threshold || 
-          window.outerWidth - window.innerWidth > threshold) {
-        if (!devtoolsOpen) {
-          devtoolsOpen = true;
-          logSecurityEvent({
-            type: 'suspicious_activity',
-            severity: 'low',
-            details: {
-              reason: 'devtools_opened',
-              window_dimensions: {
-                outer: [window.outerWidth, window.outerHeight],
-                inner: [window.innerWidth, window.innerHeight],
-              }
-            }
-          });
-        }
-      } else {
-        devtoolsOpen = false;
-      }
-    };
-
-    // Monitor for copy/paste of sensitive data
-    const handleCopy = (e: ClipboardEvent) => {
-      const selection = window.getSelection()?.toString() || '';
-      if (selection.includes('@') && selection.includes('.') && selection.length > 50) {
-        logSecurityEvent({
-          type: 'suspicious_activity',
-          severity: 'medium',
-          details: {
-            reason: 'large_data_copy',
-            selection_length: selection.length,
-            contains_email: true,
-          }
-        });
-      }
-    };
-
-    // Add event listeners
-    document.addEventListener('click', handleClick);
-    document.addEventListener('copy', handleCopy);
-    const devtoolsInterval = setInterval(checkDevtools, 1000);
-
-    // Cleanup
-    return () => {
-      document.removeEventListener('click', handleClick);
-      document.removeEventListener('copy', handleCopy);
-      clearInterval(devtoolsInterval);
-      clearTimeout(clickTimer);
-      console.log = originalConsoleLog; // Restore original console.log
-    };
-  }, [logSecurityEvent]);
-
-  // Monitor authentication state changes
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' && session) {
-        logSecurityEvent({
-          type: 'suspicious_activity',
-          severity: 'medium',
-          details: {
-            reason: 'unexpected_signout',
-            had_session: true,
-          }
-        });
+        setSecurityMetrics(prev => ({
+          ...prev,
+          suspiciousActivities: prev.suspiciousActivities + 1,
+          lastSecurityEvent: new Date(),
+          riskLevel: prev.suspiciousActivities > 3 ? 'high' : 'medium'
+        }));
       }
     });
+  };
 
-    return () => subscription.unsubscribe();
-  }, [logSecurityEvent]);
+  // Monitor authentication events
+  const monitorAuthEvent = (eventType: 'success' | 'failure', details: any = {}) => {
+    if (eventType === 'failure') {
+      setSecurityMetrics(prev => ({
+        ...prev,
+        failedLoginAttempts: prev.failedLoginAttempts + 1,
+        lastSecurityEvent: new Date(),
+        riskLevel: prev.failedLoginAttempts > 5 ? 'high' : prev.riskLevel
+      }));
+
+      logSecurityEvent('failed_authentication', 'auth', undefined, {
+        attempt_count: securityMetrics.failedLoginAttempts + 1,
+        ...details
+      });
+    } else {
+      // Reset failed attempts on successful login
+      setSecurityMetrics(prev => ({
+        ...prev,
+        failedLoginAttempts: 0,
+        riskLevel: 'low'
+      }));
+
+      logSecurityEvent('successful_authentication', 'auth', undefined, details);
+    }
+  };
+
+  // Enhanced session monitoring
+  useEffect(() => {
+    if (!user) return;
+
+    const monitorSession = async () => {
+      try {
+        // Check for multiple active sessions
+        const { data: sessions } = await supabase.auth.getSession();
+        
+        if (sessions.session) {
+          logSecurityEvent('session_active', 'auth', user.id, {
+            session_id: sessions.session.access_token.substring(0, 10),
+            user_agent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error('Session monitoring error:', error);
+      }
+    };
+
+    // Monitor session every 5 minutes
+    const sessionInterval = setInterval(monitorSession, 5 * 60 * 1000);
+    
+    // Initial check
+    monitorSession();
+
+    return () => clearInterval(sessionInterval);
+  }, [user, logSecurityEvent]);
+
+  // Monitor page visibility for session security
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && user) {
+        logSecurityEvent('page_hidden', 'session', user.id, {
+          timestamp: new Date().toISOString(),
+          duration_visible: Date.now()
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user, logSecurityEvent]);
 
   return {
-    logSecurityEvent,
+    securityMetrics,
+    checkRateLimit,
+    detectSuspiciousActivity,
+    monitorAuthEvent
   };
 };
