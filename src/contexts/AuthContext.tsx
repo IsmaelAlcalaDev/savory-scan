@@ -86,12 +86,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         providerType = 'apple';
       }
 
-      const { error } = await supabase.rpc('upsert_user_auth_provider', {
-        p_provider: providerType,
-        p_provider_user_id: user.user_metadata?.sub || user.id,
-        p_provider_email: user.email || '',
-        p_provider_data: user.user_metadata || {}
-      });
+      // Use direct SQL query instead of RPC call to avoid type issues
+      const { error } = await supabase
+        .from('user_auth_providers' as any)
+        .upsert({
+          user_id: user.id,
+          provider: providerType,
+          provider_user_id: user.user_metadata?.sub || user.id,
+          provider_email: user.email || '',
+          provider_data: user.user_metadata || {}
+        });
 
       if (error) {
         console.error('Error registering auth provider:', error);

@@ -70,13 +70,16 @@ export const useSecurityAuditLog = () => {
     details?: any
   ) => {
     try {
-      // Use the new secure logging function
-      const { error } = await supabase.rpc('log_security_event', {
-        event_type: actionType,
-        entity_type: entityType || null,
-        entity_id: entityId || null,
-        details: details || {}
-      });
+      // Direct insert into analytics_events instead of using RPC
+      const { error } = await supabase
+        .from('analytics_events')
+        .insert({
+          user_id: user?.id,
+          event_type: `security_${actionType}`,
+          entity_type: entityType || null,
+          entity_id: entityId ? parseInt(entityId) : null,
+          properties: details || {}
+        });
 
       if (error) {
         console.error('Error logging security event:', error);
