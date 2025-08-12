@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -90,7 +91,7 @@ export class FavoritesService {
         }
       }
 
-      // Get current favorites_count and update it
+      // Get current favorites_count from restaurants table
       const { data: currentRestaurant, error: getRestaurantError } = await supabase
         .from('restaurants')
         .select('favorites_count')
@@ -102,6 +103,7 @@ export class FavoritesService {
         throw new Error('Error al obtener datos del restaurante');
       }
 
+      // Calculate new count
       const currentCount = currentRestaurant.favorites_count || 0;
       const newCount = Math.max(0, currentCount + countChange);
 
@@ -155,29 +157,6 @@ export class FavoritesService {
         newCount: 0,
         error: error instanceof Error ? error.message : 'Unknown error'
       };
-    }
-  }
-
-  /**
-   * Recalculate favorites count for a restaurant
-   */
-  private static async recalculateFavoritesCount(restaurantId: number): Promise<number> {
-    try {
-      const { count, error } = await supabase
-        .from('user_saved_restaurants')
-        .select('*', { count: 'exact', head: true })
-        .eq('restaurant_id', restaurantId)
-        .eq('is_active', true);
-
-      if (error) {
-        console.error('Error counting favorites:', error);
-        return 0;
-      }
-
-      return count || 0;
-    } catch (error) {
-      console.error('Error in recalculateFavoritesCount:', error);
-      return 0;
     }
   }
 
