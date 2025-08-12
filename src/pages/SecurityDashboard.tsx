@@ -1,245 +1,266 @@
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState, useEffect } from 'react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useSecurityAuditLog } from '@/hooks/useSecurityAuditLog';
 import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 import { SecurityAlert } from '@/components/SecurityAlert';
-import { 
-  Shield, 
-  AlertTriangle, 
-  CheckCircle, 
-  Activity,
-  Lock,
-  Eye,
-  Users,
-  Database
-} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertTriangle, Shield, Activity, Users, Database, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function SecurityDashboard() {
-  const { isAdmin } = useUserRole();
-  const { auditLogs, loading } = useSecurityAuditLog();
-  const { securityMetrics } = useSecurityMonitoring();
+  const { isAdmin, loading: roleLoading } = useUserRole();
+  const { auditLogs, loading: auditLoading, fetchAuditLogs } = useSecurityAuditLog();
+  const { events, getSecuritySummary } = useSecurityMonitoring();
+  const [summary, setSummary] = useState(getSecuritySummary());
 
-  if (!isAdmin) {
+  useEffect(() => {
+    setSummary(getSecuritySummary());
+  }, [events]);
+
+  if (roleLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Access denied. This security dashboard requires administrator privileges.
-          </AlertDescription>
-        </Alert>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading security dashboard...</p>
+        </div>
       </div>
     );
   }
 
-  const securityStatus = {
-    rls_enabled: true,
-    security_definer_fixed: true,
-    input_validation: true,
-    rate_limiting: true,
-    audit_logging: true,
-    session_security: true
-  };
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <SecurityAlert 
+          level="high" 
+          message="Access Denied" 
+          details={["You need administrator privileges to access this dashboard"]}
+        />
+      </div>
+    );
+  }
 
-  const getOverallSecurityScore = () => {
-    const enabledFeatures = Object.values(securityStatus).filter(Boolean).length;
-    const totalFeatures = Object.keys(securityStatus).length;
-    return Math.round((enabledFeatures / totalFeatures) * 100);
+  const handleRefresh = async () => {
+    try {
+      await fetchAuditLogs();
+      setSummary(getSecuritySummary());
+      toast.success('Security data refreshed');
+    } catch (error) {
+      toast.error('Failed to refresh security data');
+    }
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Security Dashboard</h1>
-          <p className="text-muted-foreground">
-            Real-time security monitoring and audit overview
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            <Shield className="h-4 w-4 mr-1" />
-            Security Score: {getOverallSecurityScore()}%
-          </Badge>
-        </div>
-      </div>
-
-      <SecurityAlert
-        level={securityMetrics.riskLevel}
-        message={`Current security risk level: ${securityMetrics.riskLevel.toUpperCase()}`}
-        details={[
-          `Failed login attempts: ${securityMetrics.failedLoginAttempts}`,
-          `Suspicious activities detected: ${securityMetrics.suspiciousActivities}`,
-          `Last security event: ${securityMetrics.lastSecurityEvent?.toLocaleString() || 'None'}`
-        ]}
-      />
-
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="rls" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            RLS Status
-          </TabsTrigger>
-          <TabsTrigger value="monitoring" className="flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Monitoring
-          </TabsTrigger>
-          <TabsTrigger value="audit" className="flex items-center gap-2">
-            <Eye className="h-4 w-4" />
-            Audit Log
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">RLS Protection</CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">Active</div>
-                <p className="text-xs text-muted-foreground">
-                  17 tables secured with Row Level Security
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Security Events</CardTitle>
-                <Activity className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{auditLogs.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Security events logged today
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Failed Logins</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{securityMetrics.failedLoginAttempts}</div>
-                <p className="text-xs text-muted-foreground">
-                  Failed login attempts today
-                </p>
-              </CardContent>
-            </Card>
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Shield className="h-8 w-8 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold">Security Dashboard</h1>
+              <p className="text-muted-foreground">Monitor and manage application security</p>
+            </div>
           </div>
-        </TabsContent>
+          <Button onClick={handleRefresh} variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
 
-        <TabsContent value="rls" className="space-y-6">
+        {/* Security Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Row Level Security Status</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Events (24h)</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {Object.entries(securityStatus).map(([feature, enabled]) => (
-                  <div key={feature} className="flex items-center justify-between">
-                    <span className="capitalize">{feature.replace(/_/g, ' ')}</span>
-                    <Badge variant={enabled ? "default" : "destructive"}>
-                      {enabled ? (
-                        <><CheckCircle className="h-3 w-3 mr-1" />Enabled</>
-                      ) : (
-                        <><AlertTriangle className="h-3 w-3 mr-1" />Disabled</>
-                      )}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
+              <div className="text-2xl font-bold">{summary.totalEvents}</div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="monitoring" className="space-y-6">
-          <div className="grid gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">High Severity</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{summary.highSeverityEvents}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Medium Severity</CardTitle>
+              <Shield className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">{summary.mediumSeverityEvents}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Audit Logs</CardTitle>
+              <Database className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{auditLogs.length}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Security Status */}
+        {summary.highSeverityEvents > 0 && (
+          <SecurityAlert 
+            level="high" 
+            message={`${summary.highSeverityEvents} high-severity security events detected in the last 24 hours`}
+            details={["Immediate attention required", "Review security logs", "Consider implementing additional security measures"]}
+          />
+        )}
+
+        {summary.mediumSeverityEvents > 5 && (
+          <SecurityAlert 
+            level="medium" 
+            message={`${summary.mediumSeverityEvents} medium-severity events detected`}
+            details={["Monitor for patterns", "Review authentication logs"]}
+          />
+        )}
+
+        {summary.totalEvents === 0 && (
+          <SecurityAlert 
+            level="low" 
+            message="No security events detected in the last 24 hours"
+            details={["System appears to be secure", "Regular monitoring recommended"]}
+          />
+        )}
+
+        {/* Detailed Tabs */}
+        <Tabs defaultValue="events" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="events">Security Events</TabsTrigger>
+            <TabsTrigger value="audit">Audit Logs</TabsTrigger>
+            <TabsTrigger value="analysis">Security Analysis</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="events" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Real-time Security Metrics</CardTitle>
+                <CardTitle>Recent Security Events</CardTitle>
+                <CardDescription>Real-time security monitoring events</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      {getOverallSecurityScore()}%
-                    </div>
-                    <div className="text-sm text-muted-foreground">Security Score</div>
+                {events.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No recent security events</p>
+                ) : (
+                  <div className="space-y-3">
+                    {events.slice(-10).reverse().map((event, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Badge variant={event.severity === 'high' ? 'destructive' : event.severity === 'medium' ? 'secondary' : 'outline'}>
+                            {event.severity}
+                          </Badge>
+                          <div>
+                            <p className="font-medium">{event.type.replace('_', ' ').toUpperCase()}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {event.timestamp.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm">{JSON.stringify(event.details, null, 2).substring(0, 100)}...</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {securityMetrics.suspiciousActivities}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Suspicious Activities</div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="audit" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Security Audit Logs</CardTitle>
+                <CardDescription>Comprehensive audit trail of security-related actions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {auditLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+                    <p>Loading audit logs...</p>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">
-                      {securityMetrics.failedLoginAttempts}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Failed Logins</div>
+                ) : auditLogs.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No audit logs available</p>
+                ) : (
+                  <div className="space-y-3">
+                    {auditLogs.slice(0, 20).map((log) => (
+                      <div key={log.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline">{log.action_type.replace('security_', '')}</Badge>
+                          <div>
+                            <p className="font-medium">{log.entity_type || 'System'}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(log.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm">User: {log.user_id?.substring(0, 8)}...</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-center">
-                    <div className={`text-2xl font-bold ${
-                      securityMetrics.riskLevel === 'low' ? 'text-green-600' :
-                      securityMetrics.riskLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                      {securityMetrics.riskLevel.toUpperCase()}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Risk Level</div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analysis" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Security Analysis</CardTitle>
+                <CardDescription>Analysis and recommendations based on security data</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Most Common Event Type</h4>
+                    <p className="text-lg font-bold text-primary">{summary.mostCommonEvent || 'None'}</p>
                   </div>
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Security Status</h4>
+                    <Badge variant={summary.highSeverityEvents > 0 ? 'destructive' : summary.mediumSeverityEvents > 5 ? 'secondary' : 'default'}>
+                      {summary.highSeverityEvents > 0 ? 'Alert' : summary.mediumSeverityEvents > 5 ? 'Warning' : 'Secure'}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-medium">Security Recommendations</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                    <li>Regular security monitoring is active</li>
+                    <li>Row-Level Security (RLS) policies are enabled</li>
+                    <li>User role-based access control is implemented</li>
+                    <li>Audit logging is capturing security events</li>
+                    {summary.highSeverityEvents > 0 && (
+                      <li className="text-red-600">⚠️ Review and address high-severity events immediately</li>
+                    )}
+                    {summary.mediumSeverityEvents > 5 && (
+                      <li className="text-yellow-600">⚠️ Consider implementing additional authentication measures</li>
+                    )}
+                  </ul>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="audit" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Security Events</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center">Loading audit logs...</div>
-              ) : auditLogs.length === 0 ? (
-                <div className="text-center text-muted-foreground">No security events recorded</div>
-              ) : (
-                <div className="space-y-2">
-                  {auditLogs.slice(0, 10).map((log) => (
-                    <div key={log.id} className="border rounded-lg p-3 bg-gradient-card">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{log.action_type}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(log.created_at).toLocaleString()}
-                        </span>
-                      </div>
-                      {log.entity_type && (
-                        <div className="text-sm text-muted-foreground mt-1">
-                          Entity: {log.entity_type} {log.entity_id && `(${log.entity_id})`}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

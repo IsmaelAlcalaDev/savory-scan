@@ -19,8 +19,8 @@ export const useUserRole = () => {
       }
 
       try {
-        // Now properly secured with RLS - users can only view their own roles
-        const { data, error } = await supabase
+        // First check if user has any roles assigned
+        const { data: roleData, error } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id)
@@ -30,14 +30,31 @@ export const useUserRole = () => {
 
         if (error) {
           if (error.code === 'PGRST116') {
-            // No role found, default to user
-            setRole('user');
+            // No role found, assign default user role
+            console.log('No role found for user, assigning default user role');
+            try {
+              const { error: insertError } = await supabase
+                .from('user_roles')
+                .insert({
+                  user_id: user.id,
+                  role: 'user'
+                });
+              
+              if (insertError) {
+                console.error('Error creating default user role:', insertError);
+              }
+              
+              setRole('user');
+            } catch (insertErr) {
+              console.error('Error inserting default role:', insertErr);
+              setRole('user');
+            }
           } else {
             console.error('Error fetching user role:', error);
             setRole('user'); // Default to user role on error
           }
         } else {
-          setRole(data?.role || 'user');
+          setRole(roleData?.role || 'user');
         }
       } catch (error) {
         console.error('Error fetching user role:', error);

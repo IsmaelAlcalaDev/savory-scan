@@ -23,11 +23,13 @@ export const useSecurityAuditLog = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchAuditLogs = async (limit = 100) => {
-    if (!isAdmin) return;
+    if (!isAdmin) {
+      console.log('User is not admin, skipping audit log fetch');
+      return;
+    }
     
     setLoading(true);
     try {
-      // Now properly secured with RLS - only admins can view analytics events
       const { data, error } = await supabase
         .from('analytics_events')
         .select('*')
@@ -70,7 +72,6 @@ export const useSecurityAuditLog = () => {
     details?: any
   ) => {
     try {
-      // Direct insert into analytics_events instead of using RPC
       const { error } = await supabase
         .from('analytics_events')
         .insert({
