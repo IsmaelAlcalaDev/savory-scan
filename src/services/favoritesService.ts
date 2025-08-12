@@ -90,39 +90,38 @@ export class FavoritesService {
         }
       }
 
-      // Update the restaurant's favorites_count in the database
-      // First get current count, then update it
-      const { data: restaurantData, error: getError } = await supabase
+      // Get current favorites_count and update it
+      const { data: currentRestaurant, error: getRestaurantError } = await supabase
         .from('restaurants')
         .select('favorites_count')
         .eq('id', restaurantId)
         .single();
 
-      if (getError) {
-        console.warn('Could not get current favorites_count:', getError);
-      } else {
-        const currentCount = restaurantData.favorites_count || 0;
-        const newCount = Math.max(0, currentCount + countChange);
-
-        const { error: updateError } = await supabase
-          .from('restaurants')
-          .update({ favorites_count: newCount })
-          .eq('id', restaurantId);
-
-        if (updateError) {
-          console.warn('Could not update restaurant favorites_count:', updateError);
-        }
+      if (getRestaurantError) {
+        console.error('Error getting restaurant:', getRestaurantError);
+        throw new Error('Error al obtener datos del restaurante');
       }
 
-      // Recalculate the actual count from the database for accuracy
-      const actualNewCount = await this.recalculateFavoritesCount(restaurantId);
+      const currentCount = currentRestaurant.favorites_count || 0;
+      const newCount = Math.max(0, currentCount + countChange);
+
+      // Update the favorites_count in restaurants table
+      const { error: updateCountError } = await supabase
+        .from('restaurants')
+        .update({ favorites_count: newCount })
+        .eq('id', restaurantId);
+
+      if (updateCountError) {
+        console.error('Error updating favorites count:', updateCountError);
+        throw new Error('Error al actualizar contador de favoritos');
+      }
 
       // Dispatch custom event for real-time UI updates
       window.dispatchEvent(new CustomEvent('favoriteToggled', {
         detail: {
           restaurantId,
           isFavorite: newIsFavorite,
-          newCount: actualNewCount,
+          newCount,
           userId
         }
       }));
@@ -138,7 +137,7 @@ export class FavoritesService {
       return {
         success: true,
         isFavorite: newIsFavorite,
-        newCount: actualNewCount
+        newCount
       };
 
     } catch (error) {
