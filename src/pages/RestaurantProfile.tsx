@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -30,13 +29,62 @@ import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
 import RestaurantSchedule from '@/components/RestaurantSchedule';
 import RestaurantGallery from '@/components/RestaurantGallery';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
+import MenuFilters from '@/components/MenuFilters';
+import MenuSectionTabs from '@/components/MenuSectionTabs';
+import DishCard from '@/components/DishCard';
+import DishImageModal from '@/components/DishImageModal';
 import FavoriteButton from '@/components/FavoriteButton';
+import type { Dish } from '@/hooks/useRestaurantMenu';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
   const { sections: menuSections, loading: menuLoading } = useRestaurantMenu(restaurant?.id || 0);
+  
   const [activeTab, setActiveTab] = useState('profile');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
+  const [selectedDietTypes, setSelectedDietTypes] = useState<string[]>([]);
+  const [activeSection, setActiveSection] = useState<number | null>(null);
+  const [selectedDishForModal, setSelectedDishForModal] = useState<Dish | null>(null);
+
+  // Filter dishes based on search and filters
+  const filteredDishes = useMemo(() => {
+    let allDishes: Dish[] = [];
+    
+    if (activeSection) {
+      const section = menuSections.find(s => s.id === activeSection);
+      allDishes = section?.dishes || [];
+    } else {
+      allDishes = menuSections.flatMap(section => section.dishes);
+    }
+
+    return allDishes.filter(dish => {
+      // Search filter
+      if (searchTerm && !dish.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+          !dish.description?.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
+
+      // Allergen filters
+      if (selectedAllergens.includes('gluten') && !dish.is_gluten_free) return false;
+      if (selectedAllergens.includes('lactose') && !dish.is_lactose_free) return false;
+
+      // Diet type filters
+      if (selectedDietTypes.includes('vegetariano') && !dish.is_vegetarian) return false;
+      if (selectedDietTypes.includes('vegano') && !dish.is_vegan) return false;
+      if (selectedDietTypes.includes('saludable') && !dish.is_healthy) return false;
+
+      return true;
+    });
+  }, [menuSections, activeSection, searchTerm, selectedAllergens, selectedDietTypes]);
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedAllergens([]);
+    setSelectedDietTypes([]);
+    setActiveSection(null);
+  };
 
   if (loading) {
     return (
@@ -76,11 +124,6 @@ export default function RestaurantProfile() {
     if (url.includes('instagram')) return Instagram;
     if (url.includes('twitter') || url.includes('x.com')) return Twitter;
     return ExternalLink;
-  };
-
-  const formatDistance = (lat?: number, lng?: number) => {
-    // This would calculate distance from user location
-    return null;
   };
 
   return (
@@ -407,17 +450,50 @@ export default function RestaurantProfile() {
                   ))}
                 </div>
               ) : menuSections.length > 0 ? (
-                <div className="space-y-8">
-                  {menuSections.map((section) => (
-                    <RestaurantMenuSection 
-                      key={section.id} 
-                      section={section}
-                      onDishClick={(dish) => {
-                        // TODO: Handle dish click (e.g., add to cart)
-                        console.log('Dish clicked:', dish);
-                      }}
-                    />
-                  ))}
+                <div className="space-y-6">
+                  {/* Menu filters */}
+                  <MenuFilters
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    selectedAllergens={selectedAllergens}
+                    onAllergensChange={setSelectedAllergens}
+                    selectedDietTypes={selectedDietTypes}
+                    onDietTypesChange={setSelectedDietTypes}
+                    onClearFilters={clearFilters}
+                  />
+
+                  {/* Section navigation */}
+                  <MenuSectionTabs
+                    sections={menuSections}
+                    activeSection={activeSection}
+                    onSectionChange={setActiveSection}
+                  />
+
+                  {/* Dishes grid */}
+                  {filteredDishes.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredDishes.map((dish) => (
+                        <DishCard
+                          key={dish.id}
+                          dish={dish}
+                          onImageClick={setSelectedDishForModal}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <Card className="bg-gradient-card border-glass shadow-card">
+                      <CardContent className="p-12 text-center">
+                        <Utensils className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-medium mb-2">No se encontraron platos</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Prueba a cambiar los filtros o términos de búsqueda.
+                        </p>
+                        <Button variant="outline" onClick={clearFilters}>
+                          Limpiar filtros
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               ) : (
                 <Card className="bg-gradient-card border-glass shadow-card">
@@ -434,6 +510,13 @@ export default function RestaurantProfile() {
           </Tabs>
         </div>
       </div>
+
+      {/* Dish Image Modal */}
+      <DishImageModal
+        dish={selectedDishForModal}
+        isOpen={!!selectedDishForModal}
+        onClose={() => setSelectedDishForModal(null)}
+      />
     </>
   );
 }
