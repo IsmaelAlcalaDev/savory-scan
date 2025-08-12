@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, MapPin, Menu, X, User, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -485,20 +484,8 @@ export default function FoodieSpotLayout() {
             restaurants.map((restaurant) => (
               <RestaurantCard
                 key={restaurant.id}
-                id={restaurant.id}
-                name={restaurant.name}
-                slug={restaurant.slug}
-                description={restaurant.description}
-                priceRange={restaurant.price_range}
-                googleRating={restaurant.google_rating}
-                distance={restaurant.distance_km}
-                cuisineTypes={restaurant.cuisine_types}
-                establishmentType={restaurant.establishment_type}
-                services={restaurant.services}
-                favoritesCount={restaurant.favorites_count}
-                coverImageUrl={restaurant.cover_image_url}
-                logoUrl={restaurant.logo_url}
-                onLoginRequired={handleLoginRequired}
+                restaurant={restaurant}
+                savedFrom="search"
               />
             ))
           )}
