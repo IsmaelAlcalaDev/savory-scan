@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -41,7 +40,6 @@ export class FavoritesService {
       }
 
       let newIsFavorite: boolean;
-      let countChange = 0;
 
       if (!existingFavorite) {
         // Create new favorite
@@ -61,11 +59,9 @@ export class FavoritesService {
         }
 
         newIsFavorite = true;
-        countChange = 1;
       } else {
         // Toggle existing favorite
         newIsFavorite = !existingFavorite.is_active;
-        countChange = newIsFavorite ? 1 : -1;
         
         const updateData = newIsFavorite
           ? {
@@ -91,32 +87,22 @@ export class FavoritesService {
         }
       }
 
-      // Get current favorites_count from restaurants table
-      const { data: currentRestaurant, error: getRestaurantError } = await supabase
+      // Wait a moment for triggers to complete, then get the updated count
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Get the updated favorites_count from restaurants table (after triggers have run)
+      const { data: updatedRestaurant, error: getRestaurantError } = await supabase
         .from('restaurants')
         .select('favorites_count')
         .eq('id', restaurantId)
         .single();
 
       if (getRestaurantError) {
-        console.error('Error getting restaurant:', getRestaurantError);
-        throw new Error('Error al obtener datos del restaurante');
+        console.error('Error getting updated restaurant:', getRestaurantError);
+        throw new Error('Error al obtener datos actualizados del restaurante');
       }
 
-      // Calculate new count
-      const currentCount = currentRestaurant.favorites_count || 0;
-      const newCount = Math.max(0, currentCount + countChange);
-
-      // Update the favorites_count in restaurants table
-      const { error: updateCountError } = await supabase
-        .from('restaurants')
-        .update({ favorites_count: newCount })
-        .eq('id', restaurantId);
-
-      if (updateCountError) {
-        console.error('Error updating favorites count:', updateCountError);
-        throw new Error('Error al actualizar contador de favoritos');
-      }
+      const newCount = updatedRestaurant.favorites_count || 0;
 
       // Dispatch custom event for real-time UI updates
       window.dispatchEvent(new CustomEvent('favoriteToggled', {
