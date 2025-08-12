@@ -1,6 +1,5 @@
-
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +28,7 @@ import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
 import RestaurantSchedule from '@/components/RestaurantSchedule';
 import RestaurantGallery from '@/components/RestaurantGallery';
+import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import MenuFilters from '@/components/MenuFilters';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import DishCard from '@/components/DishCard';
@@ -38,29 +38,15 @@ import type { Dish } from '@/hooks/useRestaurantMenu';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
-  const location = useLocation();
-  const navigate = useNavigate();
-  
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
   const { sections: menuSections, loading: menuLoading } = useRestaurantMenu(restaurant?.id || 0);
   
-  // Determine active tab based on URL
-  const activeTab = location.pathname.startsWith('/carta/') ? 'menu' : 'profile';
-  
+  const [activeTab, setActiveTab] = useState('profile');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<string[]>([]);
   const [activeSection, setActiveSection] = useState<number | null>(null);
   const [selectedDishForModal, setSelectedDishForModal] = useState<Dish | null>(null);
-
-  // Handle tab changes by updating URL
-  const handleTabChange = (value: string) => {
-    if (value === 'menu') {
-      navigate(`/carta/${slug}`);
-    } else {
-      navigate(`/restaurant/${slug}`);
-    }
-  };
 
   // Filter dishes based on search and filters
   const filteredDishes = useMemo(() => {
@@ -244,7 +230,7 @@ export default function RestaurantProfile() {
 
         {/* Content */}
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="profile">Perfil</TabsTrigger>
               <TabsTrigger value="menu">Carta</TabsTrigger>
