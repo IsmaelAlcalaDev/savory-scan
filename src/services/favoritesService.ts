@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -41,6 +40,7 @@ export class FavoritesService {
       }
 
       let newIsFavorite: boolean;
+      let countChange = 0;
 
       if (!existingFavorite) {
         // Create new favorite
@@ -60,9 +60,11 @@ export class FavoritesService {
         }
 
         newIsFavorite = true;
+        countChange = 1;
       } else {
         // Toggle existing favorite
         newIsFavorite = !existingFavorite.is_active;
+        countChange = newIsFavorite ? 1 : -1;
         
         const updateData = newIsFavorite
           ? {
@@ -88,50 +90,39 @@ export class FavoritesService {
         }
       }
 
-      // Recalculate favorites count
-      const newCount = await this.recalculateFavoritesCount(restaurantId);
+      // Update the restaurant's favorites_count in the database
+      // First get current count, then update it
+      const { data: restaurantData, error: getError } = await supabase
+        .from('restaurants')
+        .select('favorites_count')
+        .eq('id', restaurantId)
+        .single();
 
-      // Try to update the restaurant's favorites_count in the database
-      // Using increment/decrement instead of setting the exact count
-      try {
-        if (newIsFavorite) {
-          // Increment the counter
-          const { error: incrementError } = await supabase.rpc('increment_restaurant_favorites', {
-            restaurant_id_param: restaurantId
-          });
-          
-          if (incrementError) {
-            // Fallback: try direct update with the calculated count
-            await supabase
-              .from('restaurants')
-              .update({ favorites_count: newCount })
-              .eq('id', restaurantId);
-          }
-        } else {
-          // Decrement the counter
-          const { error: decrementError } = await supabase.rpc('decrement_restaurant_favorites', {
-            restaurant_id_param: restaurantId
-          });
-          
-          if (decrementError) {
-            // Fallback: try direct update with the calculated count
-            await supabase
-              .from('restaurants')
-              .update({ favorites_count: Math.max(0, newCount) })
-              .eq('id', restaurantId);
-          }
+      if (getError) {
+        console.warn('Could not get current favorites_count:', getError);
+      } else {
+        const currentCount = restaurantData.favorites_count || 0;
+        const newCount = Math.max(0, currentCount + countChange);
+
+        const { error: updateError } = await supabase
+          .from('restaurants')
+          .update({ favorites_count: newCount })
+          .eq('id', restaurantId);
+
+        if (updateError) {
+          console.warn('Could not update restaurant favorites_count:', updateError);
         }
-      } catch (updateError) {
-        console.warn('Could not update restaurant favorites_count directly:', updateError);
-        // Continue anyway, the UI will be updated via the custom event
       }
+
+      // Recalculate the actual count from the database for accuracy
+      const actualNewCount = await this.recalculateFavoritesCount(restaurantId);
 
       // Dispatch custom event for real-time UI updates
       window.dispatchEvent(new CustomEvent('favoriteToggled', {
         detail: {
           restaurantId,
           isFavorite: newIsFavorite,
-          newCount,
+          newCount: actualNewCount,
           userId
         }
       }));
@@ -147,7 +138,7 @@ export class FavoritesService {
       return {
         success: true,
         isFavorite: newIsFavorite,
-        newCount
+        newCount: actualNewCount
       };
 
     } catch (error) {
