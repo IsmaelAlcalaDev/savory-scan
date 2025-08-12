@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -26,17 +25,30 @@ import {
   Twitter
 } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
-import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
+import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
 import RestaurantSchedule from '@/components/RestaurantSchedule';
 import RestaurantGallery from '@/components/RestaurantGallery';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import FavoriteButton from '@/components/FavoriteButton';
+import DishModal from '@/components/DishModal';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
   const { sections: menuSections, loading: menuLoading } = useRestaurantMenu(restaurant?.id || 0);
   const [activeTab, setActiveTab] = useState('profile');
+  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
+  const [isDishModalOpen, setIsDishModalOpen] = useState(false);
+
+  const handleDishClick = (dish: Dish) => {
+    setSelectedDish(dish);
+    setIsDishModalOpen(true);
+  };
+
+  const closeDishModal = () => {
+    setIsDishModalOpen(false);
+    setSelectedDish(null);
+  };
 
   if (loading) {
     return (
@@ -194,7 +206,7 @@ export default function RestaurantProfile() {
             </TabsList>
 
             <TabsContent value="profile" className="space-y-8">
-              {/* Basic Info & Actions */}
+              
               <Card className="bg-gradient-card border-glass shadow-card">
                 <CardContent className="p-6">
                   <div className="flex flex-wrap gap-3 mb-6">
@@ -390,15 +402,13 @@ export default function RestaurantProfile() {
                         <Skeleton className="h-6 w-48" />
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-4">
-                          {[1, 2, 3].map((j) => (
-                            <div key={j} className="flex gap-4">
-                              <Skeleton className="w-24 h-24 rounded-lg" />
-                              <div className="flex-1 space-y-2">
-                                <Skeleton className="h-5 w-3/4" />
-                                <Skeleton className="h-4 w-full" />
-                                <Skeleton className="h-4 w-1/2" />
-                              </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {[1, 2, 3, 4, 5, 6].map((j) => (
+                            <div key={j} className="space-y-3">
+                              <Skeleton className="aspect-[4/3] rounded-lg" />
+                              <Skeleton className="h-5 w-3/4" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-1/2" />
                             </div>
                           ))}
                         </div>
@@ -412,10 +422,8 @@ export default function RestaurantProfile() {
                     <RestaurantMenuSection 
                       key={section.id} 
                       section={section}
-                      onDishClick={(dish) => {
-                        // TODO: Handle dish click (e.g., add to cart)
-                        console.log('Dish clicked:', dish);
-                      }}
+                      restaurantId={restaurant?.id || 0}
+                      onDishClick={handleDishClick}
                     />
                   ))}
                 </div>
@@ -433,6 +441,14 @@ export default function RestaurantProfile() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Dish Modal */}
+        <DishModal
+          dish={selectedDish}
+          restaurantId={restaurant?.id || 0}
+          isOpen={isDishModalOpen}
+          onClose={closeDishModal}
+        />
       </div>
     </>
   );
