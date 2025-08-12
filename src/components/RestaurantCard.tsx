@@ -28,6 +28,44 @@ export default function RestaurantCard({ restaurant, savedFrom = 'search' }: Res
     return "0.5 km";
   };
 
+  // Helper function to get cuisine types (handles both formatted and raw data)
+  const getCuisineTypes = () => {
+    if (restaurant.cuisine_types && restaurant.cuisine_types.length > 0) {
+      return restaurant.cuisine_types;
+    }
+    if (restaurant.restaurant_cuisines) {
+      return restaurant.restaurant_cuisines
+        .map(rc => rc.cuisine_types?.name)
+        .filter(Boolean) as string[];
+    }
+    return [];
+  };
+
+  // Helper function to get services (handles both formatted and raw data)
+  const getServices = () => {
+    if (restaurant.services && restaurant.services.length > 0) {
+      return restaurant.services;
+    }
+    if (restaurant.restaurant_services) {
+      return restaurant.restaurant_services
+        .map(rs => rs.services?.name)
+        .filter(Boolean) as string[];
+    }
+    return [];
+  };
+
+  // Helper function to get establishment type
+  const getEstablishmentType = () => {
+    if (restaurant.establishment_type) {
+      return restaurant.establishment_type;
+    }
+    return restaurant.establishment_types?.name;
+  };
+
+  const cuisineTypes = getCuisineTypes();
+  const services = getServices();
+  const establishmentType = getEstablishmentType();
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 bg-gradient-card border-glass shadow-card overflow-hidden">
       <div className="relative">
@@ -125,34 +163,34 @@ export default function RestaurantCard({ restaurant, savedFrom = 'search' }: Res
 
           {/* Badges */}
           <div className="flex flex-wrap gap-2">
-            {restaurant.establishment_types?.name && (
+            {establishmentType && (
               <Badge variant="outline" className="text-xs">
-                {restaurant.establishment_types.name}
+                {establishmentType}
               </Badge>
             )}
-            {restaurant.restaurant_cuisines?.slice(0, 2).map((cuisine, index) => (
+            {cuisineTypes.slice(0, 2).map((cuisine, index) => (
               <Badge key={index} variant="secondary" className="text-xs">
-                {cuisine.cuisine_types?.name}
+                {cuisine}
               </Badge>
             ))}
-            {restaurant.restaurant_cuisines && restaurant.restaurant_cuisines.length > 2 && (
+            {cuisineTypes.length > 2 && (
               <Badge variant="secondary" className="text-xs">
-                +{restaurant.restaurant_cuisines.length - 2} más
+                +{cuisineTypes.length - 2} más
               </Badge>
             )}
           </div>
 
           {/* Services */}
-          {restaurant.restaurant_services && restaurant.restaurant_services.length > 0 && (
+          {services.length > 0 && (
             <div className="flex flex-wrap gap-1">
-              {restaurant.restaurant_services.slice(0, 3).map((service, index) => (
+              {services.slice(0, 3).map((service, index) => (
                 <Badge key={index} variant="outline" className="text-xs">
-                  {service.services?.name}
+                  {service}
                 </Badge>
               ))}
-              {restaurant.restaurant_services.length > 3 && (
+              {services.length > 3 && (
                 <Badge variant="outline" className="text-xs">
-                  +{restaurant.restaurant_services.length - 3}
+                  +{services.length - 3}
                 </Badge>
               )}
             </div>
