@@ -27,20 +27,21 @@ export const useSecurityAuditLog = () => {
     
     setLoading(true);
     try {
-      // Try to fetch from security_audit_log, fallback to creating mock data for now
+      // Now properly secured with RLS - only admins can view analytics events
       const { data, error } = await supabase
-        .from('analytics_events' as any) // Temporary workaround
+        .from('analytics_events')
         .select('*')
+        .like('event_type', 'security_%')
         .order('created_at', { ascending: false })
         .limit(limit);
 
       if (error) {
-        console.log('Security audit log not available yet, using fallback');
+        console.error('Error fetching audit logs:', error);
         setAuditLogs([]);
         return;
       }
 
-      // Transform analytics_events to audit log format for now
+      // Transform analytics_events to audit log format
       const transformedLogs: SecurityAuditEntry[] = (data || []).map((event: any) => ({
         id: event.id,
         user_id: event.user_id,
@@ -69,17 +70,13 @@ export const useSecurityAuditLog = () => {
     details?: any
   ) => {
     try {
-      // Log as analytics event for now since RPC might not be available
-      const { error } = await supabase
-        .from('analytics_events')
-        .insert({
-          user_id: user?.id,
-          event_type: `security_${actionType}`,
-          entity_type: entityType,
-          entity_id: entityId ? parseInt(entityId) : null,
-          properties: details || {},
-          session_id: `security_${Date.now()}`
-        });
+      // Use the new secure logging function
+      const { error } = await supabase.rpc('log_security_event', {
+        event_type: actionType,
+        entity_type: entityType || null,
+        entity_id: entityId || null,
+        details: details || {}
+      });
 
       if (error) {
         console.error('Error logging security event:', error);

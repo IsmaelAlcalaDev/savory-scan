@@ -19,6 +19,7 @@ export const useUserRole = () => {
       }
 
       try {
+        // Now properly secured with RLS - users can only view their own roles
         const { data, error } = await supabase
           .from('user_roles')
           .select('role')
@@ -28,8 +29,13 @@ export const useUserRole = () => {
           .single();
 
         if (error) {
-          console.error('Error fetching user role:', error);
-          setRole('user'); // Default to user role
+          if (error.code === 'PGRST116') {
+            // No role found, default to user
+            setRole('user');
+          } else {
+            console.error('Error fetching user role:', error);
+            setRole('user'); // Default to user role on error
+          }
         } else {
           setRole(data?.role || 'user');
         }

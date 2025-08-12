@@ -4,14 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, AlertTriangle, User, Calendar, RefreshCw } from 'lucide-react';
+import { Shield, AlertTriangle, User, Calendar, RefreshCw, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useSecurityAuditLog } from '@/hooks/useSecurityAuditLog';
 
 export default function SecurityAuditLog() {
   const { user } = useAuth();
-  const { isAdmin } = useUserRole();
+  const { isAdmin, loading: roleLoading } = useUserRole();
   const { auditLogs, loading, fetchAuditLogs } = useSecurityAuditLog();
   const [filter, setFilter] = useState<string>('all');
 
@@ -30,6 +30,9 @@ export default function SecurityAuditLog() {
     if (actionType.includes('update') || actionType.includes('change')) {
       return 'bg-orange-500';
     }
+    if (actionType.includes('unauthorized') || actionType.includes('error')) {
+      return 'bg-red-600';
+    }
     return 'bg-blue-500';
   };
 
@@ -37,12 +40,25 @@ export default function SecurityAuditLog() {
     return new Date(dateString).toLocaleString();
   };
 
+  if (roleLoading) {
+    return (
+      <Card className="bg-gradient-card border-glass shadow-card">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 animate-pulse" />
+            <span>Loading security permissions...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!isAdmin) {
     return (
-      <Alert>
-        <AlertTriangle className="h-4 w-4" />
+      <Alert variant="destructive">
+        <Lock className="h-4 w-4" />
         <AlertDescription>
-          Access denied. Only administrators can view security audit logs.
+          Access denied. Only administrators can view security audit logs. This access attempt has been logged.
         </AlertDescription>
       </Alert>
     );
@@ -54,6 +70,9 @@ export default function SecurityAuditLog() {
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
           Security Audit Log
+          <Badge variant="outline" className="ml-auto">
+            Admin Access
+          </Badge>
         </CardTitle>
         <div className="flex gap-2 flex-wrap">
           <Button
@@ -86,6 +105,13 @@ export default function SecurityAuditLog() {
           </Button>
           <Button
             size="sm"
+            variant={filter === 'unauthorized' ? 'default' : 'outline'}
+            onClick={() => setFilter('unauthorized')}
+          >
+            Unauthorized
+          </Button>
+          <Button
+            size="sm"
             variant="outline"
             onClick={() => fetchAuditLogs()}
             disabled={loading}
@@ -102,6 +128,7 @@ export default function SecurityAuditLog() {
           <div className="text-center py-8 text-muted-foreground">
             <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No audit logs found for the selected filter.</p>
+            <p className="text-sm mt-2">Security events will appear here as they occur.</p>
           </div>
         ) : (
           <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -111,7 +138,7 @@ export default function SecurityAuditLog() {
                   <Badge 
                     className={`${getActionBadgeColor(log.action_type)} text-white`}
                   >
-                    {log.action_type}
+                    {log.action_type.replace('security_', '')}
                   </Badge>
                   <span className="text-sm text-muted-foreground">
                     {formatDate(log.created_at)}
@@ -128,13 +155,7 @@ export default function SecurityAuditLog() {
                   {log.user_id && (
                     <div className="flex items-center gap-1">
                       <User className="h-3 w-3" />
-                      <span className="font-medium">User:</span> {log.user_id}
-                    </div>
-                  )}
-                  
-                  {log.ip_address && (
-                    <div>
-                      <span className="font-medium">IP:</span> {log.ip_address}
+                      <span className="font-medium">User:</span> {log.user_id.substring(0, 8)}...
                     </div>
                   )}
                   

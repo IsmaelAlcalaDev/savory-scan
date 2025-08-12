@@ -3,11 +3,13 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSecurityAuditLog } from '@/hooks/useSecurityAuditLog';
+import { useUserRole } from '@/hooks/useUserRole';
 
 export const useSecureAdminActions = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { logSecurityEvent } = useSecurityAuditLog();
+  const { isAdmin } = useUserRole();
 
   const executeSecureAction = async (
     actionName: string,
@@ -15,6 +17,20 @@ export const useSecureAdminActions = () => {
     entityType?: string,
     entityId?: string
   ) => {
+    // Ensure user is admin before allowing any action
+    if (!isAdmin) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "Only administrators can perform this action.",
+      });
+      await logSecurityEvent('unauthorized_admin_action_attempt', entityType, entityId, {
+        action: actionName,
+        reason: 'not_admin'
+      });
+      throw new Error('Unauthorized: Admin access required');
+    }
+
     setLoading(true);
     try {
       // Log the action attempt
@@ -63,6 +79,7 @@ export const useSecureAdminActions = () => {
     return executeSecureAction(
       'Get Restaurant Statistics',
       async () => {
+        // Now properly secured with RLS
         const { data, error } = await supabase
           .from('restaurants')
           .select(`
@@ -88,6 +105,7 @@ export const useSecureAdminActions = () => {
     return executeSecureAction(
       'Get User Roles',
       async () => {
+        // Now properly secured - only admins can view all user roles
         const { data, error } = await supabase
           .from('user_roles')
           .select(`
@@ -109,6 +127,7 @@ export const useSecureAdminActions = () => {
     executeSecureAction,
     logSecurityEvent,
     getRestaurantStats,
-    getUserRoles
+    getUserRoles,
+    isAuthorized: isAdmin
   };
 };
