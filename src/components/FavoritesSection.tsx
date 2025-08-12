@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -65,13 +64,23 @@ export default function FavoritesSection() {
     }
   }, [user]);
 
-  // Escuchar eventos de toggle para limpiar la lista cuando se quite de favoritos
+  // Listen to favoriteToggled events for real-time updates
   useEffect(() => {
     const handleFavoriteToggled = (event: CustomEvent) => {
-      const { restaurantId, isFavorite } = event.detail;
-      if (!isFavorite) {
+      const { restaurantId, isFavorite, newCount } = event.detail;
+      
+      if (isFavorite) {
+        // Restaurant was added to favorites, refresh the list to show it
+        loadFavorites();
+      } else {
+        // Restaurant was removed from favorites, remove it from the list
         setFavoriteRestaurants(prev => prev.filter(item => item.id !== restaurantId));
       }
+      
+      // Update favorites count in existing items
+      setFavoriteRestaurants(prev =>
+        prev.map(r => (r.id === restaurantId ? { ...r, favorites_count: newCount } : r))
+      );
     };
 
     window.addEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
@@ -80,7 +89,6 @@ export default function FavoritesSection() {
     };
   }, []);
 
-  // Listen to restaurants table changes for favorites_count updates only
   useEffect(() => {
     const channel = supabase
       .channel(`favorites-section-restaurants-${user?.id || 'anon'}`)

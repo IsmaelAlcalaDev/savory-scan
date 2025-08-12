@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useSecurityLogger } from '@/hooks/useSecurityLogger';
+import { FavoritesService } from '@/services/favoritesService';
 
 interface FavoritesContextType {
   isFavorite: (restaurantId: number) => boolean;
@@ -32,7 +33,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loadingMap, setLoadingMap] = useState<Record<number, boolean>>({});
   const channelRef = useRef<any>(null);
 
-  // Load user favorites into Set for O(1) lookup
+  // Load user favorites using the service
   const loadUserFavorites = async () => {
     if (!user) {
       console.log('FavoritesProvider: No user, clearing favorites');
@@ -43,21 +44,8 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       console.log('FavoritesProvider: Loading favorites for user', user.id);
       
-      const { data, error } = await supabase
-        .from('user_saved_restaurants')
-        .select('restaurant_id')
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-
-      if (error) {
-        console.error('FavoritesProvider: Error loading favorites:', error);
-        throw error;
-      }
-
-      const newFavoritesSet = new Set<number>();
-      data?.forEach(item => {
-        newFavoritesSet.add(item.restaurant_id);
-      });
+      const favoriteIds = await FavoritesService.loadUserFavorites();
+      const newFavoritesSet = new Set<number>(favoriteIds);
 
       console.log('FavoritesProvider: Loaded favorites:', newFavoritesSet.size);
       setFavoritesSet(newFavoritesSet);
@@ -71,7 +59,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  // Setup real-time subscription for multi-tab sync (ONLY for favorite states, not counters)
+  // Setup real-time subscription for multi-tab sync
   useEffect(() => {
     if (!user) {
       setFavoritesSet(new Set());
@@ -137,6 +125,20 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   }, [user]);
 
+  // Listen for custom favoriteToggled events
+  useEffect(() => {
+    const handleFavoriteToggled = (event: CustomEvent) => {
+      const { restaurantId, isFavorite } = event.detail;
+      setFavoriteState(restaurantId, isFavorite);
+    };
+
+    window.addEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
+    
+    return () => {
+      window.removeEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
+    };
+  }, []);
+
   const refreshFavorites = async () => {
     await loadUserFavorites();
   };
@@ -187,79 +189,32 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return favoritesSet.has(restaurantId);
     }
 
-    // Validate session
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session || sessionData.session.user.id !== user.id) {
-        console.error('FavoritesProvider: Invalid session detected');
-        try {
-          await logSecurityEvent('invalid_session_favorite', 'restaurant', String(restaurantId), {
-            hasSession: !!sessionData?.session,
-            sessionUserId: sessionData?.session?.user?.id,
-            contextUserId: user.id
-          });
-        } catch (error) {
-          console.error('FavoritesProvider: Error logging security event:', error);
-        }
-        
-        toast({
-          title: "Sesión no válida",
-          description: "Vuelve a iniciar sesión para guardar favoritos.",
-          variant: "destructive"
-        });
-        
-        if (openLoginModal) openLoginModal();
-        return false;
-      }
-    } catch (error) {
-      console.error('FavoritesProvider: Error validating session:', error);
-      return false;
-    }
-
     const currentState = favoritesSet.has(restaurantId);
     setLoadingMap(prev => ({ ...prev, [restaurantId]: true }));
 
     try {
-      console.log('FavoritesProvider: Calling toggle_restaurant_favorite_v2 RPC');
+      console.log('FavoritesProvider: Calling FavoritesService.toggleRestaurantFavorite');
       
-      // Call the v2 RPC function (DB triggers update counters automatically)
-      const { data, error } = await supabase.rpc('toggle_restaurant_favorite_v2' as any, {
-        restaurant_id_param: restaurantId,
-        saved_from_param: savedFrom
-      });
+      const result = await FavoritesService.toggleRestaurantFavorite(restaurantId, savedFrom);
 
-      if (error) {
-        console.error('FavoritesProvider: RPC error:', error);
-        throw error;
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to toggle favorite');
       }
 
-      const result = data as { success: boolean; is_favorite: boolean; action: string };
-      console.log('FavoritesProvider: RPC result:', result);
-      
-      // Update local favorites set immediately; realtime will also confirm
-      setFavoriteState(restaurantId, result.is_favorite);
+      console.log('FavoritesProvider: Service result:', result);
 
       // Log security event
       try {
         await logSecurityEvent('favorite_toggled', 'restaurant', String(restaurantId), {
-          newState: result.is_favorite,
+          newState: result.isFavorite,
           previousState: currentState,
-          action: result.action,
           savedFrom
         });
       } catch (error) {
         console.error('FavoritesProvider: Error logging security event:', error);
       }
 
-      // Show success toast
-      toast({
-        title: result.is_favorite ? "Restaurante guardado" : "Eliminado de favoritos",
-        description: result.is_favorite 
-          ? "El restaurante se ha añadido a tus favoritos" 
-          : "El restaurante se ha eliminado de tus favoritos"
-      });
-
-      return result.is_favorite;
+      return result.isFavorite;
 
     } catch (error: any) {
       console.error('FavoritesProvider: Error toggling favorite:', error);
@@ -267,7 +222,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       try {
         await logSecurityEvent('favorite_toggle_error', 'restaurant', String(restaurantId), {
           error: error?.message,
-          code: error?.code,
           userId: user.id,
           currentState,
           savedFrom
@@ -275,12 +229,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       } catch (logError) {
         console.error('FavoritesProvider: Error logging security event:', logError);
       }
-      
-      toast({
-        title: "Error",
-        description: error?.message || "No se pudo actualizar el favorito. Inténtalo de nuevo.",
-        variant: "destructive"
-      });
       
       // Return unchanged state on error
       return currentState;

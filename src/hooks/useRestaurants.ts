@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -70,7 +69,6 @@ export const useRestaurants = ({
           minRating
         });
 
-        // Obtener restaurantes con servicios, favoritos, imágenes y google_rating_count
         let query = supabase
           .from('restaurants')
           .select(`
@@ -98,17 +96,14 @@ export const useRestaurants = ({
           .eq('is_published', true)
           .is('deleted_at', null);
 
-        // Agregar filtro de búsqueda si se proporciona
         if (searchQuery) {
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         }
 
-        // Agregar filtro de rating
         if (minRating > 0) {
           query = query.gte('google_rating', minRating);
         }
 
-        // Agregar filtro de rango de precios
         if (priceRanges && priceRanges.length > 0) {
           query = query.in('price_range', priceRanges);
         }
@@ -123,7 +118,6 @@ export const useRestaurants = ({
         console.log('Raw data from restaurants table:', data);
 
         const formattedData = data?.map((restaurant: any) => {
-          // Calcular distancia si se proporciona la ubicación del usuario
           let distance_km = null;
           if (userLat && userLng && restaurant.latitude && restaurant.longitude) {
             distance_km = haversineDistance(userLat, userLng, restaurant.latitude, restaurant.longitude);
@@ -147,7 +141,6 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        // Si hay ubicación del usuario, ordenar por distancia
         let sortedData = formattedData;
         if (userLat && userLng) {
           sortedData = formattedData
@@ -171,8 +164,21 @@ export const useRestaurants = ({
 
     fetchRestaurants();
 
-    // ONLY listen to restaurants table changes for favorites_count updates
-    // This eliminates duplicated updates from other sources
+    const handleFavoriteToggled = (event: CustomEvent) => {
+      const { restaurantId, newCount } = event.detail;
+      console.log('useRestaurants: Received favoriteToggled event:', { restaurantId, newCount });
+      
+      setRestaurants(prev =>
+        prev.map(r => 
+          r.id === restaurantId 
+            ? { ...r, favorites_count: Math.max(0, newCount) }
+            : r
+        )
+      );
+    };
+
+    window.addEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
+
     const channel = supabase
       .channel('restaurants-favorites-count')
       .on(
@@ -198,6 +204,7 @@ export const useRestaurants = ({
       .subscribe();
 
     return () => {
+      window.removeEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
       supabase.removeChannel(channel);
     };
 
