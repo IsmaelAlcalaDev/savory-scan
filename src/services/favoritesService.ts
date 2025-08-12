@@ -92,12 +92,35 @@ export class FavoritesService {
       const newCount = await this.recalculateFavoritesCount(restaurantId);
 
       // Try to update the restaurant's favorites_count in the database
-      // This might fail due to RLS, but we'll handle it gracefully
+      // Using increment/decrement instead of setting the exact count
       try {
-        await supabase
-          .from('restaurants')
-          .update({ favorites_count: newCount })
-          .eq('id', restaurantId);
+        if (newIsFavorite) {
+          // Increment the counter
+          const { error: incrementError } = await supabase.rpc('increment_restaurant_favorites', {
+            restaurant_id_param: restaurantId
+          });
+          
+          if (incrementError) {
+            // Fallback: try direct update with the calculated count
+            await supabase
+              .from('restaurants')
+              .update({ favorites_count: newCount })
+              .eq('id', restaurantId);
+          }
+        } else {
+          // Decrement the counter
+          const { error: decrementError } = await supabase.rpc('decrement_restaurant_favorites', {
+            restaurant_id_param: restaurantId
+          });
+          
+          if (decrementError) {
+            // Fallback: try direct update with the calculated count
+            await supabase
+              .from('restaurants')
+              .update({ favorites_count: Math.max(0, newCount) })
+              .eq('id', restaurantId);
+          }
+        }
       } catch (updateError) {
         console.warn('Could not update restaurant favorites_count directly:', updateError);
         // Continue anyway, the UI will be updated via the custom event
