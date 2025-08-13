@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -87,7 +86,7 @@ export const useRestaurants = ({
             logo_url,
             establishment_types!inner(name),
             restaurant_cuisines!inner(
-              cuisine_types!inner(name, id)
+              cuisine_types!inner(name)
             ),
             restaurant_services(
               services!inner(name)
@@ -109,7 +108,7 @@ export const useRestaurants = ({
           query = query.in('price_range', priceRanges);
         }
 
-        const { data, error } = await query.limit(100);
+        const { data, error } = await query.limit(50);
 
         if (error) {
           console.error('Supabase error:', error);
@@ -118,7 +117,7 @@ export const useRestaurants = ({
 
         console.log('Raw data from restaurants table:', data);
 
-        let formattedData = data?.map((restaurant: any) => {
+        const formattedData = data?.map((restaurant: any) => {
           let distance_km = null;
           if (userLat && userLng && restaurant.latitude && restaurant.longitude) {
             distance_km = haversineDistance(userLat, userLng, restaurant.latitude, restaurant.longitude);
@@ -138,47 +137,17 @@ export const useRestaurants = ({
             services: restaurant.restaurant_services?.map((rs: any) => rs.services?.name).filter(Boolean) || [],
             favorites_count: restaurant.favorites_count || 0,
             cover_image_url: restaurant.cover_image_url,
-            logo_url: restaurant.logo_url,
-            cuisine_type_ids: restaurant.restaurant_cuisines?.map((rc: any) => rc.cuisine_types?.id).filter(Boolean) || []
+            logo_url: restaurant.logo_url
           };
         }).filter(Boolean) || [];
 
-        // Apply cuisine type filter
-        if (cuisineTypeIds && cuisineTypeIds.length > 0) {
-          formattedData = formattedData.filter((restaurant: any) =>
-            cuisineTypeIds.some(cuisineId => 
-              restaurant.cuisine_type_ids?.includes(cuisineId)
-            )
-          );
-        }
-
-        // Apply distance filter if user location is available
-        if (userLat && userLng && maxDistance) {
-          formattedData = formattedData.filter((restaurant: any) =>
-            !restaurant.distance_km || restaurant.distance_km <= maxDistance
-          );
-        }
-
-        // Sort by distance if available, then by rating
         let sortedData = formattedData;
         if (userLat && userLng) {
           sortedData = formattedData
-            .filter((restaurant: any) => restaurant.distance_km !== null)
-            .sort((a: any, b: any) => {
-              // First sort by distance
-              const distanceDiff = (a.distance_km || 0) - (b.distance_km || 0);
-              if (distanceDiff !== 0) return distanceDiff;
-              
-              // Then by rating (descending)
-              return (b.google_rating || 0) - (a.google_rating || 0);
-            });
+            .filter(restaurant => restaurant.distance_km !== null)
+            .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
           
-          console.log('Restaurants sorted by distance and rating:', sortedData.slice(0, 5));
-        } else {
-          // Sort by rating only when no location
-          sortedData = formattedData.sort((a: any, b: any) => 
-            (b.google_rating || 0) - (a.google_rating || 0)
-          );
+          console.log('Restaurants sorted by distance:', sortedData.slice(0, 5));
         }
 
         console.log('Final formatted restaurants:', sortedData.length);
