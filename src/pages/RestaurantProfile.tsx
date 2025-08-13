@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +22,8 @@ import {
   ExternalLink,
   Facebook,
   Instagram,
-  Twitter
+  Twitter,
+  ArrowLeft
 } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
@@ -35,6 +36,7 @@ import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
   const [activeTab, setActiveTab] = useState('profile');
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
@@ -55,9 +57,19 @@ export default function RestaurantProfile() {
     setSelectedDish(null);
   };
 
+  const handleBackToDirectory = () => {
+    navigate('/');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
+        {/* Header Skeleton */}
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
         {/* Hero Section Skeleton */}
         <div className="h-64 bg-muted animate-pulse" />
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -77,12 +89,28 @@ export default function RestaurantProfile() {
 
   if (error || !restaurant) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Restaurante no encontrado</h1>
-          <Button variant="outline" onClick={() => window.history.back()}>
-            Volver
-          </Button>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <Button 
+              variant="ghost" 
+              onClick={handleBackToDirectory}
+              className="gap-2 hover:bg-muted"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver al directorio
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Restaurante no encontrado</h1>
+            <Button variant="outline" onClick={handleBackToDirectory}>
+              Volver al directorio
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -139,6 +167,20 @@ export default function RestaurantProfile() {
       </Helmet>
 
       <div className="min-h-screen bg-background">
+        {/* Header with Back Button */}
+        <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <Button 
+              variant="ghost" 
+              onClick={handleBackToDirectory}
+              className="gap-2 hover:bg-muted transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver al directorio
+            </Button>
+          </div>
+        </div>
+
         {/* Hero Section */}
         <div className="relative h-80 bg-gradient-hero overflow-hidden">
           {restaurant.cover_image_url && (
