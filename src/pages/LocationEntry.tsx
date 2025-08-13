@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Navigation, Utensils, Heart, Star, ChefHat } from 'lucide-react';
+import { Search, MapPin, Navigation, Utensils, Heart, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -96,40 +95,18 @@ export default function LocationEntry() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Elementos decorativos animados */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 left-10 text-primary/20 animate-bounce delay-100">
-          <Utensils className="h-12 w-12" />
-        </div>
-        <div className="absolute top-20 right-20 text-primary/20 animate-bounce delay-300">
-          <ChefHat className="h-10 w-10" />
-        </div>
-        <div className="absolute bottom-20 left-20 text-primary/20 animate-bounce delay-500">
-          <Heart className="h-8 w-8" />
-        </div>
-        <div className="absolute bottom-32 right-16 text-primary/20 animate-bounce delay-700">
-          <Star className="h-6 w-6" />
-        </div>
-        <div className="absolute top-1/2 left-8 text-primary/20 animate-bounce delay-1000">
-          <Utensils className="h-7 w-7" />
-        </div>
-        <div className="absolute top-1/3 right-8 text-primary/20 animate-bounce delay-1200">
-          <Heart className="h-9 w-9" />
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Contenido principal */}
       <div className="max-w-2xl w-full text-center space-y-8 relative z-10">
         {/* Logo/Título */}
         <div className="space-y-4">
           <div className="flex items-center justify-center space-x-3">
-            <div className="bg-primary/20 p-4 rounded-full">
-              <Utensils className="h-12 w-12 text-primary" />
+            <div className="bg-white/20 p-4 rounded-full">
+              <Utensils className="h-12 w-12 text-white" />
             </div>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white drop-shadow-lg">
-            Foodie<span className="text-primary-light">Spot</span>
+            Foodie<span className="text-white/80">Spot</span>
           </h1>
         </div>
 
@@ -157,7 +134,7 @@ export default function LocationEntry() {
                 placeholder="Buscar ubicación..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-card text-lg placeholder:text-gray-400 focus:ring-2 focus:ring-primary/50"
+                className="pl-12 pr-4 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-card text-lg placeholder:text-gray-400 focus:ring-2 focus:ring-white/50"
                 maxLength={50}
               />
             </div>
