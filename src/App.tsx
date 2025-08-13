@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import LocationEntry from "./pages/LocationEntry";
 import Restaurants from "./pages/Restaurants";
 import Dishes from "./pages/Dishes";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { FilterProvider } from '@/contexts/FilterContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,59 +29,57 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => {
-  console.log('App: Starting application with enhanced security');
-
+function App() {
   return (
-    <ErrorBoundary>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
+    <HelmetProvider>
+      <ErrorBoundary>
+        <QueryClient>
           <AuthProvider>
             <FavoritesProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <Routes>
-                    <Route path="/" element={<LocationEntry />} />
-                    <Route path="/restaurantes" element={<Restaurants />} />
-                    <Route path="/platos" element={<Dishes />} />
-                    <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
-                    <Route 
-                      path="/admin" 
-                      element={
-                        <ProtectedRoute requiredRole="admin">
-                          <SecureAdminPanel />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/superadmin" 
-                      element={
-                        <ProtectedRoute requiredRole="admin">
-                          <SuperAdminPanel />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/security" 
-                      element={
-                        <ProtectedRoute requiredRole="admin">
-                          <SecurityDashboard />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </BrowserRouter>
-              </TooltipProvider>
+              <FilterProvider>
+                <Router>
+                  <div className="min-h-screen bg-background">
+                    <Routes>
+                      <Route path="/" element={<LocationEntry />} />
+                      <Route path="/restaurantes" element={<Restaurants />} />
+                      <Route path="/platos" element={<Dishes />} />
+                      <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
+                      <Route 
+                        path="/admin" 
+                        element={
+                          <ProtectedRoute requiredRole="admin">
+                            <SecureAdminPanel />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/superadmin" 
+                        element={
+                          <ProtectedRoute requiredRole="admin">
+                            <SuperAdminPanel />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/security" 
+                        element={
+                          <ProtectedRoute requiredRole="admin">
+                            <SecurityDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </div>
+                </Router>
+              </FilterProvider>
             </FavoritesProvider>
           </AuthProvider>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </ErrorBoundary>
+        </QueryClient>
+      </ErrorBoundary>
+    </HelmetProvider>
   );
-};
+}
 
 export default App;
