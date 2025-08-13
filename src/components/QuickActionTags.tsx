@@ -41,33 +41,33 @@ export default function QuickActionTags({
         <Button
           size="lg"
           variant="outline"
-          className="rounded-full px-6 py-3 h-auto border-2 hover:scale-105 transition-all hover:bg-green-50 hover:border-green-500 flex items-center gap-2"
+          className="rounded-full px-6 py-3 h-auto border-2 hover:scale-105 transition-all hover:bg-gray-50 flex items-center gap-2"
           onClick={() => window.open(`tel:${phone}`)}
         >
-          <Phone className="h-5 w-5 text-green-600" />
-          <span className="text-green-600 font-medium">Llamar</span>
+          <Phone className="h-5 w-5 text-black" />
+          <span className="text-black font-medium">Llamar</span>
         </Button>
       )}
       
       <Button
         size="lg"
         variant="outline"
-        className="rounded-full px-6 py-3 h-auto border-2 hover:scale-105 transition-all hover:bg-blue-50 hover:border-blue-500 flex items-center gap-2"
+        className="rounded-full px-6 py-3 h-auto border-2 hover:scale-105 transition-all hover:bg-gray-50 flex items-center gap-2"
         onClick={handleNavigationClick}
       >
-        <Navigation className="h-5 w-5 text-blue-600" />
-        <span className="text-blue-600 font-medium">Cómo llegar</span>
+        <Navigation className="h-5 w-5 text-black" />
+        <span className="text-black font-medium">Cómo llegar</span>
       </Button>
 
       {website && (
         <Button
           size="lg"
           variant="outline"
-          className="rounded-full px-6 py-3 h-auto border-2 hover:scale-105 transition-all hover:bg-purple-50 hover:border-purple-500 flex items-center gap-2"
+          className="rounded-full px-6 py-3 h-auto border-2 hover:scale-105 transition-all hover:bg-gray-50 flex items-center gap-2"
           onClick={() => window.open(website, '_blank', 'noopener noreferrer')}
         >
-          <Globe className="h-5 w-5 text-purple-600" />
-          <span className="text-purple-600 font-medium">Sitio web</span>
+          <Globe className="h-5 w-5 text-black" />
+          <span className="text-black font-medium">Sitio web</span>
         </Button>
       )}
 
@@ -75,22 +75,22 @@ export default function QuickActionTags({
         <Button
           size="lg"
           variant="outline"
-          className="rounded-full px-6 py-3 h-auto border-2 hover:scale-105 transition-all hover:bg-orange-50 hover:border-orange-500 flex items-center gap-2"
+          className="rounded-full px-6 py-3 h-auto border-2 hover:scale-105 transition-all hover:bg-gray-50 flex items-center gap-2"
           onClick={() => window.open(`mailto:${email}`)}
         >
-          <Mail className="h-5 w-5 text-orange-600" />
-          <span className="text-orange-600 font-medium">Email</span>
+          <Mail className="h-5 w-5 text-black" />
+          <span className="text-black font-medium">Email</span>
         </Button>
       )}
 
       <Button
         size="lg"
         variant="outline"
-        className="rounded-full px-6 py-3 h-auto border-2 hover:scale-105 transition-all hover:bg-primary/10 hover:border-primary flex items-center gap-2"
+        className="rounded-full px-6 py-3 h-auto border-2 hover:scale-105 transition-all hover:bg-gray-50 flex items-center gap-2"
         onClick={onReservationClick}
       >
-        <Calendar className="h-5 w-5 text-primary" />
-        <span className="text-primary font-medium">Reservas</span>
+        <Calendar className="h-5 w-5 text-black" />
+        <span className="text-black font-medium">Reservas</span>
       </Button>
     </div>
   );
