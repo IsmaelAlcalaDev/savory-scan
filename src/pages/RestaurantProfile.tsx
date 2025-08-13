@@ -61,7 +61,9 @@ export default function RestaurantProfile() {
     { id: 'servicios', label: 'Servicios', icon: CheckCircle },
     { id: 'delivery', label: 'Delivery', icon: Truck },
     { id: 'reservas', label: 'Reservas', icon: Calendar },
-    { id: 'promociones', label: 'Promociones', icon: Percent },
+    ...(restaurant?.promotions && restaurant.promotions.length > 0 ? [
+      { id: 'promociones', label: 'Promociones', icon: Percent }
+    ] : []),
     { id: 'eventos', label: 'Eventos', icon: Calendar },
   ];
 
@@ -589,8 +591,13 @@ export default function RestaurantProfile() {
                   {status.text}
                 </span>
               </div>
-              {restaurant.schedules.length > 0 && (
+              {restaurant.schedules.length > 0 ? (
                 <RestaurantSchedule schedules={restaurant.schedules} />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Horarios no disponibles</p>
+                </div>
               )}
             </div>
           </section>
@@ -643,20 +650,49 @@ export default function RestaurantProfile() {
           </section>
 
           {/* Promociones - solo si hay */}
-          <section 
-            id="promociones"
-            ref={(el) => sectionsRef.current['promociones'] = el}
-            className="space-y-4"
-          >
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <Percent className="h-6 w-6 text-primary" />
-              Promociones y ofertas
-            </h2>
-            <div className="text-center py-12 text-muted-foreground bg-background/50 backdrop-blur-sm rounded-2xl border border-border/20">
-              <Percent className="h-16 w-16 mx-auto mb-4 opacity-30" />
-              <p className="text-lg">No hay promociones activas en este momento</p>
-            </div>
-          </section>
+          {restaurant.promotions && restaurant.promotions.length > 0 && (
+            <section 
+              id="promociones"
+              ref={(el) => sectionsRef.current['promociones'] = el}
+              className="space-y-4"
+            >
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Percent className="h-6 w-6 text-primary" />
+                Promociones y ofertas
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {restaurant.promotions.map((promo) => (
+                  <div key={promo.id} className="bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
+                    <div className="flex items-start justify-between mb-4">
+                      <h3 className="text-lg font-semibold">{promo.title}</h3>
+                      {promo.discount_label && (
+                        <Badge variant="destructive" className="ml-2">
+                          {promo.discount_label}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-muted-foreground mb-4">{promo.description}</p>
+                    {promo.conditions && (
+                      <p className="text-xs text-muted-foreground mb-3">
+                        <strong>Condiciones:</strong> {promo.conditions}
+                      </p>
+                    )}
+                    {promo.promo_code && (
+                      <div className="bg-background/50 rounded-lg p-3 mb-3">
+                        <p className="text-sm font-mono font-medium">
+                          Código: <span className="bg-primary/20 px-2 py-1 rounded text-primary">{promo.promo_code}</span>
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <span>Válido desde: {new Date(promo.valid_from).toLocaleDateString()}</span>
+                      <span>Hasta: {new Date(promo.valid_until).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Eventos - solo si hay */}
           <section 
