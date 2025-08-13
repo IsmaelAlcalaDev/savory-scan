@@ -48,7 +48,13 @@ export const useRestaurantEvents = (restaurantId: number) => {
           throw eventsError;
         }
 
-        setEvents(data || []);
+        // Transform the data to match our interface
+        const transformedEvents = (data || []).map(event => ({
+          ...event,
+          tags: Array.isArray(event.tags) ? event.tags : []
+        }));
+
+        setEvents(transformedEvents);
       } catch (err) {
         console.error('Error fetching restaurant events:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar eventos');
