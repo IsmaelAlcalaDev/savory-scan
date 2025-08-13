@@ -902,7 +902,6 @@ export type Database = {
           created_at: string | null
           display_order: number | null
           icon: string | null
-          icon_emoji: string | null
           icon_url: string | null
           id: number
           is_active: boolean | null
@@ -913,7 +912,6 @@ export type Database = {
           created_at?: string | null
           display_order?: number | null
           icon?: string | null
-          icon_emoji?: string | null
           icon_url?: string | null
           id?: number
           is_active?: boolean | null
@@ -924,7 +922,6 @@ export type Database = {
           created_at?: string | null
           display_order?: number | null
           icon?: string | null
-          icon_emoji?: string | null
           icon_url?: string | null
           id?: number
           is_active?: boolean | null

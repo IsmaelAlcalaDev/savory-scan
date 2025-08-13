@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -35,6 +34,10 @@ import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import FavoriteButton from '@/components/FavoriteButton';
 import DishModal from '@/components/DishModal';
 import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
+import SocialLinksSection from '@/components/SocialLinksSection';
+import DeliveryPlatformsSection from '@/components/DeliveryPlatformsSection';
+import BookingPlatformsSection from '@/components/BookingPlatformsSection';
+import ExternalLinksSection from '@/components/ExternalLinksSection';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
@@ -422,9 +425,11 @@ export default function RestaurantProfile() {
               <div className="bg-transparent">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   {restaurant.phone && (
-                    <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50">
-                      <Phone className="h-4 w-4" />
-                      Llamar
+                    <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50" asChild>
+                      <a href={`tel:${restaurant.phone}`}>
+                        <Phone className="h-4 w-4" />
+                        Llamar
+                      </a>
                     </Button>
                   )}
                   <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50">
@@ -432,9 +437,11 @@ export default function RestaurantProfile() {
                     Cómo llegar
                   </Button>
                   {restaurant.website && (
-                    <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50">
-                      <Globe className="h-4 w-4" />
-                      Web
+                    <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50" asChild>
+                      <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
+                        <Globe className="h-4 w-4" />
+                        Web
+                      </a>
                     </Button>
                   )}
                   <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50">
@@ -446,9 +453,11 @@ export default function RestaurantProfile() {
                     Reservar
                   </Button>
                   {restaurant.email && (
-                    <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50">
-                      <Mail className="h-4 w-4" />
-                      Email
+                    <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50" asChild>
+                      <a href={`mailto:${restaurant.email}`}>
+                        <Mail className="h-4 w-4" />
+                        Email
+                      </a>
                     </Button>
                   )}
                 </div>
@@ -462,71 +471,41 @@ export default function RestaurantProfile() {
                     <div className="space-y-4">
                       <h3 className="text-xl font-semibold">Servicios</h3>
                       <div className="flex flex-wrap gap-3">
-                        {/* Show all available services as highlighted */}
                         {restaurant.services.map((service, index) => (
                           <Badge key={index} variant="default" className="px-4 py-2 text-sm">
                             {service}
                           </Badge>
                         ))}
-                        {/* You can add other common services as muted if not available */}
-                        {!restaurant.services.includes('Delivery') && (
-                          <Badge variant="outline" className="px-4 py-2 text-sm opacity-50">
-                            Delivery
-                          </Badge>
-                        )}
-                        {!restaurant.services.includes('Wifi') && (
-                          <Badge variant="outline" className="px-4 py-2 text-sm opacity-50">
-                            Wifi
-                          </Badge>
-                        )}
                       </div>
                     </div>
                   )}
 
-                  {/* Social Networks & External Links */}
-                  <div className="space-y-6">
-                    <h3 className="text-xl font-semibold">Enlaces externos</h3>
-                    
-                    {/* Social Links */}
-                    {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
-                      <div className="space-y-3">
-                        <p className="font-medium text-muted-foreground">Redes sociales</p>
-                        <div className="flex gap-3">
-                          {Object.entries(restaurant.social_links).map(([platform, url]) => {
-                            const Icon = getSocialIcon(url as string);
-                            return (
-                              <Button
-                                key={platform}
-                                variant="outline"
-                                size="icon"
-                                asChild
-                                className="hover:bg-primary hover:text-primary-foreground border-border/50"
-                              >
-                                <a href={url as string} target="_blank" rel="noopener noreferrer">
-                                  <Icon className="h-4 w-4" />
-                                </a>
-                              </Button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+                  {/* Social Networks */}
+                  <SocialLinksSection 
+                    socialLinks={restaurant.social_links}
+                    socialProfiles={restaurant.social_profiles}
+                  />
 
-                    {/* External Platform Links */}
-                    <div className="space-y-3">
-                      <p className="font-medium text-muted-foreground">Plataformas</p>
-                      <div className="flex gap-3">
-                        <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50">
-                          <ExternalLink className="h-4 w-4" />
-                          TripAdvisor
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50">
-                          <Utensils className="h-4 w-4" />
-                          TheFork
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  {/* External Links */}
+                  <ExternalLinksSection 
+                    website={restaurant.website}
+                    tripadvisor_url={restaurant.tripadvisor_url}
+                    menuLinks={restaurant.menu_links}
+                  />
+
+                  {/* Booking Platforms */}
+                  <BookingPlatformsSection 
+                    thefork_url={restaurant.thefork_url}
+                    bookingPlatforms={restaurant.booking_platforms}
+                  />
+
+                  {/* Delivery Platforms */}
+                  <DeliveryPlatformsSection 
+                    glovo_url={restaurant.glovo_url}
+                    ubereats_url={restaurant.ubereats_url}
+                    justeat_url={restaurant.justeat_url}
+                    deliveroo_url={restaurant.deliveroo_url}
+                  />
 
                   {/* Promotions */}
                   <div className="space-y-4">
