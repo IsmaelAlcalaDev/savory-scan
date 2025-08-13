@@ -1,174 +1,146 @@
-
-import { useState } from 'react';
-import { SlidersHorizontal, X, RotateCcw } from 'lucide-react';
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import {
-  ModalWrapper,
-  ModalContent,
-  ModalHeader,
-  ModalTitle,
-  ModalTrigger,
-} from '@/components/ui/modal-wrapper';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import FiltersSidebar from './FiltersSidebar';
+import CuisineFilter from '@/components/CuisineFilter';
+import FoodTypeFilter from '@/components/FoodTypeFilter';
+import RatingFilter from '@/components/RatingFilter';
+import DistanceFilter from '@/components/DistanceFilter';
+import { usePriceRanges } from '@/hooks/usePriceRanges';
+import { useDietTypes } from '@/hooks/useDietTypes';
 
 interface FiltersModalProps {
-  selectedDistances: number[];
-  onDistanceChange: (distances: number[]) => void;
-  selectedRatings: number[];
-  onRatingChange: (ratings: number[]) => void;
-  selectedEstablishments: number[];
-  onEstablishmentChange: (establishments: number[]) => void;
-  selectedServices: number[];
-  onServiceChange: (services: number[]) => void;
-  selectedPriceRanges: string[];
-  onPriceRangeChange: (priceRanges: string[]) => void;
-  selectedTimeRanges: number[];
-  onTimeRangeChange: (timeRanges: number[]) => void;
-  selectedDietTypes: string[];
-  onDietTypeChange: (dietTypes: string[]) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  activeTab: 'restaurants' | 'dishes';
+  // Restaurant filters
+  cuisineFilters: number[];
+  onCuisineChange: (cuisines: number[]) => void;
+  // Dish filters
+  foodTypeFilters: number[];
+  onFoodTypeChange: (foodTypes: number[]) => void;
+  // Common filters
+  priceRanges: ('€' | '€€' | '€€€' | '€€€€')[];
+  onPriceRangeChange: (ranges: string[]) => void;
+  minRating: number;
+  onRatingChange: (rating: number) => void;
+  maxDistance: number;
+  onDistanceChange: (distance: number) => void;
+  dietTypes: string[];
+  onDietTypeChange: (types: string[]) => void;
 }
 
 export default function FiltersModal({
-  selectedDistances,
-  onDistanceChange,
-  selectedRatings,
-  onRatingChange,
-  selectedEstablishments,
-  onEstablishmentChange,
-  selectedServices,
-  onServiceChange,
-  selectedPriceRanges,
+  isOpen,
+  onClose,
+  activeTab,
+  cuisineFilters,
+  onCuisineChange,
+  foodTypeFilters,
+  onFoodTypeChange,
+  priceRanges,
   onPriceRangeChange,
-  selectedTimeRanges,
-  onTimeRangeChange,
-  selectedDietTypes,
-  onDietTypeChange,
+  minRating,
+  onRatingChange,
+  maxDistance,
+  onDistanceChange,
+  dietTypes,
+  onDietTypeChange
 }: FiltersModalProps) {
-  const [open, setOpen] = useState(false);
+  const { priceRanges: availablePriceRanges } = usePriceRanges();
+  const { dietTypes: availableDietTypes } = useDietTypes();
 
-  const clearAllFilters = () => {
-    onDistanceChange([]);
-    onRatingChange([]);
-    onEstablishmentChange([]);
-    onServiceChange([]);
-    onPriceRangeChange([]);
-    onTimeRangeChange([]);
-    onDietTypeChange([]);
+  const handlePriceRangeToggle = (range: string) => {
+    const newRanges = priceRanges.includes(range as '€' | '€€' | '€€€' | '€€€€')
+      ? priceRanges.filter(r => r !== range)
+      : [...priceRanges, range as '€' | '€€' | '€€€' | '€€€€'];
+    onPriceRangeChange(newRanges);
   };
 
-  const applyFilters = () => {
-    setOpen(false);
+  const handleDietTypeToggle = (type: string) => {
+    const newTypes = dietTypes.includes(type)
+      ? dietTypes.filter(t => t !== type)
+      : [...dietTypes, type];
+    onDietTypeChange(newTypes);
   };
-
-  const hasActiveFilters = 
-    selectedDistances.length > 0 ||
-    selectedRatings.length > 0 ||
-    selectedEstablishments.length > 0 ||
-    selectedServices.length > 0 ||
-    selectedPriceRanges.length > 0 ||
-    selectedTimeRanges.length > 0 ||
-    selectedDietTypes.length > 0;
 
   return (
-    <ModalWrapper open={open} onOpenChange={setOpen}>
-      <ModalTrigger asChild>
-        <Button
-          variant="ghost"
-          className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground hover:text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 border-0 p-0 flex items-center justify-center relative group"
-        >
-          <SlidersHorizontal className="h-6 w-6 transition-transform duration-300 group-hover:rotate-180" />
-          {hasActiveFilters && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-white animate-pulse" />
-          )}
-        </Button>
-      </ModalTrigger>
-      
-      <ModalContent className="max-w-4xl h-[90vh] p-0 overflow-hidden flex flex-col">
-        {/* Header fijo */}
-        <div className="bg-gradient-to-r from-primary to-primary/90 text-primary-foreground p-6 flex-shrink-0 relative">
-          {/* Botón de cerrar */}
-          <button
-            onClick={() => setOpen(false)}
-            className="absolute right-4 top-4 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center"
-          >
-            <X className="h-8 w-8 text-primary-foreground font-bold" strokeWidth={4} />
-          </button>
-
-          <ModalHeader>
-            <div className="flex items-center justify-between pr-16">
-              <ModalTitle className="flex items-center gap-3 text-2xl font-bold">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <SlidersHorizontal className="h-6 w-6" />
-                </div>
-                Filtros de Búsqueda
-              </ModalTitle>
-            </div>
-            
-            <p className="text-primary-foreground/90 text-sm mt-2">
-              Selecciona los filtros que desees para refinar tu búsqueda de restaurantes.
-            </p>
-          </ModalHeader>
-        </div>
-
-        {/* Contenido scrolleable */}
-        <div className="flex-1 overflow-hidden bg-gray-50">
-          <ScrollArea className="h-full">
-            <div className="p-6">
-              <FiltersSidebar
-                selectedDistances={selectedDistances}
-                onDistanceChange={onDistanceChange}
-                selectedRatings={selectedRatings}
-                onRatingChange={onRatingChange}
-                selectedEstablishments={selectedEstablishments}
-                onEstablishmentChange={onEstablishmentChange}
-                selectedServices={selectedServices}
-                onServiceChange={onServiceChange}
-                selectedPriceRanges={selectedPriceRanges}
-                onPriceRangeChange={onPriceRangeChange}
-                selectedTimeRanges={selectedTimeRanges}
-                onTimeRangeChange={onTimeRangeChange}
-                selectedDietTypes={selectedDietTypes}
-                onDietTypeChange={onDietTypeChange}
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Filtros</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          {/* Type filters section */}
+          <div className="space-y-3">
+            <h4 className="font-medium">
+              {activeTab === 'restaurants' ? 'Tipos de cocina' : 'Tipos de comida'}
+            </h4>
+            {activeTab === 'restaurants' ? (
+              <CuisineFilter
+                selectedCuisines={cuisineFilters}
+                onCuisineChange={onCuisineChange}
               />
-            </div>
-          </ScrollArea>
-        </div>
+            ) : (
+              <FoodTypeFilter
+                selectedFoodTypes={foodTypeFilters}
+                onFoodTypeChange={onFoodTypeChange}
+              />
+            )}
+          </div>
 
-        {/* Footer fijo con botones de acción */}
-        <div className="flex-shrink-0 bg-white border-t border-gray-200 p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              {hasActiveFilters && (
+          {/* Price range filter section */}
+          <div className="space-y-3">
+            <h4 className="font-medium">Rango de precios</h4>
+            <div className="flex flex-wrap gap-2">
+              {availablePriceRanges.map((range) => (
                 <Button
-                  variant="outline"
-                  onClick={clearAllFilters}
-                  className="flex items-center gap-2"
+                  key={range}
+                  variant={priceRanges.includes(range) ? "secondary" : "outline"}
+                  onClick={() => handlePriceRangeToggle(range)}
                 >
-                  <RotateCcw className="h-4 w-4" />
-                  Limpiar Filtros
+                  {range}
                 </Button>
-              )}
+              ))}
             </div>
-            
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                onClick={() => setOpen(false)}
-                className="px-6"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={applyFilters}
-                className="px-8 bg-primary hover:bg-primary/90"
-              >
-                Aplicar Filtros
-              </Button>
+          </div>
+
+          {/* Rating filter section */}
+          <div className="space-y-3">
+            <h4 className="font-medium">Rating mínimo</h4>
+            <RatingFilter rating={minRating} onRatingChange={onRatingChange} />
+          </div>
+
+          {/* Distance filter section */}
+          <div className="space-y-3">
+            <h4 className="font-medium">Distancia máxima (km)</h4>
+            <DistanceFilter distance={maxDistance} onDistanceChange={onDistanceChange} />
+          </div>
+
+          {/* Diet types filter section */}
+          <div className="space-y-3">
+            <h4 className="font-medium">Dietas</h4>
+            <div className="flex flex-wrap gap-2">
+              {availableDietTypes.map((type) => (
+                <Button
+                  key={type}
+                  variant={dietTypes.includes(type) ? "secondary" : "outline"}
+                  onClick={() => handleDietTypeToggle(type)}
+                >
+                  {type}
+                </Button>
+              ))}
             </div>
           </div>
         </div>
-      </ModalContent>
-    </ModalWrapper>
+
+        <div className="flex justify-end gap-2 pt-6">
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button onClick={onClose}>Aplicar filtros</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
