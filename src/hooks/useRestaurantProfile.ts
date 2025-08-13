@@ -17,16 +17,7 @@ export interface RestaurantProfile {
   logo_url?: string;
   cover_image_url?: string;
   social_links?: any;
-  social_profiles?: any;
   delivery_links?: any;
-  tripadvisor_url?: string;
-  thefork_url?: string;
-  glovo_url?: string;
-  ubereats_url?: string;
-  justeat_url?: string;
-  deliveroo_url?: string;
-  booking_platforms?: any;
-  menu_links?: any;
   latitude?: number;
   longitude?: number;
   favorites_count: number;
@@ -79,16 +70,7 @@ export const useRestaurantProfile = (slug: string) => {
             logo_url,
             cover_image_url,
             social_links,
-            social_profiles,
             delivery_links,
-            tripadvisor_url,
-            thefork_url,
-            glovo_url,
-            ubereats_url,
-            justeat_url,
-            deliveroo_url,
-            booking_platforms,
-            menu_links,
             latitude,
             longitude,
             favorites_count,
@@ -145,16 +127,7 @@ export const useRestaurantProfile = (slug: string) => {
           logo_url: restaurantData.logo_url,
           cover_image_url: restaurantData.cover_image_url,
           social_links: restaurantData.social_links,
-          social_profiles: restaurantData.social_profiles,
           delivery_links: restaurantData.delivery_links,
-          tripadvisor_url: restaurantData.tripadvisor_url,
-          thefork_url: restaurantData.thefork_url,
-          glovo_url: restaurantData.glovo_url,
-          ubereats_url: restaurantData.ubereats_url,
-          justeat_url: restaurantData.justeat_url,
-          deliveroo_url: restaurantData.deliveroo_url,
-          booking_platforms: restaurantData.booking_platforms,
-          menu_links: restaurantData.menu_links,
           latitude: restaurantData.latitude,
           longitude: restaurantData.longitude,
           favorites_count: restaurantData.favorites_count || 0,

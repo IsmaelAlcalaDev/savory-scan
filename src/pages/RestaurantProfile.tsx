@@ -483,29 +483,18 @@ export default function RestaurantProfile() {
                   {/* Social Networks */}
                   <SocialLinksSection 
                     socialLinks={restaurant.social_links}
-                    socialProfiles={restaurant.social_profiles}
                   />
 
                   {/* External Links */}
                   <ExternalLinksSection 
                     website={restaurant.website}
-                    tripadvisor_url={restaurant.tripadvisor_url}
-                    menuLinks={restaurant.menu_links}
                   />
 
                   {/* Booking Platforms */}
-                  <BookingPlatformsSection 
-                    thefork_url={restaurant.thefork_url}
-                    bookingPlatforms={restaurant.booking_platforms}
-                  />
+                  <BookingPlatformsSection />
 
                   {/* Delivery Platforms */}
-                  <DeliveryPlatformsSection 
-                    glovo_url={restaurant.glovo_url}
-                    ubereats_url={restaurant.ubereats_url}
-                    justeat_url={restaurant.justeat_url}
-                    deliveroo_url={restaurant.deliveroo_url}
-                  />
+                  <DeliveryPlatformsSection />
 
                   {/* Promotions */}
                   <div className="space-y-4">

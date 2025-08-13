@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   Facebook, 
   Instagram, 
@@ -13,7 +12,6 @@ import {
 
 interface SocialLinksSectionProps {
   socialLinks?: any;
-  socialProfiles?: any;
 }
 
 const getSocialIcon = (platform: string) => {
@@ -50,7 +48,7 @@ const getSocialColor = (platform: string) => {
   }
 };
 
-export default function SocialLinksSection({ socialLinks, socialProfiles }: SocialLinksSectionProps) {
+export default function SocialLinksSection({ socialLinks }: SocialLinksSectionProps) {
   if (!socialLinks || Object.keys(socialLinks).length === 0) {
     return null;
   }
@@ -61,7 +59,6 @@ export default function SocialLinksSection({ socialLinks, socialProfiles }: Soci
       <div className="space-y-3">
         {Object.entries(socialLinks).map(([platform, url]) => {
           const Icon = getSocialIcon(platform);
-          const profile = socialProfiles?.[platform] || '';
           const colorClass = getSocialColor(platform);
           
           return (
@@ -70,9 +67,6 @@ export default function SocialLinksSection({ socialLinks, socialProfiles }: Soci
                 <Icon className="h-5 w-5" />
                 <div>
                   <p className="font-medium capitalize">{platform}</p>
-                  {profile && (
-                    <p className="text-sm text-muted-foreground">{profile}</p>
-                  )}
                 </div>
               </div>
               <Button
