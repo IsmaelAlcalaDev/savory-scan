@@ -7,7 +7,6 @@ import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import BottomNavigation from '@/components/BottomNavigation';
 import LocationEntry from '@/pages/LocationEntry';
 import Restaurants from '@/pages/Restaurants';
 import RestaurantProfile from '@/pages/RestaurantProfile';
@@ -53,7 +52,6 @@ function App() {
                       <Route path="/admin" element={<SecureAdminPanel />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
-                    <BottomNavigation />
                   </div>
                   <Toaster />
                 </Router>
