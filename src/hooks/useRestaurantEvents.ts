@@ -51,7 +51,9 @@ export const useRestaurantEvents = (restaurantId: number) => {
         // Transform the data to match our interface
         const transformedEvents = (data || []).map(event => ({
           ...event,
-          tags: Array.isArray(event.tags) ? event.tags : []
+          tags: Array.isArray(event.tags) 
+            ? event.tags.filter(tag => typeof tag === 'string') as string[]
+            : []
         }));
 
         setEvents(transformedEvents);
