@@ -18,7 +18,6 @@ import MenuModal from './MenuModal';
 import LanguageSelector from './LanguageSelector';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
-import { useIPLocation } from '@/hooks/useIPLocation';
 import { useDistanceRanges } from '@/hooks/useDistanceRanges';
 import { useRatingOptions } from '@/hooks/useRatingOptions';
 import { useEstablishmentTypes } from '@/hooks/useEstablishmentTypes';
@@ -64,11 +63,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [currentLocationName, setCurrentLocationName] = useState('Detectando ubicación...');
+  const [currentLocationName, setCurrentLocationName] = useState('Selecciona ubicación');
   const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>(initialTab);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
-  const { location: ipLocation, loading: ipLoading } = useIPLocation();
   const { distanceRanges } = useDistanceRanges();
   const { ratingOptions } = useRatingOptions();
   const { establishmentTypes } = useEstablishmentTypes();
@@ -83,18 +82,96 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const appName = appSettings?.appName ?? 'FoodieSpot';
   const appLogoUrl = appSettings?.logoUrl ?? 'https://w7.pngwing.com/pngs/256/867/png-transparent-zomato-logo-thumbnail.png';
 
+  // Cargar ubicación guardada o solicitar GPS
   useEffect(() => {
-    if (ipLocation && !userLocation) {
-      console.log('Setting user location from IP detection:', ipLocation);
-      setUserLocation({
-        lat: ipLocation.latitude,
-        lng: ipLocation.longitude
-      });
+    const loadSavedLocation = () => {
+      try {
+        const savedLocation = localStorage.getItem('selectedLocation');
+        if (savedLocation) {
+          const locationData = JSON.parse(savedLocation);
+          console.log('Loading saved location:', locationData);
+          
+          if (locationData.latitude && locationData.longitude) {
+            setUserLocation({
+              lat: locationData.latitude,
+              lng: locationData.longitude
+            });
+            
+            // Determinar nombre de la ubicación
+            if (locationData.address) {
+              setCurrentLocationName(locationData.address);
+            } else if (locationData.name && locationData.parent) {
+              const locationDisplay = `${locationData.name}, ${locationData.parent.split(',')[0]}`;
+              setCurrentLocationName(locationDisplay);
+            } else if (locationData.name) {
+              setCurrentLocationName(locationData.name);
+            } else {
+              setCurrentLocationName('Ubicación guardada');
+            }
+            return true;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved location:', error);
+      }
+      return false;
+    };
+
+    const requestGPSLocation = async () => {
+      if (!('geolocation' in navigator)) {
+        console.log('Geolocation not supported');
+        return;
+      }
+
+      setIsLoadingLocation(true);
+      setCurrentLocationName('Detectando ubicación...');
       
-      const locationDisplay = `${ipLocation.city}, ${ipLocation.region}`;
-      setCurrentLocationName(locationDisplay);
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            resolve,
+            reject,
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 300000 // 5 minutos
+            }
+          );
+        });
+
+        const { latitude, longitude } = position.coords;
+        console.log('GPS location obtained:', { latitude, longitude });
+        
+        setUserLocation({
+          lat: latitude,
+          lng: longitude
+        });
+        
+        setCurrentLocationName('Ubicación detectada');
+        
+        // Guardar en localStorage
+        localStorage.setItem('selectedLocation', JSON.stringify({
+          latitude,
+          longitude,
+          address: 'Ubicación detectada'
+        }));
+        
+      } catch (error: any) {
+        console.error('GPS Error:', error);
+        setCurrentLocationName('Selecciona ubicación');
+      } finally {
+        setIsLoadingLocation(false);
+      }
+    };
+
+    // Primero intentar cargar ubicación guardada
+    const hasSavedLocation = loadSavedLocation();
+    
+    // Si no hay ubicación guardada, solicitar GPS
+    if (!hasSavedLocation) {
+      requestGPSLocation();
     }
-  }, [ipLocation, userLocation]);
+  }, []);
 
   const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useRestaurants({
     searchQuery: activeBottomTab === 'restaurants' ? searchQuery : '',
@@ -397,11 +474,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           return `${dishes.length} platos cerca de ti`;
         }
         
-        if (ipLocation) {
-          const locationName = ipLocation.city || 'tu ubicación';
-          return `${dishes.length} platos en ${locationName}`;
-        }
-        
         return `${dishes.length} platos`;
       };
 
@@ -537,11 +609,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     const getDynamicTitle = () => {
       if (userLocation) {
         return `${restaurants.length} restaurantes cerca de ti`;
-      }
-      
-      if (ipLocation) {
-        const locationName = ipLocation.city || 'tu ubicación';
-        return `${restaurants.length} restaurantes en ${locationName}`;
       }
       
       return `${restaurants.length} restaurantes`;
@@ -708,7 +775,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
               >
                 <MapPin className="h-4 w-4" />
                 <span className="max-w-40 truncate">
-                  {ipLoading ? 'Detectando...' : currentLocationName}
+                  {isLoadingLocation ? 'Detectando...' : currentLocationName}
                 </span>
               </Button>
             </div>
