@@ -897,6 +897,42 @@ export type Database = {
           },
         ]
       }
+      food_types: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          icon: string | null
+          icon_emoji: string | null
+          icon_url: string | null
+          id: number
+          is_active: boolean | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          icon?: string | null
+          icon_emoji?: string | null
+          icon_url?: string | null
+          id?: number
+          is_active?: boolean | null
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          icon?: string | null
+          icon_emoji?: string | null
+          icon_url?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       fraud_alerts: {
         Row: {
           alert_data: Json
