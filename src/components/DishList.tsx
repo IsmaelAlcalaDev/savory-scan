@@ -77,6 +77,7 @@ export default function DishList({ dishes, loading, error }: DishListProps) {
   const transformedDishes = dishes.map(dish => ({
     ...dish,
     price: dish.base_price,
+    variants: [], // Add empty variants array as required by Dish interface
     restaurant: {
       id: dish.restaurant_id,
       name: dish.restaurant_name,

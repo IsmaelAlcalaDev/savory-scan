@@ -82,10 +82,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     maxDistance,
     cuisineTypeIds: selectedCuisines,
     priceRanges: restaurantPriceRanges,
-    minRating,
-    serviceIds: selectedServices,
-    timeRangeIds: selectedTimeRanges,
-    dietTypes: selectedRestaurantDietTypes
+    minRating
   });
 
   const { dishes, loading: dishesLoading, error: dishesError } = useDishes({
