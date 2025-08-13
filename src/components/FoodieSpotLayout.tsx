@@ -73,7 +73,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     filters, 
     validation, 
     updateFilter, 
-    clearAllFilters: clearFilters,
+    clearAllFilters,
     validateFilters 
   } = useFilters();
 
@@ -163,7 +163,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       }
       return false;
     };
-
+    
     const requestGPSLocation = async () => {
       if (!('geolocation' in navigator)) {
         console.log('Geolocation not supported');
@@ -346,7 +346,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     setSelectedTimeRanges([]);
     setSelectedDietTypes([]);
     setActiveFilters([]);
-    clearFilters();
+    clearAllFilters();
   };
 
   const removeFilter = (filterType: string, value: any) => {
