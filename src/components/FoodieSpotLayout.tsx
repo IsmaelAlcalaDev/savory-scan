@@ -81,6 +81,15 @@ export default function FoodieSpotLayout() {
     console.log('Search submitted:', searchQuery);
   };
 
+  const handleTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
+    if (tab === 'account') {
+      // Handle account tab separately if needed
+      console.log('Account tab clicked');
+      return;
+    }
+    setActiveTab(tab as 'restaurants' | 'dishes');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header Section */}
@@ -181,7 +190,17 @@ export default function FoodieSpotLayout() {
             restaurants.map((restaurant) => (
               <RestaurantCard
                 key={restaurant.id}
-                {...restaurant}
+                id={restaurant.id}
+                name={restaurant.name}
+                slug={restaurant.slug}
+                description={restaurant.description}
+                priceRange={restaurant.price_range}
+                rating={restaurant.google_rating}
+                ratingCount={restaurant.google_rating_count}
+                distance={restaurant.distance_km}
+                cuisineTypes={restaurant.cuisine_types}
+                imageUrl={restaurant.image_url}
+                imageAlt={restaurant.image_alt}
                 onClick={() => console.log('Restaurant clicked:', restaurant.id)}
               />
             ))
@@ -190,8 +209,8 @@ export default function FoodieSpotLayout() {
               <AllDishCard
                 key={dish.id}
                 dish={dish}
-                onFavoriteClick={() => console.log('Favorite clicked:', dish.id)}
-                onCardClick={() => setSelectedDish(dish)}
+                onDishClick={() => setSelectedDish(dish)}
+                onLoginRequired={() => console.log('Login required')}
               />
             ))
           )}
@@ -226,7 +245,7 @@ export default function FoodieSpotLayout() {
 
       {/* Modals */}
       <LocationModal 
-        isOpen={showLocationModal} 
+        open={showLocationModal} 
         onClose={() => setShowLocationModal(false)}
         onLocationSelect={handleLocationSelect}
       />
@@ -262,7 +281,7 @@ export default function FoodieSpotLayout() {
       )}
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
     </div>
   );
 }
