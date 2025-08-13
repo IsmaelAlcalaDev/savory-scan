@@ -36,29 +36,17 @@ export const useRestaurantEvents = (restaurantId: number) => {
 
         console.log('Fetching events for restaurant ID:', restaurantId);
 
-        // First, let's try a simpler query to see if there are any events at all
-        const { data: allEvents, error: allEventsError } = await supabase
-          .from('events')
-          .select('*')
-          .eq('restaurant_id', restaurantId);
-
-        console.log('All events for this restaurant:', allEvents);
-
-        if (allEventsError) {
-          console.error('Error fetching all events:', allEventsError);
-        }
-
-        // Now the filtered query
+        // Simplified query to get all events for this restaurant
         const { data, error: eventsError } = await supabase
           .from('events')
           .select('*')
           .eq('restaurant_id', restaurantId)
-          .eq('is_active', true)
-          .is('deleted_at', null)
+          .gte('event_date', new Date().toISOString().split('T')[0]) // Only future events
           .order('event_date', { ascending: true })
           .order('start_time', { ascending: true });
 
-        console.log('Filtered events:', data);
+        console.log('Events query result:', data);
+        console.log('Events query error:', eventsError);
 
         if (eventsError) {
           throw eventsError;
