@@ -50,7 +50,6 @@ export default function RestaurantProfile() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('descripcion');
   const [isHeaderFixed, setIsHeaderFixed] = useState(false);
-  const [heroHeight, setHeroHeight] = useState(0);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -67,26 +66,15 @@ export default function RestaurantProfile() {
     { id: 'eventos', label: 'Eventos', icon: Calendar },
   ];
 
-  // Calculate hero height on mount and resize
-  useEffect(() => {
-    const updateHeroHeight = () => {
-      if (heroRef.current) {
-        setHeroHeight(heroRef.current.offsetHeight);
-      }
-    };
-
-    updateHeroHeight();
-    window.addEventListener('resize', updateHeroHeight);
-    return () => window.removeEventListener('resize', updateHeroHeight);
-  }, [restaurant]);
-
   // Handle scroll for fixed header and active section detection
   useEffect(() => {
     const handleScroll = () => {
       if (headerRef.current && heroRef.current) {
-        const headerTop = headerRef.current.offsetTop;
+        const heroHeight = heroRef.current.offsetHeight;
         const scrollTop = window.scrollY;
-        const shouldBeFixed = scrollTop > headerTop - 20;
+        
+        // The header should become fixed when we scroll past the hero section
+        const shouldBeFixed = scrollTop > heroHeight - 100;
         
         if (shouldBeFixed !== isHeaderFixed) {
           setIsHeaderFixed(shouldBeFixed);
@@ -457,14 +445,11 @@ export default function RestaurantProfile() {
         {/* Fixed Navigation Header */}
         <div 
           ref={headerRef}
-          className={`bg-background transition-all duration-500 ease-in-out ${
+          className={`bg-background transition-all duration-300 ease-in-out ${
             isHeaderFixed 
-              ? 'fixed left-0 right-0 z-40 shadow-lg border-b border-border' 
+              ? 'fixed top-0 left-0 right-0 z-40 shadow-lg border-b border-border' 
               : 'relative'
           }`}
-          style={{
-            top: isHeaderFixed ? `${heroHeight}px` : 'auto'
-          }}
         >
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex items-center gap-4 py-4">
@@ -770,15 +755,15 @@ export default function RestaurantProfile() {
         />
       </div>
 
-      <style>
-        {`.scrollbar-hide {
+      <style jsx>{`
+        .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
-        }`}
-      </style>
+        }
+      `}</style>
     </>
   );
 }
