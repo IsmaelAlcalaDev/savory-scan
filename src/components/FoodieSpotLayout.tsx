@@ -1,7 +1,6 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useDebounce } from 'usehooks-ts';
-import { useGeolocation } from 'usehooks-ts';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MapPin, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +14,9 @@ import CuisineFilter from '@/components/CuisineFilter';
 import FoodTypeFilter from '@/components/FoodTypeFilter';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useAllDishes, DishWithRestaurant } from '@/hooks/useAllDishes';
-import { BottomNavigation } from '@/components/ui/bottom-navigation';
+import BottomNavigation from '@/components/BottomNavigation';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useBrowserGeolocation } from '@/hooks/useBrowserGeolocation';
 
 interface LocationData {
   latitude: number | null;
@@ -26,13 +27,13 @@ interface LocationData {
 }
 
 export default function FoodieSpotLayout() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // 1. Search Query State
   const initialSearchQuery = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
-  const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
 
   // 2. Location State
   const initialLat = searchParams.get('lat');
@@ -66,7 +67,7 @@ export default function FoodieSpotLayout() {
   const [activeTab, setActiveTab] = useState<"restaurants" | "dishes">("restaurants");
 
   // 6. Geolocation Hook
-  const geolocation = useGeolocation();
+  const geolocation = useBrowserGeolocation();
 
   // 7. Restaurants Hook
   const {
@@ -75,12 +76,12 @@ export default function FoodieSpotLayout() {
     error: restaurantsError,
   } = useRestaurants({
     searchQuery,
-    userLat: location?.latitude,
-    userLng: location?.longitude,
-    maxDistance,
+    userLat: location?.latitude ?? undefined,
+    userLng: location?.longitude ?? undefined,
+    maxDistance: maxDistance[0],
     foodTypeIds: selectedFoodTypes,
     priceRanges: selectedPriceRanges as Array<'€' | '€€' | '€€€' | '€€€€'>,
-    minRating,
+    minRating: minRating[0],
     dietTypes: selectedDietTypes,
     cuisineTypes: selectedCuisines,
   });
@@ -92,12 +93,12 @@ export default function FoodieSpotLayout() {
     error: allDishesError,
   } = useAllDishes({
     searchQuery: debouncedSearchQuery,
-    userLat: location?.latitude,
-    userLng: location?.longitude,
-    maxDistance,
+    userLat: location?.latitude ?? undefined,
+    userLng: location?.longitude ?? undefined,
+    maxDistance: maxDistance[0],
     foodTypeIds: selectedFoodTypes,
     priceRanges: selectedPriceRanges as Array<'€' | '€€' | '€€€' | '€€€€'>,
-    minRating,
+    minRating: minRating[0],
     dietTypes: selectedDietTypes,
   });
 
@@ -105,12 +106,11 @@ export default function FoodieSpotLayout() {
   const updateUrlParams = useCallback(() => {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
-    if (location?.latitude) params.set('lat', location.latitude.toString());
-    if (location?.longitude) params.set('lng', location.longitude.toString());
+    if (location?.latitude != null) params.set('lat', String(location.latitude));
+    if (location?.longitude != null) params.set('lng', String(location.longitude));
     if (location?.city) params.set('city', location.city);
-
-    router.push(`/?${params.toString()}`, { scroll: false });
-  }, [searchQuery, location, router]);
+    setSearchParams(params);
+  }, [searchQuery, location, setSearchParams]);
 
   // Update URL params on search query change
   useEffect(() => {
@@ -204,7 +204,7 @@ export default function FoodieSpotLayout() {
 
         {/* Filters Row */}
         <div className="flex items-center justify-between gap-4">
-          <Tabs defaultValue="restaurants" className="w-full" onValueChange={setActiveTab}>
+          <Tabs defaultValue="restaurants" className="w-full" onValueChange={(val) => setActiveTab(val as 'restaurants' | 'dishes')}>
             <TabsList className="w-full grid grid-cols-2 rounded-full shadow-sm border">
               <TabsTrigger value="restaurants" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full shadow-sm">Restaurantes</TabsTrigger>
               <TabsTrigger value="dishes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full shadow-sm">Platos</TabsTrigger>
@@ -260,8 +260,24 @@ export default function FoodieSpotLayout() {
               <p>Error: {restaurantsError}</p>
             ) : restaurants && restaurants.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {restaurants.map((restaurant) => (
-                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                {restaurants.map((restaurant: any) => (
+                  <RestaurantCard
+                    key={restaurant.id}
+                    id={restaurant.id}
+                    name={restaurant.name}
+                    slug={restaurant.slug}
+                    description={restaurant.description}
+                    priceRange={restaurant.priceRange ?? restaurant.price_range}
+                    googleRating={restaurant.googleRating ?? restaurant.google_rating}
+                    googleRatingCount={restaurant.googleRatingCount ?? restaurant.google_rating_count}
+                    distance={restaurant.distance ?? restaurant.distance_km}
+                    cuisineTypes={restaurant.cuisineTypes ?? restaurant.cuisine_types ?? []}
+                    establishmentType={restaurant.establishmentType ?? restaurant.establishment_type}
+                    services={restaurant.services ?? []}
+                    favoritesCount={restaurant.favoritesCount ?? restaurant.favorites_count}
+                    coverImageUrl={restaurant.coverImageUrl ?? restaurant.cover_image_url}
+                    logoUrl={restaurant.logoUrl ?? restaurant.logo_url}
+                  />
                 ))}
               </div>
             ) : (
@@ -278,7 +294,7 @@ export default function FoodieSpotLayout() {
                   <DishCard
                     key={dish.id}
                     dish={dish}
-                    restaurantId={dish.restaurant.id}
+                    restaurantId={(dish as any).restaurant?.id}
                     onDishClick={handleDishClick}
                   />
                 ))}
@@ -310,11 +326,11 @@ export default function FoodieSpotLayout() {
         />
       )}
 
-      {/* Filters Modal */}
-      
-
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      <BottomNavigation
+        activeTab={activeTab}
+        onTabChange={(tab) => setActiveTab(tab === 'account' ? 'restaurants' : tab)}
+      />
     </div>
   );
 }
