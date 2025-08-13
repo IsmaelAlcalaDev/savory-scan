@@ -20,7 +20,6 @@ import {
   Info,
   Truck,
   Calendar,
-  MessageSquare,
   Phone,
   Navigation,
   Globe,
@@ -58,10 +57,10 @@ export default function RestaurantProfile() {
   const menuSections = [
     { id: 'fotos', label: 'Fotos', icon: Images, action: () => setIsGalleryOpen(true) },
     { id: 'descripcion', label: 'Descripción', icon: Info },
+    { id: 'horarios', label: 'Horarios', icon: Clock },
+    { id: 'servicios', label: 'Servicios', icon: CheckCircle },
     { id: 'delivery', label: 'Delivery', icon: Truck },
     { id: 'reservas', label: 'Reservas', icon: Calendar },
-    { id: 'resenas', label: 'Reseñas', icon: MessageSquare },
-    { id: 'servicios', label: 'Servicios', icon: CheckCircle },
     { id: 'promociones', label: 'Promociones', icon: Percent },
     { id: 'eventos', label: 'Eventos', icon: Calendar },
   ];
@@ -73,7 +72,6 @@ export default function RestaurantProfile() {
         const heroHeight = heroRef.current.offsetHeight;
         const scrollTop = window.scrollY;
         
-        // The header should become fixed when we scroll past the hero section
         const shouldBeFixed = scrollTop > heroHeight - 100;
         
         if (shouldBeFixed !== isHeaderFixed) {
@@ -445,7 +443,7 @@ export default function RestaurantProfile() {
         {/* Fixed Navigation Header */}
         <div 
           ref={headerRef}
-          className={`bg-background transition-all duration-300 ease-in-out ${
+          className={`bg-background transition-all duration-500 ease-in-out ${
             isHeaderFixed 
               ? 'fixed top-0 left-0 right-0 z-40 shadow-lg border-b border-border' 
               : 'relative'
@@ -486,84 +484,102 @@ export default function RestaurantProfile() {
 
         {/* Content Sections */}
         <div className="max-w-6xl mx-auto px-4 py-8 space-y-16">
+          {/* Descripción (sin título) */}
           <section 
             id="descripcion"
             ref={(el) => sectionsRef.current['descripcion'] = el}
-            className="space-y-8"
+            className="space-y-6"
           >
-            <h2 className="text-2xl font-bold">Descripción General</h2>
-            
             {restaurant.description && (
               <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
                 <p className="text-lg leading-relaxed">{restaurant.description}</p>
               </div>
             )}
+          </section>
 
-            {/* Quick Action Buttons */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {restaurant.phone && (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="h-20 flex-col gap-2"
-                  asChild
-                >
-                  <a href={`tel:${restaurant.phone}`}>
-                    <Phone className="h-6 w-6" />
-                    <span className="text-sm">Llamar</span>
-                  </a>
-                </Button>
-              )}
-              
+          {/* Botones de acción rápida */}
+          <section className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {restaurant.phone && (
               <Button
                 variant="outline"
                 size="lg"
                 className="h-20 flex-col gap-2"
-                onClick={() => {
-                  // Implementar navegación con geolocalización
-                  console.log('Abrir direcciones');
-                }}
+                asChild
               >
-                <Navigation className="h-6 w-6" />
-                <span className="text-sm">Cómo llegar</span>
+                <a href={`tel:${restaurant.phone}`}>
+                  <Phone className="h-6 w-6" />
+                  <span className="text-sm">Llamar</span>
+                </a>
               </Button>
+            )}
+            
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-20 flex-col gap-2"
+              onClick={() => {
+                if (restaurant.latitude && restaurant.longitude) {
+                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`);
+                } else {
+                  window.open(`https://www.google.com/maps/search/${encodeURIComponent(restaurant.address)}`);
+                }
+              }}
+            >
+              <Navigation className="h-6 w-6" />
+              <span className="text-sm">Cómo llegar</span>
+            </Button>
 
-              {restaurant.website && (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="h-20 flex-col gap-2"
-                  asChild
-                >
-                  <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
-                    <Globe className="h-6 w-6" />
-                    <span className="text-sm">Sitio web</span>
-                  </a>
-                </Button>
-              )}
+            {restaurant.website && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-20 flex-col gap-2"
+                asChild
+              >
+                <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
+                  <Globe className="h-6 w-6" />
+                  <span className="text-sm">Sitio web</span>
+                </a>
+              </Button>
+            )}
 
-              {restaurant.email && (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="h-20 flex-col gap-2"
-                  asChild
-                >
-                  <a href={`mailto:${restaurant.email}`}>
-                    <Mail className="h-6 w-6" />
-                    <span className="text-sm">Email</span>
-                  </a>
-                </Button>
-              )}
-            </div>
+            {restaurant.email && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-20 flex-col gap-2"
+                asChild
+              >
+                <a href={`mailto:${restaurant.email}`}>
+                  <Mail className="h-6 w-6" />
+                  <span className="text-sm">Email</span>
+                </a>
+              </Button>
+            )}
 
-            {/* Restaurant Status */}
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-20 flex-col gap-2"
+              onClick={() => scrollToSection('reservas')}
+            >
+              <Calendar className="h-6 w-6" />
+              <span className="text-sm">Reservas</span>
+            </Button>
+          </section>
+
+          {/* Horarios */}
+          <section 
+            id="horarios"
+            ref={(el) => sectionsRef.current['horarios'] = el}
+            className="space-y-4"
+          >
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Clock className="h-6 w-6 text-primary" />
+              Horarios
+            </h2>
             <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
               <div className="flex items-center gap-3 mb-4">
-                <Clock className="h-5 w-5" />
-                <h3 className="text-lg font-semibold">Estado del restaurante</h3>
-              </div>
-              <div className="flex items-center gap-3">
                 {status.isOpen ? (
                   <CheckCircle className="h-5 w-5 text-green-500" />
                 ) : (
@@ -574,12 +590,33 @@ export default function RestaurantProfile() {
                 </span>
               </div>
               {restaurant.schedules.length > 0 && (
-                <div className="mt-4">
-                  <RestaurantSchedule schedules={restaurant.schedules} />
-                </div>
+                <RestaurantSchedule schedules={restaurant.schedules} />
               )}
             </div>
           </section>
+
+          {/* Servicios */}
+          {restaurant.services.length > 0 && (
+            <section 
+              id="servicios"
+              ref={(el) => sectionsRef.current['servicios'] = el}
+              className="space-y-4"
+            >
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <CheckCircle className="h-6 w-6 text-primary" />
+                Servicios disponibles
+              </h2>
+              <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
+                <div className="flex flex-wrap gap-3">
+                  {restaurant.services.map((service, index) => (
+                    <Badge key={index} variant="default" className="px-4 py-2 text-sm">
+                      {service}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Delivery */}
           <section 
@@ -605,42 +642,7 @@ export default function RestaurantProfile() {
             />
           </section>
 
-          {/* Reseñas */}
-          <section 
-            id="resenas"
-            ref={(el) => sectionsRef.current['resenas'] = el}
-          >
-            <RestaurantPlatforms
-              category="review"
-              title="Encuéntranos también en"
-              restaurantLinks={{
-                tripadvisor: restaurant.social_links?.tripadvisor,
-                google: restaurant.social_links?.google
-              }}
-            />
-          </section>
-
-          {/* Servicios */}
-          {restaurant.services.length > 0 && (
-            <section 
-              id="servicios"
-              ref={(el) => sectionsRef.current['servicios'] = el}
-              className="space-y-4"
-            >
-              <h2 className="text-2xl font-bold">Servicios disponibles</h2>
-              <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-                <div className="flex flex-wrap gap-3">
-                  {restaurant.services.map((service, index) => (
-                    <Badge key={index} variant="default" className="px-4 py-2 text-sm">
-                      {service}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Promociones */}
+          {/* Promociones - solo si hay */}
           <section 
             id="promociones"
             ref={(el) => sectionsRef.current['promociones'] = el}
@@ -656,7 +658,7 @@ export default function RestaurantProfile() {
             </div>
           </section>
 
-          {/* Eventos */}
+          {/* Eventos - solo si hay */}
           <section 
             id="eventos"
             ref={(el) => sectionsRef.current['eventos'] = el}
