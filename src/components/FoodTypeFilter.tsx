@@ -8,6 +8,30 @@ interface FoodTypeFilterProps {
   onFoodTypeChange: (foodTypeIds: number[]) => void;
 }
 
+// Default icons for food types when they don't have icons in the database
+const defaultFoodTypeIcons: { [key: string]: string } = {
+  'pizza': '🍕',
+  'hamburguesas': '🍔',
+  'sushi': '🍣',
+  'pasta': '🍝',
+  'tacos': '🌮',
+  'ensaladas': '🥗',
+  'pollo': '🍗',
+  'mariscos': '🦐',
+  'steaks': '🥩',
+  'postres': '🍰',
+  'sopas': '🍲',
+  'sandwiches': '🥪',
+  'ramen': '🍜',
+  'helados': '🍦',
+  'cafe': '☕',
+  'cocteles': '🍹',
+  'tapas': '🍤',
+  'paella': '🥘',
+  'tortillas': '🫓',
+  'empanadas': '🥟'
+};
+
 export default function FoodTypeFilter({ 
   selectedFoodTypes, 
   onFoodTypeChange 
@@ -96,14 +120,16 @@ export default function FoodTypeFilter({
         }}
         onScroll={checkScrollability}
       >
-        {foodTypes.map((foodType) => (
-          <div
-            key={foodType.id}
-            className="flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0"
-            onClick={() => handleFoodTypeClick(foodType.id)}
-          >
-            <div className="flex items-center justify-center text-4xl transition-all duration-200">
-              {foodType.icon && (
+        {foodTypes.map((foodType) => {
+          const icon = foodType.icon || defaultFoodTypeIcons[foodType.slug] || '🍽️';
+          
+          return (
+            <div
+              key={foodType.id}
+              className="flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0"
+              onClick={() => handleFoodTypeClick(foodType.id)}
+            >
+              <div className="flex items-center justify-center text-4xl transition-all duration-200">
                 <span 
                   role="img" 
                   aria-label={foodType.name}
@@ -113,21 +139,21 @@ export default function FoodTypeFilter({
                       : 'filter brightness-100'
                   }`}
                 >
-                  {foodType.icon}
+                  {icon}
                 </span>
-              )}
+              </div>
+              <span className={`
+                text-xs font-medium text-center whitespace-nowrap transition-colors text-black
+                ${selectedFoodTypes.includes(foodType.id) 
+                  ? 'text-primary' 
+                  : 'text-black'
+                }
+              `}>
+                {foodType.name}
+              </span>
             </div>
-            <span className={`
-              text-xs font-medium text-center whitespace-nowrap transition-colors text-black
-              ${selectedFoodTypes.includes(foodType.id) 
-                ? 'text-primary' 
-                : 'text-black'
-              }
-            `}>
-              {foodType.name}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
       
       <style>{`
