@@ -403,7 +403,6 @@ export default function RestaurantProfile() {
             </TabsContent>
 
             <TabsContent value="menu" className="space-y-6">
-              {console.log('RestaurantProfile: Rendering menu tab content, restaurant ID:', restaurant?.id)}
               <RestaurantDishesGrid
                 restaurantId={restaurant?.id || 0}
                 onDishClick={handleDishClick}
