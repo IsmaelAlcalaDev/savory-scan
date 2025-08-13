@@ -1,7 +1,7 @@
 
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 import { useFoodTypes } from '@/hooks/useFoodTypes';
+import { useRef, useState, useEffect } from 'react';
 
 interface FoodTypeFilterProps {
   selectedFoodTypes: number[];
@@ -13,6 +13,25 @@ export default function FoodTypeFilter({
   onFoodTypeChange 
 }: FoodTypeFilterProps) {
   const { foodTypes, loading, error } = useFoodTypes();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  console.log('FoodTypeFilter state:', { foodTypes, loading, error, selectedFoodTypes });
+
+  const checkScrollability = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  useEffect(() => {
+    checkScrollability();
+    window.addEventListener('resize', checkScrollability);
+    return () => window.removeEventListener('resize', checkScrollability);
+  }, [foodTypes]);
 
   const handleFoodTypeClick = (foodTypeId: number) => {
     console.log('FoodTypeFilter: Food type clicked:', foodTypeId);
@@ -26,55 +45,94 @@ export default function FoodTypeFilter({
 
   if (loading) {
     return (
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-20 rounded-full flex-shrink-0" />
-        ))}
+      <div className="relative w-full">
+        <div className="flex gap-12 pb-2 px-1 overflow-x-auto scrollbar-hide">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0">
+              <Skeleton className="h-16 w-16" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (error) {
     console.error('FoodTypeFilter: Error loading food types:', error);
-    return null;
+    return (
+      <div className="text-sm text-destructive p-2">
+        Error cargando tipos de comida: {error}
+      </div>
+    );
+  }
+
+  if (!foodTypes || foodTypes.length === 0) {
+    return (
+      <div className="text-sm text-muted-foreground p-2">
+        No hay tipos de comida disponibles
+      </div>
+    );
   }
 
   return (
-    <div className="relative">
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 pr-4">
-        {foodTypes.map((foodType) => {
-          const isSelected = selectedFoodTypes.includes(foodType.id);
-          
-          return (
-            <button
-              key={foodType.id}
-              onClick={() => handleFoodTypeClick(foodType.id)}
-              className={cn(
-                "h-8 px-3 text-sm font-medium transition-all duration-200 border rounded-full flex items-center whitespace-nowrap flex-shrink-0",
-                isSelected 
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90 border-primary" 
-                  : "bg-transparent hover:bg-muted/50 text-muted-foreground hover:text-foreground border-border"
-              )}
-            >
-              {foodType.icon && (
-                <span className="mr-1.5 text-base leading-none">{foodType.icon}</span>
-              )}
-              <span>{foodType.name}</span>
-            </button>
-          );
-        })}
-      </div>
+    <div className="relative w-full">
+      {/* Fade effect on the left - only show when can scroll left */}
+      {canScrollLeft && (
+        <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white via-white/60 to-transparent z-10 pointer-events-none" />
+      )}
       
-      {/* Fade gradient for overflow */}
-      <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+      {/* Fade effect on the right - only show when can scroll right */}
+      {canScrollRight && (
+        <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white via-white/60 to-transparent z-10 pointer-events-none" />
+      )}
+      
+      <div 
+        ref={scrollRef}
+        className="flex gap-12 pb-2 px-2 overflow-x-auto scrollbar-hide"
+        style={{ 
+          scrollbarWidth: 'none', 
+          msOverflowStyle: 'none'
+        }}
+        onScroll={checkScrollability}
+      >
+        {foodTypes.map((foodType) => (
+          <div
+            key={foodType.id}
+            className="flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0"
+            onClick={() => handleFoodTypeClick(foodType.id)}
+          >
+            <div className="flex items-center justify-center text-4xl transition-all duration-200">
+              {foodType.icon && (
+                <span 
+                  role="img" 
+                  aria-label={foodType.name}
+                  className={`transition-all duration-200 ${
+                    selectedFoodTypes.includes(foodType.id) 
+                      ? 'filter brightness-110 drop-shadow-md' 
+                      : 'filter brightness-100'
+                  }`}
+                >
+                  {foodType.icon}
+                </span>
+              )}
+            </div>
+            <span className={`
+              text-xs font-medium text-center whitespace-nowrap transition-colors text-black
+              ${selectedFoodTypes.includes(foodType.id) 
+                ? 'text-primary' 
+                : 'text-black'
+              }
+            `}>
+              {foodType.name}
+            </span>
+          </div>
+        ))}
+      </div>
       
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
         }
       `}</style>
     </div>
