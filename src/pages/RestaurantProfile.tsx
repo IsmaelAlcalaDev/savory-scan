@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -51,8 +50,10 @@ export default function RestaurantProfile() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('descripcion');
   const [isHeaderFixed, setIsHeaderFixed] = useState(false);
+  const [heroHeight, setHeroHeight] = useState(0);
 
   const headerRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
   const sectionsRef = useRef<{ [key: string]: HTMLElement | null }>({});
 
   const menuSections = [
@@ -66,10 +67,23 @@ export default function RestaurantProfile() {
     { id: 'eventos', label: 'Eventos', icon: Calendar },
   ];
 
+  // Calculate hero height on mount and resize
+  useEffect(() => {
+    const updateHeroHeight = () => {
+      if (heroRef.current) {
+        setHeroHeight(heroRef.current.offsetHeight);
+      }
+    };
+
+    updateHeroHeight();
+    window.addEventListener('resize', updateHeroHeight);
+    return () => window.removeEventListener('resize', updateHeroHeight);
+  }, [restaurant]);
+
   // Handle scroll for fixed header and active section detection
   useEffect(() => {
     const handleScroll = () => {
-      if (headerRef.current) {
+      if (headerRef.current && heroRef.current) {
         const headerTop = headerRef.current.offsetTop;
         const scrollTop = window.scrollY;
         const shouldBeFixed = scrollTop > headerTop - 20;
@@ -147,7 +161,6 @@ export default function RestaurantProfile() {
     navigate('/restaurantes');
   };
 
-  // Gallery functions
   const getAllImages = () => {
     const images = [];
     
@@ -309,7 +322,7 @@ export default function RestaurantProfile() {
 
       <div className="min-h-screen bg-background">
         {/* Hero Section with Image Carousel */}
-        <div className="relative h-96 overflow-hidden">
+        <div ref={heroRef} className="relative h-96 overflow-hidden">
           <img 
             key={`${restaurant.id}-${currentImageIndex}`}
             src={currentImage} 
@@ -341,7 +354,6 @@ export default function RestaurantProfile() {
             <Share2 className="h-6 w-6 text-white" />
           </Button>
 
-          {/* Carousel Navigation */}
           {totalImages > 1 && (
             <>
               <button
@@ -445,11 +457,14 @@ export default function RestaurantProfile() {
         {/* Fixed Navigation Header */}
         <div 
           ref={headerRef}
-          className={`bg-background transition-all duration-300 ease-in-out ${
+          className={`bg-background transition-all duration-500 ease-in-out ${
             isHeaderFixed 
-              ? 'fixed top-0 left-0 right-0 z-40 shadow-lg border-b border-border' 
+              ? 'fixed left-0 right-0 z-40 shadow-lg border-b border-border' 
               : 'relative'
           }`}
+          style={{
+            top: isHeaderFixed ? `${heroHeight}px` : 'auto'
+          }}
         >
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex items-center gap-4 py-4">
@@ -486,7 +501,6 @@ export default function RestaurantProfile() {
 
         {/* Content Sections */}
         <div className="max-w-6xl mx-auto px-4 py-8 space-y-16">
-          {/* Descripción General */}
           <section 
             id="descripcion"
             ref={(el) => sectionsRef.current['descripcion'] = el}
