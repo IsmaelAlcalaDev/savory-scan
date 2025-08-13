@@ -1,5 +1,5 @@
 
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Phone, 
   Navigation, 
@@ -36,57 +36,57 @@ export default function QuickActionTags({
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-3 justify-center">
       {phone && (
-        <Badge 
-          variant="outline" 
-          className="cursor-pointer hover:bg-primary/10 transition-colors px-3 py-1"
+        <Button
+          size="lg"
+          variant="outline"
+          className="rounded-full w-16 h-16 p-0 border-2 hover:scale-110 transition-all hover:bg-green-50 hover:border-green-500"
           onClick={() => window.open(`tel:${phone}`)}
         >
-          <Phone className="h-3 w-3 mr-1" />
-          Llamar
-        </Badge>
+          <Phone className="h-6 w-6 text-green-600" />
+        </Button>
       )}
       
-      <Badge 
-        variant="outline" 
-        className="cursor-pointer hover:bg-primary/10 transition-colors px-3 py-1"
+      <Button
+        size="lg"
+        variant="outline"
+        className="rounded-full w-16 h-16 p-0 border-2 hover:scale-110 transition-all hover:bg-blue-50 hover:border-blue-500"
         onClick={handleNavigationClick}
       >
-        <Navigation className="h-3 w-3 mr-1" />
-        Cómo llegar
-      </Badge>
+        <Navigation className="h-6 w-6 text-blue-600" />
+      </Button>
 
       {website && (
-        <Badge 
-          variant="outline" 
-          className="cursor-pointer hover:bg-primary/10 transition-colors px-3 py-1"
+        <Button
+          size="lg"
+          variant="outline"
+          className="rounded-full w-16 h-16 p-0 border-2 hover:scale-110 transition-all hover:bg-purple-50 hover:border-purple-500"
           onClick={() => window.open(website, '_blank', 'noopener noreferrer')}
         >
-          <Globe className="h-3 w-3 mr-1" />
-          Sitio web
-        </Badge>
+          <Globe className="h-6 w-6 text-purple-600" />
+        </Button>
       )}
 
       {email && (
-        <Badge 
-          variant="outline" 
-          className="cursor-pointer hover:bg-primary/10 transition-colors px-3 py-1"
+        <Button
+          size="lg"
+          variant="outline"
+          className="rounded-full w-16 h-16 p-0 border-2 hover:scale-110 transition-all hover:bg-orange-50 hover:border-orange-500"
           onClick={() => window.open(`mailto:${email}`)}
         >
-          <Mail className="h-3 w-3 mr-1" />
-          Email
-        </Badge>
+          <Mail className="h-6 w-6 text-orange-600" />
+        </Button>
       )}
 
-      <Badge 
-        variant="outline" 
-        className="cursor-pointer hover:bg-primary/10 transition-colors px-3 py-1"
+      <Button
+        size="lg"
+        variant="outline"
+        className="rounded-full w-16 h-16 p-0 border-2 hover:scale-110 transition-all hover:bg-primary/10 hover:border-primary"
         onClick={onReservationClick}
       >
-        <Calendar className="h-3 w-3 mr-1" />
-        Reservas
-      </Badge>
+        <Calendar className="h-6 w-6 text-primary" />
+      </Button>
     </div>
   );
 }
