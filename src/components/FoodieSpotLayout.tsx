@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, SlidersHorizontal, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,12 +32,12 @@ export default function FoodieSpotLayout() {
   const [maxDistance, setMaxDistance] = useState(50);
   const [dietTypes, setDietTypes] = useState<string[]>([]);
 
-  const { userLocation, loading: locationLoading, error: locationError } = useIPLocation();
+  const { location: ipLocation, loading: locationLoading, error: locationError } = useIPLocation();
 
   const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useRestaurants({
     searchQuery,
-    latitude: location.latitude,
-    longitude: location.longitude,
+    userLat: location.latitude,
+    userLng: location.longitude,
     maxDistance,
     cuisineTypeIds: cuisineFilters,
     priceRanges,
@@ -55,13 +56,19 @@ export default function FoodieSpotLayout() {
   });
 
   useEffect(() => {
-    if (userLocation && userLocation.latitude && userLocation.longitude) {
-      setLocation({ latitude: userLocation.latitude, longitude: userLocation.longitude });
+    if (ipLocation && ipLocation.latitude && ipLocation.longitude) {
+      setLocation({ latitude: ipLocation.latitude, longitude: ipLocation.longitude });
     }
-  }, [userLocation]);
+  }, [ipLocation]);
 
-  const handleLocationSelect = (newLocation: { latitude: number, longitude: number }) => {
-    setLocation(newLocation);
+  const handleLocationSelect = (locationData: { type: "gps" | "manual" | "city" | "suggestion"; data?: any }) => {
+    if (locationData.type === 'gps' && locationData.data) {
+      setLocation({ latitude: locationData.data.latitude, longitude: locationData.data.longitude });
+    } else if (locationData.type === 'manual' && locationData.data) {
+      setLocation({ latitude: locationData.data.latitude, longitude: locationData.data.longitude });
+    } else if (locationData.type === 'city' && locationData.data) {
+      setLocation({ latitude: locationData.data.latitude, longitude: locationData.data.longitude });
+    }
     setShowLocationModal(false);
   };
 
@@ -174,7 +181,7 @@ export default function FoodieSpotLayout() {
             restaurants.map((restaurant) => (
               <RestaurantCard
                 key={restaurant.id}
-                restaurant={restaurant}
+                {...restaurant}
                 onClick={() => console.log('Restaurant clicked:', restaurant.id)}
               />
             ))
@@ -183,7 +190,8 @@ export default function FoodieSpotLayout() {
               <AllDishCard
                 key={dish.id}
                 dish={dish}
-                onClick={() => setSelectedDish(dish)}
+                onFavoriteClick={() => console.log('Favorite clicked:', dish.id)}
+                onCardClick={() => setSelectedDish(dish)}
               />
             ))
           )}
@@ -246,6 +254,7 @@ export default function FoodieSpotLayout() {
 
       {selectedDish && (
         <DishModal
+          isOpen={!!selectedDish}
           dish={selectedDish}
           restaurantId={selectedDish.restaurant.id}
           onClose={() => setSelectedDish(null)}
@@ -253,7 +262,7 @@ export default function FoodieSpotLayout() {
       )}
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 }

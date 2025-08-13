@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -95,11 +96,11 @@ export default function FiltersModal({
             <div className="flex flex-wrap gap-2">
               {availablePriceRanges.map((range) => (
                 <Button
-                  key={range}
-                  variant={priceRanges.includes(range) ? "secondary" : "outline"}
-                  onClick={() => handlePriceRangeToggle(range)}
+                  key={range.id}
+                  variant={priceRanges.includes(range.value as '€' | '€€' | '€€€' | '€€€€') ? "secondary" : "outline"}
+                  onClick={() => handlePriceRangeToggle(range.value)}
                 >
-                  {range}
+                  {range.value}
                 </Button>
               ))}
             </div>
@@ -123,11 +124,11 @@ export default function FiltersModal({
             <div className="flex flex-wrap gap-2">
               {availableDietTypes.map((type) => (
                 <Button
-                  key={type}
-                  variant={dietTypes.includes(type) ? "secondary" : "outline"}
-                  onClick={() => handleDietTypeToggle(type)}
+                  key={type.id}
+                  variant={dietTypes.includes(type.name) ? "secondary" : "outline"}
+                  onClick={() => handleDietTypeToggle(type.name)}
                 >
-                  {type}
+                  {type.name}
                 </Button>
               ))}
             </div>
