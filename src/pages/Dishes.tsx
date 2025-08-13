@@ -13,7 +13,12 @@ export default function Dishes() {
         <meta property="og:type" content="website" />
       </Helmet>
       
-      <FoodieSpotLayout initialTab="dishes" />
+      <FoodieSpotLayout>
+        <div className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Platos Disponibles</h2>
+          <p className="text-muted-foreground">Aquí se mostrarán los platos disponibles...</p>
+        </div>
+      </FoodieSpotLayout>
     </>
   );
 }

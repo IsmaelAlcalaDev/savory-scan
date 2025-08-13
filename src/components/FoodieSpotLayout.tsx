@@ -1,10 +1,9 @@
+
 import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { useDebounce } from 'use-debounce';
-import { useSearchParams } from 'next/navigation';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SearchBar as SecureSearchBar } from '@/components/SearchBar';
+import SearchBar from '@/components/SearchBar';
 import FiltersModal from '@/components/FiltersModal';
 import CuisineFilter from '@/components/CuisineFilter';
 import FoodTypeFilter from '@/components/FoodTypeFilter';
@@ -15,25 +14,29 @@ interface FoodieSpotLayoutProps {
 }
 
 export default function FoodieSpotLayout({ children }: FoodieSpotLayoutProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') === 'dishes' ? 'dishes' : 'restaurants';
-  const [activeBottomTab, setActiveBottomTab] = useState<"restaurants" | "dishes">(initialTab === 'dishes' ? 'dishes' : 'restaurants');
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
-  const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const initialTab = location.pathname === '/platos' ? 'dishes' : 'restaurants';
+  const [activeBottomTab, setActiveBottomTab] = useState<"restaurants" | "dishes">(initialTab);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Restaurant Filters
   const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
-  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
+  const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<string[]>([]);
 
   // Dishes Filters
   const [selectedDietTypes, setSelectedDietTypes] = useState<string[]>([]);
   const [selectedSpiceLevels, setSelectedSpiceLevels] = useState<number[]>([]);
   const [selectedPrepTimeRanges, setSelectedPrepTimeRanges] = useState<number[]>([]);
-  const [selectedFoodTypes, setSelectedFoodTypes] = useState<string[]>([]);
+  const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
+
+  const handleSearch = (query: string, location?: string) => {
+    setSearchTerm(query);
+    // You can add search logic here
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -42,9 +45,8 @@ export default function FoodieSpotLayout({ children }: FoodieSpotLayoutProps) {
           {/* Header with Search Bar */}
           <div className="flex-shrink-0 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
             <div className="px-4 py-4">
-              <SecureSearchBar 
-                value={searchTerm}
-                onChange={setSearchTerm}
+              <SearchBar 
+                onSearch={handleSearch}
                 placeholder={activeBottomTab === 'dishes' ? "Buscar platos..." : "Buscar restaurantes..."}
               />
             </div>
@@ -79,8 +81,6 @@ export default function FoodieSpotLayout({ children }: FoodieSpotLayoutProps) {
                       onPriceRangeChange={setSelectedPriceRanges}
                       selectedRatings={selectedRatings}
                       onRatingChange={setSelectedRatings}
-                      selectedCuisines={selectedCuisines}
-                      onCuisineChange={setSelectedCuisines}
                       selectedEstablishmentTypes={selectedEstablishmentTypes}
                       onEstablishmentTypeChange={setSelectedEstablishmentTypes}
                     />
@@ -115,8 +115,8 @@ export default function FoodieSpotLayout({ children }: FoodieSpotLayoutProps) {
         <div className="px-4 py-2">
           <Tabs value={activeBottomTab} onValueChange={(value) => {
             setActiveBottomTab(value as "restaurants" | "dishes");
-            const url = value === 'restaurants' ? '/' : '/dishes';
-            router.push(url, undefined, { shallow: true });
+            const url = value === 'restaurants' ? '/' : '/platos';
+            navigate(url);
           }}>
             <TabsList className="w-full flex items-center justify-center rounded-full bg-secondary">
               <TabsTrigger value="restaurants" className="w-1/2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Restaurantes</TabsTrigger>
