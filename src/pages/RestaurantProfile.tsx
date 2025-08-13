@@ -13,29 +13,24 @@ import {
   Heart,
   Users,
   TrendingUp,
-  Percent,
   ArrowLeft,
   Utensils,
   Images,
   Info,
-  Truck,
-  Calendar,
-  Phone,
-  Navigation,
-  Globe,
-  Mail,
   Clock,
   CheckCircle,
-  XCircle
 } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
-import RestaurantSchedule from '@/components/RestaurantSchedule';
 import FavoriteButton from '@/components/FavoriteButton';
 import DishModal from '@/components/DishModal';
 import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 import RestaurantPlatforms from '@/components/RestaurantPlatforms';
-import RestaurantEventsSection from '@/components/RestaurantEventsSection';
+import CompactRestaurantSchedule from '@/components/CompactRestaurantSchedule';
+import QuickActionTags from '@/components/QuickActionTags';
+import DeliveryIcons from '@/components/DeliveryIcons';
+import CompactRestaurantEvents from '@/components/CompactRestaurantEvents';
+import CompactRestaurantPromotions from '@/components/CompactRestaurantPromotions';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export default function RestaurantProfile() {
@@ -59,15 +54,13 @@ export default function RestaurantProfile() {
     { id: 'descripcion', label: 'Descripción', icon: Info },
     { id: 'horarios', label: 'Horarios', icon: Clock },
     { id: 'servicios', label: 'Servicios', icon: CheckCircle },
-    { id: 'delivery', label: 'Delivery', icon: Truck },
-    { id: 'reservas', label: 'Reservas', icon: Calendar },
+    { id: 'reservas', label: 'Reservas', icon: Users },
     ...(restaurant?.promotions && restaurant.promotions.length > 0 ? [
-      { id: 'promociones', label: 'Promociones', icon: Percent }
+      { id: 'promociones', label: 'Promociones', icon: TrendingUp }
     ] : []),
-    { id: 'eventos', label: 'Eventos', icon: Calendar },
+    { id: 'eventos', label: 'Eventos', icon: Users },
   ];
 
-  // Handle scroll for fixed header and active section detection
   useEffect(() => {
     const handleScroll = () => {
       if (headerRef.current && heroRef.current) {
@@ -80,7 +73,6 @@ export default function RestaurantProfile() {
           setIsHeaderFixed(shouldBeFixed);
         }
 
-        // Detect active section
         const sectionPositions = Object.entries(sectionsRef.current)
           .filter(([_, element]) => element !== null)
           .map(([id, element]) => ({
@@ -193,7 +185,6 @@ export default function RestaurantProfile() {
     setCurrentImageIndex(index);
   };
 
-  // Auto-rotate images
   useEffect(() => {
     if (totalImages <= 1) return;
     
@@ -207,32 +198,6 @@ export default function RestaurantProfile() {
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [restaurant?.id]);
-
-  // Get current restaurant status
-  const getCurrentStatus = () => {
-    if (!restaurant?.schedules.length) return { isOpen: false, text: 'Horario no disponible' };
-    
-    const now = new Date();
-    const currentDay = now.getDay();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    
-    const todaySchedule = restaurant.schedules.find(s => s.day_of_week === currentDay);
-    
-    if (!todaySchedule || todaySchedule.is_closed) {
-      return { isOpen: false, text: 'Cerrado hoy' };
-    }
-    
-    const [openHour, openMinute] = todaySchedule.opening_time.split(':').map(Number);
-    const [closeHour, closeMinute] = todaySchedule.closing_time.split(':').map(Number);
-    const openTime = openHour * 60 + openMinute;
-    const closeTime = closeHour * 60 + closeMinute;
-    
-    if (currentTime >= openTime && currentTime <= closeTime) {
-      return { isOpen: true, text: `Abierto hasta las ${todaySchedule.closing_time}` };
-    }
-    
-    return { isOpen: false, text: `Cerrado - Abre a las ${todaySchedule.opening_time}` };
-  };
 
   if (loading) {
     return (
@@ -272,7 +237,6 @@ export default function RestaurantProfile() {
 
   const currentImage = getCurrentImage();
   const allImages = getAllImages();
-  const status = getCurrentStatus();
 
   return (
     <>
@@ -453,17 +417,21 @@ export default function RestaurantProfile() {
         >
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex items-center gap-4 py-4">
-              {/* Ver Carta Button - Fixed */}
-              <Button
-                onClick={() => setIsMenuOpen(true)}
-                size="lg"
-                className="flex-shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6"
-              >
-                <Utensils className="h-5 w-5 mr-2" />
-                Ver Carta
-              </Button>
+              {/* Ver Carta Button and Delivery Icons */}
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <Button
+                  onClick={() => setIsMenuOpen(true)}
+                  size="lg"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6"
+                >
+                  <Utensils className="h-5 w-5 mr-2" />
+                  Ver Carta
+                </Button>
+                
+                <DeliveryIcons restaurantLinks={restaurant.delivery_links || {}} />
+              </div>
 
-              {/* Navigation Menu - Scrollable without visible scrollbar */}
+              {/* Navigation Menu */}
               <div className="flex-1 overflow-hidden">
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
                   {menuSections.map((section) => (
@@ -485,12 +453,12 @@ export default function RestaurantProfile() {
         </div>
 
         {/* Content Sections */}
-        <div className="max-w-6xl mx-auto px-4 py-8 space-y-16">
-          {/* Descripción (sin título) */}
+        <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+          {/* Descripción */}
           <section 
             id="descripcion"
             ref={(el) => sectionsRef.current['descripcion'] = el}
-            className="space-y-6"
+            className="space-y-4"
           >
             {restaurant.description && (
               <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
@@ -499,76 +467,16 @@ export default function RestaurantProfile() {
             )}
           </section>
 
-          {/* Botones de acción rápida */}
-          <section className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {restaurant.phone && (
-              <Button
-                variant="outline"
-                size="lg"
-                className="h-20 flex-col gap-2"
-                asChild
-              >
-                <a href={`tel:${restaurant.phone}`}>
-                  <Phone className="h-6 w-6" />
-                  <span className="text-sm">Llamar</span>
-                </a>
-              </Button>
-            )}
-            
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-20 flex-col gap-2"
-              onClick={() => {
-                if (restaurant.latitude && restaurant.longitude) {
-                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}`);
-                } else {
-                  window.open(`https://www.google.com/maps/search/${encodeURIComponent(restaurant.address)}`);
-                }
-              }}
-            >
-              <Navigation className="h-6 w-6" />
-              <span className="text-sm">Cómo llegar</span>
-            </Button>
-
-            {restaurant.website && (
-              <Button
-                variant="outline"
-                size="lg"
-                className="h-20 flex-col gap-2"
-                asChild
-              >
-                <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
-                  <Globe className="h-6 w-6" />
-                  <span className="text-sm">Sitio web</span>
-                </a>
-              </Button>
-            )}
-
-            {restaurant.email && (
-              <Button
-                variant="outline"
-                size="lg"
-                className="h-20 flex-col gap-2"
-                asChild
-              >
-                <a href={`mailto:${restaurant.email}`}>
-                  <Mail className="h-6 w-6" />
-                  <span className="text-sm">Email</span>
-                </a>
-              </Button>
-            )}
-
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-20 flex-col gap-2"
-              onClick={() => scrollToSection('reservas')}
-            >
-              <Calendar className="h-6 w-6" />
-              <span className="text-sm">Reservas</span>
-            </Button>
-          </section>
+          {/* Quick Action Tags */}
+          <QuickActionTags
+            phone={restaurant.phone}
+            website={restaurant.website}
+            email={restaurant.email}
+            address={restaurant.address}
+            latitude={restaurant.latitude}
+            longitude={restaurant.longitude}
+            onReservationClick={() => scrollToSection('reservas')}
+          />
 
           {/* Horarios */}
           <section 
@@ -576,30 +484,18 @@ export default function RestaurantProfile() {
             ref={(el) => sectionsRef.current['horarios'] = el}
             className="space-y-4"
           >
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <Clock className="h-6 w-6 text-primary" />
+            <h3 className="text-lg font-medium flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
               Horarios
-            </h2>
-            <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-              <div className="flex items-center gap-3 mb-4">
-                {status.isOpen ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-500" />
-                )}
-                <span className={`font-medium ${status.isOpen ? 'text-green-600' : 'text-red-600'}`}>
-                  {status.text}
-                </span>
+            </h3>
+            {restaurant.schedules.length > 0 ? (
+              <CompactRestaurantSchedule schedules={restaurant.schedules} />
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Horarios no disponibles</p>
               </div>
-              {restaurant.schedules.length > 0 ? (
-                <RestaurantSchedule schedules={restaurant.schedules} />
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Horarios no disponibles</p>
-                </div>
-              )}
-            </div>
+            )}
           </section>
 
           {/* Servicios */}
@@ -609,33 +505,19 @@ export default function RestaurantProfile() {
               ref={(el) => sectionsRef.current['servicios'] = el}
               className="space-y-4"
             >
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <CheckCircle className="h-6 w-6 text-primary" />
+              <h3 className="text-lg font-medium flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-primary" />
                 Servicios disponibles
-              </h2>
-              <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-                <div className="flex flex-wrap gap-3">
-                  {restaurant.services.map((service, index) => (
-                    <Badge key={index} variant="default" className="px-4 py-2 text-sm">
-                      {service}
-                    </Badge>
-                  ))}
-                </div>
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {restaurant.services.map((service, index) => (
+                  <Badge key={index} variant="default" className="px-3 py-1 text-sm">
+                    {service}
+                  </Badge>
+                ))}
               </div>
             </section>
           )}
-
-          {/* Delivery */}
-          <section 
-            id="delivery"
-            ref={(el) => sectionsRef.current['delivery'] = el}
-          >
-            <RestaurantPlatforms
-              category="delivery"
-              title="Pide a domicilio"
-              restaurantLinks={restaurant.delivery_links || {}}
-            />
-          </section>
 
           {/* Reservas */}
           <section 
@@ -649,57 +531,22 @@ export default function RestaurantProfile() {
             />
           </section>
 
-          {/* Promociones - solo si hay */}
+          {/* Promociones */}
           {restaurant.promotions && restaurant.promotions.length > 0 && (
             <section 
               id="promociones"
               ref={(el) => sectionsRef.current['promociones'] = el}
-              className="space-y-4"
             >
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Percent className="h-6 w-6 text-primary" />
-                Promociones y ofertas
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {restaurant.promotions.map((promo) => (
-                  <div key={promo.id} className="bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-                    <div className="flex items-start justify-between mb-4">
-                      <h3 className="text-lg font-semibold">{promo.title}</h3>
-                      {promo.discount_label && (
-                        <Badge variant="destructive" className="ml-2">
-                          {promo.discount_label}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-muted-foreground mb-4">{promo.description}</p>
-                    {promo.conditions && (
-                      <p className="text-xs text-muted-foreground mb-3">
-                        <strong>Condiciones:</strong> {promo.conditions}
-                      </p>
-                    )}
-                    {promo.promo_code && (
-                      <div className="bg-background/50 rounded-lg p-3 mb-3">
-                        <p className="text-sm font-mono font-medium">
-                          Código: <span className="bg-primary/20 px-2 py-1 rounded text-primary">{promo.promo_code}</span>
-                        </p>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center text-xs text-muted-foreground">
-                      <span>Válido desde: {new Date(promo.valid_from).toLocaleDateString()}</span>
-                      <span>Hasta: {new Date(promo.valid_until).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <CompactRestaurantPromotions promotions={restaurant.promotions} />
             </section>
           )}
 
-          {/* Eventos - solo si hay */}
+          {/* Eventos */}
           <section 
             id="eventos"
             ref={(el) => sectionsRef.current['eventos'] = el}
           >
-            <RestaurantEventsSection restaurantId={restaurant?.id || 0} />
+            <CompactRestaurantEvents restaurantId={restaurant?.id || 0} />
           </section>
 
           {/* Redes Sociales */}
@@ -711,8 +558,8 @@ export default function RestaurantProfile() {
 
           {/* Stats */}
           <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-            <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-              <TrendingUp className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-medium flex items-center gap-2 mb-6">
+              <TrendingUp className="h-4 w-4 text-primary" />
               Estadísticas
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

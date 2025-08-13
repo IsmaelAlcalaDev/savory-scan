@@ -1,0 +1,124 @@
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, ChevronRight, Users, Euro } from 'lucide-react';
+import { useRestaurantEvents } from '@/hooks/useRestaurantEvents';
+
+interface CompactRestaurantEventsProps {
+  restaurantId: number;
+}
+
+export default function CompactRestaurantEvents({ restaurantId }: CompactRestaurantEventsProps) {
+  const { events, loading, error } = useRestaurantEvents(restaurantId);
+  const [showAll, setShowAll] = useState(false);
+
+  if (loading) return null;
+  if (error || !events || events.length === 0) return null;
+
+  const eventsToShow = showAll ? events : events.slice(0, 2);
+  const hasMoreEvents = events.length > 2;
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', { 
+      day: 'numeric', 
+      month: 'short' 
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    return timeString.slice(0, 5);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-primary" />
+          Próximos eventos
+        </h3>
+        {hasMoreEvents && !showAll && (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setShowAll(true)}
+            className="text-primary hover:text-primary/80 h-auto p-1"
+          >
+            Ver todos
+            <ChevronRight className="h-3 w-3 ml-1" />
+          </Button>
+        )}
+      </div>
+
+      <div className="space-y-3">
+        {eventsToShow.map((event) => (
+          <div key={event.id} className="bg-background/50 rounded-lg p-4 border border-border/20">
+            <div className="flex items-start justify-between mb-2">
+              <h4 className="font-medium text-sm line-clamp-1">{event.name}</h4>
+              <div className="flex gap-1 ml-2">
+                <Badge variant="secondary" className="text-xs">
+                  {event.category}
+                </Badge>
+                {event.is_free ? (
+                  <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                    Gratis
+                  </Badge>
+                ) : event.entry_price && (
+                  <Badge variant="outline" className="text-xs">
+                    {event.entry_price}€
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+              {event.description}
+            </p>
+
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                <span>{formatDate(event.event_date)}</span>
+              </div>
+              
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span>
+                  {formatTime(event.start_time)}
+                  {event.end_time && ` - ${formatTime(event.end_time)}`}
+                </span>
+              </div>
+
+              {event.available_seats && (
+                <div className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  <span>{event.available_seats} plazas</span>
+                </div>
+              )}
+            </div>
+
+            {event.requires_reservation && (
+              <div className="mt-2 pt-2 border-t border-border/20">
+                <p className="text-xs text-amber-600 font-medium">
+                  Requiere reserva
+                </p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {showAll && hasMoreEvents && (
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setShowAll(false)}
+          className="w-full mt-2"
+        >
+          Ver menos
+        </Button>
+      )}
+    </div>
+  );
+}
