@@ -195,12 +195,12 @@ export default function FoodieSpotLayout() {
                 slug={restaurant.slug}
                 description={restaurant.description}
                 priceRange={restaurant.price_range}
-                rating={restaurant.google_rating}
-                ratingCount={restaurant.google_rating_count}
+                googleRating={restaurant.google_rating}
+                googleRatingCount={restaurant.google_rating_count}
                 distance={restaurant.distance_km}
                 cuisineTypes={restaurant.cuisine_types}
-                imageUrl={restaurant.image_url}
-                imageAlt={restaurant.image_alt}
+                coverImageUrl={restaurant.cover_image_url}
+                logoUrl={restaurant.logo_url}
                 onClick={() => console.log('Restaurant clicked:', restaurant.id)}
               />
             ))
@@ -246,7 +246,7 @@ export default function FoodieSpotLayout() {
       {/* Modals */}
       <LocationModal 
         open={showLocationModal} 
-        onClose={() => setShowLocationModal(false)}
+        onOpenChange={setShowLocationModal}
         onLocationSelect={handleLocationSelect}
       />
 

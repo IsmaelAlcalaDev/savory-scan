@@ -4,10 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import CuisineFilter from '@/components/CuisineFilter';
 import FoodTypeFilter from '@/components/FoodTypeFilter';
-import RatingFilter from '@/components/RatingFilter';
-import DistanceFilter from '@/components/DistanceFilter';
 import { usePriceRanges } from '@/hooks/usePriceRanges';
 import { useDietTypes } from '@/hooks/useDietTypes';
+import { Slider } from '@/components/ui/slider';
 
 interface FiltersModalProps {
   isOpen: boolean;
@@ -108,14 +107,28 @@ export default function FiltersModal({
 
           {/* Rating filter section */}
           <div className="space-y-3">
-            <h4 className="font-medium">Rating mínimo</h4>
-            <RatingFilter rating={minRating} onRatingChange={onRatingChange} />
+            <h4 className="font-medium">Rating mínimo: {minRating}</h4>
+            <Slider
+              value={[minRating]}
+              onValueChange={(value) => onRatingChange(value[0])}
+              max={5}
+              min={0}
+              step={0.5}
+              className="w-full"
+            />
           </div>
 
           {/* Distance filter section */}
           <div className="space-y-3">
-            <h4 className="font-medium">Distancia máxima (km)</h4>
-            <DistanceFilter distance={maxDistance} onDistanceChange={onDistanceChange} />
+            <h4 className="font-medium">Distancia máxima: {maxDistance} km</h4>
+            <Slider
+              value={[maxDistance]}
+              onValueChange={(value) => onDistanceChange(value[0])}
+              max={50}
+              min={1}
+              step={1}
+              className="w-full"
+            />
           </div>
 
           {/* Diet types filter section */}
