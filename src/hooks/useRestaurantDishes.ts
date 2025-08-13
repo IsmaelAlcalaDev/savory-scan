@@ -9,12 +9,19 @@ export const useRestaurantDishes = (restaurantId: number) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!restaurantId) return;
+    if (!restaurantId) {
+      console.log('useRestaurantDishes: No restaurantId provided');
+      return;
+    }
+
+    console.log('useRestaurantDishes: Fetching dishes for restaurantId:', restaurantId);
 
     const fetchDishes = async () => {
       try {
         setLoading(true);
         setError(null);
+
+        console.log('useRestaurantDishes: Making query to dishes table...');
 
         const { data: dishesData, error: dishesError } = await supabase
           .from('dishes')
@@ -41,40 +48,50 @@ export const useRestaurantDishes = (restaurantId: number) => {
           .eq('is_active', true)
           .is('deleted_at', null);
 
+        console.log('useRestaurantDishes: Query result:', { dishesData, dishesError });
+
         if (dishesError) {
+          console.error('useRestaurantDishes: Query error:', dishesError);
           throw dishesError;
         }
 
-        const formattedDishes = (dishesData || []).map(dish => ({
-          id: dish.id,
-          name: dish.name,
-          description: dish.description,
-          base_price: dish.base_price,
-          image_url: dish.image_url,
-          image_alt: dish.image_alt,
-          is_featured: dish.is_featured,
-          is_vegetarian: dish.is_vegetarian,
-          is_vegan: dish.is_vegan,
-          is_gluten_free: dish.is_gluten_free,
-          is_lactose_free: dish.is_lactose_free,
-          is_healthy: dish.is_healthy,
-          spice_level: dish.spice_level,
-          preparation_time_minutes: dish.preparation_time_minutes,
-          favorites_count: dish.favorites_count,
-          category_name: dish.dish_categories?.name,
-          variants: (dish.dish_variants || [])
-            .sort((a: any, b: any) => a.display_order - b.display_order)
-            .map((variant: any) => ({
-              id: variant.id,
-              name: variant.name,
-              price: variant.price,
-              is_default: variant.is_default
-            }))
-        }));
+        console.log('useRestaurantDishes: Raw dishes data:', dishesData);
+        console.log('useRestaurantDishes: Number of dishes found:', dishesData?.length || 0);
 
+        const formattedDishes = (dishesData || []).map(dish => {
+          console.log('useRestaurantDishes: Processing dish:', dish);
+          return {
+            id: dish.id,
+            name: dish.name,
+            description: dish.description,
+            base_price: dish.base_price,
+            image_url: dish.image_url,
+            image_alt: dish.image_alt,
+            is_featured: dish.is_featured,
+            is_vegetarian: dish.is_vegetarian,
+            is_vegan: dish.is_vegan,
+            is_gluten_free: dish.is_gluten_free,
+            is_lactose_free: dish.is_lactose_free,
+            is_healthy: dish.is_healthy,
+            spice_level: dish.spice_level,
+            preparation_time_minutes: dish.preparation_time_minutes,
+            favorites_count: dish.favorites_count,
+            category_name: dish.dish_categories?.name,
+            variants: (dish.dish_variants || [])
+              .sort((a: any, b: any) => a.display_order - b.display_order)
+              .map((variant: any) => ({
+                id: variant.id,
+                name: variant.name,
+                price: variant.price,
+                is_default: variant.is_default
+              }))
+          };
+        });
+
+        console.log('useRestaurantDishes: Formatted dishes:', formattedDishes);
         setDishes(formattedDishes);
       } catch (err) {
-        console.error('Error fetching dishes:', err);
+        console.error('useRestaurantDishes: Error fetching dishes:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar platos');
       } finally {
         setLoading(false);
@@ -83,6 +100,8 @@ export const useRestaurantDishes = (restaurantId: number) => {
 
     fetchDishes();
   }, [restaurantId]);
+
+  console.log('useRestaurantDishes: Hook state:', { dishes: dishes.length, loading, error });
 
   return { dishes, loading, error };
 };

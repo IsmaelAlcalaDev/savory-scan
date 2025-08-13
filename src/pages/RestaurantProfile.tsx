@@ -40,7 +40,12 @@ export default function RestaurantProfile() {
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
 
+  console.log('RestaurantProfile: Rendering with slug:', slug);
+  console.log('RestaurantProfile: Restaurant data:', restaurant);
+  console.log('RestaurantProfile: Active tab:', activeTab);
+
   const handleDishClick = (dish: Dish) => {
+    console.log('RestaurantProfile: Dish clicked:', dish);
     setSelectedDish(dish);
     setIsDishModalOpen(true);
   };
@@ -94,6 +99,8 @@ export default function RestaurantProfile() {
     // This would calculate distance from user location
     return null;
   };
+
+  console.log('RestaurantProfile: About to render tabs, restaurant ID:', restaurant?.id);
 
   return (
     <>
@@ -199,14 +206,16 @@ export default function RestaurantProfile() {
 
         {/* Content */}
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs value={activeTab} onValueChange={(value) => {
+            console.log('RestaurantProfile: Tab changed to:', value);
+            setActiveTab(value);
+          }} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="profile">Perfil</TabsTrigger>
               <TabsTrigger value="menu">Carta</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile" className="space-y-8">
-              
               <Card className="bg-gradient-card border-glass shadow-card">
                 <CardContent className="p-6">
                   <div className="flex flex-wrap gap-3 mb-6">
@@ -394,6 +403,7 @@ export default function RestaurantProfile() {
             </TabsContent>
 
             <TabsContent value="menu" className="space-y-6">
+              {console.log('RestaurantProfile: Rendering menu tab content, restaurant ID:', restaurant?.id)}
               <RestaurantDishesGrid
                 restaurantId={restaurant?.id || 0}
                 onDishClick={handleDishClick}

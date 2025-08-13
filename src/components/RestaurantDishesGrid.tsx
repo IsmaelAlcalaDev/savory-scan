@@ -12,9 +12,14 @@ interface RestaurantDishesGridProps {
 }
 
 export default function RestaurantDishesGrid({ restaurantId, onDishClick }: RestaurantDishesGridProps) {
+  console.log('RestaurantDishesGrid: Rendering with restaurantId:', restaurantId);
+  
   const { dishes, loading, error } = useRestaurantDishes(restaurantId);
 
+  console.log('RestaurantDishesGrid: Hook result:', { dishes: dishes.length, loading, error });
+
   if (loading) {
+    console.log('RestaurantDishesGrid: Showing loading state');
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -30,6 +35,7 @@ export default function RestaurantDishesGrid({ restaurantId, onDishClick }: Rest
   }
 
   if (error) {
+    console.log('RestaurantDishesGrid: Showing error state:', error);
     return (
       <Card className="bg-gradient-card border-glass shadow-card">
         <CardContent className="p-12 text-center">
@@ -42,6 +48,7 @@ export default function RestaurantDishesGrid({ restaurantId, onDishClick }: Rest
   }
 
   if (dishes.length === 0) {
+    console.log('RestaurantDishesGrid: Showing empty state - no dishes found');
     return (
       <Card className="bg-gradient-card border-glass shadow-card">
         <CardContent className="p-12 text-center">
@@ -50,21 +57,29 @@ export default function RestaurantDishesGrid({ restaurantId, onDishClick }: Rest
           <p className="text-muted-foreground">
             Este restaurante aún no tiene platos registrados en su carta.
           </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Debug: Restaurant ID {restaurantId}, Dishes found: {dishes.length}
+          </p>
         </CardContent>
       </Card>
     );
   }
 
+  console.log('RestaurantDishesGrid: Rendering dishes grid with', dishes.length, 'dishes');
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {dishes.map((dish) => (
-        <DishCard
-          key={dish.id}
-          dish={dish}
-          restaurantId={restaurantId}
-          onDishClick={onDishClick}
-        />
-      ))}
+      {dishes.map((dish) => {
+        console.log('RestaurantDishesGrid: Rendering dish:', dish.name);
+        return (
+          <DishCard
+            key={dish.id}
+            dish={dish}
+            restaurantId={restaurantId}
+            onDishClick={onDishClick}
+          />
+        );
+      })}
     </div>
   );
 }
