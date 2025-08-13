@@ -6,7 +6,6 @@ export interface RestaurantProfile {
   id: number;
   name: string;
   slug: string;
-  description?: string;
   price_range: string;
   google_rating?: number;
   google_rating_count?: number;
@@ -73,7 +72,6 @@ export const useRestaurantProfile = (slug: string) => {
             id,
             name,
             slug,
-            description,
             price_range,
             google_rating,
             google_rating_count,
@@ -172,7 +170,6 @@ export const useRestaurantProfile = (slug: string) => {
           id: restaurantData.id,
           name: restaurantData.name,
           slug: restaurantData.slug,
-          description: restaurantData.description,
           price_range: restaurantData.price_range,
           google_rating: restaurantData.google_rating,
           google_rating_count: restaurantData.google_rating_count,

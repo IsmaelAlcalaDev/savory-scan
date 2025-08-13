@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -44,7 +45,7 @@ export default function RestaurantProfile() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [activeSection, setActiveSection] = useState('descripcion');
+  const [activeSection, setActiveSection] = useState('servicios');
   const [isHeaderFixed, setIsHeaderFixed] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
@@ -53,7 +54,6 @@ export default function RestaurantProfile() {
 
   const menuSections = [
     { id: 'fotos', label: 'Fotos', icon: Images, action: () => setIsGalleryOpen(true) },
-    { id: 'descripcion', label: 'Descripción', icon: Info },
     { id: 'servicios', label: 'Servicios', icon: CheckCircle },
     { id: 'reservas', label: 'Reservas', icon: Users },
     ...(restaurant?.promotions && restaurant.promotions.length > 0 ? [
@@ -243,12 +243,12 @@ export default function RestaurantProfile() {
     <>
       <Helmet>
         <title>{restaurant.name} | Restaurante en {restaurant.address}</title>
-        <meta name="description" content={`${restaurant.description || `Descubre ${restaurant.name}, ${restaurant.establishment_type} especializado en ${restaurant.cuisine_types.join(', ')}.`} Reserva ahora y disfruta de una experiencia gastronómica única.`} />
+        <meta name="description" content={`Descubre ${restaurant.name}, ${restaurant.establishment_type} especializado en ${restaurant.cuisine_types.join(', ')}. Reserva ahora y disfruta de una experiencia gastronómica única.`} />
         <meta name="keywords" content={`${restaurant.name}, restaurante, ${restaurant.cuisine_types.join(', ')}, ${restaurant.establishment_type}`} />
         <link rel="canonical" href={`https://savorysearch.com/restaurant/${restaurant.slug}`} />
 
         <meta property="og:title" content={`${restaurant.name} | SavorySearch`} />
-        <meta property="og:description" content={restaurant.description || `Restaurante ${restaurant.name} - ${restaurant.establishment_type}`} />
+        <meta property="og:description" content={`Restaurante ${restaurant.name} - ${restaurant.establishment_type}`} />
         <meta property="og:image" content={currentImage || '/og-default.jpg'} />
         <meta property="og:url" content={`https://savorysearch.com/restaurant/${restaurant.slug}`} />
         <meta property="og:type" content="restaurant" />
@@ -258,7 +258,6 @@ export default function RestaurantProfile() {
             "@context": "https://schema.org",
             "@type": "Restaurant",
             "name": restaurant.name,
-            "description": restaurant.description,
             "address": restaurant.address,
             "telephone": restaurant.phone,
             "url": restaurant.website,
@@ -419,37 +418,16 @@ export default function RestaurantProfile() {
           >
             <div className="max-w-6xl mx-auto px-4">
               <div className="flex items-center gap-4 py-4">
-                {/* Ver Carta Button and Delivery Icons */}
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <Button
-                    onClick={() => setIsMenuOpen(true)}
-                    size="lg"
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6"
-                  >
-                    <Utensils className="h-5 w-5 mr-2" />
-                    Ver Carta
-                  </Button>
-                  
-                  <DeliveryIcons restaurantLinks={restaurant.delivery_links || {}} />
-                </div>
-
-                {/* Navigation Menu */}
-                <div className="flex-1 overflow-hidden">
-                  <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-                    {menuSections.map((section) => (
-                      <Button
-                        key={section.id}
-                        onClick={() => handleSectionClick(section)}
-                        variant={activeSection === section.id ? "default" : "ghost"}
-                        size="lg"
-                        className="flex-shrink-0 whitespace-nowrap"
-                      >
-                        <section.icon className="h-4 w-4 mr-1" />
-                        {section.id === 'fotos' ? `${section.label} (${totalImages})` : section.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                {/* Quick Action Tags */}
+                <QuickActionTags
+                  phone={restaurant.phone}
+                  website={restaurant.website}
+                  email={restaurant.email}
+                  address={restaurant.address}
+                  latitude={restaurant.latitude}
+                  longitude={restaurant.longitude}
+                  onReservationClick={() => scrollToSection('reservas')}
+                />
               </div>
             </div>
           </div>
@@ -462,36 +440,7 @@ export default function RestaurantProfile() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column - Main content */}
               <div className="lg:col-span-2 space-y-8">
-                {/* Navigation Menu for Desktop */}
-                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 border-b border-border">
-                  {menuSections.map((section) => (
-                    <Button
-                      key={section.id}
-                      onClick={() => handleSectionClick(section)}
-                      variant={activeSection === section.id ? "default" : "ghost"}
-                      size="lg"
-                      className="flex-shrink-0 whitespace-nowrap"
-                    >
-                      <section.icon className="h-4 w-4 mr-1" />
-                      {section.id === 'fotos' ? `${section.label} (${totalImages})` : section.label}
-                    </Button>
-                  ))}
-                </div>
-
-                {/* Descripción */}
-                <section 
-                  id="descripcion"
-                  ref={(el) => sectionsRef.current['descripcion'] = el}
-                  className="space-y-4"
-                >
-                  {restaurant.description && (
-                    <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-                      <p className="text-lg leading-relaxed">{restaurant.description}</p>
-                    </div>
-                  )}
-                </section>
-
-                {/* Quick Action Tags */}
+                {/* Quick Action Tags for Desktop */}
                 <QuickActionTags
                   phone={restaurant.phone}
                   website={restaurant.website}
@@ -515,7 +464,7 @@ export default function RestaurantProfile() {
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {restaurant.services.map((service, index) => (
-                        <Badge key={index} variant="default" className="px-3 py-1 text-sm">
+                        <Badge key={index} variant="outline" className="px-3 py-1 text-sm border-primary text-primary">
                           {service}
                         </Badge>
                       ))}
@@ -559,39 +508,6 @@ export default function RestaurantProfile() {
                   title="Síguenos en redes sociales"
                   restaurantLinks={restaurant.social_links || {}}
                 />
-
-                {/* Stats */}
-                <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-                  <h3 className="text-lg font-medium flex items-center gap-2 mb-6">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                    Estadísticas
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-background/30 rounded-lg">
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        <Heart className="h-4 w-4 text-red-500" />
-                        <span className="text-sm">Total favoritos</span>
-                      </div>
-                      <span className="text-2xl font-bold">{restaurant.favorites_count}</span>
-                    </div>
-                    
-                    <div className="text-center p-4 bg-background/30 rounded-lg">
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        <Users className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm">Esta semana</span>
-                      </div>
-                      <span className="text-2xl font-bold">{restaurant.favorites_count_week}</span>
-                    </div>
-                    
-                    <div className="text-center p-4 bg-background/30 rounded-lg">
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        <TrendingUp className="h-4 w-4 text-green-500" />
-                        <span className="text-sm">Este mes</span>
-                      </div>
-                      <span className="text-2xl font-bold">{restaurant.favorites_count_month}</span>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Right Column - Menu button and Schedules */}
@@ -625,7 +541,32 @@ export default function RestaurantProfile() {
                       Horarios
                     </h3>
                     {restaurant.schedules.length > 0 ? (
-                      <CompactRestaurantSchedule schedules={restaurant.schedules} />
+                      <div className="space-y-2">
+                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((dayName, index) => {
+                          const schedule = restaurant.schedules.find(s => s.day_of_week === (index + 1) % 7);
+                          const isToday = new Date().getDay() === (index + 1) % 7;
+                          
+                          return (
+                            <div
+                              key={index}
+                              className={`flex justify-between items-center py-2 px-3 rounded-lg transition-smooth ${
+                                isToday ? 'bg-primary/10' : 'bg-secondary/20'
+                              }`}
+                            >
+                              <span className={`text-sm font-medium ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                                {dayName}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                {schedule?.is_closed || !schedule ? (
+                                  'Cerrado'
+                                ) : (
+                                  `${schedule.opening_time.slice(0, 5)} - ${schedule.closing_time.slice(0, 5)}`
+                                )}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
                         <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -637,32 +578,8 @@ export default function RestaurantProfile() {
               </div>
             </div>
           ) : (
-            // Mobile layout - same as before
+            // Mobile layout
             <div className="space-y-8">
-              {/* Descripción */}
-              <section 
-                id="descripcion"
-                ref={(el) => sectionsRef.current['descripcion'] = el}
-                className="space-y-4"
-              >
-                {restaurant.description && (
-                  <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-                    <p className="text-lg leading-relaxed">{restaurant.description}</p>
-                  </div>
-                )}
-              </section>
-
-              {/* Quick Action Tags */}
-              <QuickActionTags
-                phone={restaurant.phone}
-                website={restaurant.website}
-                email={restaurant.email}
-                address={restaurant.address}
-                latitude={restaurant.latitude}
-                longitude={restaurant.longitude}
-                onReservationClick={() => scrollToSection('reservas')}
-              />
-
               {/* Horarios */}
               <section 
                 id="horarios"
@@ -683,6 +600,22 @@ export default function RestaurantProfile() {
                 )}
               </section>
 
+              {/* Ver Carta Button and Delivery Icons */}
+              <div className="space-y-4">
+                <Button
+                  onClick={() => setIsMenuOpen(true)}
+                  size="lg"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
+                >
+                  <Utensils className="h-6 w-6 mr-2" />
+                  Ver Carta
+                </Button>
+                
+                <div className="flex justify-center">
+                  <DeliveryIcons restaurantLinks={restaurant.delivery_links || {}} />
+                </div>
+              </div>
+
               {/* Servicios */}
               {restaurant.services.length > 0 && (
                 <section 
@@ -696,7 +629,7 @@ export default function RestaurantProfile() {
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {restaurant.services.map((service, index) => (
-                      <Badge key={index} variant="default" className="px-3 py-1 text-sm">
+                      <Badge key={index} variant="outline" className="px-3 py-1 text-sm border-primary text-primary">
                         {service}
                       </Badge>
                     ))}
@@ -740,39 +673,6 @@ export default function RestaurantProfile() {
                 title="Síguenos en redes sociales"
                 restaurantLinks={restaurant.social_links || {}}
               />
-
-              {/* Stats */}
-              <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-                <h3 className="text-lg font-medium flex items-center gap-2 mb-6">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  Estadísticas
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-background/30 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <Heart className="h-4 w-4 text-red-500" />
-                      <span className="text-sm">Total favoritos</span>
-                    </div>
-                    <span className="text-2xl font-bold">{restaurant.favorites_count}</span>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-background/30 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <Users className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm">Esta semana</span>
-                    </div>
-                    <span className="text-2xl font-bold">{restaurant.favorites_count_week}</span>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-background/30 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <TrendingUp className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Este mes</span>
-                    </div>
-                    <span className="text-2xl font-bold">{restaurant.favorites_count_month}</span>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
         </div>
