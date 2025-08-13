@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, ChevronRight, Users } from 'lucide-react';
+import { Calendar, Clock, ChevronRight, Users, MapPin } from 'lucide-react';
 import { useRestaurantEvents } from '@/hooks/useRestaurantEvents';
 
 interface CompactRestaurantEventsProps {
@@ -81,69 +81,67 @@ export default function CompactRestaurantEvents({ restaurantId }: CompactRestaur
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-3">
         {eventsToShow.map((event) => (
           <div 
             key={event.id} 
-            className="bg-primary/5 rounded-2xl p-6 border border-primary/10 hover:border-primary/20 transition-all duration-300"
+            className="bg-primary/5 rounded-xl p-4 border border-primary/10 hover:border-primary/20 transition-all duration-300"
           >
-            <div className="flex items-start justify-between mb-3">
-              <h4 className="font-semibold text-lg line-clamp-1 text-foreground">
-                {event.name}
-              </h4>
-              <div className="flex gap-1 ml-2 flex-shrink-0">
-                <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
-                  {event.category}
-                </Badge>
-              </div>
-            </div>
-
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-              {event.description}
-            </p>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1 text-sm">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  <span className="font-medium">{formatDate(event.event_date)}</span>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-semibold text-base line-clamp-1 text-foreground">
+                    {event.name}
+                  </h4>
+                  <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20 ml-2 flex-shrink-0">
+                    {event.category}
+                  </Badge>
                 </div>
-                
-                <div className="flex items-center gap-1 text-sm">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span>
-                    {formatTime(event.start_time)}
-                    {event.end_time && ` - ${formatTime(event.end_time)}`}
-                  </span>
-                </div>
-              </div>
 
-              <div className="flex items-center justify-between">
-                {event.available_seats && (
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    <span>{event.available_seats} plazas</span>
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                  {event.description}
+                </p>
+
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span className="font-medium">{formatDate(event.event_date)}</span>
                   </div>
-                )}
+                  
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span>
+                      {formatTime(event.start_time)}
+                      {event.end_time && ` - ${formatTime(event.end_time)}`}
+                    </span>
+                  </div>
 
-                {event.is_free ? (
-                  <Badge variant="outline" className="text-xs text-green-600 border-green-200 bg-green-50">
-                    Gratis
-                  </Badge>
-                ) : event.entry_price && (
-                  <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20 text-primary">
-                    {event.entry_price}€
-                  </Badge>
-                )}
-              </div>
+                  {event.available_seats && (
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Users className="h-4 w-4" />
+                      <span>{event.available_seats} plazas</span>
+                    </div>
+                  )}
 
-              {event.requires_reservation && (
-                <div className="pt-3 border-t border-primary/10">
-                  <p className="text-xs text-amber-600 font-medium">
-                    Requiere reserva
-                  </p>
+                  <div className="flex items-center gap-2">
+                    {event.is_free ? (
+                      <Badge variant="outline" className="text-xs text-green-600 border-green-200 bg-green-50">
+                        Gratis
+                      </Badge>
+                    ) : event.entry_price && (
+                      <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20 text-primary">
+                        {event.entry_price}€
+                      </Badge>
+                    )}
+
+                    {event.requires_reservation && (
+                      <Badge variant="outline" className="text-xs text-amber-600 border-amber-200 bg-amber-50">
+                        Reserva requerida
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         ))}
