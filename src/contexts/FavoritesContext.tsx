@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/shared/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useSecurityLogger } from '@/hooks/useSecurityLogger';
 import { FavoritesService } from '@/services/favoritesService';
@@ -33,6 +33,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loadingMap, setLoadingMap] = useState<Record<number, boolean>>({});
   const channelRef = useRef<any>(null);
 
+  // Load user favorites using the service
   const loadUserFavorites = async () => {
     if (!user) {
       console.log('FavoritesProvider: No user, clearing favorites');
@@ -58,6 +59,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // Setup real-time subscription for multi-tab sync
   useEffect(() => {
     if (!user) {
       setFavoritesSet(new Set());
@@ -67,10 +69,12 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     console.log('FavoritesProvider: Setting up realtime for user', user.id);
     loadUserFavorites();
 
+    // Cleanup previous channel
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
 
+    // Create new channel for this user with realtime updates
     const channel = supabase
       .channel(`user-favorites-${user.id}`)
       .on(
@@ -121,6 +125,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   }, [user]);
 
+  // Listen for custom favoriteToggled events
   useEffect(() => {
     const handleFavoriteToggled = (event: CustomEvent) => {
       const { restaurantId, isFavorite } = event.detail;
@@ -157,6 +162,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   ): Promise<boolean> => {
     console.log('FavoritesProvider: Toggle favorite called for restaurant', restaurantId);
     
+    // Check authentication
     if (!user) {
       console.log('FavoritesProvider: No user, showing login prompt');
       try {
@@ -177,6 +183,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return false;
     }
 
+    // Prevent double clicks
     if (loadingMap[restaurantId]) {
       console.log('FavoritesProvider: Toggle already in progress for restaurant', restaurantId);
       return favoritesSet.has(restaurantId);
@@ -196,6 +203,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       console.log('FavoritesProvider: Service result:', result);
 
+      // Log security event
       try {
         await logSecurityEvent('favorite_toggled', 'restaurant', String(restaurantId), {
           newState: result.isFavorite,
@@ -222,6 +230,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.error('FavoritesProvider: Error logging security event:', logError);
       }
       
+      // Return unchanged state on error
       return currentState;
     } finally {
       setLoadingMap(prev => ({ ...prev, [restaurantId]: false }));
