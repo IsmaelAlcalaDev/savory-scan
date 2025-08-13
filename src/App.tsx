@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RestaurantProfile from "./pages/RestaurantProfile";
+import RestaurantMenu from "./pages/RestaurantMenu";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
 import SuperAdminPanel from "./pages/SuperAdminPanel";
 import SecurityDashboard from "./pages/SecurityDashboard";
@@ -47,6 +47,7 @@ const App = () => {
                     <Route path="/restaurantes" element={<Restaurants />} />
                     <Route path="/platos" element={<Dishes />} />
                     <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
+                    <Route path="/carta-:slug" element={<RestaurantMenu />} />
                     <Route 
                       path="/admin" 
                       element={
