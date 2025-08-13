@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import FoodieSpot from "./pages/FoodieSpot";
+import Dishes from "./pages/Dishes";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient({
@@ -42,6 +42,7 @@ const App = () => {
                 <BrowserRouter>
                   <Routes>
                     <Route path="/" element={<FoodieSpot />} />
+                    <Route path="/platos" element={<Dishes />} />
                     <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
                     <Route 
                       path="/admin" 
