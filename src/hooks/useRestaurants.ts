@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { FilterState } from '@/types/filters';
-import { useFilterLogic } from './useFilterLogic';
 
 interface Restaurant {
   id: number;
@@ -20,11 +18,16 @@ interface Restaurant {
   logo_url?: string;
 }
 
+type PriceRange = '€' | '€€' | '€€€' | '€€€€';
+
 interface UseRestaurantsProps {
   searchQuery?: string;
   userLat?: number;
   userLng?: number;
-  filters?: FilterState;
+  maxDistance?: number;
+  cuisineTypeIds?: number[];
+  priceRanges?: PriceRange[];
+  minRating?: number;
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -42,19 +45,29 @@ export const useRestaurants = ({
   searchQuery = '',
   userLat,
   userLng,
-  filters
+  maxDistance = 50,
+  cuisineTypeIds,
+  priceRanges,
+  minRating = 0
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { applyFilterLogic } = useFilterLogic();
 
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
         setLoading(true);
         setError(null);
-        console.log('Fetching restaurants with filters:', filters);
+        console.log('Fetching restaurants with params:', {
+          searchQuery,
+          userLat,
+          userLng,
+          maxDistance,
+          cuisineTypeIds,
+          priceRanges,
+          minRating
+        });
 
         let query = supabase
           .from('restaurants')
@@ -76,7 +89,7 @@ export const useRestaurants = ({
               cuisine_types!inner(name)
             ),
             restaurant_services(
-              services!inner(name, id)
+              services!inner(name)
             )
           `)
           .eq('is_active', true)
@@ -87,12 +100,15 @@ export const useRestaurants = ({
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         }
 
-        // Apply basic database filters
-        if (filters?.rating > 0) {
-          query = query.gte('google_rating', filters.rating);
+        if (minRating > 0) {
+          query = query.gte('google_rating', minRating);
         }
 
-        const { data, error } = await query.limit(100);
+        if (priceRanges && priceRanges.length > 0) {
+          query = query.in('price_range', priceRanges);
+        }
+
+        const { data, error } = await query.limit(50);
 
         if (error) {
           console.error('Supabase error:', error);
@@ -118,33 +134,23 @@ export const useRestaurants = ({
             distance_km,
             cuisine_types: restaurant.restaurant_cuisines?.map((rc: any) => rc.cuisine_types?.name).filter(Boolean) || [],
             establishment_type: restaurant.establishment_types?.name,
-            services: restaurant.restaurant_services?.map((rs: any) => ({
-              id: rs.services?.id,
-              name: rs.services?.name
-            })).filter(Boolean) || [],
+            services: restaurant.restaurant_services?.map((rs: any) => rs.services?.name).filter(Boolean) || [],
             favorites_count: restaurant.favorites_count || 0,
             cover_image_url: restaurant.cover_image_url,
             logo_url: restaurant.logo_url
           };
         }).filter(Boolean) || [];
 
-        // Apply client-side filtering with new logic
-        let filteredData = formattedData;
-        if (filters) {
-          filteredData = applyFilterLogic(formattedData, filters);
-        }
-
-        // Sort by distance if available
-        let sortedData = filteredData;
+        let sortedData = formattedData;
         if (userLat && userLng) {
-          sortedData = filteredData
+          sortedData = formattedData
             .filter(restaurant => restaurant.distance_km !== null)
             .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
           
           console.log('Restaurants sorted by distance:', sortedData.slice(0, 5));
         }
 
-        console.log('Final filtered restaurants:', sortedData.length);
+        console.log('Final formatted restaurants:', sortedData.length);
         setRestaurants(sortedData);
 
       } catch (err) {
@@ -202,7 +208,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, filters, applyFilterLogic]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, minRating]);
 
   return { restaurants, loading, error };
 };

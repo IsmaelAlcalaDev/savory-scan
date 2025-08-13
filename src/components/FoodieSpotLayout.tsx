@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, MapPin, Menu, X, User, SlidersHorizontal } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -28,8 +28,6 @@ import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { useDietTypes } from '@/hooks/useDietTypes';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useFilters } from '@/contexts/FilterContext';
-import { FilterStateIndicator, FilterStatusBadge } from '@/components/FilterStateIndicator';
 
 const filterOptions = [
   { id: 'nearby', label: 'Cerca de mí', active: true },
@@ -69,36 +67,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [menuModalOpen, setMenuModalOpen] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
-  const { 
-    filters, 
-    validation, 
-    updateFilter, 
-    clearAllFilters,
-    validateFilters 
-  } = useFilters();
-
-  const {
-    restaurants,
-    loading: restaurantsLoading,
-    error: restaurantsError,
-  } = useRestaurants({
-    searchQuery,
-    userLat: userLocation?.lat,
-    userLng: userLocation?.lng,
-    filters
-  });
-
-  const {
-    dishes,
-    loading: dishesLoading,
-    error: dishesError,
-  } = useDishes({
-    searchQuery,
-    userLat: userLocation?.lat,
-    userLng: userLocation?.lng,
-    filters
-  });
-
   // Determine active tab based on current route
   const getActiveTabFromRoute = (): 'restaurants' | 'dishes' | 'account' => {
     if (location.pathname === '/platos') return 'dishes';
@@ -129,7 +97,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const appName = appSettings?.appName ?? 'FoodieSpot';
   const appLogoUrl = appSettings?.logoUrl ?? 'https://w7.pngwing.com/pngs/256/867/png-transparent-zomato-logo-thumbnail.png';
 
-  // Load saved location or request GPS
+  // Cargar ubicación guardada o solicitar GPS
   useEffect(() => {
     const loadSavedLocation = () => {
       try {
@@ -144,7 +112,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
               lng: locationData.longitude
             });
             
-            // Determine location name
+            // Determinar nombre de la ubicación
             if (locationData.address) {
               setCurrentLocationName(locationData.address);
             } else if (locationData.name && locationData.parent) {
@@ -163,7 +131,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       }
       return false;
     };
-    
+
     const requestGPSLocation = async () => {
       if (!('geolocation' in navigator)) {
         console.log('Geolocation not supported');
@@ -181,7 +149,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             {
               enableHighAccuracy: true,
               timeout: 10000,
-              maximumAge: 300000 // 5 minutes
+              maximumAge: 300000 // 5 minutos
             }
           );
         });
@@ -196,7 +164,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         
         setCurrentLocationName('Ubicación detectada');
         
-        // Save to localStorage
+        // Guardar en localStorage
         localStorage.setItem('selectedLocation', JSON.stringify({
           latitude,
           longitude,
@@ -211,86 +179,45 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       }
     };
 
-    // Try loading saved location first
+    // Primero intentar cargar ubicación guardada
     const hasSavedLocation = loadSavedLocation();
     
-    // If no saved location, request GPS
+    // Si no hay ubicación guardada, solicitar GPS
     if (!hasSavedLocation) {
       requestGPSLocation();
     }
   }, []);
 
-  const handleDistanceChange = (distances: number[]) => {
-    // Convert distance IDs to distance strings based on your distance ranges
-    const distanceMap: Record<number, string> = {
-      1: 'muy_cerca',
-      2: 'caminando', 
-      3: 'bicicleta',
-      4: 'transporte',
-      5: 'coche'
-    };
-    
-    const selectedDistance = distances.length > 0 ? distanceMap[distances[0]] || 'sin_limite' : 'sin_limite';
-    updateFilter('distance', selectedDistance);
-  };
+  const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useRestaurants({
+    searchQuery: activeBottomTab === 'restaurants' ? searchQuery : '',
+    userLat: userLocation?.lat,
+    userLng: userLocation?.lng,
+    maxDistance: 50,
+    cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
+    minRating: selectedRatings.length > 0 ? Math.min(...selectedRatings) : 0
+  });
 
-  const handleRatingChange = (ratings: number[]) => {
-    const minRating = ratings.length > 0 ? Math.max(...ratings.map(r => r * 1.0)) : 0;
-    updateFilter('rating', minRating);
-  };
+  const { dishes, loading: dishesLoading, error: dishesError } = useDishes({
+    searchQuery: activeBottomTab === 'dishes' ? searchQuery : '',
+    userLat: userLocation?.lat,
+    userLng: userLocation?.lng,
+    maxDistance: 50,
+    selectedDietTypes,
+    selectedPriceRanges,
+    selectedFoodTypes,
+    spiceLevels: selectedSpiceLevels,
+    prepTimeRanges: selectedPrepTimeRanges
+  });
 
-  const handleEstablishmentChange = (establishments: number[]) => {
-    updateFilter('venueTypes', establishments);
-  };
-
-  const handleServiceChange = (services: number[]) => {
-    updateFilter('services', services);
-  };
-
-  const handlePriceRangeChange = (priceRanges: string[]) => {
-    const budgetMap: Record<string, number> = {
-      'budget': 1,
-      'mid': 2, 
-      'premium': 3,
-      'luxury': 4
-    };
-    const budgetLevels = priceRanges.map(range => budgetMap[range]).filter(Boolean);
-    updateFilter('budget', budgetLevels);
-  };
-
-  const handleTimeRangeChange = (timeRanges: number[]) => {
-    // Map time range IDs to time slots
-    const timeMap: Record<number, string> = {
-      1: 'desayuno',
-      2: 'almuerzo',
-      3: 'merienda', 
-      4: 'cena',
-      5: 'noche'
-    };
-    
-    const selectedTime = timeRanges.length > 0 ? timeMap[timeRanges[0]] : null;
-    updateFilter('timeSlot', selectedTime);
-  };
-
-  const handleDietTypeChange = (dietTypes: string[]) => {
-    updateFilter('dietaryRestrictions', dietTypes);
-  };
-
-  // Quick filter handlers
-  const handleQuickFilterChange = (filterName: keyof typeof filters.quickFilters) => {
-    updateFilter('quickFilters', {
-      ...filters.quickFilters,
-      [filterName]: !filters.quickFilters[filterName]
-    });
-  };
-
-  // Count active filters
-  const hasActiveFilters = filters.budget.length > 0 || 
-    filters.rating > 0 || 
-    filters.dietaryRestrictions.length > 0 ||
-    filters.venueTypes.length > 0 ||
-    filters.services.length > 0 ||
-    Object.values(filters.quickFilters).some(Boolean);
+  console.log('FoodieSpotLayout: Hook results:', { 
+    restaurants: restaurants.length, 
+    restaurantsLoading, 
+    restaurantsError,
+    dishes: dishes.length,
+    dishesLoading,
+    dishesError,
+    activeBottomTab
+  });
 
   const handleFilterToggle = (filterId: string) => {
     setActiveFilters(prev => 
@@ -336,7 +263,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     console.log('Updated location name:', currentLocationName);
   };
 
-  const clearAllFiltersLocal = () => {
+  const clearAllFilters = () => {
     setSelectedCuisines([]);
     setSelectedDistances([]);
     setSelectedRatings([]);
@@ -346,7 +273,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     setSelectedTimeRanges([]);
     setSelectedDietTypes([]);
     setActiveFilters([]);
-    clearAllFilters();
   };
 
   const removeFilter = (filterType: string, value: any) => {
@@ -640,7 +566,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                   <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
                 </div>
                 <button 
-                  onClick={clearAllFiltersLocal}
+                  onClick={clearAllFilters}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 ml-2"
                 >
                   Limpiar filtros
@@ -782,7 +708,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                 <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
               </div>
               <button 
-                onClick={clearAllFiltersLocal}
+                onClick={clearAllFilters}
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 ml-2"
               >
                 Limpiar filtros
@@ -845,177 +771,127 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%]">
-          <div className="flex items-center justify-between py-3 px-4">
-            {/* Left Section: Logo */}
-            <div className="flex items-center flex-shrink-0 relative">
-              <button onClick={handleLogoClick} className="flex items-center">
-                <img 
-                  src={appLogoUrl}
-                  alt={`${appName} Logo`} 
-                  className="w-24 h-24 bg-transparent object-contain absolute top-1/2 left-0 transform -translate-y-1/2 z-10 cursor-pointer"
-                />
-              </button>
-              {/* Spacer to maintain layout */}
-              <div className="w-24 h-8" />
-            </div>
+    <div className="min-h-screen bg-white pb-20 px-[7.5%]">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%]">
+        <div className="flex items-center justify-between py-3 px-4">
+          {/* Left Section: Logo */}
+          <div className="flex items-center flex-shrink-0 relative">
+            <button onClick={handleLogoClick} className="flex items-center">
+              <img 
+                src={appLogoUrl}
+                alt={`${appName} Logo`} 
+                className="w-24 h-24 bg-transparent object-contain absolute top-1/2 left-0 transform -translate-y-1/2 z-10 cursor-pointer"
+              />
+            </button>
+            {/* Spacer to maintain layout */}
+            <div className="w-24 h-8" />
+          </div>
 
-            {/* Center Section: Location and Search */}
-            <div className="flex items-center gap-4 flex-1 justify-center max-w-2xl mx-8">
-              {/* Location Section */}
-              <div className="flex justify-start">
-                <Button
-                  variant="ghost"
-                  onClick={() => setLocationModalOpen(true)}
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary hover:bg-transparent whitespace-nowrap"
-                >
-                  <MapPin className="h-4 w-4" />
-                  <span className="max-w-40 truncate">
-                    {isLoadingLocation ? 'Detectando...' : currentLocationName}
-                  </span>
-                </Button>
-              </div>
-
-              {/* Search Section */}
-              <div className="flex-1 max-w-md">
-                <div className="relative">
-                  <Search className={`absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors z-10 ${
-                    isSearchFocused ? 'text-primary' : 'text-muted-foreground'
-                  }`} />
-                  <Input
-                    type="text"
-                    placeholder="Buscar restaurantes, platos..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setIsSearchFocused(true)}
-                    onBlur={() => setIsSearchFocused(false)}
-                    className="pl-10 pr-4 h-10 text-base bg-background/50 border border-muted-foreground backdrop-blur-sm rounded-full focus:border-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Right Section: Language & Menu */}
-            <div className="flex items-center gap-12 flex-shrink-0">
-              <LanguageSelector />
-              <button 
-                className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
-                onClick={() => setMenuModalOpen(true)}
+          {/* Center Section: Location and Search */}
+          <div className="flex items-center gap-4 flex-1 justify-center max-w-2xl mx-8">
+            {/* Location Section */}
+            <div className="flex justify-start">
+              <Button
+                variant="ghost"
+                onClick={() => setLocationModalOpen(true)}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary hover:bg-transparent whitespace-nowrap"
               >
-                <Menu className="h-8 w-8" strokeWidth={2} />
-              </button>
+                <MapPin className="h-4 w-4" />
+                <span className="max-w-40 truncate">
+                  {isLoadingLocation ? 'Detectando...' : currentLocationName}
+                </span>
+              </Button>
+            </div>
+
+            {/* Search Section */}
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <Search className={`absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors z-10 ${
+                  isSearchFocused ? 'text-primary' : 'text-muted-foreground'
+                }`} />
+                <Input
+                  type="text"
+                  placeholder="Buscar restaurantes, platos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  className="pl-10 pr-4 h-10 text-base bg-background/50 border border-muted-foreground backdrop-blur-sm rounded-full focus:border-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Tipos de Cocina / Tipos de Comida */}
-          <div className="px-4 pb-2 pt-2">
-            {activeBottomTab === 'dishes' ? (
-              <FoodTypeFilter 
-                selectedFoodTypes={selectedFoodTypes}
-                onFoodTypeChange={setSelectedFoodTypes}
-              />
-            ) : (
-              <CuisineFilter 
-                selectedCuisines={selectedCuisines}
-                onCuisineChange={setSelectedCuisines}
-              />
-            )}
-          </div>
-        </header>
-
-        {/* Filter Status and Conflicts */}
-        {(validation.hasConflicts || hasActiveFilters) && (
-          <div className="mb-4 p-4 bg-white rounded-lg shadow-sm border">
-            <div className="flex items-center justify-between mb-2">
-              <FilterStatusBadge 
-                hasActiveFilters={hasActiveFilters}
-                conflictCount={validation.conflicts.length}
-              />
-              {hasActiveFilters && (
-                <button
-                  onClick={clearAllFiltersLocal}
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
-                  Limpiar filtros
-                </button>
-              )}
-            </div>
-            <FilterStateIndicator validation={validation} />
-          </div>
-        )}
-
-        <div className="flex gap-6">
-          {/* Desktop Sidebar */}
-          <div className="hidden lg:block w-80 flex-shrink-0">
-            <div className="sticky top-6">
-              {/* Sidebar filters could be added here if needed */}
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            {renderContent()}
+          {/* Right Section: Language & Menu */}
+          <div className="flex items-center gap-12 flex-shrink-0">
+            <LanguageSelector />
+            <button 
+              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
+              onClick={() => setMenuModalOpen(true)}
+            >
+              <Menu className="h-8 w-8" strokeWidth={2} />
+            </button>
           </div>
         </div>
 
-        {/* Mobile Filters Modal */}
-        <div className="lg:hidden">
-          <FiltersModal
-            selectedDistances={selectedDistances}
-            onDistanceChange={setSelectedDistances}
-            selectedRatings={selectedRatings}
-            onRatingChange={setSelectedRatings}
-            selectedEstablishments={selectedEstablishments}
-            onEstablishmentChange={setSelectedEstablishments}
-            selectedServices={selectedServices}
-            onServiceChange={setSelectedServices}
-            selectedPriceRanges={selectedPriceRanges}
-            onPriceRangeChange={setSelectedPriceRanges}
-            selectedTimeRanges={selectedTimeRanges}
-            onTimeRangeChange={setSelectedTimeRanges}
-            selectedDietTypes={selectedDietTypes}
-            onDietTypeChange={setSelectedDietTypes}
-          />
+        {/* Tipos de Cocina / Tipos de Comida */}
+        <div className="px-4 pb-2 pt-2">
+          {activeBottomTab === 'dishes' ? (
+            <FoodTypeFilter 
+              selectedFoodTypes={selectedFoodTypes}
+              onFoodTypeChange={setSelectedFoodTypes}
+            />
+          ) : (
+            <CuisineFilter 
+              selectedCuisines={selectedCuisines}
+              onCuisineChange={setSelectedCuisines}
+            />
+          )}
         </div>
+      </header>
 
-        {/* Bottom Navigation */}
-        <BottomNavigation 
-          activeTab={activeBottomTab}
-          onTabChange={handleBottomTabChange}
-        />
-
-        {/* Account Modal */}
-        <AccountModal
-          open={accountModalOpen}
-          onOpenChange={setAccountModalOpen}
-        />
-
-        {/* Menu Modal */}
-        <MenuModal
-          open={menuModalOpen}
-          onOpenChange={setMenuModalOpen}
-        />
-
-        {/* Location Modal */}
-        <LocationModal
-          open={locationModalOpen}
-          onOpenChange={setLocationModalOpen}
-          onLocationSelect={handleLocationSelect}
-        />
-        
-        <style>{`
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }
-          .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-        `}</style>
+      {/* Main Content - Full Width */}
+      <div className="w-full">
+        <div className="p-4">
+          {renderContent()}
+        </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation 
+        activeTab={activeBottomTab}
+        onTabChange={handleBottomTabChange}
+      />
+
+      {/* Account Modal */}
+      <AccountModal
+        open={accountModalOpen}
+        onOpenChange={setAccountModalOpen}
+      />
+
+      {/* Menu Modal */}
+      <MenuModal
+        open={menuModalOpen}
+        onOpenChange={setMenuModalOpen}
+      />
+
+      {/* Location Modal */}
+      <LocationModal
+        open={locationModalOpen}
+        onOpenChange={setLocationModalOpen}
+        onLocationSelect={handleLocationSelect}
+      />
+      
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
