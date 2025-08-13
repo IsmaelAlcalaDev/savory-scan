@@ -2,23 +2,31 @@
 import { Loader2, Utensils, ChefHat } from 'lucide-react';
 import DishCard from './DishCard';
 
-interface Dish {
+interface DishData {
   id: number;
   name: string;
   description?: string;
-  price: number;
+  base_price: number;
   image_url?: string;
   is_featured: boolean;
+  is_vegetarian: boolean;
+  is_vegan: boolean;
+  is_gluten_free: boolean;
+  is_lactose_free: boolean;
+  is_healthy: boolean;
+  spice_level: number;
+  preparation_time_minutes?: number;
+  favorites_count: number;
+  category_name?: string;
+  restaurant_id: number;
+  restaurant_name: string;
+  restaurant_slug: string;
   distance_km?: number;
-  restaurant: {
-    id: number;
-    name: string;
-    slug: string;
-  };
+  formatted_price: string;
 }
 
 interface DishListProps {
-  dishes: Dish[];
+  dishes: DishData[];
   loading: boolean;
   error: string | null;
 }
@@ -65,6 +73,17 @@ export default function DishList({ dishes, loading, error }: DishListProps) {
     );
   }
 
+  // Transform DishData to the format expected by DishCard
+  const transformedDishes = dishes.map(dish => ({
+    ...dish,
+    price: dish.base_price,
+    restaurant: {
+      id: dish.restaurant_id,
+      name: dish.restaurant_name,
+      slug: dish.restaurant_slug
+    }
+  }));
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -74,10 +93,11 @@ export default function DishList({ dishes, loading, error }: DishListProps) {
       </div>
       
       <div className="grid gap-4">
-        {dishes.map((dish) => (
+        {transformedDishes.map((dish) => (
           <DishCard
             key={dish.id}
             dish={dish}
+            restaurantId={dish.restaurant_id}
           />
         ))}
       </div>

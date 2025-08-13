@@ -83,7 +83,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     cuisineTypeIds: selectedCuisines,
     priceRanges: restaurantPriceRanges,
     minRating,
-    establishmentTypeIds: selectedEstablishments,
     serviceIds: selectedServices,
     timeRangeIds: selectedTimeRanges,
     dietTypes: selectedRestaurantDietTypes
@@ -258,7 +257,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         <SearchBar
           onSearch={handleSearch}
           placeholder={activeBottomTab === 'restaurants' ? "Buscar restaurantes..." : "Buscar platos..."}
-          defaultQuery={searchQuery}
         />
       </header>
 

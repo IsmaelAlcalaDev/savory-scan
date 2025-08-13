@@ -1,5 +1,5 @@
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
 interface FilterConflict {
   type: 'warning' | 'error';
@@ -7,30 +7,37 @@ interface FilterConflict {
   conflictingFilters: string[];
 }
 
-interface FilterValidationProps {
-  selectedCuisines: number[];
-  selectedDietTypes: string[];
-  selectedPriceRanges: string[];
-  selectedEstablishments?: number[];
+interface FilterValidationState {
+  cuisines: number[];
+  dietTypes: string[];
+  priceRanges: string[];
+  establishments: number[];
 }
 
-export const useFilterValidation = ({
-  selectedCuisines,
-  selectedDietTypes,
-  selectedPriceRanges,
-  selectedEstablishments = []
-}: FilterValidationProps) => {
-  
-  const conflicts = useMemo((): FilterConflict[] => {
+export const useFilterValidation = () => {
+  const [conflicts, setConflicts] = useState<FilterConflict[]>([]);
+
+  const validateFilters = (
+    filterType: string,
+    newValue: any,
+    currentFilters: FilterValidationState
+  ) => {
     const detectedConflicts: FilterConflict[] = [];
 
     // Define cuisine types that might conflict with certain diets
     const meatHeavyCuisines = [1, 2, 3]; // Replace with actual IDs
     const seafoodCuisines = [4, 5]; // Replace with actual IDs
     
+    // Get updated filters based on the change
+    const updatedFilters = { ...currentFilters };
+    if (filterType === 'cuisines') updatedFilters.cuisines = newValue;
+    if (filterType === 'dietTypes') updatedFilters.dietTypes = newValue;
+    if (filterType === 'priceRanges') updatedFilters.priceRanges = newValue;
+    if (filterType === 'establishments') updatedFilters.establishments = newValue;
+
     // Vegan diet conflicts
-    if (selectedDietTypes.includes('vegan')) {
-      const conflictingCuisines = selectedCuisines.filter(id => 
+    if (updatedFilters.dietTypes.includes('vegan')) {
+      const conflictingCuisines = updatedFilters.cuisines.filter(id => 
         meatHeavyCuisines.includes(id) || seafoodCuisines.includes(id)
       );
       
@@ -44,8 +51,8 @@ export const useFilterValidation = ({
     }
 
     // Vegetarian diet conflicts
-    if (selectedDietTypes.includes('vegetarian')) {
-      const conflictingCuisines = selectedCuisines.filter(id => 
+    if (updatedFilters.dietTypes.includes('vegetarian')) {
+      const conflictingCuisines = updatedFilters.cuisines.filter(id => 
         meatHeavyCuisines.includes(id)
       );
       
@@ -59,7 +66,7 @@ export const useFilterValidation = ({
     }
 
     // Price range conflicts
-    if (selectedPriceRanges.includes('budget') && selectedPriceRanges.includes('premium')) {
+    if (updatedFilters.priceRanges.includes('budget') && updatedFilters.priceRanges.includes('premium')) {
       detectedConflicts.push({
         type: 'warning',
         message: 'Has seleccionado rangos de precio contradictorios (económico y premium)',
@@ -67,24 +74,8 @@ export const useFilterValidation = ({
       });
     }
 
-    // Gluten-free with certain cuisines
-    if (selectedDietTypes.includes('gluten-free')) {
-      const glutenHeavyCuisines = [6, 7]; // Replace with actual IDs for pasta, pizza, etc.
-      const conflictingCuisines = selectedCuisines.filter(id => 
-        glutenHeavyCuisines.includes(id)
-      );
-      
-      if (conflictingCuisines.length > 0) {
-        detectedConflicts.push({
-          type: 'warning',
-          message: 'Algunos tipos de cocina seleccionados pueden tener opciones limitadas sin gluten',
-          conflictingFilters: ['cuisine', 'diet-gluten-free']
-        });
-      }
-    }
-
-    return detectedConflicts;
-  }, [selectedCuisines, selectedDietTypes, selectedPriceRanges, selectedEstablishments]);
+    setConflicts(detectedConflicts);
+  };
 
   const hasConflicts = conflicts.length > 0;
   const hasErrors = conflicts.some(c => c.type === 'error');
@@ -95,6 +86,7 @@ export const useFilterValidation = ({
     hasConflicts,
     hasErrors,
     hasWarnings,
-    isValid: !hasErrors
+    isValid: !hasErrors,
+    validateFilters
   };
 };

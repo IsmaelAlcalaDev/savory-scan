@@ -1,5 +1,5 @@
 
-import { Loader2, MapPin, Star, Clock } from 'lucide-react';
+import { Loader2, MapPin, Star } from 'lucide-react';
 import RestaurantCard from './RestaurantCard';
 
 interface Restaurant {
@@ -79,7 +79,20 @@ export default function RestaurantList({ restaurants, loading, error }: Restaura
         {restaurants.map((restaurant) => (
           <RestaurantCard
             key={restaurant.id}
-            restaurant={restaurant}
+            id={restaurant.id}
+            name={restaurant.name}
+            slug={restaurant.slug}
+            description={restaurant.description}
+            priceRange={restaurant.price_range}
+            googleRating={restaurant.google_rating}
+            googleRatingCount={restaurant.google_rating_count}
+            distance={restaurant.distance_km}
+            cuisineTypes={restaurant.cuisine_types}
+            establishmentType={restaurant.establishment_type}
+            services={restaurant.services}
+            favoritesCount={restaurant.favorites_count}
+            coverImageUrl={restaurant.cover_image_url}
+            logoUrl={restaurant.logo_url}
           />
         ))}
       </div>
