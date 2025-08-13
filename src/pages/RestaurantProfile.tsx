@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -25,6 +26,7 @@ import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
 import { useIsMobile } from '@/hooks/use-mobile';
 import FavoriteButton from '@/components/FavoriteButton';
 import DishModal from '@/components/DishModal';
+import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 import RestaurantPlatforms from '@/components/RestaurantPlatforms';
 import CompactRestaurantSchedule from '@/components/CompactRestaurantSchedule';
 import QuickActionTags from '@/components/QuickActionTags';
@@ -40,6 +42,7 @@ export default function RestaurantProfile() {
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('servicios');
@@ -137,10 +140,6 @@ export default function RestaurantProfile() {
 
   const handleGoBack = () => {
     navigate('/restaurantes');
-  };
-
-  const handleViewMenu = () => {
-    navigate(`/restaurant/${slug}/menu`);
   };
 
   const getAllImages = () => {
@@ -518,7 +517,7 @@ export default function RestaurantProfile() {
                   {/* Ver Carta Button and Delivery Icons */}
                   <div className="space-y-4">
                     <Button
-                      onClick={handleViewMenu}
+                      onClick={() => setIsMenuOpen(true)}
                       size="lg"
                       className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
                     >
@@ -604,7 +603,7 @@ export default function RestaurantProfile() {
               {/* Ver Carta Button and Delivery Icons */}
               <div className="space-y-4">
                 <Button
-                  onClick={handleViewMenu}
+                  onClick={() => setIsMenuOpen(true)}
                   size="lg"
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
                 >
@@ -677,6 +676,21 @@ export default function RestaurantProfile() {
             </div>
           )}
         </div>
+
+        {/* Menu Modal */}
+        <Dialog open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0">
+            <div className="p-6 border-b">
+              <h2 className="text-2xl font-bold">Carta de {restaurant.name}</h2>
+            </div>
+            <div className="overflow-y-auto p-6">
+              <RestaurantDishesGrid
+                restaurantId={restaurant?.id || 0}
+                onDishClick={handleDishClick}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Gallery Modal */}
         <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
