@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
+import { FilterProvider } from '@/contexts/FilterContext';
 import ProtectedRoute from "./components/ProtectedRoute";
 import RestaurantProfile from "./pages/RestaurantProfile";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
@@ -17,7 +19,6 @@ import LocationEntry from "./pages/LocationEntry";
 import Restaurants from "./pages/Restaurants";
 import Dishes from "./pages/Dishes";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { FilterProvider } from '@/contexts/FilterContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,50 +34,54 @@ function App() {
   return (
     <HelmetProvider>
       <ErrorBoundary>
-        <QueryClient>
+        <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <FavoritesProvider>
               <FilterProvider>
-                <Router>
-                  <div className="min-h-screen bg-background">
-                    <Routes>
-                      <Route path="/" element={<LocationEntry />} />
-                      <Route path="/restaurantes" element={<Restaurants />} />
-                      <Route path="/platos" element={<Dishes />} />
-                      <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
-                      <Route 
-                        path="/admin" 
-                        element={
-                          <ProtectedRoute requiredRole="admin">
-                            <SecureAdminPanel />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/superadmin" 
-                        element={
-                          <ProtectedRoute requiredRole="admin">
-                            <SuperAdminPanel />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/security" 
-                        element={
-                          <ProtectedRoute requiredRole="admin">
-                            <SecurityDashboard />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </div>
-                </Router>
+                <BrowserRouter>
+                  <TooltipProvider>
+                    <div className="min-h-screen bg-background">
+                      <Routes>
+                        <Route path="/" element={<LocationEntry />} />
+                        <Route path="/restaurantes" element={<Restaurants />} />
+                        <Route path="/platos" element={<Dishes />} />
+                        <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
+                        <Route 
+                          path="/admin" 
+                          element={
+                            <ProtectedRoute requiredRole="admin">
+                              <SecureAdminPanel />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/superadmin" 
+                          element={
+                            <ProtectedRoute requiredRole="admin">
+                              <SuperAdminPanel />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/security" 
+                          element={
+                            <ProtectedRoute requiredRole="admin">
+                              <SecurityDashboard />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </div>
+                    <Toaster />
+                    <Sonner />
+                  </TooltipProvider>
+                </BrowserRouter>
               </FilterProvider>
             </FavoritesProvider>
           </AuthProvider>
-        </QueryClient>
+        </QueryClientProvider>
       </ErrorBoundary>
     </HelmetProvider>
   );

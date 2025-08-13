@@ -1,40 +1,38 @@
 
-export interface QuickFilters {
-  nearMe: boolean;
-  open: boolean;
-  economical: boolean;
-  topRated: boolean;
-}
-
 export interface FilterState {
   // Basic filters
   location: string;
-  distance: string;
-  budget: number[];
-  rating: number;
+  distance: "sin_limite" | "muy_cerca" | "caminando" | "bicicleta" | "transporte" | "coche";
+  budget: number[]; // Array of selected price levels (1-4)
+  rating: number; // Minimum stars
   
-  // Main cuisine (only one active)
+  // Main cuisine (single selection as main filter)
   mainCuisine: string | null;
   
-  // Dietary restrictions (multiple allowed)
+  // Dietary restrictions (can be multiple)
   dietaryRestrictions: string[];
   
   // Time availability
-  timeSlot: string | null;
+  timeSlot: "desayuno" | "almuerzo" | "merienda" | "cena" | "noche" | null;
   
-  // Venue types (multiple allowed)
+  // Venue types (can be multiple)
   venueTypes: number[];
   
-  // Services (multiple allowed)
+  // Services (can be multiple)
   services: number[];
   
   // Quick filters (special states)
-  quickFilters: QuickFilters;
+  quickFilters: {
+    nearMe: boolean;
+    open: boolean;
+    economical: boolean;
+    topRated: boolean;
+  };
 }
 
 export interface FilterConflict {
   type: 'override' | 'disable' | 'warning';
-  affectedFilter: string;
+  affectedFilter: keyof FilterState;
   conflictingFilter: string;
   message: string;
 }
@@ -47,14 +45,24 @@ export interface FilterValidation {
   hasWarnings: boolean;
 }
 
-export enum FilterState {
-  INACTIVE = 'inactive',
-  ACTIVE = 'active', 
-  CONFLICT = 'conflict',
-  DISABLED = 'disabled'
-}
-
 export interface FilterPriority {
   order: (keyof FilterState)[];
   conflicts: Record<string, (filters: FilterState) => FilterState>;
 }
+
+export const FilterStates = {
+  INACTIVE: 'inactive',
+  ACTIVE: 'active', 
+  CONFLICT: 'conflict',
+  DISABLED: 'disabled'
+} as const;
+
+export type FilterStateType = typeof FilterStates[keyof typeof FilterStates];
+
+export const ConflictTypes = {
+  OVERRIDE: 'override',
+  DISABLE: 'disable', 
+  WARNING: 'warning'
+} as const;
+
+export type ConflictType = typeof ConflictTypes[keyof typeof ConflictTypes];

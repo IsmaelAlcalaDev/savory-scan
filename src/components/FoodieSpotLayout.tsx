@@ -73,7 +73,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     filters, 
     validation, 
     updateFilter, 
-    clearAllFilters,
+    clearAllFilters: clearFilters,
     validateFilters 
   } = useFilters();
 
@@ -83,8 +83,8 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     error: restaurantsError,
   } = useRestaurants({
     searchQuery,
-    userLat: location?.lat,
-    userLng: location?.lng,
+    userLat: userLocation?.lat,
+    userLng: userLocation?.lng,
     filters
   });
 
@@ -94,8 +94,8 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     error: dishesError,
   } = useDishes({
     searchQuery,
-    userLat: location?.lat,
-    userLng: location?.lng,
+    userLat: userLocation?.lat,
+    userLng: userLocation?.lng,
     filters
   });
 
@@ -129,7 +129,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const appName = appSettings?.appName ?? 'FoodieSpot';
   const appLogoUrl = appSettings?.logoUrl ?? 'https://w7.pngwing.com/pngs/256/867/png-transparent-zomato-logo-thumbnail.png';
 
-  // Cargar ubicación guardada o solicitar GPS
+  // Load saved location or request GPS
   useEffect(() => {
     const loadSavedLocation = () => {
       try {
@@ -144,7 +144,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
               lng: locationData.longitude
             });
             
-            // Determinar nombre de la ubicación
+            // Determine location name
             if (locationData.address) {
               setCurrentLocationName(locationData.address);
             } else if (locationData.name && locationData.parent) {
@@ -181,7 +181,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             {
               enableHighAccuracy: true,
               timeout: 10000,
-              maximumAge: 300000 // 5 minutos
+              maximumAge: 300000 // 5 minutes
             }
           );
         });
@@ -196,7 +196,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         
         setCurrentLocationName('Ubicación detectada');
         
-        // Guardar en localStorage
+        // Save to localStorage
         localStorage.setItem('selectedLocation', JSON.stringify({
           latitude,
           longitude,
@@ -211,10 +211,10 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       }
     };
 
-    // Primero intentar cargar ubicación guardada
+    // Try loading saved location first
     const hasSavedLocation = loadSavedLocation();
     
-    // Si no hay ubicación guardada, solicitar GPS
+    // If no saved location, request GPS
     if (!hasSavedLocation) {
       requestGPSLocation();
     }
@@ -336,7 +336,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     console.log('Updated location name:', currentLocationName);
   };
 
-  const clearAllFilters = () => {
+  const clearAllFiltersLocal = () => {
     setSelectedCuisines([]);
     setSelectedDistances([]);
     setSelectedRatings([]);
@@ -346,6 +346,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     setSelectedTimeRanges([]);
     setSelectedDietTypes([]);
     setActiveFilters([]);
+    clearFilters();
   };
 
   const removeFilter = (filterType: string, value: any) => {
@@ -639,7 +640,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                   <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
                 </div>
                 <button 
-                  onClick={clearAllFilters}
+                  onClick={clearAllFiltersLocal}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 ml-2"
                 >
                   Limpiar filtros
@@ -781,7 +782,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                 <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
               </div>
               <button 
-                onClick={clearAllFilters}
+                onClick={clearAllFiltersLocal}
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 ml-2"
               >
                 Limpiar filtros
@@ -935,7 +936,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
               />
               {hasActiveFilters && (
                 <button
-                  onClick={clearAllFilters}
+                  onClick={clearAllFiltersLocal}
                   className="text-sm text-gray-500 hover:text-gray-700"
                 >
                   Limpiar filtros
@@ -950,76 +951,33 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           {/* Desktop Sidebar */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-6">
-              <FiltersSidebar
-                selectedDistances={filters.distance === 'sin_limite' ? [] : [getDistanceId(filters.distance)]}
-                onDistanceChange={handleDistanceChange}
-                selectedRatings={filters.rating > 0 ? [Math.floor(filters.rating)] : []}
-                onRatingChange={handleRatingChange}
-                selectedEstablishments={filters.venueTypes}
-                onEstablishmentChange={handleEstablishmentChange}
-                selectedServices={filters.services}
-                onServiceChange={handleServiceChange}
-                selectedPriceRanges={getBudgetRanges(filters.budget)}
-                onPriceRangeChange={handlePriceRangeChange}
-                selectedTimeRanges={filters.timeSlot ? [getTimeRangeId(filters.timeSlot)] : []}
-                onTimeRangeChange={handleTimeRangeChange}
-                selectedDietTypes={filters.dietaryRestrictions}
-                onDietTypeChange={handleDietTypeChange}
-              />
+              {/* Sidebar filters could be added here if needed */}
             </div>
           </div>
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <button 
-                  onClick={() => setView('restaurants')}
-                  className="text-sm text-muted-foreground hover:text-primary hover:bg-transparent whitespace-nowrap"
-                >
-                  Restaurantes
-                </button>
-                <button 
-                  onClick={() => setView('dishes')}
-                  className="text-sm text-muted-foreground hover:text-primary hover:bg-transparent whitespace-nowrap"
-                >
-                  Platos
-                </button>
-              </div>
-              <button 
-                className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
-                onClick={() => setFiltersModalOpen(true)}
-              >
-                <SlidersHorizontal className="h-8 w-8" strokeWidth={2} />
-              </button>
-            </div>
-
-            {/* Results */}
-            {currentView === 'restaurants' ? (
-              <RestaurantList restaurants={restaurants} loading={restaurantsLoading} />
-            ) : (
-              <DishList dishes={dishes} loading={dishesLoading} />
-            )}
+            {renderContent()}
           </div>
         </div>
 
         {/* Mobile Filters Modal */}
         <div className="lg:hidden">
           <FiltersModal
-            selectedDistances={filters.distance === 'sin_limite' ? [] : [getDistanceId(filters.distance)]}
-            onDistanceChange={handleDistanceChange}
-            selectedRatings={filters.rating > 0 ? [Math.floor(filters.rating)] : []}
-            onRatingChange={handleRatingChange}
-            selectedEstablishments={filters.venueTypes}
-            onEstablishmentChange={handleEstablishmentChange}
-            selectedServices={filters.services}
-            onServiceChange={handleServiceChange}
-            selectedPriceRanges={getBudgetRanges(filters.budget)}
-            onPriceRangeChange={handlePriceRangeChange}
-            selectedTimeRanges={filters.timeSlot ? [getTimeRangeId(filters.timeSlot)] : []}
-            onTimeRangeChange={handleTimeRangeChange}
-            selectedDietTypes={filters.dietaryRestrictions}
-            onDietTypeChange={handleDietTypeChange}
+            selectedDistances={selectedDistances}
+            onDistanceChange={setSelectedDistances}
+            selectedRatings={selectedRatings}
+            onRatingChange={setSelectedRatings}
+            selectedEstablishments={selectedEstablishments}
+            onEstablishmentChange={setSelectedEstablishments}
+            selectedServices={selectedServices}
+            onServiceChange={setSelectedServices}
+            selectedPriceRanges={selectedPriceRanges}
+            onPriceRangeChange={setSelectedPriceRanges}
+            selectedTimeRanges={selectedTimeRanges}
+            onTimeRangeChange={setSelectedTimeRanges}
+            selectedDietTypes={selectedDietTypes}
+            onDietTypeChange={setSelectedDietTypes}
           />
         </div>
 
@@ -1060,37 +1018,4 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       </div>
     </div>
   );
-}
-
-// Helper functions to map between old and new filter formats
-function getDistanceId(distance: string): number {
-  const distanceMap: Record<string, number> = {
-    'muy_cerca': 1,
-    'caminando': 2,
-    'bicicleta': 3,
-    'transporte': 4,
-    'coche': 5
-  };
-  return distanceMap[distance] || 1;
-}
-
-function getBudgetRanges(budget: number[]): string[] {
-  const rangeMap: Record<number, string> = {
-    1: 'budget',
-    2: 'mid',
-    3: 'premium',
-    4: 'luxury'
-  };
-  return budget.map(b => rangeMap[b]).filter(Boolean);
-}
-
-function getTimeRangeId(timeSlot: string): number {
-  const timeMap: Record<string, number> = {
-    'desayuno': 1,
-    'almuerzo': 2,
-    'merienda': 3,
-    'cena': 4,
-    'noche': 5
-  };
-  return timeMap[timeSlot] || 1;
 }
