@@ -15,7 +15,6 @@ import {
   Users,
   TrendingUp,
   Percent,
-  Calendar,
   ArrowLeft
 } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
@@ -27,6 +26,7 @@ import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 import RestaurantActionButtons from '@/components/RestaurantActionButtons';
 import RestaurantPlatforms from '@/components/RestaurantPlatforms';
 import RestaurantContactInfo from '@/components/RestaurantContactInfo';
+import RestaurantEventsSection from '@/components/RestaurantEventsSection';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
@@ -378,8 +378,11 @@ export default function RestaurantProfile() {
               )}
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                {/* Left Column - Platforms */}
+                {/* Left Column - Platforms and Events */}
                 <div className="lg:col-span-2 space-y-12">
+                  {/* Events Section */}
+                  <RestaurantEventsSection restaurantId={restaurant?.id || 0} />
+
                   {/* Platforms Sections */}
                   <RestaurantPlatforms
                     category="social"
@@ -431,18 +434,6 @@ export default function RestaurantProfile() {
                     <div className="text-center py-12 text-muted-foreground bg-background/50 backdrop-blur-sm rounded-2xl border border-border/20">
                       <Percent className="h-16 w-16 mx-auto mb-4 opacity-30" />
                       <p className="text-lg">No hay promociones activas en este momento</p>
-                    </div>
-                  </div>
-
-                  {/* Events */}
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      Eventos
-                    </h3>
-                    <div className="text-center py-12 text-muted-foreground bg-background/50 backdrop-blur-sm rounded-2xl border border-border/20">
-                      <Calendar className="h-16 w-16 mx-auto mb-4 opacity-30" />
-                      <p className="text-lg">No hay eventos programados</p>
                     </div>
                   </div>
                 </div>
