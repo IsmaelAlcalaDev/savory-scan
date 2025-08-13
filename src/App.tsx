@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,8 +13,7 @@ import SuperAdminPanel from "./pages/SuperAdminPanel";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
-import LocationEntry from "./pages/LocationEntry";
-import Restaurants from "./pages/Restaurants";
+import FoodieSpot from "./pages/FoodieSpot";
 import Dishes from "./pages/Dishes";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -43,8 +41,7 @@ const App = () => {
                 <Sonner />
                 <BrowserRouter>
                   <Routes>
-                    <Route path="/" element={<LocationEntry />} />
-                    <Route path="/restaurantes" element={<Restaurants />} />
+                    <Route path="/" element={<FoodieSpot />} />
                     <Route path="/platos" element={<Dishes />} />
                     <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
                     <Route 

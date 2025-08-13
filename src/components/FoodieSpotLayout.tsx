@@ -47,13 +47,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Determinar el tab activo basado en la ruta actual
-  const getCurrentTabFromRoute = () => {
-    if (location.pathname === '/platos') return 'dishes';
-    if (location.pathname === '/restaurantes') return 'restaurants';
-    return initialTab;
-  };
-
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
@@ -72,15 +65,8 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState('Detectando ubicación...');
-  const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>(getCurrentTabFromRoute);
+  const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>(initialTab);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
-
-  // Sincronizar el tab activo con la ruta cuando cambie
-  useEffect(() => {
-    const currentTab = getCurrentTabFromRoute();
-    console.log('Route changed, updating active tab to:', currentTab);
-    setActiveBottomTab(currentTab);
-  }, [location.pathname]);
 
   const { location: ipLocation, loading: ipLoading } = useIPLocation();
   const { distanceRanges } = useDistanceRanges();
@@ -96,24 +82,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const { data: appSettings } = useAppSettings();
   const appName = appSettings?.appName ?? 'FoodieSpot';
   const appLogoUrl = appSettings?.logoUrl ?? 'https://w7.pngwing.com/pngs/256/867/png-transparent-zomato-logo-thumbnail.png';
-
-  // Cargar ubicación guardada del localStorage
-  useEffect(() => {
-    const savedLocation = localStorage.getItem('selectedLocation');
-    if (savedLocation) {
-      try {
-        const parsed = JSON.parse(savedLocation);
-        console.log('Loading saved location from localStorage:', parsed);
-        setUserLocation({
-          lat: parsed.latitude,
-          lng: parsed.longitude
-        });
-        setCurrentLocationName(parsed.name);
-      } catch (error) {
-        console.error('Error parsing saved location:', error);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     if (ipLocation && !userLocation) {
@@ -156,8 +124,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     dishes: dishes.length,
     dishesLoading,
     dishesError,
-    activeBottomTab,
-    pathname: location.pathname
+    activeBottomTab
   });
 
   const handleFilterToggle = (filterId: string) => {
@@ -365,25 +332,17 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   };
 
   const handleBottomTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
-    console.log('Tab change requested:', tab, 'Current tab:', activeBottomTab);
-    
     if (tab === 'account') {
       setAccountModalOpen(true);
-      return;
+    } else {
+      const searchParams = new URLSearchParams(location.search);
+      const queryString = searchParams.toString();
+      const targetPath = tab === 'dishes' ? '/platos' : '/';
+      const fullPath = queryString ? `${targetPath}?${queryString}` : targetPath;
+      
+      setActiveBottomTab(tab);
+      navigate(fullPath);
     }
-
-    // Mantener los parámetros de búsqueda actuales
-    const searchParams = new URLSearchParams(location.search);
-    const queryString = searchParams.toString();
-    
-    // Determinar la ruta de destino
-    const targetPath = tab === 'dishes' ? '/platos' : '/restaurantes';
-    const fullPath = queryString ? `${targetPath}?${queryString}` : targetPath;
-    
-    console.log('Navigating to:', fullPath);
-    
-    // Navegar a la nueva ruta
-    navigate(fullPath);
   };
 
   const handleLoginRequired = () => {
