@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -436,8 +435,8 @@ export default function RestaurantProfile() {
           }`}
         >
           <div className="max-w-6xl mx-auto px-4">
-            <div className="flex items-center gap-4 py-4 overflow-x-auto">
-              {/* Ver Carta Button - Destacado */}
+            <div className="flex items-center gap-4 py-4">
+              {/* Ver Carta Button - Fixed */}
               <Button
                 onClick={() => setIsMenuOpen(true)}
                 size="lg"
@@ -447,7 +446,7 @@ export default function RestaurantProfile() {
                 Ver Carta
               </Button>
 
-              {/* Fotos Button */}
+              {/* Fotos Button - Fixed */}
               <Button
                 onClick={() => setIsGalleryOpen(true)}
                 variant="outline"
@@ -458,20 +457,22 @@ export default function RestaurantProfile() {
                 Fotos ({totalImages})
               </Button>
 
-              {/* Navigation Menu */}
-              <div className="flex gap-2 overflow-x-auto flex-1">
-                {menuSections.map((section) => (
-                  <Button
-                    key={section.id}
-                    onClick={() => scrollToSection(section.id)}
-                    variant={activeSection === section.id ? "default" : "ghost"}
-                    size="sm"
-                    className="flex-shrink-0 whitespace-nowrap"
-                  >
-                    <section.icon className="h-4 w-4 mr-1" />
-                    {section.label}
-                  </Button>
-                ))}
+              {/* Navigation Menu - Scrollable without visible scrollbar */}
+              <div className="flex-1 overflow-hidden">
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {menuSections.map((section) => (
+                    <Button
+                      key={section.id}
+                      onClick={() => scrollToSection(section.id)}
+                      variant={activeSection === section.id ? "default" : "ghost"}
+                      size="lg"
+                      className="flex-shrink-0 whitespace-nowrap"
+                    >
+                      <section.icon className="h-4 w-4 mr-1" />
+                      {section.label}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -748,6 +749,16 @@ export default function RestaurantProfile() {
           onClose={closeDishModal}
         />
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </>
   );
 }
