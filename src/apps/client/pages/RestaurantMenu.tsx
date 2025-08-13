@@ -1,5 +1,4 @@
 
-// Placeholder for client RestaurantMenu page - will be created
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -11,8 +10,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 const RestaurantMenu = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { data: restaurant, isLoading: restaurantLoading } = useRestaurantProfile(slug || '');
-  const { data: menuSections, isLoading: menuLoading } = useRestaurantMenu(restaurant?.id);
+  const { restaurant, loading: restaurantLoading } = useRestaurantProfile(slug || '');
+  const { sections: menuSections, loading: menuLoading } = useRestaurantMenu(restaurant?.id);
 
   if (restaurantLoading || menuLoading) {
     return (
@@ -80,22 +79,17 @@ const RestaurantMenu = () => {
                   <p className="text-muted-foreground">{section.description}</p>
                 )}
                 <div className="grid gap-4">
-                  {section.items?.map((item) => (
-                    <div key={item.id} className="flex justify-between items-start gap-4 p-4 border rounded-lg">
+                  {section.dishes?.map((dish) => (
+                    <div key={dish.id} className="flex justify-between items-start gap-4 p-4 border rounded-lg">
                       <div className="flex-1">
-                        <h3 className="font-semibold">{item.name}</h3>
-                        {item.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
-                        )}
-                        {item.ingredients && item.ingredients.length > 0 && (
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {item.ingredients.join(', ')}
-                          </p>
+                        <h3 className="font-semibold">{dish.name}</h3>
+                        {dish.description && (
+                          <p className="text-sm text-muted-foreground mt-1">{dish.description}</p>
                         )}
                       </div>
-                      {item.price && (
+                      {dish.base_price && (
                         <div className="text-lg font-semibold">
-                          ${item.price}
+                          ${dish.base_price}
                         </div>
                       )}
                     </div>
