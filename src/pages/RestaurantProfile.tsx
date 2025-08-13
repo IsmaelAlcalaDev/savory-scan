@@ -48,6 +48,8 @@ export default function RestaurantProfile() {
   console.log('RestaurantProfile: Rendering with slug:', slug);
   console.log('RestaurantProfile: Restaurant data:', restaurant);
   console.log('RestaurantProfile: Active tab:', activeTab);
+  console.log('RestaurantProfile: Current image index:', currentImageIndex);
+  console.log('RestaurantProfile: Gallery length:', restaurant?.gallery?.length);
 
   const handleDishClick = (dish: Dish) => {
     console.log('RestaurantProfile: Dish clicked:', dish);
@@ -60,34 +62,80 @@ export default function RestaurantProfile() {
     setSelectedDish(null);
   };
 
-  // Auto-rotate images every 5 seconds
-  useEffect(() => {
-    if (!restaurant?.gallery || restaurant.gallery.length <= 1) return;
-    
-    const interval = setInterval(() => {
-      setCurrentImageIndex(prev => 
-        prev === restaurant.gallery.length - 1 ? 0 : prev + 1
-      );
-    }, 5000);
+  // Get total number of images available
+  const getTotalImages = () => {
+    const galleryCount = restaurant?.gallery?.length || 0;
+    const hasCoverImage = restaurant?.cover_image_url ? 1 : 0;
+    return Math.max(galleryCount, hasCoverImage);
+  };
 
-    return () => clearInterval(interval);
-  }, [restaurant?.gallery]);
+  // Get current image URL
+  const getCurrentImage = () => {
+    if (restaurant?.gallery && restaurant.gallery.length > 0) {
+      return restaurant.gallery[currentImageIndex]?.image_url || restaurant.cover_image_url;
+    }
+    return restaurant?.cover_image_url;
+  };
 
+  // Manual navigation functions
   const nextImage = () => {
-    if (restaurant?.gallery && restaurant.gallery.length > 1) {
-      setCurrentImageIndex(prev => 
-        prev === restaurant.gallery.length - 1 ? 0 : prev + 1
-      );
+    const totalImages = getTotalImages();
+    if (totalImages > 1) {
+      console.log('RestaurantProfile: Next image clicked, current:', currentImageIndex);
+      setCurrentImageIndex(prev => {
+        const next = prev === totalImages - 1 ? 0 : prev + 1;
+        console.log('RestaurantProfile: Moving to image:', next);
+        return next;
+      });
     }
   };
 
   const prevImage = () => {
-    if (restaurant?.gallery && restaurant.gallery.length > 1) {
-      setCurrentImageIndex(prev => 
-        prev === 0 ? restaurant.gallery.length - 1 : prev - 1
-      );
+    const totalImages = getTotalImages();
+    if (totalImages > 1) {
+      console.log('RestaurantProfile: Previous image clicked, current:', currentImageIndex);
+      setCurrentImageIndex(prev => {
+        const previous = prev === 0 ? totalImages - 1 : prev - 1;
+        console.log('RestaurantProfile: Moving to image:', previous);
+        return previous;
+      });
     }
   };
+
+  const goToImage = (index: number) => {
+    console.log('RestaurantProfile: Go to image clicked:', index);
+    setCurrentImageIndex(index);
+  };
+
+  // Auto-rotate images every 5 seconds
+  useEffect(() => {
+    const totalImages = getTotalImages();
+    console.log('RestaurantProfile: Setting up auto-rotation, total images:', totalImages);
+    
+    if (totalImages <= 1) {
+      console.log('RestaurantProfile: Not enough images for rotation');
+      return;
+    }
+    
+    const interval = setInterval(() => {
+      console.log('RestaurantProfile: Auto-rotating image');
+      setCurrentImageIndex(prev => {
+        const next = prev === totalImages - 1 ? 0 : prev + 1;
+        console.log('RestaurantProfile: Auto-rotation moving from', prev, 'to', next);
+        return next;
+      });
+    }, 5000);
+
+    return () => {
+      console.log('RestaurantProfile: Clearing auto-rotation interval');
+      clearInterval(interval);
+    };
+  }, [restaurant?.gallery?.length, restaurant?.cover_image_url]);
+
+  // Reset image index when restaurant changes
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [restaurant?.id]);
 
   if (loading) {
     return (
@@ -143,14 +191,11 @@ export default function RestaurantProfile() {
     }
   };
 
-  const getCurrentImage = () => {
-    if (restaurant.gallery && restaurant.gallery.length > 0) {
-      return restaurant.gallery[currentImageIndex]?.image_url;
-    }
-    return restaurant.cover_image_url;
-  };
+  const totalImages = getTotalImages();
+  const currentImage = getCurrentImage();
 
-  console.log('RestaurantProfile: About to render tabs, restaurant ID:', restaurant?.id);
+  console.log('RestaurantProfile: About to render, current image:', currentImage);
+  console.log('RestaurantProfile: Total images:', totalImages);
 
   return (
     <>
@@ -163,7 +208,7 @@ export default function RestaurantProfile() {
         {/* Open Graph */}
         <meta property="og:title" content={`${restaurant.name} | SavorySearch`} />
         <meta property="og:description" content={restaurant.description || `Restaurante ${restaurant.name} - ${restaurant.establishment_type}`} />
-        <meta property="og:image" content={getCurrentImage() || '/og-default.jpg'} />
+        <meta property="og:image" content={currentImage || '/og-default.jpg'} />
         <meta property="og:url" content={`https://savorysearch.com/restaurant/${restaurant.slug}`} />
         <meta property="og:type" content="restaurant" />
 
@@ -191,39 +236,42 @@ export default function RestaurantProfile() {
       <div className="min-h-screen bg-background">
         {/* Hero Section with Image Carousel */}
         <div className="relative h-96 overflow-hidden">
-          {getCurrentImage() && (
+          {currentImage && (
             <img 
-              src={getCurrentImage()} 
+              src={currentImage} 
               alt={restaurant.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-opacity duration-500"
+              key={currentImageIndex} // Force re-render on image change
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
           
-          {/* Carousel Navigation */}
-          {restaurant.gallery && restaurant.gallery.length > 1 && (
+          {/* Carousel Navigation - Only show if more than 1 image */}
+          {totalImages > 1 && (
             <>
               <button
                 onClick={prevImage}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-colors backdrop-blur-sm"
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-200 backdrop-blur-sm hover:scale-110 z-10"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={nextImage}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-colors backdrop-blur-sm"
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-200 backdrop-blur-sm hover:scale-110 z-10"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
               
               {/* Image Indicators */}
-              <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-2">
-                {restaurant.gallery.map((_, index) => (
+              <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                {Array.from({ length: totalImages }, (_, index) => (
                   <button
                     key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentImageIndex ? 'bg-white' : 'bg-white/40'
+                    onClick={() => goToImage(index)}
+                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                      index === currentImageIndex 
+                        ? 'bg-white scale-110' 
+                        : 'bg-white/40 hover:bg-white/60'
                     }`}
                   />
                 ))}
