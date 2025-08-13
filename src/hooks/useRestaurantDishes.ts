@@ -11,6 +11,8 @@ export const useRestaurantDishes = (restaurantId: number) => {
   useEffect(() => {
     if (!restaurantId) {
       console.log('useRestaurantDishes: No restaurantId provided');
+      setDishes([]);
+      setLoading(false);
       return;
     }
 
@@ -21,8 +23,9 @@ export const useRestaurantDishes = (restaurantId: number) => {
         setLoading(true);
         setError(null);
 
-        console.log('useRestaurantDishes: Making query to dishes table...');
+        console.log('useRestaurantDishes: Making query to dishes table with restaurant_id:', restaurantId);
 
+        // Query dishes directly filtering by restaurant_id
         const { data: dishesData, error: dishesError } = await supabase
           .from('dishes')
           .select(`
@@ -41,12 +44,15 @@ export const useRestaurantDishes = (restaurantId: number) => {
             spice_level,
             preparation_time_minutes,
             favorites_count,
-            dish_categories(name),
+            category_id,
+            dish_categories!dishes_category_id_fkey(name),
             dish_variants(id, name, price, is_default, display_order)
           `)
           .eq('restaurant_id', restaurantId)
           .eq('is_active', true)
-          .is('deleted_at', null);
+          .is('deleted_at', null)
+          .order('is_featured', { ascending: false })
+          .order('name');
 
         console.log('useRestaurantDishes: Query result:', { dishesData, dishesError });
 
