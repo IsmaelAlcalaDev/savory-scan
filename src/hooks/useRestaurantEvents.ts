@@ -27,7 +27,11 @@ export const useRestaurantEvents = (restaurantId: number) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!restaurantId) return;
+    if (!restaurantId) {
+      console.log('No restaurant ID provided');
+      setLoading(false);
+      return;
+    }
 
     const fetchEvents = async () => {
       try {
@@ -36,29 +40,52 @@ export const useRestaurantEvents = (restaurantId: number) => {
 
         console.log('Fetching events for restaurant ID:', restaurantId);
 
-        // Simplified query to get all events for this restaurant
+        // Get all events for this restaurant
         const { data, error: eventsError } = await supabase
           .from('events')
           .select('*')
           .eq('restaurant_id', restaurantId)
-          .gte('event_date', new Date().toISOString().split('T')[0]) // Only future events
+          .gte('event_date', new Date().toISOString().split('T')[0])
           .order('event_date', { ascending: true })
           .order('start_time', { ascending: true });
 
-        console.log('Events query result:', data);
+        console.log('Raw events data from DB:', data);
         console.log('Events query error:', eventsError);
 
         if (eventsError) {
+          console.error('Supabase error:', eventsError);
           throw eventsError;
         }
 
+        if (!data || data.length === 0) {
+          console.log('No events found for restaurant', restaurantId);
+          setEvents([]);
+          return;
+        }
+
         // Transform the data to match our interface
-        const transformedEvents = (data || []).map(event => ({
-          ...event,
-          tags: Array.isArray(event.tags) 
-            ? event.tags.filter(tag => typeof tag === 'string') as string[]
-            : []
-        }));
+        const transformedEvents = data.map(event => {
+          console.log('Processing event:', event);
+          
+          let parsedTags: string[] = [];
+          if (event.tags) {
+            try {
+              if (typeof event.tags === 'string') {
+                parsedTags = JSON.parse(event.tags);
+              } else if (Array.isArray(event.tags)) {
+                parsedTags = event.tags.filter(tag => typeof tag === 'string');
+              }
+            } catch (e) {
+              console.warn('Error parsing tags for event', event.id, e);
+              parsedTags = [];
+            }
+          }
+
+          return {
+            ...event,
+            tags: parsedTags
+          };
+        });
 
         console.log('Transformed events:', transformedEvents);
         setEvents(transformedEvents);
@@ -73,5 +100,7 @@ export const useRestaurantEvents = (restaurantId: number) => {
     fetchEvents();
   }, [restaurantId]);
 
+  console.log('Hook state - loading:', loading, 'events count:', events.length, 'error:', error);
+  
   return { events, loading, error };
 };

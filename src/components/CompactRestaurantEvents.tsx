@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, ChevronRight, Users, Euro } from 'lucide-react';
+import { Calendar, Clock, ChevronRight, Users } from 'lucide-react';
 import { useRestaurantEvents } from '@/hooks/useRestaurantEvents';
 
 interface CompactRestaurantEventsProps {
@@ -13,8 +13,36 @@ export default function CompactRestaurantEvents({ restaurantId }: CompactRestaur
   const { events, loading, error } = useRestaurantEvents(restaurantId);
   const [showAll, setShowAll] = useState(false);
 
-  if (loading) return null;
-  if (error || !events || events.length === 0) return null;
+  console.log('CompactRestaurantEvents render:', { restaurantId, loading, eventsCount: events?.length, error });
+
+  if (loading) {
+    console.log('Events still loading...');
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-primary" />
+          <span className="text-sm text-muted-foreground">Cargando eventos...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.log('Events error:', error);
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-destructive" />
+          <span className="text-sm text-destructive">Error al cargar eventos</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!events || events.length === 0) {
+    console.log('No events found, not rendering component');
+    return null;
+  }
 
   const eventsToShow = showAll ? events : events.slice(0, 2);
   const hasMoreEvents = events.length > 2;
@@ -30,6 +58,8 @@ export default function CompactRestaurantEvents({ restaurantId }: CompactRestaur
   const formatTime = (timeString: string) => {
     return timeString.slice(0, 5);
   };
+
+  console.log('Rendering events component with', eventsToShow.length, 'events');
 
   return (
     <div className="space-y-3">
