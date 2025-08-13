@@ -36,7 +36,7 @@ export default function QuickActionTags({
   };
 
   return (
-    <div className="flex flex-wrap gap-3 justify-center">
+    <div className="flex flex-wrap gap-3 justify-start">
       {phone && (
         <Button
           size="lg"
