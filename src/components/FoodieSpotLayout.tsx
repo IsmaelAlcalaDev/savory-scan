@@ -420,7 +420,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           </div>
 
           {/* Filter Badges */}
-          <div className="flex items-center gap-4 mb-2 pt-1 pb-1">
+          <div className="flex items-center gap-4 mb-6 pt-1 pb-1">
             <div className="relative flex-1 min-w-0">
               <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-14 pr-4">
                 {filterOptions.map((filter) => (
@@ -563,7 +563,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         </div>
 
         {/* Filter Badges */}
-        <div className="flex items-center gap-4 mb-2 pt-1 pb-1">
+        <div className="flex items-center gap-4 mb-6 pt-1 pb-1">
           <div className="relative flex-1 min-w-0">
             <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-14 pr-4">
               {filterOptions.map((filter) => (
