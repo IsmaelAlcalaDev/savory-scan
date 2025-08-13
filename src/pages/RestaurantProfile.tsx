@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -55,6 +56,7 @@ export default function RestaurantProfile() {
   const sectionsRef = useRef<{ [key: string]: HTMLElement | null }>({});
 
   const menuSections = [
+    { id: 'fotos', label: 'Fotos', icon: Images, action: () => setIsGalleryOpen(true) },
     { id: 'descripcion', label: 'Descripción', icon: Info },
     { id: 'delivery', label: 'Delivery', icon: Truck },
     { id: 'reservas', label: 'Reservas', icon: Calendar },
@@ -70,10 +72,15 @@ export default function RestaurantProfile() {
       if (headerRef.current) {
         const headerTop = headerRef.current.offsetTop;
         const scrollTop = window.scrollY;
-        setIsHeaderFixed(scrollTop > headerTop);
+        const shouldBeFixed = scrollTop > headerTop - 20;
+        
+        if (shouldBeFixed !== isHeaderFixed) {
+          setIsHeaderFixed(shouldBeFixed);
+        }
 
         // Detect active section
         const sectionPositions = Object.entries(sectionsRef.current)
+          .filter(([_, element]) => element !== null)
           .map(([id, element]) => ({
             id,
             top: element ? element.offsetTop - 200 : 0
@@ -92,7 +99,7 @@ export default function RestaurantProfile() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeSection]);
+  }, [activeSection, isHeaderFixed]);
 
   const scrollToSection = (sectionId: string) => {
     const element = sectionsRef.current[sectionId];
@@ -103,6 +110,14 @@ export default function RestaurantProfile() {
         top: elementPosition,
         behavior: 'smooth'
       });
+    }
+  };
+
+  const handleSectionClick = (section: typeof menuSections[0]) => {
+    if (section.action) {
+      section.action();
+    } else {
+      scrollToSection(section.id);
     }
   };
 
@@ -430,8 +445,10 @@ export default function RestaurantProfile() {
         {/* Fixed Navigation Header */}
         <div 
           ref={headerRef}
-          className={`bg-background border-b border-border transition-all duration-300 ${
-            isHeaderFixed ? 'fixed top-0 left-0 right-0 z-40 shadow-lg' : 'relative'
+          className={`bg-background transition-all duration-300 ease-in-out ${
+            isHeaderFixed 
+              ? 'fixed top-0 left-0 right-0 z-40 shadow-lg border-b border-border' 
+              : 'relative'
           }`}
         >
           <div className="max-w-6xl mx-auto px-4">
@@ -446,30 +463,19 @@ export default function RestaurantProfile() {
                 Ver Carta
               </Button>
 
-              {/* Fotos Button - Fixed */}
-              <Button
-                onClick={() => setIsGalleryOpen(true)}
-                variant="outline"
-                size="lg"
-                className="flex-shrink-0"
-              >
-                <Images className="h-5 w-5 mr-2" />
-                Fotos ({totalImages})
-              </Button>
-
               {/* Navigation Menu - Scrollable without visible scrollbar */}
               <div className="flex-1 overflow-hidden">
-                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
                   {menuSections.map((section) => (
                     <Button
                       key={section.id}
-                      onClick={() => scrollToSection(section.id)}
+                      onClick={() => handleSectionClick(section)}
                       variant={activeSection === section.id ? "default" : "ghost"}
                       size="lg"
                       className="flex-shrink-0 whitespace-nowrap"
                     >
                       <section.icon className="h-4 w-4 mr-1" />
-                      {section.label}
+                      {section.id === 'fotos' ? `${section.label} (${totalImages})` : section.label}
                     </Button>
                   ))}
                 </div>
@@ -750,15 +756,15 @@ export default function RestaurantProfile() {
         />
       </div>
 
-      <style jsx>{`
-        .scrollbar-hide {
+      <style>
+        {`.scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
-        }
-      `}</style>
+        }`}
+      </style>
     </>
   );
 }
