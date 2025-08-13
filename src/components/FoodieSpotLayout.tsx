@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, MapPin, Menu, X, User, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -6,14 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import CuisineFilter from './CuisineFilter';
+import FoodTypeFilter from './FoodTypeFilter';
 import FiltersModal from './FiltersModal';
 import RestaurantCard from './RestaurantCard';
+import AllDishCard from './AllDishCard';
 import LocationModal from './LocationModal';
 import BottomNavigation from './BottomNavigation';
 import AccountModal from './AccountModal';
 import MenuModal from './MenuModal';
 import LanguageSelector from './LanguageSelector';
+import DishModal from './DishModal';
 import { useRestaurants } from '@/hooks/useRestaurants';
+import { useAllDishes } from '@/hooks/useAllDishes';
 import { useIPLocation } from '@/hooks/useIPLocation';
 import { useDistanceRanges } from '@/hooks/useDistanceRanges';
 import { useRatingOptions } from '@/hooks/useRatingOptions';
@@ -25,6 +28,7 @@ import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { useDietTypes } from '@/hooks/useDietTypes';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import type { DishWithRestaurant } from '@/hooks/useAllDishes';
 
 const filterOptions = [
   { id: 'nearby', label: 'Cerca de mí', active: true },
@@ -39,6 +43,7 @@ export default function FoodieSpotLayout() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
+  const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
   const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [selectedEstablishments, setSelectedEstablishments] = useState<number[]>([]);
@@ -53,6 +58,7 @@ export default function FoodieSpotLayout() {
   const [currentLocationName, setCurrentLocationName] = useState('Detectando ubicación...');
   const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>('restaurants');
   const [menuModalOpen, setMenuModalOpen] = useState(false);
+  const [selectedDish, setSelectedDish] = useState<DishWithRestaurant | null>(null);
 
   const { location: ipLocation, loading: ipLoading } = useIPLocation();
   const { distanceRanges } = useDistanceRanges();
@@ -89,6 +95,17 @@ export default function FoodieSpotLayout() {
     maxDistance: 50,
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     minRating: selectedRatings.length > 0 ? Math.min(...selectedRatings) : 0
+  });
+
+  const { dishes, loading: dishesLoading, error: dishesError } = useAllDishes({
+    searchQuery,
+    userLat: userLocation?.lat,
+    userLng: userLocation?.lng,
+    maxDistance: 50,
+    foodTypeIds: selectedFoodTypes.length > 0 ? selectedFoodTypes : undefined,
+    priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges : undefined,
+    minRating: selectedRatings.length > 0 ? Math.min(...selectedRatings) : 0,
+    dietTypes: selectedDietTypes
   });
 
   console.log('FoodieSpotLayout: Restaurants hook result:', { restaurants, loading, error });
@@ -139,6 +156,7 @@ export default function FoodieSpotLayout() {
 
   const clearAllFilters = () => {
     setSelectedCuisines([]);
+    setSelectedFoodTypes([]);
     setSelectedDistances([]);
     setSelectedRatings([]);
     setSelectedEstablishments([]);
@@ -153,6 +171,9 @@ export default function FoodieSpotLayout() {
     switch (filterType) {
       case 'cuisine':
         setSelectedCuisines(prev => prev.filter(id => id !== value));
+        break;
+      case 'food':
+        setSelectedFoodTypes(prev => prev.filter(id => id !== value));
         break;
       case 'distance':
         setSelectedDistances(prev => prev.filter(id => id !== value));
@@ -199,16 +220,32 @@ export default function FoodieSpotLayout() {
     });
 
     // Cuisines
-    selectedCuisines.forEach(id => {
-      const cuisine = cuisineTypes?.find(c => c.id === id);
-      if (cuisine) {
-        filters.push({
-          type: 'cuisine',
-          value: id,
-          label: cuisine.name
-        });
-      }
-    });
+    if (activeBottomTab === 'restaurants') {
+      selectedCuisines.forEach(id => {
+        const cuisine = cuisineTypes?.find(c => c.id === id);
+        if (cuisine) {
+          filters.push({
+            type: 'cuisine',
+            value: id,
+            label: cuisine.name
+          });
+        }
+      });
+    }
+
+    // Food Types
+    if (activeBottomTab === 'dishes') {
+      selectedFoodTypes.forEach(id => {
+        const foodType = cuisineTypes?.find(c => c.id === id);
+        if (foodType) {
+          filters.push({
+            type: 'food',
+            value: id,
+            label: foodType.name
+          });
+        }
+      });
+    }
 
     // Distance
     selectedDistances.forEach(id => {
@@ -302,6 +339,10 @@ export default function FoodieSpotLayout() {
       setAccountModalOpen(true);
     } else {
       setActiveBottomTab(tab);
+      // Clear filters when switching tabs
+      if (tab !== activeBottomTab) {
+        clearAllFilters();
+      }
     }
   };
 
@@ -347,33 +388,159 @@ export default function FoodieSpotLayout() {
     </button>
   );
 
+  const getDynamicTitle = () => {
+    if (userLocation) {
+      return `${restaurants.length} restaurantes cerca de ti`;
+    }
+    
+    if (ipLocation) {
+      const locationName = ipLocation.city || 'tu ubicación';
+      return `${restaurants.length} restaurantes en ${locationName}`;
+    }
+    
+    return `${restaurants.length} restaurantes`;
+  };
+
+  const getDynamicDishesTitle = () => {
+    if (userLocation) {
+      return `${dishes.length} platos cerca de ti`;
+    }
+    
+    if (ipLocation) {
+      const locationName = ipLocation.city || 'tu ubicación';
+      return `${dishes.length} platos en ${locationName}`;
+    }
+    
+    return `${dishes.length} platos`;
+  };
+
   const renderContent = () => {
     if (activeBottomTab === 'dishes') {
       return (
-        <div className="text-center py-16">
-          <h2 className="text-xl font-semibold mb-2">Platos</h2>
-          <p className="text-muted-foreground">Próximamente disponible</p>
-        </div>
+        <>
+          {/* Results Header with Dynamic Title */}
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-xl font-semibold mb-1">
+                {dishesLoading ? 'Cargando platos...' : getDynamicDishesTitle()}
+              </h2>
+              {dishesError && (
+                <p className="text-sm text-destructive mt-1">Error: {dishesError}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Filter Badges */}
+          <div className="flex items-center gap-4 mb-2 pt-1 pb-1">
+            <div className="relative flex-1 min-w-0">
+              <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-14 pr-4">
+                {filterOptions.map((filter) => (
+                  <TagButton
+                    key={filter.id}
+                    isSelected={activeFilters.includes(filter.id)}
+                    onClick={() => handleFilterToggle(filter.id)}
+                  >
+                    {filter.label}
+                  </TagButton>
+                ))}
+              </div>
+              {/* Botón de filtros fijo */}
+              <div className="absolute left-0 top-0 bottom-0 flex items-center z-20 bg-white pr-2">
+                <FiltersModal
+                  selectedDistances={selectedDistances}
+                  onDistanceChange={setSelectedDistances}
+                  selectedRatings={selectedRatings}
+                  onRatingChange={setSelectedRatings}
+                  selectedEstablishments={selectedEstablishments}
+                  onEstablishmentChange={setSelectedEstablishments}
+                  selectedServices={selectedServices}
+                  onServiceChange={setSelectedServices}
+                  selectedPriceRanges={selectedPriceRanges}
+                  onPriceRangeChange={setSelectedPriceRanges}
+                  selectedTimeRanges={selectedTimeRanges}
+                  onTimeRangeChange={setSelectedTimeRanges}
+                  selectedDietTypes={selectedDietTypes}
+                  onDietTypeChange={setSelectedDietTypes}
+                />
+              </div>
+              {/* Fade gradient for overflow */}
+              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Active Filters Display */}
+          {getActiveFiltersDisplay().length > 0 && (
+            <div className="mb-4">
+              <div className="flex items-center gap-6">
+                <div className="relative flex-1 min-w-0">
+                  <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-1 pr-4">
+                    {getActiveFiltersDisplay().map((filter, index) => (
+                      <FilterTag
+                        key={`${filter.type}-${filter.value}-${index}`}
+                        onRemove={() => removeFilter(filter.type, filter.value)}
+                      >
+                        {filter.label}
+                      </FilterTag>
+                    ))}
+                  </div>
+                  {/* Fade gradient for overflow */}
+                  <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+                </div>
+                <button 
+                  onClick={clearAllFilters}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 ml-2"
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Dishes Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+            {dishesLoading ? (
+              Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="h-48 w-full rounded-lg" />
+                  <div className="p-4 space-y-3">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                </div>
+              ))
+            ) : dishesError ? (
+              <div className="col-span-full text-center py-8">
+                <p className="text-muted-foreground">Error al cargar platos: {dishesError}</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Revisa la consola para más detalles
+                </p>
+              </div>
+            ) : dishes.length === 0 ? (
+              <div className="col-span-full text-center py-8">
+                <p className="text-muted-foreground">No se encontraron platos</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Intenta cambiar los filtros de búsqueda
+                </p>
+              </div>
+            ) : (
+              dishes.map((dish) => (
+                <AllDishCard
+                  key={dish.id}
+                  dish={dish}
+                  onDishClick={setSelectedDish}
+                  onLoginRequired={handleLoginRequired}
+                />
+              ))
+            )}
+          </div>
+        </>
       );
     }
 
+    // Default restaurants content
     const activeFiltersDisplay = getActiveFiltersDisplay();
 
-    // Dynamic title based on location
-    const getDynamicTitle = () => {
-      if (userLocation) {
-        return `${restaurants.length} restaurantes cerca de ti`;
-      }
-      
-      if (ipLocation) {
-        const locationName = ipLocation.city || 'tu ubicación';
-        return `${restaurants.length} restaurantes en ${locationName}`;
-      }
-      
-      return `${restaurants.length} restaurantes`;
-    };
-
-    // Default restaurants content (siempre mostrar cuando no sea 'dishes')
     return (
       <>
         {/* Results Header with Dynamic Title */}
@@ -547,7 +714,7 @@ export default function FoodieSpotLayout() {
                 }`} />
                 <Input
                   type="text"
-                  placeholder="Buscar restaurantes, platos..."
+                  placeholder={activeBottomTab === 'dishes' ? "Buscar platos..." : "Buscar restaurantes, platos..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
@@ -570,12 +737,19 @@ export default function FoodieSpotLayout() {
           </div>
         </div>
 
-        {/* Tipos de Cocina */}
+        {/* Tipos de Cocina o Tipos de Comida */}
         <div className="px-4 pb-2 pt-2">
-          <CuisineFilter 
-            selectedCuisines={selectedCuisines}
-            onCuisineChange={setSelectedCuisines}
-          />
+          {activeBottomTab === 'dishes' ? (
+            <FoodTypeFilter 
+              selectedFoodTypes={selectedFoodTypes}
+              onFoodTypeChange={setSelectedFoodTypes}
+            />
+          ) : (
+            <CuisineFilter 
+              selectedCuisines={selectedCuisines}
+              onCuisineChange={setSelectedCuisines}
+            />
+          )}
         </div>
       </header>
 
@@ -610,6 +784,20 @@ export default function FoodieSpotLayout() {
         onOpenChange={setLocationModalOpen}
         onLocationSelect={handleLocationSelect}
       />
+
+      {/* Dish Modal */}
+      {selectedDish && (
+        <DishModal
+          dish={selectedDish}
+          restaurantId={selectedDish.restaurant.id}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedDish(null);
+            }
+          }}
+        />
+      )}
       
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
