@@ -34,15 +34,31 @@ export const useRestaurantEvents = (restaurantId: number) => {
         setLoading(true);
         setError(null);
 
+        console.log('Fetching events for restaurant ID:', restaurantId);
+
+        // First, let's try a simpler query to see if there are any events at all
+        const { data: allEvents, error: allEventsError } = await supabase
+          .from('events')
+          .select('*')
+          .eq('restaurant_id', restaurantId);
+
+        console.log('All events for this restaurant:', allEvents);
+
+        if (allEventsError) {
+          console.error('Error fetching all events:', allEventsError);
+        }
+
+        // Now the filtered query
         const { data, error: eventsError } = await supabase
           .from('events')
           .select('*')
           .eq('restaurant_id', restaurantId)
           .eq('is_active', true)
           .is('deleted_at', null)
-          .gte('event_date', new Date().toISOString().split('T')[0])
           .order('event_date', { ascending: true })
           .order('start_time', { ascending: true });
+
+        console.log('Filtered events:', data);
 
         if (eventsError) {
           throw eventsError;
@@ -56,6 +72,7 @@ export const useRestaurantEvents = (restaurantId: number) => {
             : []
         }));
 
+        console.log('Transformed events:', transformedEvents);
         setEvents(transformedEvents);
       } catch (err) {
         console.error('Error fetching restaurant events:', err);
