@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Utensils, MapPin, Compass, Search } from 'lucide-react';
@@ -19,8 +20,14 @@ interface FoodieSpotLayoutProps {
 export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
   const [open, setOpen] = useState(false)
   const { location, setLocation } = useLocation();
-  const { restaurants, isLoading: isLoadingRestaurants, error: errorRestaurants } = useRestaurants();
-  const { dishes, isLoading: isLoadingDishes, error: errorDishes } = useDishes();
+  const { restaurants, loading: isLoadingRestaurants, error: errorRestaurants } = useRestaurants({
+    userLat: location?.latitude,
+    userLng: location?.longitude
+  });
+  const { dishes, loading: isLoadingDishes, error: errorDishes } = useDishes({
+    userLat: location?.latitude,
+    userLng: location?.longitude
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleLocationChange = (newLocation: any) => {
@@ -115,7 +122,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       {/* Main Content */}
       <main className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Tabs defaultvalue={initialTab} className="space-y-4">
+          <Tabs defaultValue={initialTab} className="space-y-4">
             <TabsList>
               <TabsTrigger value="restaurants">Restaurantes</TabsTrigger>
               <TabsTrigger value="dishes">Platos</TabsTrigger>
