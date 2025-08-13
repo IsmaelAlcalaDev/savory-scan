@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/shared/contexts/AuthContext';
 import { useUserRole } from './useUserRole';
 import { useSecurityMonitoring } from './useSecurityMonitoring';
 import { useSecurityLogger } from './useSecurityLogger';

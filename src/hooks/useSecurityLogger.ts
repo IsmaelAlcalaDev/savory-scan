@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/shared/contexts/AuthContext';
 
 export const useSecurityLogger = () => {
   const { user } = useAuth();
