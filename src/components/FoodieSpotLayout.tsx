@@ -4,6 +4,7 @@ import { useLocation as useRouterLocation, useNavigate } from 'react-router-dom'
 import { useLocation } from '@/hooks/useLocation';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
+import { useFilterValidation } from '@/hooks/useFilterValidation';
 import SearchBar from './SearchBar';
 import CuisineFilter from './CuisineFilter';
 import DistanceFilter from './DistanceFilter';
@@ -14,6 +15,7 @@ import DishesFiltersModal from './DishesFiltersModal';
 import RestaurantList from './RestaurantList';
 import DishList from './DishList';
 import BottomNavigation from './BottomNavigation';
+import FilterConflictAlert from './FilterConflictAlert';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 
 interface FoodieSpotLayoutProps {
@@ -24,6 +26,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
   const { location } = useLocation();
+  const { validateFilters, conflicts } = useFilterValidation();
   
   // Determine active tab from current route
   const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes'>(() => {
@@ -79,7 +82,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     maxDistance,
     cuisineTypeIds: selectedCuisines,
     priceRanges: restaurantPriceRanges,
-    minRating
+    minRating,
+    establishmentTypeIds: selectedEstablishments,
+    serviceIds: selectedServices,
+    timeRangeIds: selectedTimeRanges,
+    dietTypes: selectedRestaurantDietTypes
   });
 
   const { dishes, loading: dishesLoading, error: dishesError } = useDishes({
@@ -93,36 +100,51 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     prepTimeRanges: selectedPrepTimeRanges
   });
 
-  // Filter conflict validation
-  const validateFilterConflicts = (
-    newFilterType: string,
-    newFilterValue: any,
-    currentFilters: Record<string, any>
-  ) => {
-    // Example conflict rules:
-    // - If vegetarian/vegan diet is selected, meat-heavy cuisines should be discouraged
-    // - If budget price range is selected, premium establishments might conflict
+  // Handle filter changes with validation
+  const handleCuisineChange = (cuisines: number[]) => {
+    const currentFilters = {
+      cuisines: selectedCuisines,
+      dietTypes: activeBottomTab === 'restaurants' ? selectedRestaurantDietTypes : selectedDishDietTypes,
+      priceRanges: activeBottomTab === 'restaurants' ? selectedRestaurantPriceRanges : selectedDishPriceRanges,
+      establishments: selectedEstablishments
+    };
+
+    validateFilters('cuisines', cuisines, currentFilters);
+    setSelectedCuisines(cuisines);
+  };
+
+  const handleDietTypeChange = (dietTypes: string[]) => {
+    const currentFilters = {
+      cuisines: selectedCuisines,
+      dietTypes: activeBottomTab === 'restaurants' ? selectedRestaurantDietTypes : selectedDishDietTypes,
+      priceRanges: activeBottomTab === 'restaurants' ? selectedRestaurantPriceRanges : selectedDishPriceRanges,
+      establishments: selectedEstablishments
+    };
+
+    validateFilters('dietTypes', dietTypes, currentFilters);
     
-    const conflicts: string[] = [];
-
-    // Diet type conflicts with cuisines
-    if (newFilterType === 'dietTypes' && newFilterValue.includes('vegan')) {
-      if (currentFilters.cuisines?.some((id: number) => 
-        // Assuming certain cuisine IDs represent meat-heavy cuisines
-        [1, 2, 3].includes(id) // Replace with actual IDs for meat cuisines
-      )) {
-        conflicts.push('Los filtros veganos pueden entrar en conflicto con algunos tipos de cocina seleccionados');
-      }
+    if (activeBottomTab === 'restaurants') {
+      setSelectedRestaurantDietTypes(dietTypes);
+    } else {
+      setSelectedDishDietTypes(dietTypes);
     }
+  };
 
-    // Price range conflicts
-    if (newFilterType === 'priceRanges' && newFilterValue.includes('budget')) {
-      if (currentFilters.establishments?.length > 0) {
-        conflicts.push('Los establecimientos premium pueden no coincidir con el rango de precios económico');
-      }
+  const handlePriceRangeChange = (priceRanges: string[]) => {
+    const currentFilters = {
+      cuisines: selectedCuisines,
+      dietTypes: activeBottomTab === 'restaurants' ? selectedRestaurantDietTypes : selectedDishDietTypes,
+      priceRanges: activeBottomTab === 'restaurants' ? selectedRestaurantPriceRanges : selectedDishPriceRanges,
+      establishments: selectedEstablishments
+    };
+
+    validateFilters('priceRanges', priceRanges, currentFilters);
+    
+    if (activeBottomTab === 'restaurants') {
+      setSelectedRestaurantPriceRanges(priceRanges);
+    } else {
+      setSelectedDishPriceRanges(priceRanges);
     }
-
-    return conflicts;
   };
 
   // Clear all filters function
@@ -158,8 +180,33 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     setActiveBottomTab('restaurants');
   };
 
+  const handleSearch = (query: string, location?: string) => {
+    setSearchQuery(query);
+    console.log('Search:', query, 'Location:', location);
+  };
+
+  // Calculate total active filters
+  const totalActiveFilters = selectedCuisines.length + 
+    selectedDistances.length + 
+    selectedRatings.length + 
+    selectedFoodTypes.length + 
+    selectedEstablishments.length + 
+    selectedServices.length + 
+    selectedTimeRanges.length + 
+    selectedRestaurantPriceRanges.length + 
+    selectedRestaurantDietTypes.length + 
+    selectedDishPriceRanges.length + 
+    selectedDishDietTypes.length + 
+    selectedSpiceLevels.length + 
+    selectedPrepTimeRanges.length;
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Filter Conflict Alert */}
+      {conflicts.length > 0 && (
+        <FilterConflictAlert conflicts={conflicts} />
+      )}
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between mb-4">
@@ -185,20 +232,20 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                 selectedServices={selectedServices}
                 onServiceChange={setSelectedServices}
                 selectedPriceRanges={selectedRestaurantPriceRanges}
-                onPriceRangeChange={setSelectedRestaurantPriceRanges}
+                onPriceRangeChange={handlePriceRangeChange}
                 selectedTimeRanges={selectedTimeRanges}
                 onTimeRangeChange={setSelectedTimeRanges}
                 selectedDietTypes={selectedRestaurantDietTypes}
-                onDietTypeChange={setSelectedRestaurantDietTypes}
+                onDietTypeChange={handleDietTypeChange}
               />
             ) : (
               <DishesFiltersModal
                 selectedDistances={selectedDistances}
                 onDistanceChange={setSelectedDistances}
                 selectedPriceRanges={selectedDishPriceRanges}
-                onPriceRangeChange={setSelectedDishPriceRanges}
+                onPriceRangeChange={handlePriceRangeChange}
                 selectedDietTypes={selectedDishDietTypes}
-                onDietTypeChange={setSelectedDishDietTypes}
+                onDietTypeChange={handleDietTypeChange}
                 selectedSpiceLevels={selectedSpiceLevels}
                 onSpiceLevelChange={setSelectedSpiceLevels}
                 selectedPrepTimeRanges={selectedPrepTimeRanges}
@@ -209,9 +256,9 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         </div>
 
         <SearchBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearch={handleSearch}
           placeholder={activeBottomTab === 'restaurants' ? "Buscar restaurantes..." : "Buscar platos..."}
+          defaultQuery={searchQuery}
         />
       </header>
 
@@ -221,15 +268,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         <div className="px-4 mb-4">
           <CuisineFilter
             selectedCuisines={selectedCuisines}
-            onCuisineChange={(cuisines) => {
-              const conflicts = validateFilterConflicts('cuisines', cuisines, {
-                dietTypes: activeBottomTab === 'restaurants' ? selectedRestaurantDietTypes : selectedDishDietTypes
-              });
-              if (conflicts.length > 0) {
-                console.warn('Filter conflicts detected:', conflicts);
-              }
-              setSelectedCuisines(cuisines);
-            }}
+            onCuisineChange={handleCuisineChange}
           />
         </div>
 
@@ -256,12 +295,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         </div>
 
         {/* Active filters summary */}
-        {(selectedCuisines.length > 0 || selectedDistances.length > 0 || selectedRatings.length > 0 || 
-          selectedFoodTypes.length > 0 || selectedRestaurantPriceRanges.length > 0 || selectedDishPriceRanges.length > 0) && (
+        {totalActiveFilters > 0 && (
           <div className="px-4 pt-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                Filtros activos: {selectedCuisines.length + selectedDistances.length + selectedRatings.length + selectedFoodTypes.length + selectedRestaurantPriceRanges.length + selectedDishPriceRanges.length}
+                Filtros activos: {totalActiveFilters}
               </span>
               <button
                 onClick={clearAllFilters}
