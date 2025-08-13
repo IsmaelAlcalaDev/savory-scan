@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -15,7 +15,20 @@ import {
   Users,
   TrendingUp,
   Percent,
-  ArrowLeft
+  ArrowLeft,
+  Utensils,
+  Images,
+  Info,
+  Truck,
+  Calendar,
+  MessageSquare,
+  Phone,
+  Navigation,
+  Globe,
+  Mail,
+  Clock,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
@@ -23,25 +36,78 @@ import RestaurantSchedule from '@/components/RestaurantSchedule';
 import FavoriteButton from '@/components/FavoriteButton';
 import DishModal from '@/components/DishModal';
 import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
-import RestaurantActionButtons from '@/components/RestaurantActionButtons';
 import RestaurantPlatforms from '@/components/RestaurantPlatforms';
-import RestaurantContactInfo from '@/components/RestaurantContactInfo';
 import RestaurantEventsSection from '@/components/RestaurantEventsSection';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
-  const [activeTab, setActiveTab] = useState('profile');
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [activeSection, setActiveSection] = useState('descripcion');
+  const [isHeaderFixed, setIsHeaderFixed] = useState(false);
 
-  console.log('RestaurantProfile: Rendering with slug:', slug);
-  console.log('RestaurantProfile: Restaurant data:', restaurant);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const sectionsRef = useRef<{ [key: string]: HTMLElement | null }>({});
+
+  const menuSections = [
+    { id: 'descripcion', label: 'Descripción', icon: Info },
+    { id: 'delivery', label: 'Delivery', icon: Truck },
+    { id: 'reservas', label: 'Reservas', icon: Calendar },
+    { id: 'resenas', label: 'Reseñas', icon: MessageSquare },
+    { id: 'servicios', label: 'Servicios', icon: CheckCircle },
+    { id: 'promociones', label: 'Promociones', icon: Percent },
+    { id: 'eventos', label: 'Eventos', icon: Calendar },
+  ];
+
+  // Handle scroll for fixed header and active section detection
+  useEffect(() => {
+    const handleScroll = () => {
+      if (headerRef.current) {
+        const headerTop = headerRef.current.offsetTop;
+        const scrollTop = window.scrollY;
+        setIsHeaderFixed(scrollTop > headerTop);
+
+        // Detect active section
+        const sectionPositions = Object.entries(sectionsRef.current)
+          .map(([id, element]) => ({
+            id,
+            top: element ? element.offsetTop - 200 : 0
+          }))
+          .sort((a, b) => a.top - b.top);
+
+        const currentSection = sectionPositions
+          .reverse()
+          .find(section => scrollTop >= section.top);
+
+        if (currentSection && currentSection.id !== activeSection) {
+          setActiveSection(currentSection.id);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [activeSection]);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = sectionsRef.current[sectionId];
+    if (element) {
+      const headerHeight = isHeaderFixed ? 100 : 0;
+      const elementPosition = element.offsetTop - headerHeight - 20;
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const handleDishClick = (dish: Dish) => {
-    console.log('RestaurantProfile: Dish clicked:', dish);
     setSelectedDish(dish);
     setIsDishModalOpen(true);
   };
@@ -67,7 +133,7 @@ export default function RestaurantProfile() {
     navigate('/restaurantes');
   };
 
-  // Get all available images (gallery + cover image)
+  // Gallery functions
   const getAllImages = () => {
     const images = [];
     
@@ -112,7 +178,7 @@ export default function RestaurantProfile() {
     setCurrentImageIndex(index);
   };
 
-  // Auto-rotate images every 5 seconds
+  // Auto-rotate images
   useEffect(() => {
     if (totalImages <= 1) return;
     
@@ -127,6 +193,32 @@ export default function RestaurantProfile() {
     setCurrentImageIndex(0);
   }, [restaurant?.id]);
 
+  // Get current restaurant status
+  const getCurrentStatus = () => {
+    if (!restaurant?.schedules.length) return { isOpen: false, text: 'Horario no disponible' };
+    
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const todaySchedule = restaurant.schedules.find(s => s.day_of_week === currentDay);
+    
+    if (!todaySchedule || todaySchedule.is_closed) {
+      return { isOpen: false, text: 'Cerrado hoy' };
+    }
+    
+    const [openHour, openMinute] = todaySchedule.opening_time.split(':').map(Number);
+    const [closeHour, closeMinute] = todaySchedule.closing_time.split(':').map(Number);
+    const openTime = openHour * 60 + openMinute;
+    const closeTime = closeHour * 60 + closeMinute;
+    
+    if (currentTime >= openTime && currentTime <= closeTime) {
+      return { isOpen: true, text: `Abierto hasta las ${todaySchedule.closing_time}` };
+    }
+    
+    return { isOpen: false, text: `Cerrado - Abre a las ${todaySchedule.opening_time}` };
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -135,11 +227,6 @@ export default function RestaurantProfile() {
           <div className="space-y-6">
             <Skeleton className="h-8 w-1/2" />
             <Skeleton className="h-4 w-3/4" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Skeleton className="h-64" />
-              <Skeleton className="h-64" />
-              <Skeleton className="h-64" />
-            </div>
           </div>
         </div>
       </div>
@@ -169,6 +256,8 @@ export default function RestaurantProfile() {
   };
 
   const currentImage = getCurrentImage();
+  const allImages = getAllImages();
+  const status = getCurrentStatus();
 
   return (
     <>
@@ -339,167 +428,317 @@ export default function RestaurantProfile() {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="max-w-6xl mx-auto px-4 py-12">
-          {/* Action Buttons */}
-          <div className="mb-12">
-            <RestaurantActionButtons
-              phone={restaurant.phone}
-              website={restaurant.website}
-              email={restaurant.email}
-              onShare={handleShare}
-            />
+        {/* Fixed Navigation Header */}
+        <div 
+          ref={headerRef}
+          className={`bg-background border-b border-border transition-all duration-300 ${
+            isHeaderFixed ? 'fixed top-0 left-0 right-0 z-40 shadow-lg' : 'relative'
+          }`}
+        >
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex items-center gap-4 py-4 overflow-x-auto">
+              {/* Ver Carta Button - Destacado */}
+              <Button
+                onClick={() => setIsMenuOpen(true)}
+                size="lg"
+                className="flex-shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6"
+              >
+                <Utensils className="h-5 w-5 mr-2" />
+                Ver Carta
+              </Button>
+
+              {/* Fotos Button */}
+              <Button
+                onClick={() => setIsGalleryOpen(true)}
+                variant="outline"
+                size="lg"
+                className="flex-shrink-0"
+              >
+                <Images className="h-5 w-5 mr-2" />
+                Fotos ({totalImages})
+              </Button>
+
+              {/* Navigation Menu */}
+              <div className="flex gap-2 overflow-x-auto flex-1">
+                {menuSections.map((section) => (
+                  <Button
+                    key={section.id}
+                    onClick={() => scrollToSection(section.id)}
+                    variant={activeSection === section.id ? "default" : "ghost"}
+                    size="sm"
+                    className="flex-shrink-0 whitespace-nowrap"
+                  >
+                    <section.icon className="h-4 w-4 mr-1" />
+                    {section.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
+        </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8 bg-transparent border-0 p-0 h-auto">
-              <TabsTrigger 
-                value="profile"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg py-3 px-6 font-medium"
-              >
-                Perfil
-              </TabsTrigger>
-              <TabsTrigger 
-                value="menu"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg py-3 px-6 font-medium"
-              >
-                Carta
-              </TabsTrigger>
-            </TabsList>
+        {/* Content Sections */}
+        <div className="max-w-6xl mx-auto px-4 py-8 space-y-16">
+          {/* Descripción General */}
+          <section 
+            id="descripcion"
+            ref={(el) => sectionsRef.current['descripcion'] = el}
+            className="space-y-8"
+          >
+            <h2 className="text-2xl font-bold">Descripción General</h2>
+            
+            {restaurant.description && (
+              <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
+                <p className="text-lg leading-relaxed">{restaurant.description}</p>
+              </div>
+            )}
 
-            <TabsContent value="profile" className="space-y-12">
-              {/* Description */}
-              {restaurant.description && (
-                <div className="text-center max-w-3xl mx-auto">
-                  <p className="text-lg text-muted-foreground leading-relaxed">
-                    {restaurant.description}
-                  </p>
-                </div>
+            {/* Quick Action Buttons */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {restaurant.phone && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-20 flex-col gap-2"
+                  asChild
+                >
+                  <a href={`tel:${restaurant.phone}`}>
+                    <Phone className="h-6 w-6" />
+                    <span className="text-sm">Llamar</span>
+                  </a>
+                </Button>
+              )}
+              
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-20 flex-col gap-2"
+                onClick={() => {
+                  // Implementar navegación con geolocalización
+                  console.log('Abrir direcciones');
+                }}
+              >
+                <Navigation className="h-6 w-6" />
+                <span className="text-sm">Cómo llegar</span>
+              </Button>
+
+              {restaurant.website && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-20 flex-col gap-2"
+                  asChild
+                >
+                  <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
+                    <Globe className="h-6 w-6" />
+                    <span className="text-sm">Sitio web</span>
+                  </a>
+                </Button>
               )}
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                {/* Left Column - Platforms and Events */}
-                <div className="lg:col-span-2 space-y-12">
-                  {/* Events Section */}
-                  <RestaurantEventsSection restaurantId={restaurant?.id || 0} />
+              {restaurant.email && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-20 flex-col gap-2"
+                  asChild
+                >
+                  <a href={`mailto:${restaurant.email}`}>
+                    <Mail className="h-6 w-6" />
+                    <span className="text-sm">Email</span>
+                  </a>
+                </Button>
+              )}
+            </div>
 
-                  {/* Platforms Sections */}
-                  <RestaurantPlatforms
-                    category="social"
-                    title="Síguenos en redes sociales"
-                    restaurantLinks={restaurant.social_links || {}}
-                  />
-
-                  <RestaurantPlatforms
-                    category="review"
-                    title="Encuéntranos también en"
-                    restaurantLinks={{
-                      tripadvisor: restaurant.social_links?.tripadvisor,
-                      google: restaurant.social_links?.google
-                    }}
-                  />
-
-                  <RestaurantPlatforms
-                    category="delivery"
-                    title="Pide a domicilio"
-                    restaurantLinks={restaurant.delivery_links || {}}
-                  />
-
-                  <RestaurantPlatforms
-                    category="booking"
-                    title="Reserva online"
-                    restaurantLinks={restaurant.social_links || {}}
-                  />
-
-                  {/* Services */}
-                  {restaurant.services.length > 0 && (
-                    <div className="space-y-4">
-                      <h3 className="text-xl font-semibold">Servicios</h3>
-                      <div className="flex flex-wrap gap-3">
-                        {restaurant.services.map((service, index) => (
-                          <Badge key={index} variant="default" className="px-4 py-2 text-sm">
-                            {service}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Promotions */}
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold flex items-center gap-2">
-                      <Percent className="h-5 w-5 text-primary" />
-                      Promociones y ofertas
-                    </h3>
-                    <div className="text-center py-12 text-muted-foreground bg-background/50 backdrop-blur-sm rounded-2xl border border-border/20">
-                      <Percent className="h-16 w-16 mx-auto mb-4 opacity-30" />
-                      <p className="text-lg">No hay promociones activas en este momento</p>
-                    </div>
-                  </div>
+            {/* Restaurant Status */}
+            <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
+              <div className="flex items-center gap-3 mb-4">
+                <Clock className="h-5 w-5" />
+                <h3 className="text-lg font-semibold">Estado del restaurante</h3>
+              </div>
+              <div className="flex items-center gap-3">
+                {status.isOpen ? (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-red-500" />
+                )}
+                <span className={`font-medium ${status.isOpen ? 'text-green-600' : 'text-red-600'}`}>
+                  {status.text}
+                </span>
+              </div>
+              {restaurant.schedules.length > 0 && (
+                <div className="mt-4">
+                  <RestaurantSchedule schedules={restaurant.schedules} />
                 </div>
+              )}
+            </div>
+          </section>
 
-                {/* Right Column */}
-                <div className="space-y-8">
-                  {/* Contact Information */}
-                  <RestaurantContactInfo
-                    phone={restaurant.phone}
-                    email={restaurant.email}
-                    address={restaurant.address}
-                    schedules={restaurant.schedules}
-                  />
+          {/* Delivery */}
+          <section 
+            id="delivery"
+            ref={(el) => sectionsRef.current['delivery'] = el}
+          >
+            <RestaurantPlatforms
+              category="delivery"
+              title="Pide a domicilio"
+              restaurantLinks={restaurant.delivery_links || {}}
+            />
+          </section>
 
-                  {/* Stats */}
-                  <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-                    <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-                      <TrendingUp className="h-5 w-5 text-primary" />
-                      Estadísticas
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between py-3 border-b border-border/30">
-                        <div className="flex items-center gap-2">
-                          <Heart className="h-4 w-4 text-red-500" />
-                          <span className="text-sm">Total favoritos</span>
-                        </div>
-                        <span className="font-semibold">{restaurant.favorites_count}</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between py-3 border-b border-border/30">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-blue-500" />
-                          <span className="text-sm">Esta semana</span>
-                        </div>
-                        <span className="font-semibold">{restaurant.favorites_count_week}</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between py-3">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">Este mes</span>
-                        </div>
-                        <span className="font-semibold">{restaurant.favorites_count_month}</span>
-                      </div>
-                    </div>
-                  </div>
+          {/* Reservas */}
+          <section 
+            id="reservas"
+            ref={(el) => sectionsRef.current['reservas'] = el}
+          >
+            <RestaurantPlatforms
+              category="booking"
+              title="Reserva online"
+              restaurantLinks={restaurant.social_links || {}}
+            />
+          </section>
 
-                  {/* Schedule */}
-                  {restaurant.schedules.length > 0 && (
-                    <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
-                      <h3 className="text-xl font-semibold mb-6">Horarios completos</h3>
-                      <RestaurantSchedule schedules={restaurant.schedules} />
-                    </div>
-                  )}
+          {/* Reseñas */}
+          <section 
+            id="resenas"
+            ref={(el) => sectionsRef.current['resenas'] = el}
+          >
+            <RestaurantPlatforms
+              category="review"
+              title="Encuéntranos también en"
+              restaurantLinks={{
+                tripadvisor: restaurant.social_links?.tripadvisor,
+                google: restaurant.social_links?.google
+              }}
+            />
+          </section>
+
+          {/* Servicios */}
+          {restaurant.services.length > 0 && (
+            <section 
+              id="servicios"
+              ref={(el) => sectionsRef.current['servicios'] = el}
+              className="space-y-4"
+            >
+              <h2 className="text-2xl font-bold">Servicios disponibles</h2>
+              <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
+                <div className="flex flex-wrap gap-3">
+                  {restaurant.services.map((service, index) => (
+                    <Badge key={index} variant="default" className="px-4 py-2 text-sm">
+                      {service}
+                    </Badge>
+                  ))}
                 </div>
               </div>
-            </TabsContent>
+            </section>
+          )}
 
-            <TabsContent value="menu" className="space-y-6">
+          {/* Promociones */}
+          <section 
+            id="promociones"
+            ref={(el) => sectionsRef.current['promociones'] = el}
+            className="space-y-4"
+          >
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Percent className="h-6 w-6 text-primary" />
+              Promociones y ofertas
+            </h2>
+            <div className="text-center py-12 text-muted-foreground bg-background/50 backdrop-blur-sm rounded-2xl border border-border/20">
+              <Percent className="h-16 w-16 mx-auto mb-4 opacity-30" />
+              <p className="text-lg">No hay promociones activas en este momento</p>
+            </div>
+          </section>
+
+          {/* Eventos */}
+          <section 
+            id="eventos"
+            ref={(el) => sectionsRef.current['eventos'] = el}
+          >
+            <RestaurantEventsSection restaurantId={restaurant?.id || 0} />
+          </section>
+
+          {/* Redes Sociales */}
+          <RestaurantPlatforms
+            category="social"
+            title="Síguenos en redes sociales"
+            restaurantLinks={restaurant.social_links || {}}
+          />
+
+          {/* Stats */}
+          <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
+            <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Estadísticas
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-background/30 rounded-lg">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Heart className="h-4 w-4 text-red-500" />
+                  <span className="text-sm">Total favoritos</span>
+                </div>
+                <span className="text-2xl font-bold">{restaurant.favorites_count}</span>
+              </div>
+              
+              <div className="text-center p-4 bg-background/30 rounded-lg">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Users className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm">Esta semana</span>
+                </div>
+                <span className="text-2xl font-bold">{restaurant.favorites_count_week}</span>
+              </div>
+              
+              <div className="text-center p-4 bg-background/30 rounded-lg">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Este mes</span>
+                </div>
+                <span className="text-2xl font-bold">{restaurant.favorites_count_month}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Menu Modal */}
+        <Dialog open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0">
+            <div className="p-6 border-b">
+              <h2 className="text-2xl font-bold">Carta de {restaurant.name}</h2>
+            </div>
+            <div className="overflow-y-auto p-6">
               <RestaurantDishesGrid
                 restaurantId={restaurant?.id || 0}
                 onDishClick={handleDishClick}
               />
-            </TabsContent>
-          </Tabs>
-        </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Gallery Modal */}
+        <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
+          <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0">
+            <div className="p-6 border-b">
+              <h2 className="text-2xl font-bold">Galería de {restaurant.name}</h2>
+            </div>
+            <div className="overflow-y-auto p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {allImages.map((image, index) => (
+                  <div key={index} className="aspect-video overflow-hidden rounded-lg">
+                    <img
+                      src={image}
+                      alt={`${restaurant.name} - imagen ${index + 1}`}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                      onClick={() => {
+                        setCurrentImageIndex(index);
+                        setIsGalleryOpen(false);
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Dish Modal */}
         <DishModal
