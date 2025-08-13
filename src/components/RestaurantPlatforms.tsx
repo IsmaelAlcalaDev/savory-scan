@@ -49,9 +49,9 @@ export default function RestaurantPlatforms({
   title, 
   restaurantLinks = {} 
 }: RestaurantPlatformsProps) {
-  const { data: platforms, loading } = usePlatformConfigs(category);
+  const { data: platforms, isLoading } = usePlatformConfigs(category);
 
-  if (loading || !platforms?.length) {
+  if (isLoading || !platforms?.length) {
     return null;
   }
 
@@ -79,8 +79,7 @@ export default function RestaurantPlatforms({
               size="sm"
               className="rounded-full px-4 py-2 h-10 gap-2 hover:scale-105 transition-all border-2"
               style={{
-                borderColor: platform.icon_color || 'currentColor',
-                '--tw-text-opacity': '1'
+                borderColor: platform.icon_color || 'currentColor'
               }}
               asChild
             >

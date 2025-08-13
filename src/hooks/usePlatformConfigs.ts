@@ -10,7 +10,7 @@ interface PlatformConfig {
   icon_color?: string;
   base_url?: string;
   url_pattern?: string;
-  category: 'social' | 'delivery' | 'booking' | 'review';
+  category: string;
   display_order: number;
   is_active: boolean;
 }

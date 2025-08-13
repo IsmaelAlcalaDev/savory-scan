@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -16,7 +15,8 @@ import {
   Users,
   TrendingUp,
   Percent,
-  Calendar
+  Calendar,
+  ArrowLeft
 } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
@@ -61,6 +61,10 @@ export default function RestaurantProfile() {
     } else {
       navigator.clipboard.writeText(window.location.href);
     }
+  };
+
+  const handleGoBack = () => {
+    navigate('/restaurantes');
   };
 
   // Get all available images (gallery + cover image)
@@ -214,6 +218,16 @@ export default function RestaurantProfile() {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
           
+          {/* Back Arrow */}
+          <Button
+            onClick={handleGoBack}
+            size="lg"
+            variant="outline"
+            className="absolute top-6 left-6 rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
+          >
+            <ArrowLeft className="h-6 w-6 text-white" />
+          </Button>
+          
           {/* Share Button */}
           <Button
             onClick={handleShare}
@@ -262,7 +276,7 @@ export default function RestaurantProfile() {
               <div className="flex items-end justify-between mb-6">
                 <div className="flex items-center gap-4 flex-1">
                   {restaurant.logo_url && (
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white/30 shadow-2xl flex-shrink-0 backdrop-blur-sm">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-2xl flex-shrink-0 backdrop-blur-sm">
                       <img 
                         src={restaurant.logo_url} 
                         alt={`${restaurant.name} logo`}
