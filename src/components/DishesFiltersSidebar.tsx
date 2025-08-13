@@ -168,22 +168,31 @@ export default function DishesFiltersSidebar({
         selectedCount={selectedDietTypes?.length || 0}
         loading={dietLoading}
       >
-        {(dietTypes || []).map((diet) => (
-          <TagButton
-            key={diet.id}
-            isSelected={selectedDietTypes?.includes(diet.slug) || false}
-            onClick={() => {
-              const isSelected = selectedDietTypes?.includes(diet.slug);
-              if (isSelected) {
-                onDietTypeChange(selectedDietTypes.filter(d => d !== diet.slug));
-              } else {
-                onDietTypeChange([...selectedDietTypes, diet.slug]);
-              }
-            }}
-          >
-            {diet.name}
-          </TagButton>
-        ))}
+        {(dietTypes || []).map((diet) => {
+          // Map diet type slugs to match database columns
+          const getDietSlug = (slug: string) => {
+            if (slug === 'dairy-free') return 'lactose-free';
+            return slug;
+          };
+          
+          return (
+            <TagButton
+              key={diet.id}
+              isSelected={selectedDietTypes?.includes(getDietSlug(diet.slug)) || false}
+              onClick={() => {
+                const mappedSlug = getDietSlug(diet.slug);
+                const isSelected = selectedDietTypes?.includes(mappedSlug);
+                if (isSelected) {
+                  onDietTypeChange(selectedDietTypes.filter(d => d !== mappedSlug));
+                } else {
+                  onDietTypeChange([...selectedDietTypes, mappedSlug]);
+                }
+              }}
+            >
+              {diet.name}
+            </TagButton>
+          );
+        })}
       </FilterSection>
 
       {/* 4. Nivel de Picante */}
