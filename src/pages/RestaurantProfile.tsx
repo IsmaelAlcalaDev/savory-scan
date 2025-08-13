@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -8,36 +9,24 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Star, 
   MapPin, 
-  Phone, 
-  Globe, 
   Share2,
-  Navigation,
-  Utensils,
-  Mail,
+  ChevronLeft,
+  ChevronRight,
   Heart,
   Users,
   TrendingUp,
-  ExternalLink,
-  Facebook,
-  Instagram,
-  Twitter,
-  Calendar,
   Percent,
-  ChevronLeft,
-  ChevronRight,
-  Clock
+  Calendar
 } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
 import RestaurantSchedule from '@/components/RestaurantSchedule';
-import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import FavoriteButton from '@/components/FavoriteButton';
 import DishModal from '@/components/DishModal';
 import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
-import SocialLinksSection from '@/components/SocialLinksSection';
-import DeliveryPlatformsSection from '@/components/DeliveryPlatformsSection';
-import BookingPlatformsSection from '@/components/BookingPlatformsSection';
-import ExternalLinksSection from '@/components/ExternalLinksSection';
+import RestaurantActionButtons from '@/components/RestaurantActionButtons';
+import RestaurantPlatforms from '@/components/RestaurantPlatforms';
+import RestaurantContactInfo from '@/components/RestaurantContactInfo';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
@@ -50,9 +39,6 @@ export default function RestaurantProfile() {
 
   console.log('RestaurantProfile: Rendering with slug:', slug);
   console.log('RestaurantProfile: Restaurant data:', restaurant);
-  console.log('RestaurantProfile: Active tab:', activeTab);
-  console.log('RestaurantProfile: Current image index:', currentImageIndex);
-  console.log('RestaurantProfile: Gallery length:', restaurant?.gallery?.length);
 
   const handleDishClick = (dish: Dish) => {
     console.log('RestaurantProfile: Dish clicked:', dish);
@@ -65,11 +51,22 @@ export default function RestaurantProfile() {
     setSelectedDish(null);
   };
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: restaurant?.name,
+        text: `Descubre ${restaurant?.name} en SavorySearch`,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+    }
+  };
+
   // Get all available images (gallery + cover image)
   const getAllImages = () => {
     const images = [];
     
-    // Add gallery images first
     if (restaurant?.gallery && restaurant.gallery.length > 0) {
       restaurant.gallery.forEach(item => {
         if (item.image_url) {
@@ -78,85 +75,50 @@ export default function RestaurantProfile() {
       });
     }
     
-    // Add cover image if not already in gallery and gallery is empty
     if (restaurant?.cover_image_url && images.length === 0) {
       images.push(restaurant.cover_image_url);
     }
     
-    console.log('RestaurantProfile: All images:', images);
     return images;
   };
 
-  // Get current image URL
   const getCurrentImage = () => {
     const allImages = getAllImages();
     if (allImages.length > 0) {
-      const currentImg = allImages[currentImageIndex] || allImages[0];
-      console.log('RestaurantProfile: Current image URL:', currentImg);
-      return currentImg;
+      return allImages[currentImageIndex] || allImages[0];
     }
-    
-    // Fallback to cover image or placeholder
-    const fallbackImg = restaurant?.cover_image_url || '/placeholder.svg';
-    console.log('RestaurantProfile: Using fallback image:', fallbackImg);
-    return fallbackImg;
+    return restaurant?.cover_image_url || '/placeholder.svg';
   };
 
   const totalImages = getAllImages().length;
 
-  // Manual navigation functions
   const nextImage = () => {
     if (totalImages > 1) {
-      console.log('RestaurantProfile: Next image clicked, current:', currentImageIndex);
-      setCurrentImageIndex(prev => {
-        const next = prev >= totalImages - 1 ? 0 : prev + 1;
-        console.log('RestaurantProfile: Moving to image:', next);
-        return next;
-      });
+      setCurrentImageIndex(prev => prev >= totalImages - 1 ? 0 : prev + 1);
     }
   };
 
   const prevImage = () => {
     if (totalImages > 1) {
-      console.log('RestaurantProfile: Previous image clicked, current:', currentImageIndex);
-      setCurrentImageIndex(prev => {
-        const previous = prev <= 0 ? totalImages - 1 : prev - 1;
-        console.log('RestaurantProfile: Moving to image:', previous);
-        return previous;
-      });
+      setCurrentImageIndex(prev => prev <= 0 ? totalImages - 1 : prev - 1);
     }
   };
 
   const goToImage = (index: number) => {
-    console.log('RestaurantProfile: Go to image clicked:', index);
     setCurrentImageIndex(index);
   };
 
   // Auto-rotate images every 5 seconds
   useEffect(() => {
-    console.log('RestaurantProfile: Setting up auto-rotation, total images:', totalImages);
-    
-    if (totalImages <= 1) {
-      console.log('RestaurantProfile: Not enough images for rotation');
-      return;
-    }
+    if (totalImages <= 1) return;
     
     const interval = setInterval(() => {
-      console.log('RestaurantProfile: Auto-rotating image');
-      setCurrentImageIndex(prev => {
-        const next = prev >= totalImages - 1 ? 0 : prev + 1;
-        console.log('RestaurantProfile: Auto-rotation moving from', prev, 'to', next);
-        return next;
-      });
+      setCurrentImageIndex(prev => prev >= totalImages - 1 ? 0 : prev + 1);
     }, 5000);
 
-    return () => {
-      console.log('RestaurantProfile: Clearing auto-rotation interval');
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [totalImages, restaurant?.id]);
 
-  // Reset image index when restaurant changes
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [restaurant?.id]);
@@ -164,7 +126,6 @@ export default function RestaurantProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Hero Section Skeleton */}
         <div className="h-80 bg-muted animate-pulse" />
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="space-y-6">
@@ -193,32 +154,17 @@ export default function RestaurantProfile() {
     );
   }
 
-  const getSocialIcon = (url: string) => {
-    if (url.includes('facebook')) return Facebook;
-    if (url.includes('instagram')) return Instagram;
-    if (url.includes('twitter') || url.includes('x.com')) return Twitter;
-    return ExternalLink;
-  };
-
   const getPriceRangeText = (priceRange: string) => {
     switch (priceRange) {
-      case '€':
-        return 'Económico';
-      case '€€':
-        return 'Moderado';
-      case '€€€':
-        return 'Caro';
-      case '€€€€':
-        return 'Muy caro';
-      default:
-        return priceRange;
+      case '€': return 'Económico';
+      case '€€': return 'Moderado';
+      case '€€€': return 'Caro';
+      case '€€€€': return 'Muy caro';
+      default: return priceRange;
     }
   };
 
   const currentImage = getCurrentImage();
-
-  console.log('RestaurantProfile: About to render, current image:', currentImage);
-  console.log('RestaurantProfile: Total images:', totalImages);
 
   return (
     <>
@@ -228,14 +174,12 @@ export default function RestaurantProfile() {
         <meta name="keywords" content={`${restaurant.name}, restaurante, ${restaurant.cuisine_types.join(', ')}, ${restaurant.establishment_type}`} />
         <link rel="canonical" href={`https://savorysearch.com/restaurant/${restaurant.slug}`} />
 
-        {/* Open Graph */}
         <meta property="og:title" content={`${restaurant.name} | SavorySearch`} />
         <meta property="og:description" content={restaurant.description || `Restaurante ${restaurant.name} - ${restaurant.establishment_type}`} />
         <meta property="og:image" content={currentImage || '/og-default.jpg'} />
         <meta property="og:url" content={`https://savorysearch.com/restaurant/${restaurant.slug}`} />
         <meta property="og:type" content="restaurant" />
 
-        {/* Schema.org structured data */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -259,22 +203,28 @@ export default function RestaurantProfile() {
       <div className="min-h-screen bg-background">
         {/* Hero Section with Image Carousel */}
         <div className="relative h-96 overflow-hidden">
-          {/* Image with key to force re-render on change */}
           <img 
             key={`${restaurant.id}-${currentImageIndex}`}
             src={currentImage} 
             alt={restaurant.name}
             className="w-full h-full object-cover"
-            onLoad={() => console.log('RestaurantProfile: Image loaded:', currentImage)}
             onError={(e) => {
-              console.error('RestaurantProfile: Image failed to load:', currentImage);
-              // Try to set a fallback
               e.currentTarget.src = '/placeholder.svg';
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
           
-          {/* Carousel Navigation - Only show if more than 1 image */}
+          {/* Share Button */}
+          <Button
+            onClick={handleShare}
+            size="lg"
+            variant="outline"
+            className="absolute top-6 right-6 rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
+          >
+            <Share2 className="h-6 w-6 text-white" />
+          </Button>
+
+          {/* Carousel Navigation */}
           {totalImages > 1 && (
             <>
               <button
@@ -290,7 +240,6 @@ export default function RestaurantProfile() {
                 <ChevronRight className="h-5 w-5" />
               </button>
               
-              {/* Image Indicators */}
               <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                 {Array.from({ length: totalImages }, (_, index) => (
                   <button
@@ -307,20 +256,7 @@ export default function RestaurantProfile() {
             </>
           )}
 
-          {/* Date Overlay */}
-          <div className="absolute top-6 right-6 bg-white/10 backdrop-blur-md rounded-xl p-4 text-center border border-white/20">
-            <div className="text-xs text-white/80 font-medium">
-              {new Date().toLocaleDateString('es-ES', { weekday: 'short' }).toUpperCase()}
-            </div>
-            <div className="text-2xl font-bold text-white">
-              {new Date().getDate()}
-            </div>
-            <div className="text-xs text-white/80 font-medium">
-              {new Date().toLocaleDateString('es-ES', { month: 'short' }).toUpperCase()}
-            </div>
-          </div>
-
-          {/* Restaurant Info Overlay - Transparent */}
+          {/* Restaurant Info Overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <div className="max-w-6xl mx-auto">
               <div className="flex items-end justify-between mb-6">
@@ -340,7 +276,6 @@ export default function RestaurantProfile() {
                       {restaurant.name}
                     </h1>
                     
-                    {/* Badges above description */}
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
                         {getPriceRangeText(restaurant.price_range)}
@@ -391,11 +326,18 @@ export default function RestaurantProfile() {
         </div>
 
         {/* Content */}
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <Tabs value={activeTab} onValueChange={(value) => {
-            console.log('RestaurantProfile: Tab changed to:', value);
-            setActiveTab(value);
-          }} className="w-full">
+        <div className="max-w-6xl mx-auto px-4 py-12">
+          {/* Action Buttons */}
+          <div className="mb-12">
+            <RestaurantActionButtons
+              phone={restaurant.phone}
+              website={restaurant.website}
+              email={restaurant.email}
+              onShare={handleShare}
+            />
+          </div>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-transparent border-0 p-0 h-auto">
               <TabsTrigger 
                 value="profile"
@@ -411,61 +353,47 @@ export default function RestaurantProfile() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="profile" className="space-y-8">
+            <TabsContent value="profile" className="space-y-12">
               {/* Description */}
               {restaurant.description && (
-                <div className="bg-transparent">
+                <div className="text-center max-w-3xl mx-auto">
                   <p className="text-lg text-muted-foreground leading-relaxed">
                     {restaurant.description}
                   </p>
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="bg-transparent">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                  {restaurant.phone && (
-                    <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50" asChild>
-                      <a href={`tel:${restaurant.phone}`}>
-                        <Phone className="h-4 w-4" />
-                        Llamar
-                      </a>
-                    </Button>
-                  )}
-                  <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50">
-                    <Navigation className="h-4 w-4" />
-                    Cómo llegar
-                  </Button>
-                  {restaurant.website && (
-                    <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50" asChild>
-                      <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
-                        <Globe className="h-4 w-4" />
-                        Web
-                      </a>
-                    </Button>
-                  )}
-                  <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50">
-                    <Share2 className="h-4 w-4" />
-                    Compartir
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50">
-                    <Utensils className="h-4 w-4" />
-                    Reservar
-                  </Button>
-                  {restaurant.email && (
-                    <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50" asChild>
-                      <a href={`mailto:${restaurant.email}`}>
-                        <Mail className="h-4 w-4" />
-                        Email
-                      </a>
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                {/* Left Column - Platforms */}
+                <div className="lg:col-span-2 space-y-12">
+                  {/* Platforms Sections */}
+                  <RestaurantPlatforms
+                    category="social"
+                    title="Síguenos en redes sociales"
+                    restaurantLinks={restaurant.social_links || {}}
+                  />
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column */}
-                <div className="lg:col-span-2 space-y-8">
+                  <RestaurantPlatforms
+                    category="review"
+                    title="Encuéntranos también en"
+                    restaurantLinks={{
+                      tripadvisor: restaurant.social_links?.tripadvisor,
+                      google: restaurant.social_links?.google
+                    }}
+                  />
+
+                  <RestaurantPlatforms
+                    category="delivery"
+                    title="Pide a domicilio"
+                    restaurantLinks={restaurant.delivery_links || {}}
+                  />
+
+                  <RestaurantPlatforms
+                    category="booking"
+                    title="Reserva online"
+                    restaurantLinks={restaurant.social_links || {}}
+                  />
+
                   {/* Services */}
                   {restaurant.services.length > 0 && (
                     <div className="space-y-4">
@@ -480,29 +408,13 @@ export default function RestaurantProfile() {
                     </div>
                   )}
 
-                  {/* Social Networks */}
-                  <SocialLinksSection 
-                    socialLinks={restaurant.social_links}
-                  />
-
-                  {/* External Links */}
-                  <ExternalLinksSection 
-                    website={restaurant.website}
-                  />
-
-                  {/* Booking Platforms */}
-                  <BookingPlatformsSection />
-
-                  {/* Delivery Platforms */}
-                  <DeliveryPlatformsSection />
-
                   {/* Promotions */}
                   <div className="space-y-4">
                     <h3 className="text-xl font-semibold flex items-center gap-2">
                       <Percent className="h-5 w-5 text-primary" />
                       Promociones y ofertas
                     </h3>
-                    <div className="text-center py-12 text-muted-foreground">
+                    <div className="text-center py-12 text-muted-foreground bg-background/50 backdrop-blur-sm rounded-2xl border border-border/20">
                       <Percent className="h-16 w-16 mx-auto mb-4 opacity-30" />
                       <p className="text-lg">No hay promociones activas en este momento</p>
                     </div>
@@ -514,7 +426,7 @@ export default function RestaurantProfile() {
                       <Calendar className="h-5 w-5 text-primary" />
                       Eventos
                     </h3>
-                    <div className="text-center py-12 text-muted-foreground">
+                    <div className="text-center py-12 text-muted-foreground bg-background/50 backdrop-blur-sm rounded-2xl border border-border/20">
                       <Calendar className="h-16 w-16 mx-auto mb-4 opacity-30" />
                       <p className="text-lg">No hay eventos programados</p>
                     </div>
@@ -523,9 +435,17 @@ export default function RestaurantProfile() {
 
                 {/* Right Column */}
                 <div className="space-y-8">
+                  {/* Contact Information */}
+                  <RestaurantContactInfo
+                    phone={restaurant.phone}
+                    email={restaurant.email}
+                    address={restaurant.address}
+                    schedules={restaurant.schedules}
+                  />
+
                   {/* Stats */}
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold flex items-center gap-2">
+                  <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
+                    <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
                       <TrendingUp className="h-5 w-5 text-primary" />
                       Estadísticas
                     </h3>
@@ -558,11 +478,8 @@ export default function RestaurantProfile() {
 
                   {/* Schedule */}
                   {restaurant.schedules.length > 0 && (
-                    <div className="space-y-4">
-                      <h3 className="text-xl font-semibold flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-primary" />
-                        Horarios
-                      </h3>
+                    <div className="bg-background/50 backdrop-blur-sm rounded-2xl p-6 border border-border/20">
+                      <h3 className="text-xl font-semibold mb-6">Horarios completos</h3>
                       <RestaurantSchedule schedules={restaurant.schedules} />
                     </div>
                   )}

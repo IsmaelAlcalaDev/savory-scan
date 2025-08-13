@@ -92,6 +92,39 @@ export type Database = {
           },
         ]
       }
+      app_config: {
+        Row: {
+          category: string
+          config_key: string
+          config_value: Json
+          created_at: string | null
+          description: string | null
+          id: number
+          is_public: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          config_key: string
+          config_value: Json
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          is_public?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          config_key?: string
+          config_value?: Json
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          is_public?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           created_at: string
@@ -1429,6 +1462,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_configs: {
+        Row: {
+          base_url: string | null
+          category: string
+          created_at: string | null
+          display_order: number | null
+          icon_color: string | null
+          icon_name: string
+          id: number
+          is_active: boolean | null
+          platform_key: string
+          platform_name: string
+          url_pattern: string | null
+        }
+        Insert: {
+          base_url?: string | null
+          category: string
+          created_at?: string | null
+          display_order?: number | null
+          icon_color?: string | null
+          icon_name: string
+          id?: number
+          is_active?: boolean | null
+          platform_key: string
+          platform_name: string
+          url_pattern?: string | null
+        }
+        Update: {
+          base_url?: string | null
+          category?: string
+          created_at?: string | null
+          display_order?: number | null
+          icon_color?: string | null
+          icon_name?: string
+          id?: number
+          is_active?: boolean | null
+          platform_key?: string
+          platform_name?: string
+          url_pattern?: string | null
+        }
+        Relationships: []
       }
       points_of_interest: {
         Row: {
