@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 
+export { type Dish } from '@/hooks/useRestaurantMenu';
+
 export const useRestaurantDishes = (restaurantId: number) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState(true);

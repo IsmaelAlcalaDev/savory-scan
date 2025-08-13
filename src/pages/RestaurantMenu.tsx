@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Star, MapPin, Utensils } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
-import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
+import { useRestaurantDishes, type Dish } from '@/hooks/useRestaurantDishes';
 import DishModal from '@/components/DishModal';
 import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 import { useState } from 'react';
@@ -14,7 +14,7 @@ import { useState } from 'react';
 export default function RestaurantMenu() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { restaurant, loading, error } = useRestaurantProfile(slug || '');
+  const { restaurant, loading: restaurantLoading, error: restaurantError } = useRestaurantProfile(slug || '');
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
 
@@ -32,7 +32,11 @@ export default function RestaurantMenu() {
     navigate(`/restaurant/${slug}`);
   };
 
-  if (loading) {
+  console.log('RestaurantMenu: Rendering with slug:', slug);
+  console.log('RestaurantMenu: Restaurant data:', { restaurant, restaurantLoading, restaurantError });
+
+  if (restaurantLoading) {
+    console.log('RestaurantMenu: Showing loading state');
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -47,12 +51,14 @@ export default function RestaurantMenu() {
     );
   }
 
-  if (error || !restaurant) {
+  if (restaurantError || !restaurant) {
+    console.log('RestaurantMenu: Showing error state:', restaurantError);
     return (
       <div className="min-h-screen bg-background">
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Restaurante no encontrado</h1>
+            <p className="text-muted-foreground mb-4">Error: {restaurantError}</p>
             <Button onClick={() => navigate('/restaurantes')}>
               Volver a restaurantes
             </Button>
@@ -61,6 +67,8 @@ export default function RestaurantMenu() {
       </div>
     );
   }
+
+  console.log('RestaurantMenu: Restaurant found, ID:', restaurant.id);
 
   return (
     <>
