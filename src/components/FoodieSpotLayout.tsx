@@ -64,9 +64,24 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState('Selecciona ubicación');
-  const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>(initialTab);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+
+  // Determine active tab based on current route
+  const getActiveTabFromRoute = (): 'restaurants' | 'dishes' | 'account' => {
+    if (location.pathname === '/platos') return 'dishes';
+    if (location.pathname === '/restaurantes' || location.pathname === '/') return 'restaurants';
+    return 'restaurants';
+  };
+
+  const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>(getActiveTabFromRoute());
+
+  // Update active tab when route changes
+  useEffect(() => {
+    const newTab = getActiveTabFromRoute();
+    console.log('Route changed, updating active tab to:', newTab, 'from path:', location.pathname);
+    setActiveBottomTab(newTab);
+  }, [location.pathname]);
 
   const { distanceRanges } = useDistanceRanges();
   const { ratingOptions } = useRatingOptions();
@@ -409,21 +424,28 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   };
 
   const handleBottomTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
+    console.log('Bottom tab change requested to:', tab);
+    
     if (tab === 'account') {
       setAccountModalOpen(true);
-    } else {
-      const searchParams = new URLSearchParams(location.search);
-      const queryString = searchParams.toString();
-      const targetPath = tab === 'dishes' ? '/platos' : '/';
-      const fullPath = queryString ? `${targetPath}?${queryString}` : targetPath;
-      
-      setActiveBottomTab(tab);
-      navigate(fullPath);
+      return;
+    }
+    
+    // Navigate to the appropriate route without triggering conflicts
+    if (tab === 'dishes') {
+      navigate('/platos', { replace: true });
+    } else if (tab === 'restaurants') {
+      navigate('/restaurantes', { replace: true });
     }
   };
 
   const handleLoginRequired = () => {
     setAccountModalOpen(true);
+  };
+
+  const handleLogoClick = () => {
+    console.log('Logo clicked, navigating to /restaurantes');
+    navigate('/restaurantes');
   };
 
   const TagButton = ({ 
@@ -755,11 +777,13 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         <div className="flex items-center justify-between py-3 px-4">
           {/* Left Section: Logo */}
           <div className="flex items-center flex-shrink-0 relative">
-            <img 
-              src={appLogoUrl}
-              alt={`${appName} Logo`} 
-              className="w-24 h-24 bg-transparent object-contain absolute top-1/2 left-0 transform -translate-y-1/2 z-10"
-            />
+            <button onClick={handleLogoClick} className="flex items-center">
+              <img 
+                src={appLogoUrl}
+                alt={`${appName} Logo`} 
+                className="w-24 h-24 bg-transparent object-contain absolute top-1/2 left-0 transform -translate-y-1/2 z-10 cursor-pointer"
+              />
+            </button>
             {/* Spacer to maintain layout */}
             <div className="w-24 h-8" />
           </div>
