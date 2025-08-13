@@ -62,28 +62,51 @@ export default function RestaurantProfile() {
     setSelectedDish(null);
   };
 
-  // Get total number of images available
-  const getTotalImages = () => {
-    const galleryCount = restaurant?.gallery?.length || 0;
-    const hasCoverImage = restaurant?.cover_image_url ? 1 : 0;
-    return Math.max(galleryCount, hasCoverImage);
+  // Get all available images (gallery + cover image)
+  const getAllImages = () => {
+    const images = [];
+    
+    // Add gallery images first
+    if (restaurant?.gallery && restaurant.gallery.length > 0) {
+      restaurant.gallery.forEach(item => {
+        if (item.image_url) {
+          images.push(item.image_url);
+        }
+      });
+    }
+    
+    // Add cover image if not already in gallery and gallery is empty
+    if (restaurant?.cover_image_url && images.length === 0) {
+      images.push(restaurant.cover_image_url);
+    }
+    
+    console.log('RestaurantProfile: All images:', images);
+    return images;
   };
 
   // Get current image URL
   const getCurrentImage = () => {
-    if (restaurant?.gallery && restaurant.gallery.length > 0) {
-      return restaurant.gallery[currentImageIndex]?.image_url || restaurant.cover_image_url;
+    const allImages = getAllImages();
+    if (allImages.length > 0) {
+      const currentImg = allImages[currentImageIndex] || allImages[0];
+      console.log('RestaurantProfile: Current image URL:', currentImg);
+      return currentImg;
     }
-    return restaurant?.cover_image_url;
+    
+    // Fallback to cover image or placeholder
+    const fallbackImg = restaurant?.cover_image_url || '/placeholder.svg';
+    console.log('RestaurantProfile: Using fallback image:', fallbackImg);
+    return fallbackImg;
   };
+
+  const totalImages = getAllImages().length;
 
   // Manual navigation functions
   const nextImage = () => {
-    const totalImages = getTotalImages();
     if (totalImages > 1) {
       console.log('RestaurantProfile: Next image clicked, current:', currentImageIndex);
       setCurrentImageIndex(prev => {
-        const next = prev === totalImages - 1 ? 0 : prev + 1;
+        const next = prev >= totalImages - 1 ? 0 : prev + 1;
         console.log('RestaurantProfile: Moving to image:', next);
         return next;
       });
@@ -91,11 +114,10 @@ export default function RestaurantProfile() {
   };
 
   const prevImage = () => {
-    const totalImages = getTotalImages();
     if (totalImages > 1) {
       console.log('RestaurantProfile: Previous image clicked, current:', currentImageIndex);
       setCurrentImageIndex(prev => {
-        const previous = prev === 0 ? totalImages - 1 : prev - 1;
+        const previous = prev <= 0 ? totalImages - 1 : prev - 1;
         console.log('RestaurantProfile: Moving to image:', previous);
         return previous;
       });
@@ -109,7 +131,6 @@ export default function RestaurantProfile() {
 
   // Auto-rotate images every 5 seconds
   useEffect(() => {
-    const totalImages = getTotalImages();
     console.log('RestaurantProfile: Setting up auto-rotation, total images:', totalImages);
     
     if (totalImages <= 1) {
@@ -120,7 +141,7 @@ export default function RestaurantProfile() {
     const interval = setInterval(() => {
       console.log('RestaurantProfile: Auto-rotating image');
       setCurrentImageIndex(prev => {
-        const next = prev === totalImages - 1 ? 0 : prev + 1;
+        const next = prev >= totalImages - 1 ? 0 : prev + 1;
         console.log('RestaurantProfile: Auto-rotation moving from', prev, 'to', next);
         return next;
       });
@@ -130,7 +151,7 @@ export default function RestaurantProfile() {
       console.log('RestaurantProfile: Clearing auto-rotation interval');
       clearInterval(interval);
     };
-  }, [restaurant?.gallery?.length, restaurant?.cover_image_url]);
+  }, [totalImages, restaurant?.id]);
 
   // Reset image index when restaurant changes
   useEffect(() => {
@@ -191,7 +212,6 @@ export default function RestaurantProfile() {
     }
   };
 
-  const totalImages = getTotalImages();
   const currentImage = getCurrentImage();
 
   console.log('RestaurantProfile: About to render, current image:', currentImage);
@@ -236,14 +256,19 @@ export default function RestaurantProfile() {
       <div className="min-h-screen bg-background">
         {/* Hero Section with Image Carousel */}
         <div className="relative h-96 overflow-hidden">
-          {currentImage && (
-            <img 
-              src={currentImage} 
-              alt={restaurant.name}
-              className="w-full h-full object-cover transition-opacity duration-500"
-              key={currentImageIndex} // Force re-render on image change
-            />
-          )}
+          {/* Image with key to force re-render on change */}
+          <img 
+            key={`${restaurant.id}-${currentImageIndex}`}
+            src={currentImage} 
+            alt={restaurant.name}
+            className="w-full h-full object-cover"
+            onLoad={() => console.log('RestaurantProfile: Image loaded:', currentImage)}
+            onError={(e) => {
+              console.error('RestaurantProfile: Image failed to load:', currentImage);
+              // Try to set a fallback
+              e.currentTarget.src = '/placeholder.svg';
+            }}
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
           
           {/* Carousel Navigation - Only show if more than 1 image */}
