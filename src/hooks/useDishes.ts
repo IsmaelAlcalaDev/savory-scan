@@ -66,7 +66,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     searchQuery,
     userLat,
     userLng,
-    maxDistance = 50,
     selectedDietTypes = [],
     selectedPriceRanges = [],
     selectedFoodTypes = [],
@@ -131,7 +130,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
 
         console.log('useDishes: Raw dishes data received:', data.length);
 
-        // Transform and filter data
+        // Transform data (calculate distance but don't filter by it)
         let processedDishes: DishData[] = data.map(dish => {
           const restaurant = dish.restaurants;
           const category = dish.dish_categories;
@@ -170,19 +169,13 @@ export const useDishes = (params: UseDishesParams = {}) => {
           };
         });
 
-        // Apply client-side filters
+        // Apply client-side filters (but NOT distance filter)
         if (searchQuery && searchQuery.trim()) {
           const query = searchQuery.toLowerCase().trim();
           processedDishes = processedDishes.filter(dish =>
             dish.name.toLowerCase().includes(query) ||
             dish.description?.toLowerCase().includes(query) ||
             dish.restaurant_name.toLowerCase().includes(query)
-          );
-        }
-
-        if (userLat && userLng && maxDistance) {
-          processedDishes = processedDishes.filter(dish =>
-            !dish.distance_km || dish.distance_km <= maxDistance
           );
         }
 
@@ -252,7 +245,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
           });
         }
 
-        // Sort by distance if available, then by featured status
+        // Sort by distance if available, then by featured status, but don't filter by distance
         processedDishes.sort((a, b) => {
           if (a.distance_km !== undefined && b.distance_km !== undefined) {
             return a.distance_km - b.distance_km;
@@ -275,7 +268,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     };
 
     fetchDishes();
-  }, [searchQuery, userLat, userLng, maxDistance, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, spiceLevels, prepTimeRanges]);
+  }, [searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, spiceLevels, prepTimeRanges]);
 
   return { dishes, loading, error };
 };
