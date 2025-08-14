@@ -1,4 +1,3 @@
-
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -360,7 +359,7 @@ export default function FilterTags({
             variant="secondary"
             className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
           >
-            {selectedRating}+ estrellas
+            Valoración
             <X 
               className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
               onClick={() => onClearFilter('rating')}

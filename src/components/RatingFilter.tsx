@@ -8,19 +8,21 @@ import { useRatingOptions } from '@/hooks/useRatingOptions';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface RatingFilterProps {
-  selectedRatings: number[];
-  onRatingChange: (ratings: number[]) => void;
+  selectedRating?: number;
+  onRatingChange: (rating: number | undefined) => void;
 }
 
-export default function RatingFilter({ selectedRatings, onRatingChange }: RatingFilterProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function RatingFilter({ selectedRating, onRatingChange }: RatingFilterProps) {
+  const [isOpen, setIsOpen] = useState(true);
   const { ratingOptions, loading, error } = useRatingOptions();
 
   const handleRatingToggle = (ratingId: number) => {
-    const newSelected = selectedRatings.includes(ratingId)
-      ? selectedRatings.filter(id => id !== ratingId)
-      : [...selectedRatings, ratingId];
-    onRatingChange(newSelected);
+    // If the same rating is clicked, deselect it
+    if (selectedRating === ratingId) {
+      onRatingChange(undefined);
+    } else {
+      onRatingChange(ratingId);
+    }
   };
 
   if (loading) {
@@ -66,7 +68,7 @@ export default function RatingFilter({ selectedRatings, onRatingChange }: Rating
                 <div key={option.id} className="flex items-center space-x-2">
                   <Checkbox 
                     id={`rating-${option.id}`}
-                    checked={selectedRatings.includes(option.id)}
+                    checked={selectedRating === option.id}
                     onCheckedChange={() => handleRatingToggle(option.id)}
                   />
                   <label 
