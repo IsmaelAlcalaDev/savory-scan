@@ -221,7 +221,7 @@ export default function FilterTags({
           className={`p-0 ${
             isMobile 
               ? 'h-[100vh] rounded-none' 
-              : 'max-h-[80vh] rounded-t-[20px] rounded-b-none'
+              : 'rounded-t-[20px] rounded-b-none'
           }`}
         >
           <FilterContent 
