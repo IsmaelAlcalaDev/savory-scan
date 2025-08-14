@@ -41,9 +41,9 @@ export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLog
               className="flex-shrink-0 hover:opacity-80 transition-opacity"
               title={`Pedir en ${platform.platform_name}`}
             >
-              {platform.base_url ? (
+              {platform.icon ? (
                 <img 
-                  src={platform.base_url}
+                  src={platform.icon}
                   alt={platform.platform_name}
                   className="h-12 w-12 object-contain"
                   onError={(e) => {
