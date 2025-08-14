@@ -1,6 +1,5 @@
-
 import { Badge } from '@/components/ui/badge';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import DishFavoriteButton from './DishFavoriteButton';
 import DinerSelector from './DinerSelector';
@@ -157,11 +156,15 @@ export default function DishListCard({ dish, restaurantId, expandedDishId, onExp
                 
                 <button
                   onClick={handlePlusClick}
-                  className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
-                  aria-label="Añadir al simulador"
-                  title="Añadir al simulador"
+                  className={`w-7 h-7 rounded-full ${hasMultipleVariants ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90'} text-white transition-colors flex items-center justify-center shadow-sm`}
+                  aria-label={hasMultipleVariants ? "Ver variantes" : "Añadir al simulador"}
+                  title={hasMultipleVariants ? "Ver variantes" : "Añadir al simulador"}
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  {hasMultipleVariants ? (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <Plus className="h-3.5 w-3.5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -170,81 +173,69 @@ export default function DishListCard({ dish, restaurantId, expandedDishId, onExp
 
         {/* Expandable Content */}
         <CollapsibleContent>
-          <div className="px-3 pb-3 space-y-3 bg-accent/20 rounded-b-lg">
+          <div className="px-3 pb-3 space-y-2 bg-accent/20 rounded-b-lg">
             {/* Description */}
             {dish.description && (
               <p className="text-sm text-muted-foreground">{dish.description}</p>
             )}
 
             {/* Diet and Allergen Tags */}
-            <div className="space-y-2">
-              {getDietBadges().length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {getDietBadges().map((badge, index) => (
-                    <span key={index} className={`px-2 py-1 rounded-full text-xs ${badge.color}`}>
-                      {badge.label}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {dish.allergens && dish.allergens.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {dish.allergens.map((allergen, index) => (
-                    <span key={index} className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                      {allergen}
-                    </span>
-                  ))}
-                </div>
-              )}
-
+            <div className="flex flex-wrap gap-1">
+              {getDietBadges().map((badge, index) => (
+                <span key={index} className={`px-2 py-1 rounded-full text-xs ${badge.color}`}>
+                  {badge.label}
+                </span>
+              ))}
+              
+              {dish.allergens && dish.allergens.map((allergen, index) => (
+                <span key={index} className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                  {allergen}
+                </span>
+              ))}
+              
               {getSpiceIcons() && (
-                <div className="text-lg">{getSpiceIcons()}</div>
+                <span className="text-lg">{getSpiceIcons()}</span>
               )}
             </div>
 
             {/* Variants Selection */}
             {hasMultipleVariants && (
-              <div>
-                <h4 className="font-medium text-sm mb-2">Selecciona tamaño:</h4>
-                <div className="space-y-1.5">
-                  {dish.variants.map((variant) => (
-                    <div key={variant.id} className="flex items-center justify-between bg-background rounded-lg p-2">
-                      <div>
-                        <span className="font-medium text-sm">{variant.name}</span>
-                        {variant.is_default && (
-                          <span className="ml-2 text-xs text-muted-foreground">(Estándar)</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-primary text-sm">
-                          {formatPrice(variant.price)}
-                        </span>
-                        {hasMultipleDiners ? (
-                          <DinerSelector
-                            onDinerSelect={(dinerId) => handleAddVariantToOrder(variant.id, dinerId)}
-                            onManageDiners={openDinersModal}
-                          />
-                        ) : (
-                          <button
-                            onClick={() => handleAddVariantToOrder(variant.id, diners[0].id)}
-                            className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
-                            aria-label="Añadir variante"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </div>
+              <div className="space-y-1.5">
+                {dish.variants.map((variant) => (
+                  <div key={variant.id} className="flex items-center justify-between bg-background rounded-lg p-2">
+                    <div>
+                      <span className="font-medium text-sm">{variant.name}</span>
+                      {variant.is_default && (
+                        <span className="ml-2 text-xs text-muted-foreground">(Estándar)</span>
+                      )}
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-primary text-sm">
+                        {formatPrice(variant.price)}
+                      </span>
+                      {hasMultipleDiners ? (
+                        <DinerSelector
+                          onDinerSelect={(dinerId) => handleAddVariantToOrder(variant.id, dinerId)}
+                          onManageDiners={openDinersModal}
+                        />
+                      ) : (
+                        <button
+                          onClick={() => handleAddVariantToOrder(variant.id, diners[0].id)}
+                          className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
+                          aria-label="Añadir variante"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
             {/* Diner Selection for dishes without variants */}
             {!hasMultipleVariants && hasMultipleDiners && (
               <div>
-                <h4 className="font-medium text-sm mb-2">Asignar a comensal:</h4>
                 <DinerSelector
                   onDinerSelect={handleDinerSelect}
                   onManageDiners={openDinersModal}

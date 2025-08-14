@@ -1,7 +1,6 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import DishFavoriteButton from './DishFavoriteButton';
 import DinerSelector from './DinerSelector';
@@ -42,22 +41,6 @@ export default function DishCard({ dish, restaurantId, expandedDishId, onExpande
     return formatPrice(dish.base_price);
   };
 
-  const handlePlusClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    const hasMultipleVariants = dish.variants && dish.variants.length > 1;
-    
-    if (hasMultipleVariants) {
-      onExpandedChange(isExpanded ? null : dish.id);
-    } else {
-      if (diners.length === 1) {
-        addDishToOrder(dish, diners[0].id);
-      } else {
-        onExpandedChange(isExpanded ? null : dish.id);
-      }
-    }
-  };
-
   const handleCardClick = () => {
     onExpandedChange(isExpanded ? null : dish.id);
   };
@@ -83,6 +66,22 @@ export default function DishCard({ dish, restaurantId, expandedDishId, onExpande
   const handleDinerSelect = (dinerId: string) => {
     addDishToOrder(dish, dinerId);
     onExpandedChange(null);
+  };
+
+  const handlePlusClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const hasMultipleVariants = dish.variants && dish.variants.length > 1;
+    
+    if (hasMultipleVariants) {
+      onExpandedChange(isExpanded ? null : dish.id);
+    } else {
+      if (diners.length === 1) {
+        addDishToOrder(dish, diners[0].id);
+      } else {
+        onExpandedChange(isExpanded ? null : dish.id);
+      }
+    }
   };
 
   const getDietBadges = () => {
@@ -158,11 +157,15 @@ export default function DishCard({ dish, restaurantId, expandedDishId, onExpande
                 
                 <button
                   onClick={handlePlusClick}
-                  className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
-                  aria-label="Añadir al simulador"
-                  title="Añadir al simulador"
+                  className={`w-7 h-7 rounded-full ${hasMultipleVariants ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90'} text-white transition-colors flex items-center justify-center shadow-sm`}
+                  aria-label={hasMultipleVariants ? "Ver variantes" : "Añadir al simulador"}
+                  title={hasMultipleVariants ? "Ver variantes" : "Añadir al simulador"}
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  {hasMultipleVariants ? (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <Plus className="h-3.5 w-3.5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -207,7 +210,6 @@ export default function DishCard({ dish, restaurantId, expandedDishId, onExpande
             {/* Variants Selection */}
             {hasMultipleVariants && (
               <div>
-                <h4 className="font-medium text-sm mb-2">Selecciona tamaño:</h4>
                 <div className="space-y-1.5">
                   {dish.variants.map((variant) => (
                     <div key={variant.id} className="flex items-center justify-between bg-background rounded-lg p-2">
