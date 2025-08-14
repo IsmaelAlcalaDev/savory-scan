@@ -23,10 +23,10 @@ export default function RestaurantMenuSection({
     <div className="space-y-4">
       <div className="text-left">
         <div className="relative">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent mb-2 tracking-tight">
+          <h2 className="text-lg font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent mb-2 tracking-tight">
             {section.name}
           </h2>
-          <div className="absolute -bottom-1 left-0 h-0.5 w-12 bg-gradient-to-r from-primary to-primary/40 rounded-full"></div>
+          <div className="absolute -bottom-1 left-0 h-0.5 w-10 bg-gradient-to-r from-primary to-primary/40 rounded-full"></div>
         </div>
         {section.description && (
           <p className="text-muted-foreground mt-3 text-sm leading-relaxed max-w-2xl">
