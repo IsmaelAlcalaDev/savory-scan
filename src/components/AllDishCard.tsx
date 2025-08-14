@@ -2,6 +2,7 @@
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import DishFavoriteButton from './DishFavoriteButton';
 
 interface AllDishCardProps {
   id: number;
@@ -85,6 +86,15 @@ export default function AllDishCard({
               </Badge>
             </div>
           )}
+
+          <div className="absolute top-2 right-2 z-20">
+            <DishFavoriteButton
+              dishId={id}
+              favoritesCount={0}
+              size="sm"
+              className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
+            />
+          </div>
         </div>
 
         <div className="flex-1 space-y-2">
@@ -131,7 +141,7 @@ export default function AllDishCard({
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
-              const target = e.target as HTMLImageElement;
+              const target = e.target as HTMLImageSource;
               target.style.display = 'none';
             }}
           />
@@ -148,6 +158,15 @@ export default function AllDishCard({
             </Badge>
           </div>
         )}
+
+        <div className="absolute top-3 right-3 z-20">
+          <DishFavoriteButton
+            dishId={id}
+            favoritesCount={0}
+            size="sm"
+            className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
+          />
+        </div>
       </div>
 
       <div className="space-y-1">
