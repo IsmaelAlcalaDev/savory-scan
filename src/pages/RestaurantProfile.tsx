@@ -47,10 +47,11 @@ export default function RestaurantProfile() {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('servicios');
-  const [isHeaderFixed, setIsHeaderFixed] = useState(false);
+  const [isQuickActionsFixed, setIsQuickActionsFixed] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const quickActionsRef = useRef<HTMLDivElement>(null);
   const sectionsRef = useRef<{ [key: string]: HTMLElement | null }>({});
 
   const menuSections = [
@@ -96,6 +97,26 @@ export default function RestaurantProfile() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [activeSection, isHeaderFixed]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleScroll = () => {
+      if (heroRef.current && quickActionsRef.current) {
+        const heroBottom = heroRef.current.offsetTop + heroRef.current.offsetHeight;
+        const scrollTop = window.scrollY;
+        
+        const shouldBeFixed = scrollTop > heroBottom;
+        
+        if (shouldBeFixed !== isQuickActionsFixed) {
+          setIsQuickActionsFixed(shouldBeFixed);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isQuickActionsFixed, isMobile]);
 
   const scrollToSection = (sectionId: string) => {
     const element = sectionsRef.current[sectionId];
@@ -396,82 +417,99 @@ export default function RestaurantProfile() {
           </div>
         </div>
 
-        {/* Mobile: Information below image */}
-        <div className="md:hidden bg-background border-b border-border">
-          <div className="max-w-6xl mx-auto px-4 py-6">
-            <div className="flex items-start gap-4 mb-4">
-              {restaurant.logo_url && (
-                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border shadow-lg flex-shrink-0">
-                  <img 
-                    src={restaurant.logo_url} 
-                    alt={`${restaurant.name} logo`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold mb-2 text-foreground">
-                  {restaurant.name}
-                </h1>
-                
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <Badge variant="secondary">
-                    {getPriceRangeText(restaurant.price_range)}
-                  </Badge>
-                  {restaurant.establishment_type && (
-                    <Badge variant="secondary">
-                      {restaurant.establishment_type}
-                    </Badge>
-                  )}
-                  {restaurant.cuisine_types.map((cuisine, index) => (
-                    <Badge key={index} variant="secondary">
-                      {cuisine}
-                    </Badge>
-                  ))}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{restaurant.address}</span>
-                  </div>
-                  {restaurant.google_rating && (
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium text-foreground">
-                        {restaurant.google_rating}
-                        {restaurant.google_rating_count && (
-                          <span className="text-xs ml-1">({restaurant.google_rating_count})</span>
-                        )}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        {/* Mobile: Quick Actions right after hero image */}
         {isMobile && (
           <div 
-            ref={headerRef}
-            className={`bg-background transition-all duration-500 ease-in-out ${
-              isHeaderFixed 
-                ? 'fixed top-0 left-0 right-0 z-40 shadow-lg border-b border-border' 
+            ref={quickActionsRef}
+            className={`bg-background transition-all duration-300 ease-in-out border-b border-border ${
+              isQuickActionsFixed 
+                ? 'fixed top-0 left-0 right-0 z-40 shadow-lg' 
                 : 'relative'
             }`}
           >
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="flex items-center gap-4 py-4">
-                <QuickActionTags
-                  phone={restaurant.phone}
-                  website={restaurant.website}
-                  email={restaurant.email}
-                  address={restaurant.address}
-                  latitude={restaurant.latitude}
-                  longitude={restaurant.longitude}
-                />
+            <div className="max-w-6xl mx-auto px-4 py-4">
+              <QuickActionTags
+                phone={restaurant.phone}
+                website={restaurant.website}
+                email={restaurant.email}
+                address={restaurant.address}
+                latitude={restaurant.latitude}
+                longitude={restaurant.longitude}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Mobile: Ver Carta button right after quick actions */}
+        {isMobile && (
+          <div className={`bg-background ${isQuickActionsFixed ? 'mt-20' : ''}`}>
+            <div className="max-w-6xl mx-auto px-4 py-4">
+              <Button
+                onClick={handleViewMenu}
+                size="lg"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
+              >
+                <Utensils className="h-6 w-6 mr-2" />
+                Ver Carta
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile: Restaurant information below Ver Carta */}
+        {isMobile && (
+          <div className="bg-background border-b border-border">
+            <div className="max-w-6xl mx-auto px-4 py-6">
+              <div className="flex items-start gap-4 mb-4">
+                {restaurant.logo_url && (
+                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border shadow-lg flex-shrink-0">
+                    <img 
+                      src={restaurant.logo_url} 
+                      alt={`${restaurant.name} logo`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold mb-2 text-foreground">
+                    {restaurant.name}
+                  </h1>
+                  
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <Badge variant="secondary">
+                      {getPriceRangeText(restaurant.price_range)}
+                    </Badge>
+                    {restaurant.establishment_type && (
+                      <Badge variant="secondary">
+                        {restaurant.establishment_type}
+                      </Badge>
+                    )}
+                    {restaurant.cuisine_types.map((cuisine, index) => (
+                      <Badge key={index} variant="secondary">
+                        {cuisine}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>{restaurant.address}</span>
+                    </div>
+                    {restaurant.google_rating && (
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-medium text-foreground">
+                          {restaurant.google_rating}
+                          {restaurant.google_rating_count && (
+                            <span className="text-xs ml-1">({restaurant.google_rating_count})</span>
+                          )}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -585,15 +623,6 @@ export default function RestaurantProfile() {
                   </div>
                 )}
               </section>
-
-              <Button
-                onClick={handleViewMenu}
-                size="lg"
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
-              >
-                <Utensils className="h-6 w-6 mr-2" />
-                Ver Carta
-              </Button>
 
               <RestaurantServicesList services={restaurant.services} />
 
