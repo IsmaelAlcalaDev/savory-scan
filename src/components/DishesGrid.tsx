@@ -9,6 +9,7 @@ interface DishData {
   base_price: number;
   image_url?: string;
   category_name?: string;
+  restaurant_id: number;
   restaurant_name: string;
   restaurant_slug: string;
   restaurant_google_rating?: number;
@@ -72,6 +73,7 @@ export default function DishesGrid({ dishes, loading, error }: DishesGridProps) 
           categoryName={dish.category_name}
           restaurantName={dish.restaurant_name}
           restaurantSlug={dish.restaurant_slug}
+          restaurantId={dish.restaurant_id}
           restaurantRating={dish.restaurant_google_rating}
           distance={dish.distance_km}
           formattedPrice={dish.formatted_price}
