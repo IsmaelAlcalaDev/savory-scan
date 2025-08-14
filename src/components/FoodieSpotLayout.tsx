@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
@@ -458,7 +459,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           appLogoUrl={appLogoUrl}
           currentLocationName={currentLocationName}
           isLoadingLocation={isLoadingLocation}
-          onLogoClick={handleLogoClick}
+          onLogoClick={() => navigate('/restaurantes')}
           onLocationClick={() => setLocationModalOpen(true)}
           onMenuClick={() => setMenuModalOpen(true)}
         />
@@ -472,7 +473,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           isLoadingLocation={isLoadingLocation}
           searchQuery={searchQuery}
           isSearchFocused={isSearchFocused}
-          onLogoClick={handleLogoClick}
+          onLogoClick={() => navigate('/restaurantes')}
           onLocationClick={() => setLocationModalOpen(true)}
           onMenuClick={() => setMenuModalOpen(true)}
           onSearchChange={setSearchQuery}
@@ -489,7 +490,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           isLoadingLocation={isLoadingLocation}
           searchQuery={searchQuery}
           isSearchFocused={isSearchFocused}
-          onLogoClick={handleLogoClick}
+          onLogoClick={() => navigate('/restaurantes')}
           onLocationClick={() => setLocationModalOpen(true)}
           onMenuClick={() => setMenuModalOpen(true)}
           onSearchChange={setSearchQuery}
@@ -874,7 +875,18 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       {/* Bottom Navigation */}
       <BottomNavigation 
         activeTab={activeBottomTab}
-        onTabChange={handleBottomTabChange}
+        onTabChange={(tab) => {
+          if (tab === 'account') {
+            setAccountModalOpen(true);
+            return;
+          }
+          
+          if (tab === 'dishes') {
+            navigate('/platos', { replace: true });
+          } else if (tab === 'restaurants') {
+            navigate('/restaurantes', { replace: true });
+          }
+        }}
       />
 
       {/* Modals */}
@@ -891,7 +903,40 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       <LocationModal
         open={locationModalOpen}
         onOpenChange={setLocationModalOpen}
-        onLocationSelect={handleLocationSelect}
+        onLocationSelect={(location) => {
+          console.log('FoodieSpotLayout: Manual location selected:', location);
+          if (location.type === 'gps') {
+            setUserLocation({
+              lat: location.data.latitude,
+              lng: location.data.longitude
+            });
+            if (location.data.name && location.data.parent) {
+              const locationDisplay = `${location.data.name}, ${location.data.parent.split(',')[0]}`;
+              setCurrentLocationName(locationDisplay);
+            } else if (location.data.address) {
+              setCurrentLocationName(location.data.address);
+            } else {
+              setCurrentLocationName('Ubicación detectada');
+            }
+          } else if (location.type === 'city') {
+            setUserLocation({
+              lat: location.data.latitude,
+              lng: location.data.longitude
+            });
+            setCurrentLocationName(location.data.name);
+          } else if (location.type === 'suggestion') {
+            setUserLocation({
+              lat: location.data.latitude,
+              lng: location.data.longitude
+            });
+            const locationDisplay = location.data.parent 
+              ? `${location.data.name}, ${location.data.parent.split(',')[0]}`
+              : location.data.name;
+            setCurrentLocationName(locationDisplay);
+          } else if (location.type === 'manual') {
+            setCurrentLocationName(location.data.query);
+          }
+        }}
       />
       
       <style>{`
