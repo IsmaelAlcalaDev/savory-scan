@@ -52,9 +52,9 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
   if (loading) {
     return (
       <div className="relative w-full">
-        <div className="flex gap-4 pb-1 px-1 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-4 pb-1 px-4 overflow-x-auto scrollbar-hide">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
+            <div key={i} className="flex flex-col items-center gap-1 flex-shrink-0">
               <Skeleton className="h-16 w-16" />
               <Skeleton className="h-3 w-12" />
             </div>
@@ -95,7 +95,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
       
       <div 
         ref={scrollRef}
-        className="flex gap-4 pb-1 px-2 overflow-x-auto scrollbar-hide"
+        className="flex gap-4 pb-1 px-4 overflow-x-auto scrollbar-hide"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none'

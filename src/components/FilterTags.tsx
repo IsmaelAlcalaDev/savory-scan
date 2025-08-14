@@ -1,3 +1,4 @@
+
 import { X, ChevronDown, MapPin, DollarSign, Star, ArrowUpDown, Store, Utensils, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -181,7 +182,7 @@ export default function FilterTags({
     <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
       {/* Title */}
       <div className="text-center py-4">
-        <h3 className="text-lg font-semibold">{getFilterTitle(filterKey)}</h3>
+        <h3 className="text-lg font-bold">{getFilterTitle(filterKey)}</h3>
       </div>
       
       {/* Filter content with dividing lines */}
@@ -193,14 +194,14 @@ export default function FilterTags({
       <div className={`p-4 space-y-3 ${isMobile ? 'mt-auto' : ''}`}>
         <Button 
           onClick={onApply}
-          className="w-full"
+          className="w-full font-semibold"
         >
           Aplicar filtros
         </Button>
         <Button 
           onClick={onReset}
           variant="ghost"
-          className="w-full bg-transparent border-0 hover:bg-gray-50"
+          className="w-full bg-transparent border-0 hover:bg-gray-50 font-semibold"
         >
           Restablecer
         </Button>
@@ -238,7 +239,7 @@ export default function FilterTags({
         <Button
           variant="outline"
           size="sm"
-          className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2"
+          className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 font-semibold"
           style={{ 
             backgroundColor: '#F3F3F3',
             color: '#4B4B4B'
@@ -269,7 +270,7 @@ export default function FilterTags({
 
   return (
     <div className="w-full py-0">
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 px-4">
         {/* Filter Tags */}
         {filterTags.map((filter) => (
           <FilterTrigger key={filter.key} filterKey={filter.key}>
@@ -282,7 +283,7 @@ export default function FilterTags({
           <Badge
             key={filter.key}
             variant="outline"
-            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full cursor-pointer border-0 ${
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full cursor-pointer border-0 font-semibold ${
               filter.active
                 ? 'bg-green-100 text-green-800' 
                 : 'text-gray-700 hover:bg-gray-50'
@@ -307,7 +308,7 @@ export default function FilterTags({
         {selectedCuisines.length > 0 && (
           <Badge
             variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20 font-semibold"
           >
             {selectedCuisines.length} cocina{selectedCuisines.length > 1 ? 's' : ''}
             <X 
@@ -320,7 +321,7 @@ export default function FilterTags({
         {selectedFoodTypes.length > 0 && (
           <Badge
             variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20 font-semibold"
           >
             {selectedFoodTypes.length} tipo{selectedFoodTypes.length > 1 ? 's' : ''}
             <X 
@@ -426,7 +427,7 @@ export default function FilterTags({
           <Button
             variant="ghost"
             size="sm"
-            className="flex-shrink-0 h-8 px-4 text-xs text-muted-foreground hover:text-foreground rounded-full"
+            className="flex-shrink-0 h-8 px-4 text-xs text-muted-foreground hover:text-foreground rounded-full font-semibold"
             onClick={() => onClearFilter('all')}
           >
             Limpiar todo
