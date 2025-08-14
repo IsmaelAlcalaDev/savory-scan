@@ -19,15 +19,15 @@ export default function RestaurantMenuSection({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-2">{section.name}</h2>
+    <div className="space-y-3">
+      <div className="text-left">
+        <h2 className="text-xl font-bold text-foreground mb-1">{section.name}</h2>
         {section.description && (
           <p className="text-muted-foreground">{section.description}</p>
         )}
       </div>
       
-      <div className="space-y-3">
+      <div className="space-y-1">
         {section.dishes.map((dish) => (
           <DishCard
             key={dish.id}

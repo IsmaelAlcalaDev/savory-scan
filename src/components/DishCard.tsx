@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
@@ -79,7 +80,7 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
 
   return (
     <>
-      <div className="py-3 px-0 transition-colors">
+      <div className="py-2 px-0 transition-colors">
         <div className="flex gap-3 items-start w-full">
           {/* Image */}
           <div className="flex-shrink-0">
@@ -124,8 +125,8 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
                   dishId={dish.id}
                   restaurantId={restaurantId}
                   favoritesCount={dish.favorites_count}
-                  size="sm"
-                  className="bg-background/95 backdrop-blur-sm border-border/20 shadow-sm hover:bg-accent"
+                  size="md"
+                  className="border-0 bg-transparent hover:bg-transparent text-foreground"
                   savedFrom="menu_list"
                 />
                 

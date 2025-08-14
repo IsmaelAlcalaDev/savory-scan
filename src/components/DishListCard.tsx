@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
@@ -124,8 +125,8 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
                   dishId={dish.id}
                   restaurantId={restaurantId}
                   favoritesCount={dish.favorites_count}
-                  size="sm"
-                  className="bg-background/95 backdrop-blur-sm border-border/20 shadow-sm hover:bg-accent"
+                  size="md"
+                  className="border-0 bg-transparent hover:bg-transparent text-foreground"
                   savedFrom="menu_list"
                 />
                 
