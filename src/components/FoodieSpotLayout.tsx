@@ -1,6 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { MapPin, Grid, List } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import DesktopHeader from '@/components/DesktopHeader';
@@ -15,7 +15,7 @@ import AllDishCard from '@/components/AllDishCard';
 import LocationModal from '@/components/LocationModal';
 import ViewModeToggle from '@/components/ViewModeToggle';
 import BottomNavigation from '@/components/BottomNavigation';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useNearestLocation } from '@/hooks/useNearestLocation';
 import { useRestaurants } from '@/hooks/useRestaurants';
@@ -43,7 +43,6 @@ interface DishData {
   name: string;
   basePrice: number;
   restaurantName: string;
-  cuisineType: string;
 }
 
 interface FoodieSpotLayoutProps {
@@ -53,9 +52,9 @@ interface FoodieSpotLayoutProps {
 type ViewMode = 'grid' | 'list';
 
 export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
-  const { profile: userProfile, loading: profileLoading } = useUserProfile();
+  const { profile, loading: profileLoading } = useUserProfile();
   const { findNearestLocation, loading: locationLoading } = useNearestLocation();
-  const { data: ipLocation } = useIPLocation();
+  const { location: ipLocation } = useIPLocation();
 
   const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes'>(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
@@ -65,19 +64,19 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<any>(null);
 
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   // Fetch restaurants data
-  const { data: restaurants = [], isLoading: restaurantsLoading } = useRestaurants({
+  const { restaurants, loading: restaurantsLoading } = useRestaurants({
     searchQuery,
     cuisineTypeIds: selectedCuisines,
-    currentLocation,
+    userLat: currentLocation?.latitude,
+    userLng: currentLocation?.longitude,
   });
 
   // Fetch dishes data
-  const { data: dishes = [], isLoading: dishesLoading } = useDishes({
+  const { dishes, loading: dishesLoading } = useDishes({
     searchQuery,
-    cuisineTypeIds: selectedCuisines,
     selectedFoodTypes,
     currentLocation,
   });
@@ -92,7 +91,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             setCurrentLocation({
               latitude: ipLocation.latitude,
               longitude: ipLocation.longitude,
-              address: nearest.displayName || `${ipLocation.latitude}, ${ipLocation.longitude}`
+              address: nearest.name || `${ipLocation.latitude}, ${ipLocation.longitude}`
             });
           } else {
             setCurrentLocation({
@@ -138,14 +137,48 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       {/* Header */}
       <div className="bg-white shadow-sm border-b sticky top-0 z-40">
         {isMobile ? (
-          <MobileHeader onLocationClick={handleLocationClick} />
+          <MobileHeader 
+            appName="FoodieSpot"
+            appLogoUrl="/placeholder.svg"
+            currentLocationName={currentLocation?.address || 'Detectando ubicación...'}
+            isLoadingLocation={locationLoading}
+            onLogoClick={() => {}}
+            onLocationClick={handleLocationClick}
+            onMenuClick={() => {}}
+          />
         ) : (
           <>
             <div className="hidden lg:block">
-              <DesktopHeader onLocationClick={handleLocationClick} />
+              <DesktopHeader 
+                appName="FoodieSpot"
+                appLogoUrl="/placeholder.svg"
+                currentLocationName={currentLocation?.address || 'Detectando ubicación...'}
+                isLoadingLocation={locationLoading}
+                searchQuery={searchQuery}
+                isSearchFocused={false}
+                onLogoClick={() => {}}
+                onLocationClick={handleLocationClick}
+                onMenuClick={() => {}}
+                onSearchChange={setSearchQuery}
+                onSearchFocus={() => {}}
+                onSearchBlur={() => {}}
+              />
             </div>
             <div className="hidden md:block lg:hidden">
-              <TabletHeader onLocationClick={handleLocationClick} />
+              <TabletHeader 
+                appName="FoodieSpot"
+                appLogoUrl="/placeholder.svg"
+                currentLocationName={currentLocation?.address || 'Detectando ubicación...'}
+                isLoadingLocation={locationLoading}
+                searchQuery={searchQuery}
+                isSearchFocused={false}
+                onLogoClick={() => {}}
+                onLocationClick={handleLocationClick}
+                onMenuClick={() => {}}
+                onSearchChange={setSearchQuery}
+                onSearchFocus={() => {}}
+                onSearchBlur={() => {}}
+              />
             </div>
           </>
         )}
@@ -157,16 +190,22 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-4">
             <div className="flex-1 max-w-md w-full">
-              <SearchBar
-                onChange={setSearchQuery}
-                placeholder={activeTab === 'restaurants' ? 'Buscar restaurantes...' : 'Buscar platos...'}
-              />
+              {isMobile && (
+                <SearchBar
+                  placeholder={activeTab === 'restaurants' ? 'Buscar restaurantes...' : 'Buscar platos...'}
+                />
+              )}
             </div>
           </div>
 
           {/* Quick Action Tags */}
           <QuickActionTags 
-            onFavoritesClick={handleFavoritesRefresh}
+            phone=""
+            website=""
+            email=""
+            address={currentLocation?.address || ""}
+            latitude={currentLocation?.latitude}
+            longitude={currentLocation?.longitude}
           />
         </div>
 
@@ -196,12 +235,12 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         <div className="flex flex-wrap gap-4 mb-6">
           <CuisineFilter
             selectedCuisines={selectedCuisines}
-            onCuisinesChange={setSelectedCuisines}
+            onCuisineChange={setSelectedCuisines}
           />
           {activeTab === 'dishes' && (
             <FoodTypeFilter
               selectedFoodTypes={selectedFoodTypes}
-              onFoodTypesChange={setSelectedFoodTypes}
+              onFoodTypeChange={setSelectedFoodTypes}
             />
           )}
         </div>
@@ -237,7 +276,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                     name={dish.name}
                     basePrice={dish.basePrice}
                     restaurantName={dish.restaurantName}
-                    cuisineType={dish.cuisineType}
                     layout={viewMode}
                   />
                 ))
@@ -252,9 +290,9 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                     googleRating={restaurant.google_rating}
                     googleRatingCount={restaurant.google_rating_count}
                     distance={restaurant.distance}
-                    cuisineTypes={restaurant.cuisine_types}
-                    establishmentType={restaurant.establishment_type}
-                    services={restaurant.services}
+                    cuisineTypes={restaurant.cuisine_types.map(c => c.name)}
+                    establishmentType={restaurant.establishment_type?.name || ''}
+                    services={restaurant.services.map(s => s.name)}
                     favoritesCount={restaurant.favorites_count}
                     coverImageUrl={restaurant.cover_image_url}
                     logoUrl={restaurant.logo_url}
@@ -277,7 +315,10 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
       {/* Bottom Navigation */}
       {isMobile && (
-        <BottomNavigation />
+        <BottomNavigation 
+          activeTab={activeTab === 'restaurants' ? 'restaurants' : 'dishes'}
+          onTabChange={(tab) => setActiveTab(tab as 'restaurants' | 'dishes')}
+        />
       )}
     </div>
   );
