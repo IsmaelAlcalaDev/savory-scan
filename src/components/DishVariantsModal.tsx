@@ -2,9 +2,9 @@
 import React from 'react';
 import { Plus, X } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
+  ModalWrapper,
+  ModalContent,
+} from '@/components/ui/modal-wrapper';
 import DinerSelector from './DinerSelector';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
@@ -48,8 +48,8 @@ export default function DishVariantsModal({ isOpen, onClose, dish, onVariantAdd 
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 rounded-xl border-0 shadow-lg mx-4">
+    <ModalWrapper open={isOpen} onOpenChange={onClose}>
+      <ModalContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 rounded-xl border-0 shadow-lg">
         {/* Custom Close Button */}
         <button
           onClick={onClose}
@@ -149,7 +149,7 @@ export default function DishVariantsModal({ isOpen, onClose, dish, onVariantAdd 
             ))}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ModalContent>
+    </ModalWrapper>
   );
 }
