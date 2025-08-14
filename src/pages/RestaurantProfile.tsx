@@ -27,7 +27,7 @@ import FavoriteButton from '@/components/FavoriteButton';
 import DishModal from '@/components/DishModal';
 import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 import RestaurantPlatforms from '@/components/RestaurantPlatforms';
-import CompactRestaurantSchedule from '@/components/CompactRestaurantSchedule';
+import RestaurantSchedule from '@/components/RestaurantSchedule';
 import QuickActionTags from '@/components/QuickActionTags';
 import CompactRestaurantEvents from '@/components/CompactRestaurantEvents';
 import CompactRestaurantPromotions from '@/components/CompactRestaurantPromotions';
@@ -276,6 +276,29 @@ export default function RestaurantProfile() {
 
   const currentImage = getCurrentImage();
   const allImages = getAllImages();
+
+  // Add this helper function after the existing utility functions
+  const getCurrentDayStatus = () => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentTime = now.toTimeString().slice(0, 5);
+    
+    const todaySchedule = restaurant?.schedules.find(s => s.day_of_week === currentDay);
+    
+    if (!todaySchedule || todaySchedule.is_closed) {
+      return { status: 'Cerrado', className: 'text-red-500', isOpen: false };
+    }
+    
+    if (currentTime >= todaySchedule.opening_time && currentTime <= todaySchedule.closing_time) {
+      return { status: 'Abierto', className: 'text-green-500', isOpen: true };
+    }
+    
+    return { status: 'Cerrado', className: 'text-red-500', isOpen: false };
+  };
+
+  const formatTime = (time: string) => {
+    return time.slice(0, 5);
+  };
 
   return (
     <>
@@ -587,43 +610,7 @@ export default function RestaurantProfile() {
                     ref={(el) => sectionsRef.current['horarios'] = el}
                     className="space-y-4"
                   >
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-primary" />
-                      Horarios
-                    </h3>
-                    {restaurant.schedules.length > 0 ? (
-                      <div className="space-y-2">
-                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((dayName, index) => {
-                          const schedule = restaurant.schedules.find(s => s.day_of_week === (index + 1) % 7);
-                          const isToday = new Date().getDay() === (index + 1) % 7;
-                          
-                          return (
-                            <div
-                              key={index}
-                              className={`flex justify-between items-center py-2 px-3 rounded-lg transition-smooth ${
-                                isToday ? 'bg-primary/10' : 'bg-secondary/20'
-                              }`}
-                            >
-                              <span className={`text-sm font-medium ${isToday ? 'text-primary' : 'text-foreground'}`}>
-                                {dayName}
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                {schedule?.is_closed || !schedule ? (
-                                  'Cerrado'
-                                ) : (
-                                  `${schedule.opening_time.slice(0, 5)} - ${schedule.closing_time.slice(0, 5)}`
-                                )}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Horarios no disponibles</p>
-                      </div>
-                    )}
+                    <RestaurantSchedule schedules={restaurant.schedules} />
                   </section>
                 </div>
               </div>
@@ -635,12 +622,47 @@ export default function RestaurantProfile() {
                 ref={(el) => sectionsRef.current['horarios'] = el}
                 className="space-y-4"
               >
-                <h3 className="text-lg font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  Horarios
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    Horarios
+                  </h3>
+                  {(() => {
+                    const currentStatus = getCurrentDayStatus();
+                    return (
+                      <span className={`text-sm font-medium ${currentStatus.className}`}>
+                        • {currentStatus.status}
+                      </span>
+                    );
+                  })()}
+                </div>
                 {restaurant.schedules.length > 0 ? (
-                  <CompactRestaurantSchedule schedules={restaurant.schedules} />
+                  <div className="space-y-2">
+                    {['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'].map((dayName, index) => {
+                      const schedule = restaurant.schedules.find(s => s.day_of_week === index);
+                      const isToday = new Date().getDay() === index;
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`flex justify-between items-center py-2 px-3 rounded-lg transition-smooth ${
+                            isToday ? 'bg-primary/10' : 'bg-secondary/20'
+                          }`}
+                        >
+                          <span className={`text-sm font-medium ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                            {dayName}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {schedule?.is_closed || !schedule ? (
+                              'Cerrado'
+                            ) : (
+                              `${formatTime(schedule.opening_time)} - ${formatTime(schedule.closing_time)}`
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
