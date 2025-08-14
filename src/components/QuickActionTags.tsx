@@ -41,33 +41,33 @@ export default function QuickActionTags({
         <Button
           size="lg"
           variant="outline"
-          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+          className="px-6 py-4 h-auto bg-red-50 rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
           onClick={() => window.open(`tel:${phone}`)}
         >
-          <Phone className="h-5 w-5 text-black" />
-          <span className="text-black font-medium">Llamar</span>
+          <Phone className="h-5 w-5 text-red-600" />
+          <span className="text-red-600 font-medium">Llamar</span>
         </Button>
       )}
       
       <Button
         size="lg"
         variant="outline"
-        className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+        className="px-6 py-4 h-auto bg-red-50 rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
         onClick={handleNavigationClick}
       >
-        <Navigation className="h-5 w-5 text-black" />
-        <span className="text-black font-medium">Cómo llegar</span>
+        <Navigation className="h-5 w-5 text-red-600" />
+        <span className="text-red-600 font-medium">Cómo llegar</span>
       </Button>
 
       {website && (
         <Button
           size="lg"
           variant="outline"
-          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+          className="px-6 py-4 h-auto bg-red-50 rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
           onClick={() => window.open(website, '_blank', 'noopener noreferrer')}
         >
-          <Globe className="h-5 w-5 text-black" />
-          <span className="text-black font-medium">Sitio web</span>
+          <Globe className="h-5 w-5 text-red-600" />
+          <span className="text-red-600 font-medium">Sitio web</span>
         </Button>
       )}
 
@@ -75,22 +75,22 @@ export default function QuickActionTags({
         <Button
           size="lg"
           variant="outline"
-          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+          className="px-6 py-4 h-auto bg-red-50 rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
           onClick={() => window.open(`mailto:${email}`)}
         >
-          <Mail className="h-5 w-5 text-black" />
-          <span className="text-black font-medium">Email</span>
+          <Mail className="h-5 w-5 text-red-600" />
+          <span className="text-red-600 font-medium">Email</span>
         </Button>
       )}
 
       <Button
         size="lg"
         variant="outline"
-        className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+        className="px-6 py-4 h-auto bg-red-50 rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
         onClick={onReservationClick}
       >
-        <Calendar className="h-5 w-5 text-black" />
-        <span className="text-black font-medium">Reservas</span>
+        <Calendar className="h-5 w-5 text-red-600" />
+        <span className="text-red-600 font-medium">Reservas</span>
       </Button>
     </div>
   );
