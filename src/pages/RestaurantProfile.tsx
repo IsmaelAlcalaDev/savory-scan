@@ -470,40 +470,9 @@ export default function RestaurantProfile() {
           </div>
         </div>
 
-        {/* Non-desktop: Ver Carta and Quick Actions combined block */}
-        <div 
-          ref={quickActionsRef}
-          className={`bg-background transition-all duration-300 ease-in-out lg:hidden ${
-            isQuickActionsFixed 
-              ? 'fixed top-0 left-0 right-0 z-40 shadow-lg' 
-              : 'relative'
-          }`}
-        >
-          <div className="max-w-6xl mx-auto px-4 py-1">
-            <Button
-              onClick={handleViewMenu}
-              size="lg"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg mb-1"
-            >
-              <Utensils className="h-6 w-6 mr-2" />
-              Ver Carta
-            </Button>
-            <QuickActionTags
-              phone={restaurant.phone}
-              website={restaurant.website}
-              email={restaurant.email}
-              address={restaurant.address}
-              latitude={restaurant.latitude}
-              longitude={restaurant.longitude}
-            />
-          </div>
-        </div>
-
-        {/* Non-desktop: Restaurant information below combined block */}
-        <div className={`bg-background lg:hidden ${
-          isQuickActionsFixed ? 'mt-32' : ''
-        }`}>
-          <div className="max-w-6xl mx-auto px-4 py-0">
+        {/* Non-desktop: Restaurant information directly below image */}
+        <div className="bg-background lg:hidden">
+          <div className="max-w-6xl mx-auto px-4 py-3">
             {/* Row 1: Logo and Name */}
             <div className="flex items-center gap-3 mb-2">
               {restaurant.logo_url && (
@@ -538,7 +507,7 @@ export default function RestaurantProfile() {
             </div>
 
             {/* Row 3: Address and Rating */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-2">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
                 <span>{restaurant.address}</span>
@@ -555,6 +524,35 @@ export default function RestaurantProfile() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Non-desktop: Ver Carta and Quick Actions section */}
+        <div 
+          ref={quickActionsRef}
+          className={`bg-background transition-all duration-300 ease-in-out lg:hidden ${
+            isQuickActionsFixed 
+              ? 'fixed top-0 left-0 right-0 z-40 shadow-lg' 
+              : 'relative'
+          }`}
+        >
+          <div className="max-w-6xl mx-auto px-4 py-1">
+            <Button
+              onClick={handleViewMenu}
+              size="lg"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg mb-1"
+            >
+              <Utensils className="h-6 w-6 mr-2" />
+              Ver Carta
+            </Button>
+            <QuickActionTags
+              phone={restaurant.phone}
+              website={restaurant.website}
+              email={restaurant.email}
+              address={restaurant.address}
+              latitude={restaurant.latitude}
+              longitude={restaurant.longitude}
+            />
           </div>
         </div>
 
@@ -662,7 +660,9 @@ export default function RestaurantProfile() {
           </div>
 
           {/* Non-desktop: Content sections */}
-          <div className="lg:hidden space-y-6 mt-4">
+          <div className={`lg:hidden space-y-6 mt-4 ${
+            isQuickActionsFixed ? 'mt-32' : ''
+          }`}>
             <section 
               id="horarios"
               ref={(el) => sectionsRef.current['horarios'] = el}
