@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
@@ -481,18 +480,12 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
-                className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0"
+                className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 placeholder:text-[#4B4B4B]"
                 style={{ 
                   backgroundColor: '#F3F3F3',
-                  color: '#4B4B4B',
-                  '--placeholder-color': '#4B4B4B'
-                } as any}
+                  color: '#4B4B4B'
+                }}
               />
-              <style jsx>{`
-                input::placeholder {
-                  color: #4B4B4B;
-                }
-              `}</style>
             </div>
           </div>
         )}
