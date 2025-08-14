@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { X, ChevronDown, MapPin, DollarSign, Star, ArrowUpDown, Store, Utensils, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -74,6 +74,19 @@ export default function FilterTags({
     selectedSort ||
     selectedTimeRanges.length > 0 ||
     isOpenNow;
+
+  const getFilterIcon = (filterKey: string) => {
+    switch (filterKey) {
+      case 'distance': return MapPin;
+      case 'price': return DollarSign;
+      case 'rating': return Star;
+      case 'sort': return ArrowUpDown;
+      case 'establishment': return Store;
+      case 'diet': return Utensils;
+      case 'schedule': return Clock;
+      default: return null;
+    }
+  };
 
   const getFilterTitle = (filterKey: string) => {
     switch (filterKey) {
@@ -218,19 +231,23 @@ export default function FilterTags({
       setActiveFilterModal(open ? filterKey : null);
     };
 
+    const FilterIcon = getFilterIcon(filterKey);
+
     return (
       <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
         <Button
           variant="outline"
           size="sm"
-          className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0"
+          className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2"
           style={{ 
             backgroundColor: '#F3F3F3',
             color: '#4B4B4B'
           }}
           onClick={() => handleOpenChange(true)}
         >
+          {FilterIcon && <FilterIcon className="h-3 w-3 text-black" />}
           {children}
+          <ChevronDown className="h-3 w-3 text-black" />
         </Button>
         <SheetContent 
           side="bottom" 
