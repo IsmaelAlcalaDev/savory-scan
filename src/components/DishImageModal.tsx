@@ -16,25 +16,6 @@ interface DishImageModalProps {
 }
 
 export default function DishImageModal({ isOpen, onClose, dish }: DishImageModalProps) {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price);
-  };
-
-  const getDisplayPrice = () => {
-    if (dish.variants && dish.variants.length > 0) {
-      const defaultVariant = dish.variants.find(v => v.is_default);
-      if (defaultVariant) {
-        return formatPrice(defaultVariant.price);
-      }
-      const minPrice = Math.min(...dish.variants.map(v => v.price));
-      return `desde ${formatPrice(minPrice)}`;
-    }
-    return formatPrice(dish.base_price || 0);
-  };
-
   if (!dish.image_url) return null;
 
   return (
@@ -50,23 +31,13 @@ export default function DishImageModal({ isOpen, onClose, dish }: DishImageModal
             <X className="h-6 w-6" />
           </button>
 
-          {/* Image with overlay */}
+          {/* Image only */}
           <div className="relative rounded-lg overflow-hidden">
             <img
               src={dish.image_url}
               alt={dish.image_alt || dish.name}
               className="w-full max-h-[85vh] object-cover"
             />
-            
-            {/* Title and price overlay */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-6">
-              <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
-                {dish.name}
-              </h2>
-              <div className="text-xl font-bold text-primary-foreground drop-shadow-lg">
-                {getDisplayPrice()}
-              </div>
-            </div>
           </div>
         </div>
       </DialogContent>
