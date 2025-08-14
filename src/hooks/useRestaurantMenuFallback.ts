@@ -79,6 +79,7 @@ export const useRestaurantMenuFallback = (restaurantId: number) => {
           favorites_count: dish.favorites_count,
           category_name: dish.dish_categories?.name,
           allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
+          section_id: dish.section_id, // Added this property
           variants: (dish.dish_variants || [])
             .sort((a: any, b: any) => a.display_order - b.display_order)
             .map((variant: any) => ({
