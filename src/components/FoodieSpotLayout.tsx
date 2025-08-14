@@ -19,6 +19,7 @@ import { useDishes } from '@/hooks/useDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Skeleton } from '@/components/ui/skeleton';
 import DishesGrid from './DishesGrid';
+import FilterTags from './FilterTags';
 
 interface FoodieSpotLayoutProps {
   initialTab?: 'restaurants' | 'dishes' | 'account';
@@ -153,6 +154,15 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       requestGPSLocation();
     }
   }, []);
+
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'sort' | 'quick', id?: number) => {
+    if (type === 'cuisine') {
+      setSelectedCuisines([]);
+    } else if (type === 'foodType') {
+      setSelectedFoodTypes([]);
+    }
+    // TODO: Implementar lógica para sort y quick filters cuando se agreguen
+  };
 
   const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useRestaurants({
     searchQuery: activeBottomTab === 'restaurants' ? searchQuery : '',
@@ -300,6 +310,14 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     if (activeBottomTab === 'dishes') {
       return (
         <>
+          {/* Filter Tags */}
+          <FilterTags
+            activeTab={activeBottomTab}
+            selectedCuisines={selectedCuisines}
+            selectedFoodTypes={selectedFoodTypes}
+            onClearFilter={handleClearFilter}
+          />
+
           {/* Results Header with simplified title */}
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -324,6 +342,14 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     // Default restaurants content (siempre mostrar cuando no sea 'dishes')
     return (
       <>
+        {/* Filter Tags */}
+        <FilterTags
+          activeTab={activeBottomTab}
+          selectedCuisines={selectedCuisines}
+          selectedFoodTypes={selectedFoodTypes}
+          onClearFilter={handleClearFilter}
+        />
+
         {/* Results Header with simplified title */}
         <div className="flex items-center justify-between mb-6">
           <div>
