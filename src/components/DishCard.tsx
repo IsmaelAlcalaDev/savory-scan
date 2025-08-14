@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,12 +57,14 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
     <Card className="bg-gradient-card border-glass shadow-card hover:shadow-lg transition-shadow group cursor-pointer" onClick={() => onDishClick?.(dish)}>
       <div className="relative">
         {dish.image_url ? (
-          <div className="aspect-[4/3] overflow-hidden rounded-t-lg">
+          <div className="aspect-[4/3] overflow-hidden rounded-t-lg relative">
             <img
               src={dish.image_url}
               alt={dish.image_alt || dish.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
+            {/* Dark overlay for better button contrast */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 pointer-events-none" />
           </div>
         ) : (
           <div className="aspect-[4/3] bg-muted rounded-t-lg flex items-center justify-center">
@@ -75,12 +78,12 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
           </Badge>
         )}
 
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-2 right-2 z-20">
           <DishFavoriteButton
             dishId={dish.id}
             favoritesCount={dish.favorites_count}
             size="sm"
-            className="bg-white/90 backdrop-blur-sm"
+            className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
           />
         </div>
       </div>

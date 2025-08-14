@@ -51,7 +51,7 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
   const renderFlag = (language: any, size = 24) => {
     if (language.flag_url) {
       return (
-        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
           <img
             src={language.flag_url}
             alt={`${language.name} flag`}
@@ -63,7 +63,7 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
       );
     }
     return (
-      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium">
+      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0">
         {language.code.toUpperCase()}
       </div>
     );
@@ -71,28 +71,28 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] p-0 overflow-hidden rounded-lg">
-        <div className="overflow-y-auto max-h-[80vh] p-6 space-y-6 rounded-lg">
-          {/* Selector de idioma */}
+      <DialogContent className="max-w-sm sm:max-w-lg max-h-[85vh] sm:max-h-[80vh] p-0 overflow-hidden rounded-lg mx-4 sm:mx-auto">
+        <div className="overflow-y-auto max-h-[85vh] sm:max-h-[80vh] p-4 sm:p-6 space-y-4 sm:space-y-6 rounded-lg">
+          {/* Selector de idioma - Mejorado para móviles */}
           <div>
-            <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">
-              <Languages className="h-5 w-5" />
+            <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
+              <Languages className="h-4 w-4 sm:h-5 sm:w-5" />
               Idioma
             </h3>
             {!isLoading && languages.length > 0 && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {languages.map((language: any) => (
                   <button
                     key={language.id}
                     onClick={() => handleLanguageChange(language)}
-                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                    className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border transition-all text-left ${
                       selectedLanguage?.id === language.id
                         ? 'border-primary bg-primary/10'
                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                     }`}
                   >
                     {renderFlag(language, 24)}
-                    <span className="text-sm font-medium">{language.name}</span>
+                    <span className="text-sm font-medium truncate">{language.name}</span>
                   </button>
                 ))}
               </div>
@@ -103,18 +103,18 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
 
           {/* Información de contacto */}
           <div>
-            <h3 className="font-semibold mb-3 text-lg">Contacto</h3>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">info@foodiespot.com</span>
+            <h3 className="font-semibold mb-3 text-base sm:text-lg">Contacto</h3>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm break-all">info@foodiespot.com</span>
               </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-sm">+34 900 123 456</span>
               </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-sm">Madrid, España</span>
               </div>
             </div>
@@ -124,22 +124,22 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
 
           {/* Enlaces legales */}
           <div>
-            <h3 className="font-semibold mb-3 text-lg">Legal</h3>
-            <div className="space-y-2">
+            <h3 className="font-semibold mb-3 text-base sm:text-lg">Legal</h3>
+            <div className="space-y-1 sm:space-y-2">
               <Button 
                 variant="ghost" 
-                className="w-full justify-start h-auto p-2"
+                className="w-full justify-start h-auto p-2 text-left"
                 onClick={() => handleLinkClick('/privacy')}
               >
-                <Shield className="h-4 w-4 mr-3" />
+                <Shield className="h-4 w-4 mr-2 sm:mr-3 flex-shrink-0" />
                 <span className="text-sm">Política de Privacidad</span>
               </Button>
               <Button 
                 variant="ghost" 
-                className="w-full justify-start h-auto p-2"
+                className="w-full justify-start h-auto p-2 text-left"
                 onClick={() => handleLinkClick('/terms')}
               >
-                <FileText className="h-4 w-4 mr-3" />
+                <FileText className="h-4 w-4 mr-2 sm:mr-3 flex-shrink-0" />
                 <span className="text-sm">Términos y Condiciones</span>
               </Button>
             </div>
@@ -149,22 +149,22 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
 
           {/* Soporte */}
           <div>
-            <h3 className="font-semibold mb-3 text-lg">Soporte</h3>
-            <div className="space-y-2">
+            <h3 className="font-semibold mb-3 text-base sm:text-lg">Soporte</h3>
+            <div className="space-y-1 sm:space-y-2">
               <Button 
                 variant="ghost" 
-                className="w-full justify-start h-auto p-2"
+                className="w-full justify-start h-auto p-2 text-left"
                 onClick={() => handleLinkClick('/help')}
               >
-                <HelpCircle className="h-4 w-4 mr-3" />
+                <HelpCircle className="h-4 w-4 mr-2 sm:mr-3 flex-shrink-0" />
                 <span className="text-sm">Centro de Ayuda</span>
               </Button>
               <Button 
                 variant="ghost" 
-                className="w-full justify-start h-auto p-2"
+                className="w-full justify-start h-auto p-2 text-left"
                 onClick={() => handleLinkClick('/about')}
               >
-                <Users className="h-4 w-4 mr-3" />
+                <Users className="h-4 w-4 mr-2 sm:mr-3 flex-shrink-0" />
                 <span className="text-sm">Sobre Nosotros</span>
               </Button>
             </div>
@@ -174,8 +174,8 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
 
           {/* Redes sociales */}
           <div>
-            <h3 className="font-semibold mb-3 text-lg">Síguenos</h3>
-            <div className="flex gap-4 justify-center">
+            <h3 className="font-semibold mb-3 text-base sm:text-lg">Síguenos</h3>
+            <div className="flex gap-3 sm:gap-4 justify-center flex-wrap">
               <Button
                 variant="outline"
                 size="sm"
