@@ -2,7 +2,20 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Leaf, Wheat, Milk, Heart, Flame, Clock, Plus } from 'lucide-react';
+import { 
+  Leaf, 
+  Wheat, 
+  Milk, 
+  Heart, 
+  Flame, 
+  Clock, 
+  Plus,
+  Fish,
+  Egg,
+  TreePine,
+  Cherry,
+  Shell
+} from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 
@@ -11,6 +24,20 @@ interface DishCardProps {
   restaurantId: number;
   onDishClick?: (dish: Dish) => void;
 }
+
+// Mapping of common allergen slugs to icons
+const allergenIconMap: Record<string, { icon: typeof Leaf; label: string }> = {
+  'gluten': { icon: Wheat, label: 'Gluten' },
+  'dairy': { icon: Milk, label: 'Lácteos' },
+  'lactose': { icon: Milk, label: 'Lactosa' },
+  'fish': { icon: Fish, label: 'Pescado' },
+  'shellfish': { icon: Shell, label: 'Mariscos' },
+  'eggs': { icon: Egg, label: 'Huevos' },
+  'nuts': { icon: TreePine, label: 'Frutos secos' },
+  'peanuts': { icon: Cherry, label: 'Cacahuetes' },
+  'soy': { icon: Leaf, label: 'Soja' },
+  'sesame': { icon: Cherry, label: 'Sésamo' }
+};
 
 export default function DishCard({ dish, restaurantId, onDishClick }: DishCardProps) {
   const getDietIcon = (dish: Dish) => {
@@ -53,102 +80,147 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
     return formatPrice(dish.base_price);
   };
 
+  // Get allergen icons (limit to 4-5 most important ones)
+  const getAllergenIcons = () => {
+    if (!dish.allergens || !Array.isArray(dish.allergens)) return [];
+    
+    return dish.allergens
+      .slice(0, 5)
+      .map((allergen: string) => {
+        const allergenInfo = allergenIconMap[allergen.toLowerCase()];
+        if (allergenInfo) {
+          return {
+            icon: allergenInfo.icon,
+            label: allergenInfo.label,
+            slug: allergen
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  };
+
   return (
-    <Card className="bg-gradient-card border-glass shadow-card hover:shadow-lg transition-shadow group cursor-pointer" onClick={() => onDishClick?.(dish)}>
-      <div className="relative">
-        {dish.image_url ? (
-          <div className="aspect-[4/3] overflow-hidden rounded-t-lg relative">
-            <img
-              src={dish.image_url}
-              alt={dish.image_alt || dish.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            {/* Dark overlay for better button contrast */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 pointer-events-none" />
+    <Card 
+      className="bg-gradient-card border-glass shadow-card hover:shadow-lg transition-shadow cursor-pointer" 
+      onClick={() => onDishClick?.(dish)}
+    >
+      <CardContent className="p-3">
+        <div className="flex gap-3">
+          {/* Image */}
+          <div className="flex-shrink-0">
+            {dish.image_url ? (
+              <div className="w-16 h-16 rounded-lg overflow-hidden relative">
+                <img
+                  src={dish.image_url}
+                  alt={dish.image_alt || dish.name}
+                  className="w-full h-full object-cover"
+                />
+                {dish.is_featured && (
+                  <Badge className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs px-1 py-0">
+                    ★
+                  </Badge>
+                )}
+              </div>
+            ) : (
+              <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
+                <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="aspect-[4/3] bg-muted rounded-t-lg flex items-center justify-center">
-            <div className="text-muted-foreground text-sm">Sin imagen</div>
-          </div>
-        )}
-        
-        {dish.is_featured && (
-          <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
-            Destacado
-          </Badge>
-        )}
 
-        <div className="absolute top-2 right-2 z-20">
-          <DishFavoriteButton
-            dishId={dish.id}
-            restaurantId={restaurantId}
-            favoritesCount={dish.favorites_count}
-            size="sm"
-            className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
-            savedFrom="menu_card"
-          />
-        </div>
-      </div>
-
-      <CardContent className="p-4 space-y-3">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-            {dish.name}
-          </h3>
-          
-          {dish.description && (
-            <p className="text-muted-foreground text-sm line-clamp-2">
-              {dish.description}
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Diet icons */}
-          {getDietIcon(dish).map(({ icon: Icon, label, color }, index) => (
-            <Icon key={index} className={`h-3 w-3 ${color}`} title={label} />
-          ))}
-
-          {/* Spice level */}
-          {dish.spice_level > 0 && (
-            <div className="flex items-center gap-1" title={`Nivel de picante: ${dish.spice_level}`}>
-              {getSpiceLevel(dish.spice_level)}
+          {/* Content */}
+          <div className="flex-1 min-w-0 relative">
+            {/* Favorite button */}
+            <div className="absolute top-0 right-0 z-10">
+              <DishFavoriteButton
+                dishId={dish.id}
+                restaurantId={restaurantId}
+                favoritesCount={dish.favorites_count}
+                size="sm"
+                className="bg-white/95 backdrop-blur-sm border-white/20 shadow-sm hover:bg-white"
+                savedFrom="menu_list"
+              />
             </div>
-          )}
 
-          {/* Preparation time */}
-          {dish.preparation_time_minutes && (
-            <div className="flex items-center gap-1 text-muted-foreground ml-auto">
-              <Clock className="h-3 w-3" />
-              <span className="text-xs">{dish.preparation_time_minutes}min</span>
+            {/* Main content */}
+            <div className="pr-8 space-y-1">
+              <div className="flex items-start justify-between">
+                <h3 className="font-semibold text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                  {dish.name}
+                </h3>
+              </div>
+              
+              {dish.description && (
+                <p className="text-muted-foreground text-xs line-clamp-1">
+                  {dish.description}
+                </p>
+              )}
+
+              {/* Price */}
+              <div className="font-bold text-lg text-primary">
+                {getDisplayPrice()}
+              </div>
+
+              {/* Icons and metadata row */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Diet icons */}
+                {getDietIcon(dish).slice(0, 3).map(({ icon: Icon, label, color }, index) => (
+                  <div key={index} title={label}>
+                    <Icon className={`h-3 w-3 ${color}`} />
+                  </div>
+                ))}
+
+                {/* Allergen icons */}
+                {getAllergenIcons().slice(0, 3).map((allergen, index) => {
+                  const Icon = allergen!.icon;
+                  return (
+                    <div key={index} title={`Contiene: ${allergen!.label}`}>
+                      <Icon className="h-3 w-3 text-orange-500" />
+                    </div>
+                  );
+                })}
+
+                {/* Spice level */}
+                {dish.spice_level > 0 && (
+                  <div className="flex items-center gap-0.5" title={`Nivel de picante: ${dish.spice_level}`}>
+                    {getSpiceLevel(dish.spice_level)}
+                  </div>
+                )}
+
+                {/* Preparation time */}
+                {dish.preparation_time_minutes && (
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    <span className="text-xs">{dish.preparation_time_minutes}min</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Category */}
+              {dish.category_name && (
+                <Badge variant="outline" className="text-xs w-fit">
+                  {dish.category_name}
+                </Badge>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Category */}
-        {dish.category_name && (
-          <Badge variant="outline" className="text-xs w-fit">
-            {dish.category_name}
-          </Badge>
-        )}
-
-        <div className="flex items-center justify-between pt-2">
-          <div className="font-bold text-lg text-primary">
-            {getDisplayPrice()}
+            {/* Add button */}
+            <div className="absolute bottom-0 right-0">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDishClick?.(dish);
+                }}
+                className="gap-1 h-7 px-2 text-xs"
+              >
+                <Plus className="h-3 w-3" />
+                Añadir
+              </Button>
+            </div>
           </div>
-          
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDishClick?.(dish);
-            }}
-            className="gap-1"
-          >
-            <Plus className="h-3 w-3" />
-            Añadir
-          </Button>
         </div>
       </CardContent>
     </Card>

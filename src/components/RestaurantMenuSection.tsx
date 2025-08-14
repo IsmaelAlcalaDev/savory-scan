@@ -1,46 +1,38 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Utensils } from 'lucide-react';
+import { type MenuSection } from '@/hooks/useRestaurantMenu';
 import DishCard from './DishCard';
-import type { MenuSection, Dish } from '@/hooks/useRestaurantMenu';
+import type { Dish } from '@/hooks/useRestaurantMenu';
 
 interface RestaurantMenuSectionProps {
   section: MenuSection;
   restaurantId: number;
-  onDishClick?: (dish: Dish) => void;
+  onDishClick: (dish: Dish) => void;
 }
 
 export default function RestaurantMenuSection({ section, restaurantId, onDishClick }: RestaurantMenuSectionProps) {
+  if (!section.dishes || section.dishes.length === 0) {
+    return null;
+  }
+
   return (
-    <Card className="bg-gradient-card border-glass shadow-card">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Utensils className="h-5 w-5 text-primary" />
-          {section.name}
-        </CardTitle>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold text-foreground">{section.name}</h2>
         {section.description && (
-          <p className="text-muted-foreground text-sm">{section.description}</p>
+          <p className="text-muted-foreground">{section.description}</p>
         )}
-      </CardHeader>
-      <CardContent>
-        {section.dishes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {section.dishes.map((dish) => (
-              <DishCard
-                key={dish.id}
-                dish={dish}
-                restaurantId={restaurantId}
-                onDishClick={onDishClick}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <Utensils className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No hay platos disponibles en esta sección</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+      
+      <div className="space-y-3">
+        {section.dishes.map((dish) => (
+          <DishCard
+            key={dish.id}
+            dish={dish}
+            restaurantId={restaurantId}
+            onDishClick={onDishClick}
+          />
+        ))}
+      </div>
+    </div>
   );
 }

@@ -2,7 +2,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Utensils } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
@@ -10,7 +9,8 @@ import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import { type Dish } from '@/hooks/useRestaurantMenu';
 import DishModal from '@/components/DishModal';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
-import MenuFilters from '@/components/MenuFilters';
+import AllergenFilterButton from '@/components/AllergenFilterButton';
+import DietFilterButton from '@/components/DietFilterButton';
 import DishSearchBar from '@/components/DishSearchBar';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import LanguageSelector from '@/components/LanguageSelector';
@@ -182,10 +182,13 @@ export default function RestaurantMenu() {
         <div className="bg-background border-b">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center gap-4">
-              <MenuFilters
+              <AllergenFilterButton
                 selectedAllergens={selectedAllergens}
-                selectedDietTypes={selectedDietTypes}
                 onAllergenChange={setSelectedAllergens}
+              />
+              
+              <DietFilterButton
+                selectedDietTypes={selectedDietTypes}
                 onDietTypeChange={setSelectedDietTypes}
               />
               
