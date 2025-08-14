@@ -334,7 +334,7 @@ export default function RestaurantProfile() {
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        <div ref={heroRef} className="relative h-96 md:h-96 sm:h-64 overflow-hidden">
+        <div ref={heroRef} className="relative h-64 md:h-96 sm:h-44 overflow-hidden">
           {currentImage && (
             <img 
               key={`${restaurant.id}-${currentImageIndex}`}
@@ -507,7 +507,7 @@ export default function RestaurantProfile() {
           <div className={`bg-background ${
             isQuickActionsFixed ? 'mt-32' : ''
           }`}>
-            <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="max-w-6xl mx-auto px-4 py-3">
               {/* Row 1: Logo and Name */}
               <div className="flex items-center gap-3 mb-3">
                 {restaurant.logo_url && (
@@ -563,7 +563,7 @@ export default function RestaurantProfile() {
           </div>
         )}
 
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 py-6">
           {!isMobile ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-8">
