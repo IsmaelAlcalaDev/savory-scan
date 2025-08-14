@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { Separator } from '@/components/ui/separator';
 import DishCard from './DishCard';
 import type { MenuSection } from '@/hooks/useRestaurantMenu';
 
@@ -28,14 +29,18 @@ export default function RestaurantMenuSection({
       </div>
       
       <div className="space-y-1">
-        {section.dishes.map((dish) => (
-          <DishCard
-            key={dish.id}
-            dish={dish}
-            restaurantId={restaurantId}
-            expandedDishId={expandedDishId}
-            onExpandedChange={setExpandedDishId}
-          />
+        {section.dishes.map((dish, index) => (
+          <div key={dish.id}>
+            <DishCard
+              dish={dish}
+              restaurantId={restaurantId}
+              expandedDishId={expandedDishId}
+              onExpandedChange={setExpandedDishId}
+            />
+            {index < section.dishes.length - 1 && (
+              <Separator className="my-2" />
+            )}
+          </div>
         ))}
       </div>
     </div>
