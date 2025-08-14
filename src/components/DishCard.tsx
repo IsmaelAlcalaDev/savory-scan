@@ -1,7 +1,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronDown } from 'lucide-react';
+import { Plus, ChevronDown, Resize } from 'lucide-react';
 import { useState } from 'react';
 import DishFavoriteButton from './DishFavoriteButton';
 import type { Dish } from '@/hooks/useRestaurantMenu';
@@ -103,6 +103,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
   };
 
   const allergenCircles = getAllergenCircles();
+  const hasVariants = dish.variants && dish.variants.length > 1;
 
   return (
     <div 
@@ -136,9 +137,16 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
         <div className="flex-1 min-w-0 flex flex-col justify-between h-20">
           {/* Top Row - Name and Price */}
           <div className="flex items-start justify-between mb-1">
-            <h3 className="font-semibold text-sm text-foreground line-clamp-2 pr-4">
-              {dish.name}
-            </h3>
+            <div className="flex items-center gap-2 pr-4">
+              <h3 className="font-semibold text-sm text-foreground line-clamp-2">
+                {dish.name}
+              </h3>
+              {hasVariants && (
+                <div className="flex items-center">
+                  <Resize className="h-3 w-3 text-muted-foreground" title="Disponible en varios tamaños" />
+                </div>
+              )}
+            </div>
             <div className="font-bold text-base text-primary text-right flex-shrink-0">
               {getDisplayPrice()}
             </div>
