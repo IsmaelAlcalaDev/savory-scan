@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import { Tab } from '@headlessui/react'
-import { useRouter } from 'next/router';
-
-import { useSearchParams } from 'next/navigation'
+import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,11 +8,16 @@ import FilterTags from '@/components/FilterTags';
 import RestaurantList from '@/components/RestaurantList';
 import { useDebounce } from '@/hooks/use-debounce';
 
-export default function FoodieSpotLayout() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+interface FoodieSpotLayoutProps {
+  initialTab?: string;
+}
 
-  const [activeTab, setActiveTab] = useState<string>(searchParams.get('tab') || 'restaurants');
+export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+
+  const [activeTab, setActiveTab] = useState<string>(searchParams.get('tab') || initialTab);
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('q') || '');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
@@ -33,7 +35,7 @@ export default function FoodieSpotLayout() {
     setActiveTab(tab);
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.set('tab', tab);
-    router.push(`/?${newParams.toString()}`, undefined, { shallow: true });
+    navigate(`?${newParams.toString()}`, { replace: true });
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,7 +46,7 @@ export default function FoodieSpotLayout() {
     } else {
       newParams.delete('q');
     }
-    router.push(`/?${newParams.toString()}`, undefined, { shallow: true });
+    navigate(`?${newParams.toString()}`, { replace: true });
   };
 
   const handleCuisineChange = (cuisineId: number) => {
@@ -144,7 +146,6 @@ export default function FoodieSpotLayout() {
         setSelectedDietTypes([]);
         setIsOpenNow(false);
         setSelectedSort('relevance');
-        setSelectedDistance([]);
         break;
     }
   };
@@ -159,7 +160,7 @@ export default function FoodieSpotLayout() {
 
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Tabs defaultActive={activeTab} onValueChange={handleTabChange} className="mb-4">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-4">
             <TabsList>
               <TabsTrigger value="restaurants">Restaurantes</TabsTrigger>
               <TabsTrigger value="dishes">Platos</TabsTrigger>
@@ -182,7 +183,7 @@ export default function FoodieSpotLayout() {
                         setSearchQuery('');
                         const newParams = new URLSearchParams(searchParams.toString());
                         newParams.delete('q');
-                        router.push(`/?${newParams.toString()}`, undefined, { shallow: true });
+                        navigate(`?${newParams.toString()}`, { replace: true });
                       }}
                     >
                       Borrar
@@ -209,7 +210,7 @@ export default function FoodieSpotLayout() {
                         setSearchQuery('');
                         const newParams = new URLSearchParams(searchParams.toString());
                         newParams.delete('q');
-                        router.push(`/?${newParams.toString()}`, undefined, { shallow: true });
+                        navigate(`?${newParams.toString()}`, { replace: true });
                       }}
                     >
                       Borrar
