@@ -187,7 +187,7 @@ export default function DishListCard({ dish, restaurantId, expandedDishId, onExp
 
           {/* Expandable Content */}
           <CollapsibleContent>
-            <div className="py-3 space-y-2 bg-accent/20 rounded-b-lg">
+            <div className="py-3 space-y-2 rounded-b-lg">
               {/* Description */}
               {dish.description && (
                 <p className="text-sm text-muted-foreground px-3">{dish.description}</p>
