@@ -7,6 +7,7 @@ interface PlatformConfig {
   platform_key: string;
   platform_name: string;
   icon_name: string;
+  icon?: string;
   icon_color?: string;
   base_url?: string;
   url_pattern?: string;
