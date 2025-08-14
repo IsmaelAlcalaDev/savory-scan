@@ -417,33 +417,46 @@ export default function FoodieSpotLayout({
         </div>
       </>;
   };
-  return <div className="min-h-screen bg-white pb-20 px-2 md:px-4 lg:px-[7.5%]">
+  return (
+    <div className="min-h-screen bg-white pb-20 px-2 md:px-4 lg:px-[7.5%]">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white -mx-2 md:-mx-4 lg:-mx-[7.5%] px-2 md:px-4 lg:px-[7.5%]">
         {renderHeader()}
 
         {/* Tipos de Cocina / Tipos de Comida */}
-        <div className="px-4 pb-2 pt-1">
-          {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
+        <div className="px-4 pt-1">
+          {activeBottomTab === 'dishes' ? 
+            <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : 
+            <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />
+          }
         </div>
 
         {/* Search bar for mobile - Full width below cuisine types */}
-        {isMobile && <div className="pb-2">
+        {isMobile && (
+          <div className="pb-2">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{
-            color: '#4B4B4B'
-          }} />
-              <input type="text" placeholder={getSearchPlaceholder()} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 placeholder:text-[#4B4B4B]" style={{
-            backgroundColor: '#F3F3F3',
-            color: '#4B4B4B'
-          }} />
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{ color: '#4B4B4B' }} />
+              <input
+                type="text"
+                placeholder={getSearchPlaceholder()}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 placeholder:text-[#4B4B4B]"
+                style={{
+                  backgroundColor: '#F3F3F3',
+                  color: '#4B4B4B'
+                }}
+              />
             </div>
-          </div>}
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
       <div className="w-full">
-        <div className="p-0 md:p-4">
+        <div className="p-0 md:p-4 px-4 md:px-4">
           {renderContent()}
         </div>
       </div>
@@ -502,5 +515,6 @@ export default function FoodieSpotLayout({
         setCurrentLocationName(location.data.query);
       }
     }} />
-    </div>;
+    </div>
+  );
 }
