@@ -27,28 +27,26 @@ export const dishFavoritesService = {
         .select('*')
         .eq('user_id', user.id)
         .eq('dish_id', dishId)
-        .single();
+        .maybeSingle();
 
-      if (checkError && checkError.code !== 'PGRST116') {
+      if (checkError) {
         console.error('dishFavoritesService: Error checking existing favorite:', checkError);
         throw checkError;
       }
 
       let isNowFavorite = false;
-      let favoriteRecord = existingFavorite;
 
       if (existingFavorite) {
         // Toggle existing record
         const newActiveState = !existingFavorite.is_active;
-        const { data: updatedRecord, error: updateError } = await supabase
+        const { error: updateError } = await supabase
           .from('user_saved_dishes')
           .update({ 
             is_active: newActiveState,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingFavorite.id)
-          .select()
-          .single();
+          .eq('user_id', user.id)
+          .eq('dish_id', dishId);
 
         if (updateError) {
           console.error('dishFavoritesService: Error updating favorite:', updateError);
@@ -56,19 +54,16 @@ export const dishFavoritesService = {
         }
 
         isNowFavorite = newActiveState;
-        favoriteRecord = updatedRecord;
       } else {
         // Create new favorite record
-        const { data: newRecord, error: insertError } = await supabase
+        const { error: insertError } = await supabase
           .from('user_saved_dishes')
           .insert({
             user_id: user.id,
             dish_id: dishId,
             is_active: true,
             saved_from: savedFrom
-          })
-          .select()
-          .single();
+          });
 
         if (insertError) {
           console.error('dishFavoritesService: Error creating favorite:', insertError);
@@ -76,10 +71,9 @@ export const dishFavoritesService = {
         }
 
         isNowFavorite = true;
-        favoriteRecord = newRecord;
       }
 
-      // Now update the dish favorites count manually
+      // Update the dish favorites count manually
       const { data: dish, error: dishError } = await supabase
         .from('dishes')
         .select('favorites_count')
@@ -162,12 +156,9 @@ export const dishFavoritesService = {
         .eq('user_id', user.id)
         .eq('dish_id', dishId)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          return false; // No record found
-        }
         console.error('dishFavoritesService: Error checking if favorited:', error);
         return false;
       }
