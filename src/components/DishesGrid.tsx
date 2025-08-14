@@ -8,20 +8,10 @@ interface DishData {
   description?: string;
   base_price: number;
   image_url?: string;
-  image_alt?: string;
-  is_featured: boolean;
-  is_vegetarian: boolean;
-  is_vegan: boolean;
-  is_gluten_free: boolean;
-  is_lactose_free: boolean;
-  is_healthy: boolean;
-  spice_level: number;
-  preparation_time_minutes?: number;
-  favorites_count: number;
   category_name?: string;
-  restaurant_id: number;
   restaurant_name: string;
   restaurant_slug: string;
+  restaurant_google_rating?: number;
   distance_km?: number;
   formatted_price: string;
 }
@@ -74,7 +64,17 @@ export default function DishesGrid({ dishes, loading, error }: DishesGridProps) 
       {dishes.map((dish) => (
         <AllDishCard
           key={dish.id}
-          dish={dish}
+          id={dish.id}
+          name={dish.name}
+          description={dish.description}
+          basePrice={dish.base_price}
+          imageUrl={dish.image_url}
+          categoryName={dish.category_name}
+          restaurantName={dish.restaurant_name}
+          restaurantSlug={dish.restaurant_slug}
+          restaurantRating={dish.restaurant_google_rating}
+          distance={dish.distance_km}
+          formattedPrice={dish.formatted_price}
         />
       ))}
     </div>

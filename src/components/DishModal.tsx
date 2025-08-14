@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Leaf, Wheat, Milk, Heart, Flame, Clock, X } from 'lucide-react';
-import DishFavoriteButton from './DishFavoriteButton';
+import FavoriteButton from './FavoriteButton';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 
 interface DishModalProps {
@@ -154,8 +154,8 @@ export default function DishModal({ dish, restaurantId, isOpen, onClose }: DishM
 
           {/* Actions */}
           <div className="flex items-center justify-between pt-4 border-t">
-            <DishFavoriteButton
-              dishId={dish.id}
+            <FavoriteButton
+              restaurantId={restaurantId}
               favoritesCount={dish.favorites_count}
               savedFrom="dish_modal"
               size="md"
