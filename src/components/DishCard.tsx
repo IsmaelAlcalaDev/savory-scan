@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, ChevronDown } from 'lucide-react';
@@ -189,7 +188,7 @@ export default function DishCard({ dish, restaurantId, expandedDishId, onExpande
 
           {/* Expandable Content */}
           <CollapsibleContent className="mt-3">
-            <div className="ml-23 space-y-3 bg-accent/20 rounded-lg p-3">
+            <div className="space-y-3 bg-accent/20 rounded-lg p-3">
               {/* Description */}
               {dish.description && (
                 <p className="text-sm text-muted-foreground">{dish.description}</p>
