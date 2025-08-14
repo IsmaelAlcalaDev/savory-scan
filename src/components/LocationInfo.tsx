@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface LocationInfoProps {
-  location: {
+  location?: {
     name: string;
     description?: string;
     type: string;
@@ -14,6 +14,11 @@ interface LocationInfoProps {
 }
 
 export default function LocationInfo({ location, onClose }: LocationInfoProps) {
+  // Don't render if location is not provided
+  if (!location) {
+    return null;
+  }
+
   return (
     <Card className="absolute top-full left-0 right-0 mt-1 z-50 bg-background border shadow-lg">
       <CardContent className="p-4">
@@ -21,7 +26,7 @@ export default function LocationInfo({ location, onClose }: LocationInfoProps) {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Info className="h-4 w-4 text-blue-500" />
-              <h4 className="font-medium">{location.name}</h4>
+              <h4 className="font-medium">{location.name || 'Ubicación'}</h4>
             </div>
             {location.parent && (
               <p className="text-sm text-muted-foreground mb-2">{location.parent}</p>
