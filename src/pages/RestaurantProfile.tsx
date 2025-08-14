@@ -33,6 +33,8 @@ import DeliveryIcons from '@/components/DeliveryIcons';
 import CompactRestaurantEvents from '@/components/CompactRestaurantEvents';
 import CompactRestaurantPromotions from '@/components/CompactRestaurantPromotions';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import RestaurantSocialSection from '@/components/RestaurantSocialSection';
+import RestaurantDeliveryButtons from '@/components/RestaurantDeliveryButtons';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
@@ -506,18 +508,18 @@ export default function RestaurantProfile() {
                 </section>
 
                 {/* Redes Sociales */}
-                <RestaurantPlatforms
-                  category="social"
-                  title="Síguenos en redes sociales"
-                  restaurantLinks={restaurant.social_links || {}}
-                />
+                {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
+                  <section className="space-y-4">
+                    <RestaurantSocialSection socialLinks={restaurant.social_links} />
+                  </section>
+                )}
               </div>
 
               {/* Right Column - Menu button and Schedules */}
               <div className="lg:col-span-1 space-y-6">
                 {/* Sticky sidebar content */}
                 <div className="sticky top-8 space-y-6">
-                  {/* Ver Carta Button and Delivery Icons */}
+                  {/* Ver Carta Button and Delivery Buttons */}
                   <div className="space-y-4">
                     <Button
                       onClick={handleViewMenu}
@@ -527,6 +529,11 @@ export default function RestaurantProfile() {
                       <Utensils className="h-6 w-6 mr-2" />
                       Ver Carta
                     </Button>
+                    
+                    {/* Delivery Buttons */}
+                    {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
+                      <RestaurantDeliveryButtons deliveryLinks={restaurant.delivery_links} />
+                    )}
                     
                     <div className="flex justify-center">
                       <DeliveryIcons restaurantLinks={restaurant.delivery_links || {}} />
@@ -603,7 +610,7 @@ export default function RestaurantProfile() {
                 )}
               </section>
 
-              {/* Ver Carta Button and Delivery Icons */}
+              {/* Ver Carta Button and Delivery Buttons */}
               <div className="space-y-4">
                 <Button
                   onClick={handleViewMenu}
@@ -613,6 +620,11 @@ export default function RestaurantProfile() {
                   <Utensils className="h-6 w-6 mr-2" />
                   Ver Carta
                 </Button>
+                
+                {/* Delivery Buttons */}
+                {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
+                  <RestaurantDeliveryButtons deliveryLinks={restaurant.delivery_links} />
+                )}
                 
                 <div className="flex justify-center">
                   <DeliveryIcons restaurantLinks={restaurant.delivery_links || {}} />
@@ -671,11 +683,11 @@ export default function RestaurantProfile() {
               </section>
 
               {/* Redes Sociales */}
-              <RestaurantPlatforms
-                category="social"
-                title="Síguenos en redes sociales"
-                restaurantLinks={restaurant.social_links || {}}
-              />
+              {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
+                <section className="space-y-4">
+                  <RestaurantSocialSection socialLinks={restaurant.social_links} />
+                </section>
+              )}
             </div>
           )}
         </div>

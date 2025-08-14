@@ -15,8 +15,8 @@ export interface RestaurantProfile {
   email?: string;
   logo_url?: string;
   cover_image_url?: string;
-  social_links?: any;
-  delivery_links?: any;
+  social_links?: Record<string, string>;
+  delivery_links?: Record<string, string>;
   latitude?: number;
   longitude?: number;
   favorites_count: number;
@@ -112,8 +112,10 @@ export const useRestaurantProfile = (slug: string) => {
         }
 
         console.log('Restaurant data fetched:', restaurantData);
-        console.log('Social links raw data:', restaurantData.social_links);
-        console.log('Delivery links raw data:', restaurantData.delivery_links);
+        console.log('Social links type:', typeof restaurantData.social_links);
+        console.log('Social links data:', restaurantData.social_links);
+        console.log('Delivery links type:', typeof restaurantData.delivery_links);
+        console.log('Delivery links data:', restaurantData.delivery_links);
 
         // Get schedules
         const { data: schedules, error: schedulesError } = await supabase
@@ -126,8 +128,6 @@ export const useRestaurantProfile = (slug: string) => {
           console.error('Error fetching schedules:', schedulesError);
         }
 
-        console.log('Schedules fetched:', schedules);
-
         // Get gallery
         const { data: gallery, error: galleryError } = await supabase
           .from('restaurant_gallery')
@@ -138,8 +138,6 @@ export const useRestaurantProfile = (slug: string) => {
         if (galleryError) {
           console.error('Error fetching gallery:', galleryError);
         }
-
-        console.log('Gallery fetched:', gallery);
 
         // Get active promotions
         const { data: promotions, error: promotionsError } = await supabase
@@ -166,7 +164,24 @@ export const useRestaurantProfile = (slug: string) => {
           console.error('Error fetching promotions:', promotionsError);
         }
 
-        console.log('Promotions fetched:', promotions);
+        // Parse social_links and delivery_links properly
+        let socialLinks: Record<string, string> = {};
+        let deliveryLinks: Record<string, string> = {};
+
+        if (restaurantData.social_links) {
+          socialLinks = typeof restaurantData.social_links === 'string' 
+            ? JSON.parse(restaurantData.social_links) 
+            : restaurantData.social_links;
+        }
+
+        if (restaurantData.delivery_links) {
+          deliveryLinks = typeof restaurantData.delivery_links === 'string' 
+            ? JSON.parse(restaurantData.delivery_links) 
+            : restaurantData.delivery_links;
+        }
+
+        console.log('Parsed social links:', socialLinks);
+        console.log('Parsed delivery links:', deliveryLinks);
 
         const formattedData: RestaurantProfile = {
           id: restaurantData.id,
@@ -181,8 +196,8 @@ export const useRestaurantProfile = (slug: string) => {
           email: restaurantData.email,
           logo_url: restaurantData.logo_url,
           cover_image_url: restaurantData.cover_image_url,
-          social_links: restaurantData.social_links || {},
-          delivery_links: restaurantData.delivery_links || {},
+          social_links: socialLinks,
+          delivery_links: deliveryLinks,
           latitude: restaurantData.latitude,
           longitude: restaurantData.longitude,
           favorites_count: restaurantData.favorites_count || 0,
@@ -196,9 +211,6 @@ export const useRestaurantProfile = (slug: string) => {
           promotions: promotions || []
         };
 
-        console.log('Final formatted data - Social links:', formattedData.social_links);
-        console.log('Final formatted data - Delivery links:', formattedData.delivery_links);
-        console.log('Formatted restaurant data:', formattedData);
         setRestaurant(formattedData);
       } catch (err) {
         console.error('Error in fetchRestaurant:', err);
