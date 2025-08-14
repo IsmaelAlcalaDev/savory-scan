@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,7 +13,7 @@ import { useDistanceRanges } from '@/hooks/useDistanceRanges';
 import { useFoodTypes } from '@/hooks/useFoodTypes';
 import { useDietTypes } from '@/hooks/useDietTypes';
 import { useTimeRanges } from '@/hooks/useTimeRanges';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { useFilterState } from '@/hooks/useFilterState';
 import { useAuthModal } from '@/hooks/useAuthModal';
 import SearchBar from './SearchBar';
 import RestaurantCard from './RestaurantCard';
@@ -35,7 +36,7 @@ interface Restaurant {
   price_range: string;
   google_rating?: number;
   google_rating_count?: number;
-  distance?: number;
+  distance_km?: number;
   cuisine_types: string[];
   establishment_type?: string;
   services?: string[];
@@ -59,60 +60,11 @@ interface Dish {
   favorites_count?: number;
 }
 
-interface CuisineType {
-  id: number;
-  name: string;
-}
-
-interface EstablishmentType {
-  id: number;
-  name: string;
-}
-
-interface Service {
-  id: number;
-  name: string;
-}
-
-interface PriceRange {
-  id: number;
-  name: string;
-  value: string;
-}
-
-interface RatingOption {
-  id: number;
-  name: string;
-  value: number;
-}
-
-interface DistanceRange {
-  id: number;
-  name: string;
-  value: number;
-}
-
-interface FoodType {
-  id: number;
-  name: string;
-}
-
-interface DietType {
-  id: number;
-  name: string;
-}
-
-interface TimeRange {
-  id: number;
-  name: string;
-  value: number;
-}
-
 interface FoodieSpotLayoutProps {
-  initialTab: 'restaurants' | 'dishes';
+  initialTab?: 'restaurants' | 'dishes';
 }
 
-export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) {
+export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
   const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -122,17 +74,21 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
 
   // Restaurants Hooks
   const {
-    restaurantsData,
+    restaurants,
     loading: restaurantsLoading,
     error: restaurantsError,
-  } = useRestaurants(searchTerm);
+  } = useRestaurants({
+    searchQuery: searchTerm,
+  });
 
   // Dishes Hooks
   const {
-    dishesData,
+    dishes,
     loading: dishesLoading,
     error: dishesError,
-  } = useDishes(searchTerm);
+  } = useDishes({
+    searchQuery: searchTerm,
+  });
 
   // Filters Hooks
   const { cuisineTypes } = useCuisineTypes();
@@ -141,11 +97,11 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
   const { priceRanges } = usePriceRanges();
   const { ratingOptions } = useRatingOptions();
   const { distanceRanges } = useDistanceRanges();
-   const { foodTypes } = useFoodTypes();
+  const { foodTypes } = useFoodTypes();
   const { dietTypes } = useDietTypes();
   const { timeRanges } = useTimeRanges();
 
-  // User Preferences Hooks
+  // Filter State
   const {
     selectedCuisineTypes,
     selectedEstablishmentTypes,
@@ -162,17 +118,17 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
     setSelectedPriceRange,
     setSelectedRating,
     setSelectedDistance,
-     setSelectedFoodTypes,
+    setSelectedFoodTypes,
     setSelectedDietTypes,
     setSelectedTimeRange,
-  } = useUserPreferences();
+  } = useFilterState();
 
-  const { openAuthModal } = useAuthModal();
+  const { openModal: openAuthModal } = useAuthModal();
 
   const filteredRestaurants = useMemo(() => {
-    if (!restaurantsData?.restaurants) return [];
+    if (!restaurants) return [];
 
-    return restaurantsData.restaurants.filter((restaurant) => {
+    return restaurants.filter((restaurant) => {
       const cuisineFilter = selectedCuisineTypes.length === 0 || selectedCuisineTypes.every(cuisineType =>
         restaurant.cuisine_types.includes(cuisineType)
       );
@@ -182,31 +138,31 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
       );
       const priceRangeFilter = !selectedPriceRange || restaurant.price_range === selectedPriceRange;
       const ratingFilter = !selectedRating || (restaurant.google_rating && restaurant.google_rating >= selectedRating);
-      const distanceFilter = !selectedDistance || (restaurant.distance && restaurant.distance <= selectedDistance);
+      const distanceFilter = !selectedDistance || (restaurant.distance_km && restaurant.distance_km <= selectedDistance);
 
       return cuisineFilter && establishmentFilter && servicesFilter && priceRangeFilter && ratingFilter && distanceFilter;
     });
-  }, [restaurantsData, selectedCuisineTypes, selectedEstablishmentTypes, selectedServices, selectedPriceRange, selectedRating, selectedDistance]);
+  }, [restaurants, selectedCuisineTypes, selectedEstablishmentTypes, selectedServices, selectedPriceRange, selectedRating, selectedDistance]);
 
   const filteredDishes = useMemo(() => {
-    if (!dishesData?.dishes) return [];
+    if (!dishes) return [];
 
-    return dishesData.dishes.filter((dish) => {
+    return dishes.filter((dish) => {
       const cuisineFilter = selectedCuisineTypes.length === 0 || selectedCuisineTypes.every(cuisineType =>
         dish.cuisine_types.includes(cuisineType)
       );
-       const foodTypeFilter = selectedFoodTypes.length === 0 || selectedFoodTypes.every(foodType =>
+      const foodTypeFilter = selectedFoodTypes.length === 0 || selectedFoodTypes.every(foodType =>
         dish.food_types.includes(foodType)
       );
       const dietTypeFilter = selectedDietTypes.length === 0 || selectedDietTypes.every(dietType =>
         dish.diet_types.includes(dietType)
       );
       const priceRangeFilter = !selectedPriceRange || priceRanges.find(pr => pr.value === selectedPriceRange)?.name === dish.price.toString();
-       const timeRangeFilter = !selectedTimeRange || (dish.preparation_time && dish.preparation_time <= selectedTimeRange);
+      const timeRangeFilter = !selectedTimeRange || (dish.preparation_time && dish.preparation_time <= selectedTimeRange);
 
       return cuisineFilter && foodTypeFilter && dietTypeFilter && priceRangeFilter && timeRangeFilter;
     });
-  }, [dishesData, selectedCuisineTypes, selectedFoodTypes, selectedDietTypes, selectedPriceRange, selectedTimeRange, priceRanges]);
+  }, [dishes, selectedCuisineTypes, selectedFoodTypes, selectedDietTypes, selectedPriceRange, selectedTimeRange, priceRanges]);
 
   return (
     <>
@@ -228,9 +184,9 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
             <div className="flex flex-col gap-4">
               <LocationInfo />
               <SearchBar
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                activeTab={activeTab}
+                value={searchTerm}
+                onChange={setSearchTerm}
+                placeholder={activeTab === 'restaurants' ? 'Buscar restaurantes...' : 'Buscar platos...'}
               />
             </div>
           </div>
@@ -242,10 +198,10 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <TabsList className="grid w-full sm:w-auto grid-cols-2">
                 <TabsTrigger value="restaurants" className="text-sm">
-                  Restaurantes ({restaurantsData?.restaurants?.length || 0})
+                  Restaurantes ({restaurants?.length || 0})
                 </TabsTrigger>
                 <TabsTrigger value="dishes" className="text-sm">
-                  Platos ({dishesData?.dishes?.length || 0})
+                  Platos ({dishes?.length || 0})
                 </TabsTrigger>
               </TabsList>
 
@@ -272,12 +228,6 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
                 <div className="w-64 flex-shrink-0">
                   <TabsContent value="restaurants" className="mt-0">
                     <FiltersSidebar
-                      cuisineTypes={cuisineTypes}
-                      establishmentTypes={establishmentTypes}
-                      services={services}
-                      priceRanges={priceRanges}
-                      ratingOptions={ratingOptions}
-                      distanceRanges={distanceRanges}
                       selectedCuisineTypes={selectedCuisineTypes}
                       selectedEstablishmentTypes={selectedEstablishmentTypes}
                       selectedServices={selectedServices}
@@ -294,11 +244,6 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
                   </TabsContent>
                   <TabsContent value="dishes" className="mt-0">
                     <DishesFiltersSidebar
-                      cuisineTypes={cuisineTypes}
-                      foodTypes={foodTypes}
-                      dietTypes={dietTypes}
-                      priceRanges={priceRanges}
-                      timeRanges={timeRanges}
                       selectedCuisineTypes={selectedCuisineTypes}
                       selectedFoodTypes={selectedFoodTypes}
                       selectedDietTypes={selectedDietTypes}
@@ -339,7 +284,7 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
                           priceRange={restaurant.price_range}
                           googleRating={restaurant.google_rating}
                           googleRatingCount={restaurant.google_rating_count}
-                          distance={restaurant.distance}
+                          distance={restaurant.distance_km}
                           cuisineTypes={restaurant.cuisine_types}
                           establishmentType={restaurant.establishment_type}
                           services={restaurant.services}
@@ -366,7 +311,6 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
                       {filteredDishes.map((dish) => (
                         <DishCard
                           key={dish.id}
-                          id={dish.id}
                           name={dish.name}
                           description={dish.description}
                           price={dish.price}
@@ -392,47 +336,17 @@ export default function FoodieSpotLayout({ initialTab }: FoodieSpotLayoutProps) 
         {/* Mobile Filters Modals */}
         {isMobile && (
           <>
-            <FiltersModal
-              open={showFilters}
-              onOpenChange={setShowFilters}
-              cuisineTypes={cuisineTypes}
-              establishmentTypes={establishmentTypes}
-              services={services}
-              priceRanges={priceRanges}
-              ratingOptions={ratingOptions}
-              distanceRanges={distanceRanges}
-              selectedCuisineTypes={selectedCuisineTypes}
-              selectedEstablishmentTypes={selectedEstablishmentTypes}
-              selectedServices={selectedServices}
-              selectedPriceRange={selectedPriceRange}
-              selectedRating={selectedRating}
-              selectedDistance={selectedDistance}
-              onCuisineTypesChange={setSelectedCuisineTypes}
-              onEstablishmentTypesChange={setSelectedEstablishmentTypes}
-              onServicesChange={setSelectedServices}
-              onPriceRangeChange={setSelectedPriceRange}
-              onRatingChange={setSelectedRating}
-              onDistanceChange={setSelectedDistance}
-            />
-
             <DishesFiltersModal
-              open={showDishesFilters}
-              onOpenChange={setShowDishesFilters}
-              cuisineTypes={cuisineTypes}
-              foodTypes={foodTypes}
-              dietTypes={dietTypes}
-              priceRanges={priceRanges}
-              timeRanges={timeRanges}
-              selectedCuisineTypes={selectedCuisineTypes}
-              selectedFoodTypes={selectedFoodTypes}
+              selectedDistances={selectedDistance ? [selectedDistance] : []}
+              onDistanceChange={(distances) => setSelectedDistance(distances[0] || 0)}
+              selectedPriceRanges={selectedPriceRange ? [selectedPriceRange] : []}
+              onPriceRangeChange={(ranges) => setSelectedPriceRange(ranges[0] || '')}
               selectedDietTypes={selectedDietTypes}
-              selectedPriceRange={selectedPriceRange}
-              selectedTimeRange={selectedTimeRange}
-              onCuisineTypesChange={setSelectedCuisineTypes}
-              onFoodTypesChange={setSelectedFoodTypes}
-              onDietTypesChange={setSelectedDietTypes}
-              onPriceRangeChange={setSelectedPriceRange}
-              onTimeRangeChange={setSelectedTimeRange}
+              onDietTypeChange={setSelectedDietTypes}
+              selectedSpiceLevels={[]}
+              onSpiceLevelChange={() => {}}
+              selectedPrepTimeRanges={selectedTimeRange ? [selectedTimeRange] : []}
+              onPrepTimeRangeChange={(ranges) => setSelectedTimeRange(ranges[0] || 0)}
             />
           </>
         )}
