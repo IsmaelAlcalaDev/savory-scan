@@ -136,7 +136,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full h-12 bg-white border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 bg-white border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path
