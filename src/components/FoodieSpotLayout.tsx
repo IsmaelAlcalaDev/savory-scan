@@ -20,9 +20,11 @@ import { useAppSettings } from '@/hooks/useAppSettings';
 import { Skeleton } from '@/components/ui/skeleton';
 import DishesGrid from './DishesGrid';
 import FilterTags from './FilterTags';
+
 interface FoodieSpotLayoutProps {
   initialTab?: 'restaurants' | 'dishes' | 'account';
 }
+
 export default function FoodieSpotLayout({
   initialTab = 'restaurants'
 }: FoodieSpotLayoutProps) {
@@ -35,12 +37,14 @@ export default function FoodieSpotLayout({
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
 
-  // Nuevos estados para filtros
+  // Estados para filtros
   const [selectedDistance, setSelectedDistance] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [selectedRating, setSelectedRating] = useState<number | undefined>();
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
+  const [selectedSort, setSelectedSort] = useState<string | undefined>();
+  const [selectedTimeRanges, setSelectedTimeRanges] = useState<number[]>([]);
   const [isOpenNow, setIsOpenNow] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
@@ -158,7 +162,7 @@ export default function FoodieSpotLayout({
       requestGPSLocation();
     }
   }, []);
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'all', id?: number) => {
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'sort' | 'timeRange' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':
         setSelectedCuisines([]);
@@ -181,6 +185,12 @@ export default function FoodieSpotLayout({
       case 'diet':
         setSelectedDietTypes([]);
         break;
+      case 'sort':
+        setSelectedSort(undefined);
+        break;
+      case 'timeRange':
+        setSelectedTimeRanges([]);
+        break;
       case 'openNow':
         setIsOpenNow(!isOpenNow);
         break;
@@ -192,6 +202,8 @@ export default function FoodieSpotLayout({
         setSelectedRating(undefined);
         setSelectedEstablishmentTypes([]);
         setSelectedDietTypes([]);
+        setSelectedSort(undefined);
+        setSelectedTimeRanges([]);
         setIsOpenNow(false);
         break;
     }
@@ -307,7 +319,28 @@ export default function FoodieSpotLayout({
     if (activeBottomTab === 'dishes') {
       return <>
           {/* Filter Tags */}
-          <FilterTags activeTab="dishes" selectedCuisines={selectedCuisines} selectedFoodTypes={selectedFoodTypes} selectedDistance={selectedDistance} selectedPriceRanges={selectedPriceRanges} selectedRating={selectedRating} selectedEstablishmentTypes={selectedEstablishmentTypes} selectedDietTypes={selectedDietTypes} isOpenNow={isOpenNow} onClearFilter={handleClearFilter} />
+          <FilterTags 
+            activeTab="dishes" 
+            selectedCuisines={selectedCuisines} 
+            selectedFoodTypes={selectedFoodTypes} 
+            selectedDistance={selectedDistance} 
+            selectedPriceRanges={selectedPriceRanges} 
+            selectedRating={selectedRating} 
+            selectedEstablishmentTypes={selectedEstablishmentTypes} 
+            selectedDietTypes={selectedDietTypes} 
+            selectedSort={selectedSort}
+            selectedTimeRanges={selectedTimeRanges}
+            isOpenNow={isOpenNow} 
+            onClearFilter={handleClearFilter}
+            onSortChange={setSelectedSort}
+            onDistanceChange={setSelectedDistance}
+            onPriceRangeChange={setSelectedPriceRanges}
+            onRatingChange={setSelectedRating}
+            onEstablishmentTypeChange={setSelectedEstablishmentTypes}
+            onDietTypeChange={setSelectedDietTypes}
+            onTimeRangeChange={setSelectedTimeRanges}
+            onOpenNowChange={setIsOpenNow}
+          />
 
           {/* Results Header with simplified title */}
           <div className="flex items-center justify-between mb-6">
@@ -326,7 +359,28 @@ export default function FoodieSpotLayout({
     // Default restaurants content (siempre mostrar cuando no sea 'dishes')
     return <>
         {/* Filter Tags */}
-        <FilterTags activeTab="restaurants" selectedCuisines={selectedCuisines} selectedFoodTypes={selectedFoodTypes} selectedDistance={selectedDistance} selectedPriceRanges={selectedPriceRanges} selectedRating={selectedRating} selectedEstablishmentTypes={selectedEstablishmentTypes} selectedDietTypes={selectedDietTypes} isOpenNow={isOpenNow} onClearFilter={handleClearFilter} />
+        <FilterTags 
+          activeTab="restaurants" 
+          selectedCuisines={selectedCuisines} 
+          selectedFoodTypes={selectedFoodTypes} 
+          selectedDistance={selectedDistance} 
+          selectedPriceRanges={selectedPriceRanges} 
+          selectedRating={selectedRating} 
+          selectedEstablishmentTypes={selectedEstablishmentTypes} 
+          selectedDietTypes={selectedDietTypes} 
+          selectedSort={selectedSort}
+          selectedTimeRanges={selectedTimeRanges}
+          isOpenNow={isOpenNow} 
+          onClearFilter={handleClearFilter}
+          onSortChange={setSelectedSort}
+          onDistanceChange={setSelectedDistance}
+          onPriceRangeChange={setSelectedPriceRanges}
+          onRatingChange={setSelectedRating}
+          onEstablishmentTypeChange={setSelectedEstablishmentTypes}
+          onDietTypeChange={setSelectedDietTypes}
+          onTimeRangeChange={setSelectedTimeRanges}
+          onOpenNowChange={setIsOpenNow}
+        />
 
         {/* Results Header with simplified title */}
         <div className="flex items-center justify-between mb-6">

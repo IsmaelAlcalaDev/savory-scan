@@ -21,6 +21,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import SortFilter from './SortFilter';
+import DistanceFilter from './DistanceFilter';
+import PriceFilter from './PriceFilter';
+import RatingFilter from './RatingFilter';
+import EstablishmentTypeFilter from './EstablishmentTypeFilter';
+import DietFilter from './DietFilter';
+import TimeRangeFilter from './TimeRangeFilter';
+import { useState } from 'react';
 
 interface FilterTagsProps {
   activeTab: 'restaurants' | 'dishes';
@@ -31,8 +39,18 @@ interface FilterTagsProps {
   selectedRating?: number;
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
+  selectedSort?: string;
+  selectedTimeRanges?: number[];
   isOpenNow?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'all', id?: number) => void;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'sort' | 'timeRange' | 'all', id?: number) => void;
+  onSortChange?: (sort: string) => void;
+  onDistanceChange?: (distances: number[]) => void;
+  onPriceRangeChange?: (ranges: string[]) => void;
+  onRatingChange?: (rating: number | undefined) => void;
+  onEstablishmentTypeChange?: (types: number[]) => void;
+  onDietTypeChange?: (types: number[]) => void;
+  onTimeRangeChange?: (ranges: number[]) => void;
+  onOpenNowChange?: (isOpen: boolean) => void;
 }
 
 export default function FilterTags({ 
@@ -44,11 +62,22 @@ export default function FilterTags({
   selectedRating,
   selectedEstablishmentTypes = [],
   selectedDietTypes = [],
+  selectedSort,
+  selectedTimeRanges = [],
   isOpenNow = false,
-  onClearFilter 
+  onClearFilter,
+  onSortChange = () => {},
+  onDistanceChange = () => {},
+  onPriceRangeChange = () => {},
+  onRatingChange = () => {},
+  onEstablishmentTypeChange = () => {},
+  onDietTypeChange = () => {},
+  onTimeRangeChange = () => {},
+  onOpenNowChange = () => {}
 }: FilterTagsProps) {
   const isMobile = useIsMobile();
   const isTablet = !isMobile && window.innerWidth < 1024;
+  const [activeFilterModal, setActiveFilterModal] = useState<string | null>(null);
   
   const hasActiveFilters = selectedCuisines.length > 0 || 
     selectedFoodTypes.length > 0 || 
@@ -57,9 +86,73 @@ export default function FilterTags({
     selectedRating || 
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
+    selectedSort ||
+    selectedTimeRanges.length > 0 ||
     isOpenNow;
 
-  const FilterContent = ({ onApply, onReset }: { onApply: () => void, onReset: () => void }) => (
+  const getFilterContent = (filterKey: string) => {
+    switch (filterKey) {
+      case 'sort':
+        return (
+          <SortFilter
+            selectedSort={selectedSort}
+            onSortChange={onSortChange}
+          />
+        );
+      case 'distance':
+        return (
+          <DistanceFilter
+            selectedDistances={selectedDistance}
+            onDistanceChange={onDistanceChange}
+          />
+        );
+      case 'price':
+        return (
+          <PriceFilter
+            selectedPriceRanges={selectedPriceRanges}
+            onPriceRangeChange={onPriceRangeChange}
+          />
+        );
+      case 'rating':
+        return (
+          <RatingFilter
+            selectedRating={selectedRating}
+            onRatingChange={onRatingChange}
+          />
+        );
+      case 'establishment':
+        return (
+          <EstablishmentTypeFilter
+            selectedEstablishmentTypes={selectedEstablishmentTypes}
+            onEstablishmentTypeChange={onEstablishmentTypeChange}
+          />
+        );
+      case 'diet':
+        return (
+          <DietFilter
+            selectedDietTypes={selectedDietTypes}
+            onDietTypeChange={onDietTypeChange}
+          />
+        );
+      case 'schedule':
+        return (
+          <TimeRangeFilter
+            selectedTimeRanges={selectedTimeRanges}
+            onTimeRangeChange={onTimeRangeChange}
+            isOpenNow={isOpenNow}
+            onOpenNowChange={onOpenNowChange}
+          />
+        );
+      default:
+        return (
+          <div className="p-4 text-center text-muted-foreground">
+            Filtro no disponible
+          </div>
+        );
+    }
+  };
+
+  const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-lg font-semibold mb-2">Filtros</h3>
@@ -68,44 +161,9 @@ export default function FilterTags({
         </p>
       </div>
       
-      {/* Filter sections would go here - placeholder for now */}
-      <div className="space-y-4">
-        <div className="p-4 border rounded-lg">
-          <h4 className="font-medium mb-2">Ordenar</h4>
-          <p className="text-sm text-muted-foreground">Opciones de ordenamiento</p>
-        </div>
-        
-        <div className="p-4 border rounded-lg">
-          <h4 className="font-medium mb-2">Distancia</h4>
-          <p className="text-sm text-muted-foreground">Selecciona el rango de distancia</p>
-        </div>
-        
-        <div className="p-4 border rounded-lg">
-          <h4 className="font-medium mb-2">Precio</h4>
-          <p className="text-sm text-muted-foreground">Rango de precios</p>
-        </div>
-        
-        <div className="p-4 border rounded-lg">
-          <h4 className="font-medium mb-2">Valoración</h4>
-          <p className="text-sm text-muted-foreground">Calificación mínima</p>
-        </div>
-        
-        {activeTab === 'restaurants' && (
-          <div className="p-4 border rounded-lg">
-            <h4 className="font-medium mb-2">Tipo de Comercio</h4>
-            <p className="text-sm text-muted-foreground">Tipo de establecimiento</p>
-          </div>
-        )}
-        
-        <div className="p-4 border rounded-lg">
-          <h4 className="font-medium mb-2">Dieta</h4>
-          <p className="text-sm text-muted-foreground">Opciones dietéticas</p>
-        </div>
-        
-        <div className="p-4 border rounded-lg">
-          <h4 className="font-medium mb-2">Horarios</h4>
-          <p className="text-sm text-muted-foreground">Disponibilidad horaria</p>
-        </div>
+      {/* Filter content */}
+      <div className="max-h-[60vh] overflow-y-auto">
+        {getFilterContent(filterKey)}
       </div>
       
       <div className="flex gap-3 pt-4">
@@ -143,10 +201,14 @@ export default function FilterTags({
     { key: 'cheapest', label: 'Más económico', active: false },
   ];
 
-  const FilterTrigger = ({ children }: { children: React.ReactNode }) => {
+  const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
+    const handleOpenChange = (open: boolean) => {
+      setActiveFilterModal(open ? filterKey : null);
+    };
+
     if (isMobile || isTablet) {
       return (
-        <Sheet>
+        <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
           <SheetTrigger asChild>
             {children}
           </SheetTrigger>
@@ -159,7 +221,8 @@ export default function FilterTags({
             </SheetHeader>
             <div className="flex-1 overflow-y-auto py-4">
               <FilterContent 
-                onApply={() => {/* TODO: Close sheet and apply */}} 
+                filterKey={filterKey}
+                onApply={() => setActiveFilterModal(null)} 
                 onReset={() => onClearFilter('all')} 
               />
             </div>
@@ -169,7 +232,7 @@ export default function FilterTags({
     }
 
     return (
-      <Dialog>
+      <Dialog open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           {children}
         </DialogTrigger>
@@ -181,7 +244,8 @@ export default function FilterTags({
             </DialogDescription>
           </DialogHeader>
           <FilterContent 
-            onApply={() => {/* TODO: Close dialog and apply */}} 
+            filterKey={filterKey}
+            onApply={() => setActiveFilterModal(null)} 
             onReset={() => onClearFilter('all')} 
           />
         </DialogContent>
@@ -194,7 +258,7 @@ export default function FilterTags({
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
         {/* Filter Tags */}
         {filterTags.map((filter) => (
-          <FilterTrigger key={filter.key}>
+          <FilterTrigger key={filter.key} filterKey={filter.key}>
             <Button
               variant="outline"
               size="sm"
@@ -326,6 +390,32 @@ export default function FilterTags({
             <X 
               className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
               onClick={() => onClearFilter('diet')}
+            />
+          </Badge>
+        )}
+
+        {selectedSort && (
+          <Badge
+            variant="secondary"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+          >
+            Ordenado
+            <X 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              onClick={() => onClearFilter('sort')}
+            />
+          </Badge>
+        )}
+
+        {selectedTimeRanges.length > 0 && (
+          <Badge
+            variant="secondary"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+          >
+            {selectedTimeRanges.length} horario{selectedTimeRanges.length > 1 ? 's' : ''}
+            <X 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              onClick={() => onClearFilter('timeRange')}
             />
           </Badge>
         )}
