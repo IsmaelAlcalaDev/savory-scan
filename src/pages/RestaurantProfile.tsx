@@ -391,7 +391,7 @@ export default function RestaurantProfile() {
                 Ver Carta
               </Button>
             </div>
-            <div className="max-w-6xl mx-auto px-4 pb-0">
+            <div className="max-w-6xl mx-auto px-4 pb-3">
               <QuickActionTags phone={restaurant.phone} website={restaurant.website} email={restaurant.email} address={restaurant.address} latitude={restaurant.latitude} longitude={restaurant.longitude} />
             </div>
           </div>}
