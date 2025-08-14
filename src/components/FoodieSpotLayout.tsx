@@ -457,7 +457,7 @@ export default function FoodieSpotLayout({
         {/* Content wrapper with larger desktop margins */}
         <div className="px-4 md:px-6 lg:px-24 xl:px-32 2xl:px-48">
           {/* Tipos de Cocina / Tipos de Comida */}
-          <div className="pb-1 pt-0">
+          <div className="pb-2 pt-0">
             {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
           </div>
 
