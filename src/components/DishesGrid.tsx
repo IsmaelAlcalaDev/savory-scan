@@ -1,5 +1,5 @@
 
-import { AllDishCard } from './AllDishCard';
+import AllDishCard from './AllDishCard';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DishData {
