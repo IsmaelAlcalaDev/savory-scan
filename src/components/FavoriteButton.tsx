@@ -12,7 +12,6 @@ interface FavoriteButtonProps {
   restaurantId: number;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
-  favoritesCount?: number;
   savedFrom?: string;
   onLoginRequired?: () => void;
 }
@@ -31,7 +30,10 @@ export default function FavoriteButton({
   const isRestaurantFavorite = isFavorite(restaurantId);
   const isLoading = isToggling(restaurantId);
 
-  const handleFavoriteToggle = () => {
+  const handleFavoriteToggle = (event: React.MouseEvent) => {
+    // Prevent event from propagating to parent elements (like RestaurantCard)
+    event.stopPropagation();
+    
     const action = async () => {
       await toggleFavorite(restaurantId, savedFrom, onLoginRequired);
     };
