@@ -18,6 +18,7 @@ import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Skeleton } from '@/components/ui/skeleton';
+import DishesGrid from './DishesGrid';
 
 interface FoodieSpotLayoutProps {
   initialTab?: 'restaurants' | 'dishes' | 'account';
@@ -302,7 +303,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         if (userLocation) {
           return `${dishes.length} platos cerca de ti`;
         }
-        
         return `${dishes.length} platos`;
       };
 
@@ -320,52 +320,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             </div>
           </div>
 
-          {/* Dishes Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-            {dishesLoading ? (
-              Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="h-48 w-full rounded-lg" />
-                  <div className="p-4 space-y-3">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-2/3" />
-                  </div>
-                </div>
-              ))
-            ) : dishesError ? (
-              <div className="col-span-full text-center py-8">
-                <p className="text-muted-foreground">Error al cargar platos: {dishesError}</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Revisa la consola para más detalles
-                </p>
-              </div>
-            ) : dishes.length === 0 ? (
-              <div className="col-span-full text-center py-8">
-                <p className="text-muted-foreground">No se encontraron platos</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Intenta cambiar los filtros de búsqueda
-                </p>
-              </div>
-            ) : (
-              dishes.map((dish) => (
-                <AllDishCard
-                  key={dish.id}
-                  id={dish.id}
-                  name={dish.name}
-                  description={dish.description}
-                  basePrice={dish.base_price}
-                  imageUrl={dish.image_url}
-                  categoryName={dish.category_name}
-                  restaurantName={dish.restaurant_name}
-                  restaurantSlug={dish.restaurant_slug}
-                  restaurantRating={dish.restaurant_google_rating}
-                  distance={dish.distance_km}
-                  formattedPrice={dish.formatted_price}
-                />
-              ))
-            )}
-          </div>
+          <DishesGrid 
+            dishes={dishes}
+            loading={dishesLoading}
+            error={dishesError}
+          />
         </>
       );
     }
