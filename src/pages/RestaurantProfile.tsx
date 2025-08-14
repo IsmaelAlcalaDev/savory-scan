@@ -446,7 +446,7 @@ export default function RestaurantProfile() {
           </div>
         </div>
 
-        {/* Mobile: Quick Actions and Ver Carta combined block */}
+        {/* Mobile: Ver Carta and Quick Actions combined block */}
         {isMobile && (
           <div 
             ref={quickActionsRef}
@@ -456,7 +456,17 @@ export default function RestaurantProfile() {
                 : 'relative'
             }`}
           >
-            <div className="max-w-6xl mx-auto px-4 pt-4 pb-2">
+            <div className="max-w-6xl mx-auto px-4 pt-3 pb-2">
+              <Button
+                onClick={handleViewMenu}
+                size="lg"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg mb-3"
+              >
+                <Utensils className="h-6 w-6 mr-2" />
+                Ver Carta
+              </Button>
+            </div>
+            <div className="max-w-6xl mx-auto px-4 pb-3">
               <QuickActionTags
                 phone={restaurant.phone}
                 website={restaurant.website}
@@ -466,28 +476,19 @@ export default function RestaurantProfile() {
                 longitude={restaurant.longitude}
               />
             </div>
-            <div className="max-w-6xl mx-auto px-4 pb-4">
-              <Button
-                onClick={handleViewMenu}
-                size="lg"
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
-              >
-                <Utensils className="h-6 w-6 mr-2" />
-                Ver Carta
-              </Button>
-            </div>
           </div>
         )}
 
         {/* Mobile: Restaurant information below combined block */}
         {isMobile && (
           <div className={`bg-background ${
-            isQuickActionsFixed ? 'mt-32' : ''
+            isQuickActionsFixed ? 'mt-36' : ''
           }`}>
             <div className="max-w-6xl mx-auto px-4 py-6">
-              <div className="flex items-start gap-4 mb-4">
+              {/* Row 1: Logo and Name */}
+              <div className="flex items-center gap-3 mb-3">
                 {restaurant.logo_url && (
-                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border shadow-lg flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border shadow-lg flex-shrink-0">
                     <img 
                       src={restaurant.logo_url} 
                       alt={`${restaurant.name} logo`}
@@ -495,46 +496,45 @@ export default function RestaurantProfile() {
                     />
                   </div>
                 )}
-                
-                <div className="flex-1">
-                  <h1 className="text-2xl font-bold mb-2 text-foreground">
-                    {restaurant.name}
-                  </h1>
-                  
-                  <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <Badge variant="secondary">
-                      {getPriceRangeText(restaurant.price_range)}
-                    </Badge>
-                    {restaurant.establishment_type && (
-                      <Badge variant="secondary">
-                        {restaurant.establishment_type}
-                      </Badge>
-                    )}
-                    {restaurant.cuisine_types.map((cuisine, index) => (
-                      <Badge key={index} variant="secondary">
-                        {cuisine}
-                      </Badge>
-                    ))}
-                  </div>
+                <h1 className="text-xl font-bold text-foreground flex-1">
+                  {restaurant.name}
+                </h1>
+              </div>
 
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{restaurant.address}</span>
-                    </div>
-                    {restaurant.google_rating && (
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium text-foreground">
-                          {restaurant.google_rating}
-                          {restaurant.google_rating_count && (
-                            <span className="text-xs ml-1">({restaurant.google_rating_count})</span>
-                          )}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+              {/* Row 2: Tags */}
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <Badge variant="secondary">
+                  {getPriceRangeText(restaurant.price_range)}
+                </Badge>
+                {restaurant.establishment_type && (
+                  <Badge variant="secondary">
+                    {restaurant.establishment_type}
+                  </Badge>
+                )}
+                {restaurant.cuisine_types.map((cuisine, index) => (
+                  <Badge key={index} variant="secondary">
+                    {cuisine}
+                  </Badge>
+                ))}
+              </div>
+
+              {/* Row 3: Address and Rating */}
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  <span>{restaurant.address}</span>
                 </div>
+                {restaurant.google_rating && (
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-medium text-foreground">
+                      {restaurant.google_rating}
+                      {restaurant.google_rating_count && (
+                        <span className="text-xs ml-1">({restaurant.google_rating_count})</span>
+                      )}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
