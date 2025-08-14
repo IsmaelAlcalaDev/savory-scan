@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, Menu, X, User, SlidersHorizontal } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Search, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import CuisineFilter from './CuisineFilter';
 import FoodTypeFilter from './FoodTypeFilter';
 import FiltersModal from './FiltersModal';
@@ -15,7 +14,9 @@ import LocationModal from './LocationModal';
 import BottomNavigation from './BottomNavigation';
 import AccountModal from './AccountModal';
 import MenuModal from './MenuModal';
-import LanguageSelector from './LanguageSelector';
+import MobileHeader from './MobileHeader';
+import TabletHeader from './TabletHeader';
+import DesktopHeader from './DesktopHeader';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import { useDistanceRanges } from '@/hooks/useDistanceRanges';
@@ -45,6 +46,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -431,7 +433,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       return;
     }
     
-    // Navigate to the appropriate route without triggering conflicts
     if (tab === 'dishes') {
       navigate('/platos', { replace: true });
     } else if (tab === 'restaurants') {
@@ -446,6 +447,57 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const handleLogoClick = () => {
     console.log('Logo clicked, navigating to /restaurantes');
     navigate('/restaurantes');
+  };
+
+  // Determine which header to show based on screen size
+  const renderHeader = () => {
+    if (isMobile) {
+      return (
+        <MobileHeader
+          appName={appName}
+          appLogoUrl={appLogoUrl}
+          currentLocationName={currentLocationName}
+          isLoadingLocation={isLoadingLocation}
+          onLogoClick={handleLogoClick}
+          onLocationClick={() => setLocationModalOpen(true)}
+          onMenuClick={() => setMenuModalOpen(true)}
+        />
+      );
+    } else if (window.innerWidth < 1024) { // Tablet
+      return (
+        <TabletHeader
+          appName={appName}
+          appLogoUrl={appLogoUrl}
+          currentLocationName={currentLocationName}
+          isLoadingLocation={isLoadingLocation}
+          searchQuery={searchQuery}
+          isSearchFocused={isSearchFocused}
+          onLogoClick={handleLogoClick}
+          onLocationClick={() => setLocationModalOpen(true)}
+          onMenuClick={() => setMenuModalOpen(true)}
+          onSearchChange={setSearchQuery}
+          onSearchFocus={() => setIsSearchFocused(true)}
+          onSearchBlur={() => setIsSearchFocused(false)}
+        />
+      );
+    } else { // Desktop
+      return (
+        <DesktopHeader
+          appName={appName}
+          appLogoUrl={appLogoUrl}
+          currentLocationName={currentLocationName}
+          isLoadingLocation={isLoadingLocation}
+          searchQuery={searchQuery}
+          isSearchFocused={isSearchFocused}
+          onLogoClick={handleLogoClick}
+          onLocationClick={() => setLocationModalOpen(true)}
+          onMenuClick={() => setMenuModalOpen(true)}
+          onSearchChange={setSearchQuery}
+          onSearchFocus={() => setIsSearchFocused(true)}
+          onSearchBlur={() => setIsSearchFocused(false)}
+        />
+      );
+    }
   };
 
   const TagButton = ({ 
@@ -771,46 +823,21 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   };
 
   return (
-    <div className="min-h-screen bg-white pb-20 px-[7.5%]">
+    <div className="min-h-screen bg-white pb-20 px-2 md:px-4 lg:px-[7.5%]">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white -mx-[7.5%] px-[7.5%]">
-        <div className="flex items-center justify-between py-3 px-4">
-          {/* Left Section: Logo */}
-          <div className="flex items-center flex-shrink-0 relative">
-            <button onClick={handleLogoClick} className="flex items-center">
-              <img 
-                src={appLogoUrl}
-                alt={`${appName} Logo`} 
-                className="w-24 h-24 bg-transparent object-contain absolute top-1/2 left-0 transform -translate-y-1/2 z-10 cursor-pointer"
-              />
-            </button>
-            {/* Spacer to maintain layout */}
-            <div className="w-24 h-8" />
-          </div>
+      <header className="sticky top-0 z-50 bg-white -mx-2 md:-mx-4 lg:-mx-[7.5%] px-2 md:px-4 lg:px-[7.5%]">
+        {renderHeader()}
 
-          {/* Center Section: Location and Search */}
-          <div className="flex items-center gap-4 flex-1 justify-center max-w-2xl mx-8">
-            {/* Location Section */}
-            <div className="flex justify-start">
-              <Button
-                variant="ghost"
-                onClick={() => setLocationModalOpen(true)}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary hover:bg-transparent whitespace-nowrap"
-              >
-                <MapPin className="h-4 w-4" />
-                <span className="max-w-40 truncate">
-                  {isLoadingLocation ? 'Detectando...' : currentLocationName}
-                </span>
-              </Button>
-            </div>
-
-            {/* Search Section */}
-            <div className="flex-1 max-w-md">
+        {/* Tipos de Cocina / Tipos de Comida - Only show search on mobile if not shown in header */}
+        <div className="px-4 pb-2 pt-2">
+          {/* Search bar for mobile (since it's not in MobileHeader) */}
+          {isMobile && (
+            <div className="mb-4">
               <div className="relative">
                 <Search className={`absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors z-10 ${
                   isSearchFocused ? 'text-primary' : 'text-muted-foreground'
                 }`} />
-                <Input
+                <input
                   type="text"
                   placeholder="Buscar restaurantes, platos..."
                   value={searchQuery}
@@ -821,22 +848,8 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                 />
               </div>
             </div>
-          </div>
-
-          {/* Right Section: Language & Menu */}
-          <div className="flex items-center gap-12 flex-shrink-0">
-            <LanguageSelector />
-            <button 
-              className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
-              onClick={() => setMenuModalOpen(true)}
-            >
-              <Menu className="h-8 w-8" strokeWidth={2} />
-            </button>
-          </div>
-        </div>
-
-        {/* Tipos de Cocina / Tipos de Comida */}
-        <div className="px-4 pb-2 pt-2">
+          )}
+          
           {activeBottomTab === 'dishes' ? (
             <FoodTypeFilter 
               selectedFoodTypes={selectedFoodTypes}
@@ -851,9 +864,9 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         </div>
       </header>
 
-      {/* Main Content - Full Width */}
+      {/* Main Content */}
       <div className="w-full">
-        <div className="p-4">
+        <div className="p-2 md:p-4">
           {renderContent()}
         </div>
       </div>
@@ -864,19 +877,17 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         onTabChange={handleBottomTabChange}
       />
 
-      {/* Account Modal */}
+      {/* Modals */}
       <AccountModal
         open={accountModalOpen}
         onOpenChange={setAccountModalOpen}
       />
 
-      {/* Menu Modal */}
       <MenuModal
         open={menuModalOpen}
         onOpenChange={setMenuModalOpen}
       />
 
-      {/* Location Modal */}
       <LocationModal
         open={locationModalOpen}
         onOpenChange={setLocationModalOpen}

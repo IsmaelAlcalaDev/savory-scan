@@ -1,0 +1,99 @@
+
+import React from 'react';
+import { Search, MapPin, Menu } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import LanguageSelector from './LanguageSelector';
+
+interface DesktopHeaderProps {
+  appName: string;
+  appLogoUrl: string;
+  currentLocationName: string;
+  isLoadingLocation: boolean;
+  searchQuery: string;
+  isSearchFocused: boolean;
+  onLogoClick: () => void;
+  onLocationClick: () => void;
+  onMenuClick: () => void;
+  onSearchChange: (value: string) => void;
+  onSearchFocus: () => void;
+  onSearchBlur: () => void;
+}
+
+export default function DesktopHeader({
+  appName,
+  appLogoUrl,
+  currentLocationName,
+  isLoadingLocation,
+  searchQuery,
+  isSearchFocused,
+  onLogoClick,
+  onLocationClick,
+  onMenuClick,
+  onSearchChange,
+  onSearchFocus,
+  onSearchBlur
+}: DesktopHeaderProps) {
+  return (
+    <div className="flex items-center justify-between py-3 px-4">
+      {/* Left Section: Logo */}
+      <div className="flex items-center flex-shrink-0 relative">
+        <button onClick={onLogoClick} className="flex items-center">
+          <img 
+            src={appLogoUrl}
+            alt={`${appName} Logo`} 
+            className="w-24 h-24 bg-transparent object-contain absolute top-1/2 left-0 transform -translate-y-1/2 z-10 cursor-pointer"
+          />
+        </button>
+        {/* Spacer to maintain layout */}
+        <div className="w-24 h-8" />
+      </div>
+
+      {/* Center Section: Location and Search */}
+      <div className="flex items-center gap-4 flex-1 justify-center max-w-2xl mx-8">
+        {/* Location Section */}
+        <div className="flex justify-start">
+          <Button
+            variant="ghost"
+            onClick={onLocationClick}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary hover:bg-transparent whitespace-nowrap"
+          >
+            <MapPin className="h-4 w-4" />
+            <span className="max-w-40 truncate">
+              {isLoadingLocation ? 'Detectando...' : currentLocationName}
+            </span>
+          </Button>
+        </div>
+
+        {/* Search Section */}
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className={`absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors z-10 ${
+              isSearchFocused ? 'text-primary' : 'text-muted-foreground'
+            }`} />
+            <Input
+              type="text"
+              placeholder="Buscar restaurantes, platos..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              onFocus={onSearchFocus}
+              onBlur={onSearchBlur}
+              className="pl-10 pr-4 h-10 text-base bg-background/50 border border-muted-foreground backdrop-blur-sm rounded-full focus:border-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Right Section: Language & Menu */}
+      <div className="flex items-center gap-12 flex-shrink-0">
+        <LanguageSelector />
+        <button 
+          className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
+          onClick={onMenuClick}
+        >
+          <Menu className="h-8 w-8" strokeWidth={2} />
+        </button>
+      </div>
+    </div>
+  );
+}

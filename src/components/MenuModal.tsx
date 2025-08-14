@@ -19,8 +19,10 @@ import {
   Shield,
   FileText,
   HelpCircle,
-  Users
+  Users,
+  Languages
 } from 'lucide-react';
+import LanguageSelector from './LanguageSelector';
 
 interface MenuModalProps {
   open: boolean;
@@ -42,6 +44,19 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Selector de idioma */}
+          <div>
+            <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">
+              <Languages className="h-5 w-5" />
+              Idioma
+            </h3>
+            <div className="flex justify-start pl-2">
+              <LanguageSelector />
+            </div>
+          </div>
+
+          <Separator />
+
           {/* Información de contacto */}
           <div>
             <h3 className="font-semibold mb-3 text-lg">Contacto</h3>
