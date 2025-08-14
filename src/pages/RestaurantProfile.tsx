@@ -6,14 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Share2, Star, MapPin, Eye } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { toast } from '@/hooks/use-toast';
-import { RestaurantSchedule } from '@/components/RestaurantSchedule';
-import { RestaurantSocialSection } from '@/components/RestaurantSocialSection';
-import { DeliveryPlatformsSection } from '@/components/DeliveryPlatformsSection';
-import { RestaurantGallery } from '@/components/RestaurantGallery';
+import RestaurantSchedule from '@/components/RestaurantSchedule';
+import RestaurantSocialSection from '@/components/RestaurantSocialSection';
+import DeliveryPlatformsSection from '@/components/DeliveryPlatformsSection';
+import RestaurantGallery from '@/components/RestaurantGallery';
 import CompactRestaurantPromotions from '@/components/CompactRestaurantPromotions';
-import { RestaurantMenuSection } from '@/components/RestaurantMenuSection';
-import { FavoriteButton } from '@/components/FavoriteButton';
-import { QuickActionTags } from '@/components/QuickActionTags';
+import RestaurantMenuSection from '@/components/RestaurantMenuSection';
+import FavoriteButton from '@/components/FavoriteButton';
+import QuickActionTags from '@/components/QuickActionTags';
 
 const RestaurantProfile = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -21,6 +21,15 @@ const RestaurantProfile = () => {
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
+
+  // Calculate images and totalImages before using them
+  const images = restaurant?.gallery?.length > 0 
+    ? restaurant.gallery.map(img => img.image_url)
+    : restaurant?.cover_image_url 
+    ? [restaurant.cover_image_url]
+    : [];
+  
+  const totalImages = images.length;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -95,13 +104,6 @@ const RestaurantProfile = () => {
     );
   }
 
-  const images = restaurant.gallery?.length > 0 
-    ? restaurant.gallery.map(img => img.image_url)
-    : restaurant.cover_image_url 
-    ? [restaurant.cover_image_url]
-    : [];
-  
-  const totalImages = images.length;
   const currentImage = images[currentImageIndex];
 
   const formatViewsCount = (count: number) => {
