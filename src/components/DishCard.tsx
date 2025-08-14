@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -130,7 +129,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
         {/* Content - Full Width */}
         <div className="flex-1 min-w-0 flex flex-col justify-between h-24">
           {/* Top Row - Name and Price */}
-          <div className="flex items-start justify-between mb-2">
+          <div className="flex items-start justify-between mb-3">
             <h3 className="font-semibold text-base text-foreground line-clamp-2 pr-4">
               {dish.name}
             </h3>
@@ -138,13 +137,6 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
               {getDisplayPrice()}
             </div>
           </div>
-
-          {/* Description - condensed */}
-          {dish.description && (
-            <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
-              {dish.description}
-            </p>
-          )}
 
           {/* Bottom Row - Icons, time and actions */}
           <div className="flex items-center justify-between">
