@@ -1,10 +1,10 @@
 
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { 
   Phone, 
   Navigation, 
   Globe, 
-  Calendar, 
   Mail
 } from 'lucide-react';
 
@@ -15,7 +15,6 @@ interface QuickActionTagsProps {
   address: string;
   latitude?: number;
   longitude?: number;
-  onReservationClick: () => void;
 }
 
 export default function QuickActionTags({ 
@@ -24,8 +23,7 @@ export default function QuickActionTags({
   email, 
   address,
   latitude,
-  longitude,
-  onReservationClick
+  longitude
 }: QuickActionTagsProps) {
   const handleNavigationClick = () => {
     if (latitude && longitude) {
@@ -36,62 +34,55 @@ export default function QuickActionTags({
   };
 
   return (
-    <div className="flex flex-wrap gap-4 justify-start">
-      {phone && (
+    <ScrollArea className="w-full whitespace-nowrap">
+      <div className="flex gap-3 pb-4">
+        {phone && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+            onClick={() => window.open(`tel:${phone}`)}
+          >
+            <Phone className="h-4 w-4 text-black" />
+            <span className="text-black font-medium text-sm">Llamar</span>
+          </Button>
+        )}
+        
         <Button
-          size="lg"
+          size="sm"
           variant="outline"
-          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
-          onClick={() => window.open(`tel:${phone}`)}
+          className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+          onClick={handleNavigationClick}
         >
-          <Phone className="h-5 w-5 text-black" />
-          <span className="text-black font-medium">Llamar</span>
+          <Navigation className="h-4 w-4 text-black" />
+          <span className="text-black font-medium text-sm">Cómo llegar</span>
         </Button>
-      )}
-      
-      <Button
-        size="lg"
-        variant="outline"
-        className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
-        onClick={handleNavigationClick}
-      >
-        <Navigation className="h-5 w-5 text-black" />
-        <span className="text-black font-medium">Cómo llegar</span>
-      </Button>
 
-      {website && (
-        <Button
-          size="lg"
-          variant="outline"
-          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
-          onClick={() => window.open(website, '_blank', 'noopener noreferrer')}
-        >
-          <Globe className="h-5 w-5 text-black" />
-          <span className="text-black font-medium">Sitio web</span>
-        </Button>
-      )}
+        {website && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+            onClick={() => window.open(website, '_blank', 'noopener noreferrer')}
+          >
+            <Globe className="h-4 w-4 text-black" />
+            <span className="text-black font-medium text-sm">Sitio web</span>
+          </Button>
+        )}
 
-      {email && (
-        <Button
-          size="lg"
-          variant="outline"
-          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
-          onClick={() => window.open(`mailto:${email}`)}
-        >
-          <Mail className="h-5 w-5 text-black" />
-          <span className="text-black font-medium">Email</span>
-        </Button>
-      )}
-
-      <Button
-        size="lg"
-        variant="outline"
-        className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
-        onClick={onReservationClick}
-      >
-        <Calendar className="h-5 w-5 text-black" />
-        <span className="text-black font-medium">Reservas</span>
-      </Button>
-    </div>
+        {email && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+            onClick={() => window.open(`mailto:${email}`)}
+          >
+            <Mail className="h-4 w-4 text-black" />
+            <span className="text-black font-medium text-sm">Email</span>
+          </Button>
+        )}
+      </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }

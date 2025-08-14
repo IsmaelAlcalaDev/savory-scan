@@ -29,11 +29,12 @@ import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 import RestaurantPlatforms from '@/components/RestaurantPlatforms';
 import CompactRestaurantSchedule from '@/components/CompactRestaurantSchedule';
 import QuickActionTags from '@/components/QuickActionTags';
-import DeliveryLogosSection from '@/components/DeliveryLogosSection';
 import CompactRestaurantEvents from '@/components/CompactRestaurantEvents';
 import CompactRestaurantPromotions from '@/components/CompactRestaurantPromotions';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import RestaurantSocialSection from '@/components/RestaurantSocialSection';
+import RestaurantServicesList from '@/components/RestaurantServicesList';
+import RestaurantDeliveryLinks from '@/components/RestaurantDeliveryLinks';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
@@ -424,7 +425,6 @@ export default function RestaurantProfile() {
                   address={restaurant.address}
                   latitude={restaurant.latitude}
                   longitude={restaurant.longitude}
-                  onReservationClick={() => scrollToSection('reservas')}
                 />
               </div>
             </div>
@@ -442,52 +442,11 @@ export default function RestaurantProfile() {
                   address={restaurant.address}
                   latitude={restaurant.latitude}
                   longitude={restaurant.longitude}
-                  onReservationClick={() => scrollToSection('reservas')}
                 />
 
-                {restaurant.services.length > 0 && (
-                  <section 
-                    id="servicios"
-                    ref={(el) => sectionsRef.current['servicios'] = el}
-                    className="space-y-4"
-                  >
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-primary" />
-                      Servicios disponibles
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {restaurant.services.map((service, index) => (
-                        <Badge key={index} variant="outline" className="px-3 py-1 text-sm border-primary text-primary">
-                          {service}
-                        </Badge>
-                      ))}
-                    </div>
-                  </section>
-                )}
+                <RestaurantServicesList services={restaurant.services} />
 
-                {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
-                  <DeliveryLogosSection deliveryLinks={restaurant.delivery_links} />
-                )}
-
-                <section 
-                  id="reservas"
-                  ref={(el) => sectionsRef.current['reservas'] = el}
-                >
-                  <RestaurantPlatforms
-                    category="booking"
-                    title="Reserva online"
-                    restaurantLinks={restaurant.social_links || {}}
-                  />
-                </section>
-
-                {restaurant.promotions && restaurant.promotions.length > 0 && (
-                  <section 
-                    id="promociones"
-                    ref={(el) => sectionsRef.current['promociones'] = el}
-                  >
-                    <CompactRestaurantPromotions promotions={restaurant.promotions} />
-                  </section>
-                )}
+                <RestaurantDeliveryLinks deliveryLinks={restaurant.delivery_links} />
 
                 <section 
                   id="eventos"
@@ -590,49 +549,9 @@ export default function RestaurantProfile() {
                 Ver Carta
               </Button>
 
-              {restaurant.services.length > 0 && (
-                <section 
-                  id="servicios"
-                  ref={(el) => sectionsRef.current['servicios'] = el}
-                  className="space-y-4"
-                >
-                  <h3 className="text-lg font-medium flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                    Servicios disponibles
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {restaurant.services.map((service, index) => (
-                      <Badge key={index} variant="outline" className="px-3 py-1 text-sm border-primary text-primary">
-                        {service}
-                      </Badge>
-                    ))}
-                  </div>
-                </section>
-              )}
+              <RestaurantServicesList services={restaurant.services} />
 
-              {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
-                <DeliveryLogosSection deliveryLinks={restaurant.delivery_links} />
-              )}
-
-              <section 
-                id="reservas"
-                ref={(el) => sectionsRef.current['reservas'] = el}
-              >
-                <RestaurantPlatforms
-                  category="booking"
-                  title="Reserva online"
-                  restaurantLinks={restaurant.social_links || {}}
-                />
-              </section>
-
-              {restaurant.promotions && restaurant.promotions.length > 0 && (
-                <section 
-                  id="promociones"
-                  ref={(el) => sectionsRef.current['promociones'] = el}
-                >
-                  <CompactRestaurantPromotions promotions={restaurant.promotions} />
-                </section>
-              )}
+              <RestaurantDeliveryLinks deliveryLinks={restaurant.delivery_links} />
 
               <section 
                 id="eventos"
