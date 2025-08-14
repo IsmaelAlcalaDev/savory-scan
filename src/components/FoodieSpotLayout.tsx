@@ -24,9 +24,9 @@ import QuickActionTags from './QuickActionTags';
 interface DishData {
   id: number;
   name: string;
-  basePrice: number;
-  restaurantName: string;
-  restaurantId: number;
+  base_price: number;
+  restaurant_name: string;
+  restaurant_id: number;
   cuisineType?: string;
 }
 
@@ -64,7 +64,7 @@ export default function FoodieSpotLayout() {
     searchQuery: viewMode === 'dishes' ? searchQuery : '',
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
-    foodTypeIds: selectedFoodTypes.length > 0 ? selectedFoodTypes : undefined,
+    selectedFoodTypes: selectedFoodTypes.length > 0 ? selectedFoodTypes : undefined,
   });
 
   // Efectos
@@ -232,7 +232,6 @@ export default function FoodieSpotLayout() {
         {isMobile && (
           <div className="mb-6">
             <SearchBar
-              value={searchQuery}
               onChange={handleSearchChange}
               placeholder={viewMode === 'restaurants' ? "Buscar restaurantes..." : "Buscar platos..."}
             />
@@ -310,11 +309,9 @@ export default function FoodieSpotLayout() {
                     key={dish.id}
                     id={dish.id}
                     name={dish.name}
-                    basePrice={dish.basePrice}
-                    restaurantName={dish.restaurantName}
-                    restaurantId={dish.restaurantId}
+                    basePrice={dish.base_price}
+                    restaurantName={dish.restaurant_name}
                     cuisineType={dish.cuisineType}
-                    viewMode={listMode}
                   />
                 ))}
               </div>
@@ -341,7 +338,7 @@ export default function FoodieSpotLayout() {
                     coverImageUrl={restaurant.cover_image_url}
                     logoUrl={restaurant.logo_url}
                     onFavoriteChange={handleFavoriteChange}
-                    viewMode={listMode}
+                    layout={listMode}
                   />
                 ))}
               </div>
