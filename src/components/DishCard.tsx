@@ -106,14 +106,14 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
 
   return (
     <div 
-      className="py-4 px-0 hover:bg-accent/30 transition-colors cursor-pointer" 
+      className="py-3 px-0 hover:bg-accent/30 transition-colors cursor-pointer" 
       onClick={() => onDishClick?.(dish)}
     >
-      <div className="flex gap-4 items-start w-full">
-        {/* Image */}
+      <div className="flex gap-3 items-start w-full">
+        {/* Image - Reduced from w-24 h-24 to w-20 h-20 */}
         <div className="flex-shrink-0">
           {dish.image_url ? (
-            <div className="w-24 h-24 rounded-lg overflow-hidden relative">
+            <div className="w-20 h-20 rounded-lg overflow-hidden relative">
               <img
                 src={dish.image_url}
                 alt={dish.image_alt || dish.name}
@@ -126,26 +126,26 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
               )}
             </div>
           ) : (
-            <div className="w-24 h-24 bg-muted/50 rounded-lg flex items-center justify-center">
+            <div className="w-20 h-20 bg-muted/50 rounded-lg flex items-center justify-center">
               <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
             </div>
           )}
         </div>
 
-        {/* Content - Full Width */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between h-24">
+        {/* Content - Full Width - Adjusted height to match smaller image */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between h-20">
           {/* Top Row - Name and Price */}
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="font-semibold text-base text-foreground line-clamp-2 pr-4">
+          <div className="flex items-start justify-between mb-1">
+            <h3 className="font-semibold text-sm text-foreground line-clamp-2 pr-4">
               {dish.name}
             </h3>
-            <div className="font-bold text-lg text-primary text-right flex-shrink-0">
+            <div className="font-bold text-base text-primary text-right flex-shrink-0">
               {getDisplayPrice()}
             </div>
           </div>
 
           {/* Middle Row - Diner Selector (si está activo) y Allergens */}
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-2 mb-1">
             {/* Diner Selector - aparece delante de los alérgenos */}
             {showDinerSelector && diners.length > 1 && (
               <div className="flex-shrink-0">
@@ -154,7 +154,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 text-xs bg-background border-primary/50"
+                      className="h-6 text-xs bg-background border-primary/50"
                       onClick={(e) => e.stopPropagation()}
                     >
                       Seleccionar comensal
@@ -198,9 +198,9 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
               </div>
             )}
 
-            {/* Allergens (only if they exist and no diner selector showing) */}
-            {allergenCircles.length > 0 && (
-              <div className="flex items-center gap-2">
+            {/* Allergens - Show when no diner selector is active */}
+            {!showDinerSelector && allergenCircles.length > 0 && (
+              <div className="flex items-center gap-1.5">
                 {allergenCircles.map((allergen, index) => (
                   <div 
                     key={index} 
@@ -226,10 +226,10 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
               
               <button
                 onClick={handleAddToSimulator}
-                className="w-8 h-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
+                className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
                 aria-label="Añadir al simulador"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
