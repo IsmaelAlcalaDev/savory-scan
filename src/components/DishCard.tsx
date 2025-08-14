@@ -1,20 +1,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Leaf, 
-  Wheat, 
-  Milk, 
-  Heart, 
-  Flame, 
-  Clock, 
-  Plus,
-  Fish,
-  Egg,
-  TreePine,
-  Cherry,
-  Shell
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 
@@ -39,23 +26,6 @@ const allergenColorMap: Record<string, { color: string; label: string }> = {
 };
 
 export default function DishCard({ dish, restaurantId, onDishClick }: DishCardProps) {
-  const getDietIcon = (dish: Dish) => {
-    const icons = [];
-    if (dish.is_vegetarian) icons.push({ icon: Leaf, label: 'Vegetariano', color: 'text-green-500' });
-    if (dish.is_vegan) icons.push({ icon: Leaf, label: 'Vegano', color: 'text-green-600' });
-    if (dish.is_gluten_free) icons.push({ icon: Wheat, label: 'Sin gluten', color: 'text-amber-500' });
-    if (dish.is_lactose_free) icons.push({ icon: Milk, label: 'Sin lactosa', color: 'text-blue-500' });
-    if (dish.is_healthy) icons.push({ icon: Heart, label: 'Saludable', color: 'text-red-500' });
-    return icons;
-  };
-
-  const getSpiceLevel = (level: number) => {
-    if (level === 0) return null;
-    return Array.from({ length: level }, (_, i) => (
-      <Flame key={i} className="h-3 w-3 text-red-500 fill-current" />
-    ));
-  };
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -99,6 +69,8 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
       .filter(Boolean);
   };
 
+  const allergenCircles = getAllergenCircles();
+
   return (
     <div 
       className="py-4 px-0 hover:bg-accent/30 transition-colors cursor-pointer" 
@@ -130,7 +102,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
         {/* Content - Full Width */}
         <div className="flex-1 min-w-0 flex flex-col justify-between h-24">
           {/* Top Row - Name and Price */}
-          <div className="flex items-start justify-between mb-3">
+          <div className="flex items-start justify-between mb-2">
             <h3 className="font-semibold text-base text-foreground line-clamp-2 pr-4">
               {dish.name}
             </h3>
@@ -139,42 +111,21 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
             </div>
           </div>
 
-          {/* Bottom Row - Icons, time and actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {/* Diet icons */}
-              {getDietIcon(dish).slice(0, 4).map(({ icon: Icon, label, color }, index) => (
-                <div key={index} title={label}>
-                  <Icon className={`h-4 w-4 ${color}`} />
-                </div>
-              ))}
-
-              {/* Allergen circles */}
-              {getAllergenCircles().map((allergen, index) => (
+          {/* Middle Row - Allergens (only if they exist) */}
+          {allergenCircles.length > 0 && (
+            <div className="flex items-center gap-2 mb-2">
+              {allergenCircles.map((allergen, index) => (
                 <div 
                   key={index} 
                   title={`Contiene: ${allergen!.label}`}
                   className={`w-3 h-3 rounded-full ${allergen!.color} flex-shrink-0`}
                 />
               ))}
-
-              {/* Spice level */}
-              {dish.spice_level > 0 && (
-                <div className="flex items-center gap-0.5" title={`Nivel de picante: ${dish.spice_level}`}>
-                  {getSpiceLevel(dish.spice_level)}
-                </div>
-              )}
-
-              {/* Preparation time */}
-              {dish.preparation_time_minutes && (
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span className="text-xs">{dish.preparation_time_minutes}min</span>
-                </div>
-              )}
             </div>
+          )}
 
-            {/* Actions */}
+          {/* Bottom Row - Buttons in bottom right */}
+          <div className="flex items-end justify-end">
             <div className="flex items-center gap-2 flex-shrink-0">
               <DishFavoriteButton
                 dishId={dish.id}
@@ -185,17 +136,16 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                 savedFrom="menu_list"
               />
               
-              <Button
-                size="sm"
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onDishClick?.(dish);
                 }}
-                className="gap-1 h-8 px-3 text-sm"
+                className="w-8 h-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
+                aria-label="Añadir plato"
               >
                 <Plus className="h-4 w-4" />
-                Añadir
-              </Button>
+              </button>
             </div>
           </div>
         </div>
