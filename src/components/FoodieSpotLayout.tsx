@@ -372,7 +372,7 @@ export default function FoodieSpotLayout({
           />
 
           {/* Results Header with adjusted spacing */}
-          <div className="flex items-center justify-between mb-3 mt-8">
+          <div className="flex items-center justify-between mb-3 mt-3">
             <div>
               <h2 className="text-sm font-medium mb-1 text-muted-foreground">
                 {dishesLoading ? 'Cargando...' : `${dishes.length} resultados`}
@@ -412,7 +412,7 @@ export default function FoodieSpotLayout({
         />
 
         {/* Results Header with adjusted spacing */}
-        <div className="flex items-center justify-between mb-3 mt-8">
+        <div className="flex items-center justify-between mb-3 mt-3">
           <div>
             <h2 className="text-sm font-medium mb-1 text-muted-foreground">
               {restaurantsLoading ? 'Cargando...' : `${restaurants.length} resultados`}
