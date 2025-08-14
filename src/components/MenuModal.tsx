@@ -23,6 +23,7 @@ import {
   Languages
 } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MenuModalProps {
   open: boolean;
@@ -30,6 +31,8 @@ interface MenuModalProps {
 }
 
 export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
+  const isMobile = useIsMobile();
+  
   const handleLinkClick = (url: string) => {
     window.open(url, '_blank');
   };
@@ -44,18 +47,21 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Selector de idioma */}
-          <div>
-            <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">
-              <Languages className="h-5 w-5" />
-              Idioma
-            </h3>
-            <div className="flex justify-start pl-2">
-              <LanguageSelector />
-            </div>
-          </div>
-
-          <Separator />
+          {/* Selector de idioma - Solo en móvil y tablet */}
+          {(isMobile || window.innerWidth < 1024) && (
+            <>
+              <div>
+                <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">
+                  <Languages className="h-5 w-5" />
+                  Idioma
+                </h3>
+                <div className="flex justify-start pl-2">
+                  <LanguageSelector />
+                </div>
+              </div>
+              <Separator />
+            </>
+          )}
 
           {/* Información de contacto */}
           <div>
