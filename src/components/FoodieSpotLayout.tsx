@@ -20,23 +20,21 @@ import { useAppSettings } from '@/hooks/useAppSettings';
 import { Skeleton } from '@/components/ui/skeleton';
 import DishesGrid from './DishesGrid';
 import FilterTags from './FilterTags';
-
 interface FoodieSpotLayoutProps {
   initialTab?: 'restaurants' | 'dishes' | 'account';
 }
-
-export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
+export default function FoodieSpotLayout({
+  initialTab = 'restaurants'
+}: FoodieSpotLayoutProps) {
   console.log('FoodieSpotLayout: Rendering component with initialTab:', initialTab);
-  
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
-  
+
   // Nuevos estados para filtros
   const [selectedDistance, setSelectedDistance] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
@@ -44,10 +42,12 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [isOpenNow, setIsOpenNow] = useState(false);
-  
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [currentLocationName, setCurrentLocationName] = useState('Selecciona ubicación');
   const [menuModalOpen, setMenuModalOpen] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
@@ -58,7 +58,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     if (location.pathname === '/restaurantes' || location.pathname === '/') return 'restaurants';
     return 'restaurants';
   };
-
   const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>(getActiveTabFromRoute());
 
   // Update active tab when route changes
@@ -69,7 +68,9 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   }, [location.pathname]);
 
   // Cargar configuración de branding desde la BD
-  const { data: appSettings } = useAppSettings();
+  const {
+    data: appSettings
+  } = useAppSettings();
   const appName = appSettings?.appName ?? 'FoodieSpot';
   const appLogoUrl = appSettings?.logoUrl ?? 'https://w7.pngwing.com/pngs/256/867/png-transparent-zomato-logo-thumbnail.png';
 
@@ -81,13 +82,12 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         if (savedLocation) {
           const locationData = JSON.parse(savedLocation);
           console.log('Loading saved location:', locationData);
-          
           if (locationData.latitude && locationData.longitude) {
             setUserLocation({
               lat: locationData.latitude,
               lng: locationData.longitude
             });
-            
+
             // Determinar nombre de la ubicación
             if (locationData.address) {
               setCurrentLocationName(locationData.address);
@@ -107,46 +107,41 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       }
       return false;
     };
-
     const requestGPSLocation = async () => {
       if (!('geolocation' in navigator)) {
         console.log('Geolocation not supported');
         return;
       }
-
       setIsLoadingLocation(true);
       setCurrentLocationName('Detectando ubicación...');
-      
       try {
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            resolve,
-            reject,
-            {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 300000 // 5 minutos
-            }
-          );
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000 // 5 minutos
+          });
         });
-
-        const { latitude, longitude } = position.coords;
-        console.log('GPS location obtained:', { latitude, longitude });
-        
+        const {
+          latitude,
+          longitude
+        } = position.coords;
+        console.log('GPS location obtained:', {
+          latitude,
+          longitude
+        });
         setUserLocation({
           lat: latitude,
           lng: longitude
         });
-        
         setCurrentLocationName('Ubicación detectada');
-        
+
         // Guardar en localStorage
         localStorage.setItem('selectedLocation', JSON.stringify({
           latitude,
           longitude,
           address: 'Ubicación detectada'
         }));
-        
       } catch (error: any) {
         console.error('GPS Error:', error);
         setCurrentLocationName('Selecciona ubicación');
@@ -157,13 +152,12 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
     // Primero intentar cargar ubicación guardada
     const hasSavedLocation = loadSavedLocation();
-    
+
     // Si no hay ubicación guardada, solicitar GPS
     if (!hasSavedLocation) {
       requestGPSLocation();
     }
   }, []);
-
   const handleClearFilter = (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':
@@ -202,8 +196,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         break;
     }
   };
-
-  const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useRestaurants({
+  const {
+    restaurants,
+    loading: restaurantsLoading,
+    error: restaurantsError
+  } = useRestaurants({
     searchQuery: activeBottomTab === 'restaurants' ? searchQuery : '',
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
@@ -211,8 +208,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     minRating: 0
   });
-
-  const { dishes, loading: dishesLoading, error: dishesError } = useDishes({
+  const {
+    dishes,
+    loading: dishesLoading,
+    error: dishesError
+  } = useDishes({
     searchQuery: activeBottomTab === 'dishes' ? searchQuery : '',
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
@@ -221,18 +221,19 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     spiceLevels: [],
     prepTimeRanges: []
   });
-
-  console.log('FoodieSpotLayout: Hook results:', { 
-    restaurants: restaurants.length, 
-    restaurantsLoading, 
+  console.log('FoodieSpotLayout: Hook results:', {
+    restaurants: restaurants.length,
+    restaurantsLoading,
     restaurantsError,
     dishes: dishes.length,
     dishesLoading,
     dishesError,
     activeBottomTab
   });
-
-  const handleLocationSelect = (location: { type: string; data?: any }) => {
+  const handleLocationSelect = (location: {
+    type: string;
+    data?: any;
+  }) => {
     console.log('FoodieSpotLayout: Manual location selected:', location);
     if (location.type === 'gps') {
       setUserLocation({
@@ -258,31 +259,29 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         lat: location.data.latitude,
         lng: location.data.longitude
       });
-      const locationDisplay = location.data.parent 
-        ? `${location.data.name}, ${location.data.parent.split(',')[0]}`
-        : location.data.name;
+      const locationDisplay = location.data.parent ? `${location.data.name}, ${location.data.parent.split(',')[0]}` : location.data.name;
       setCurrentLocationName(locationDisplay);
     } else if (location.type === 'manual') {
       setCurrentLocationName(location.data.query);
     }
     console.log('Updated location name:', currentLocationName);
   };
-
   const handleBottomTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
     console.log('Bottom tab change requested to:', tab);
-    
     if (tab === 'account') {
       setAccountModalOpen(true);
       return;
     }
-    
     if (tab === 'dishes') {
-      navigate('/platos', { replace: true });
+      navigate('/platos', {
+        replace: true
+      });
     } else if (tab === 'restaurants') {
-      navigate('/restaurantes', { replace: true });
+      navigate('/restaurantes', {
+        replace: true
+      });
     }
   };
-
   const handleLoginRequired = () => {
     setAccountModalOpen(true);
   };
@@ -295,73 +294,20 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   // Determine which header to show based on screen size
   const renderHeader = () => {
     if (isMobile) {
-      return (
-        <MobileHeader
-          appName={appName}
-          appLogoUrl={appLogoUrl}
-          currentLocationName={currentLocationName}
-          isLoadingLocation={isLoadingLocation}
-          onLogoClick={() => navigate('/restaurantes')}
-          onLocationClick={() => setLocationModalOpen(true)}
-          onMenuClick={() => setMenuModalOpen(true)}
-        />
-      );
-    } else if (window.innerWidth < 1024) { // Tablet
-      return (
-        <TabletHeader
-          appName={appName}
-          appLogoUrl={appLogoUrl}
-          currentLocationName={currentLocationName}
-          isLoadingLocation={isLoadingLocation}
-          searchQuery={searchQuery}
-          searchPlaceholder={getSearchPlaceholder()}
-          isSearchFocused={isSearchFocused}
-          onLogoClick={() => navigate('/restaurantes')}
-          onLocationClick={() => setLocationModalOpen(true)}
-          onMenuClick={() => setMenuModalOpen(true)}
-          onSearchChange={setSearchQuery}
-          onSearchFocus={() => setIsSearchFocused(true)}
-          onSearchBlur={() => setIsSearchFocused(false)}
-        />
-      );
-    } else { // Desktop
-      return (
-        <DesktopHeader
-          appName={appName}
-          appLogoUrl={appLogoUrl}
-          currentLocationName={currentLocationName}
-          isLoadingLocation={isLoadingLocation}
-          searchQuery={searchQuery}
-          searchPlaceholder={getSearchPlaceholder()}
-          isSearchFocused={isSearchFocused}
-          onLogoClick={() => navigate('/restaurantes')}
-          onLocationClick={() => setLocationModalOpen(true)}
-          onMenuClick={() => setMenuModalOpen(true)}
-          onSearchChange={setSearchQuery}
-          onSearchFocus={() => setIsSearchFocused(true)}
-          onSearchBlur={() => setIsSearchFocused(false)}
-        />
-      );
+      return <MobileHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} />;
+    } else if (window.innerWidth < 1024) {
+      // Tablet
+      return <TabletHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} searchQuery={searchQuery} searchPlaceholder={getSearchPlaceholder()} isSearchFocused={isSearchFocused} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} onSearchChange={setSearchQuery} onSearchFocus={() => setIsSearchFocused(true)} onSearchBlur={() => setIsSearchFocused(false)} />;
+    } else {
+      // Desktop
+      return <DesktopHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} searchQuery={searchQuery} searchPlaceholder={getSearchPlaceholder()} isSearchFocused={isSearchFocused} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} onSearchChange={setSearchQuery} onSearchFocus={() => setIsSearchFocused(true)} onSearchBlur={() => setIsSearchFocused(false)} />;
     }
   };
-
   const renderContent = () => {
     if (activeBottomTab === 'dishes') {
-      return (
-        <>
+      return <>
           {/* Filter Tags */}
-          <FilterTags
-            activeTab="dishes"
-            selectedCuisines={selectedCuisines}
-            selectedFoodTypes={selectedFoodTypes}
-            selectedDistance={selectedDistance}
-            selectedPriceRanges={selectedPriceRanges}
-            selectedRating={selectedRating}
-            selectedEstablishmentTypes={selectedEstablishmentTypes}
-            selectedDietTypes={selectedDietTypes}
-            isOpenNow={isOpenNow}
-            onClearFilter={handleClearFilter}
-          />
+          <FilterTags activeTab="dishes" selectedCuisines={selectedCuisines} selectedFoodTypes={selectedFoodTypes} selectedDistance={selectedDistance} selectedPriceRanges={selectedPriceRanges} selectedRating={selectedRating} selectedEstablishmentTypes={selectedEstablishmentTypes} selectedDietTypes={selectedDietTypes} isOpenNow={isOpenNow} onClearFilter={handleClearFilter} />
 
           {/* Results Header with simplified title */}
           <div className="flex items-center justify-between mb-6">
@@ -369,37 +315,18 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
               <h2 className="text-sm font-medium mb-1 text-muted-foreground">
                 {dishesLoading ? 'Cargando...' : `${dishes.length} resultados`}
               </h2>
-              {dishesError && (
-                <p className="text-sm text-destructive mt-1">Error: {dishesError}</p>
-              )}
+              {dishesError && <p className="text-sm text-destructive mt-1">Error: {dishesError}</p>}
             </div>
           </div>
 
-          <DishesGrid 
-            dishes={dishes}
-            loading={dishesLoading}
-            error={dishesError}
-          />
-        </>
-      );
+          <DishesGrid dishes={dishes} loading={dishesLoading} error={dishesError} />
+        </>;
     }
 
     // Default restaurants content (siempre mostrar cuando no sea 'dishes')
-    return (
-      <>
+    return <>
         {/* Filter Tags */}
-        <FilterTags
-          activeTab="restaurants"
-          selectedCuisines={selectedCuisines}
-          selectedFoodTypes={selectedFoodTypes}
-          selectedDistance={selectedDistance}
-          selectedPriceRanges={selectedPriceRanges}
-          selectedRating={selectedRating}
-          selectedEstablishmentTypes={selectedEstablishmentTypes}
-          selectedDietTypes={selectedDietTypes}
-          isOpenNow={isOpenNow}
-          onClearFilter={handleClearFilter}
-        />
+        <FilterTags activeTab="restaurants" selectedCuisines={selectedCuisines} selectedFoodTypes={selectedFoodTypes} selectedDistance={selectedDistance} selectedPriceRanges={selectedPriceRanges} selectedRating={selectedRating} selectedEstablishmentTypes={selectedEstablishmentTypes} selectedDietTypes={selectedDietTypes} isOpenNow={isOpenNow} onClearFilter={handleClearFilter} />
 
         {/* Results Header with simplified title */}
         <div className="flex items-center justify-between mb-6">
@@ -407,182 +334,119 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             <h2 className="text-sm font-medium mb-1 text-muted-foreground">
               {restaurantsLoading ? 'Cargando...' : `${restaurants.length} resultados`}
             </h2>
-            {restaurantsError && (
-              <p className="text-sm text-destructive mt-1">Error: {restaurantsError}</p>
-            )}
+            {restaurantsError && <p className="text-sm text-destructive mt-1">Error: {restaurantsError}</p>}
           </div>
         </div>
 
         {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-          {restaurantsLoading ? (
-            Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="space-y-3">
+          {restaurantsLoading ? Array.from({
+          length: 12
+        }).map((_, i) => <div key={i} className="space-y-3">
                 <Skeleton className="h-48 w-full rounded-lg" />
                 <div className="p-4 space-y-3">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-2/3" />
                 </div>
-              </div>
-            ))
-          ) : restaurantsError ? (
-            <div className="col-span-full text-center py-8">
+              </div>) : restaurantsError ? <div className="col-span-full text-center py-8">
               <p className="text-muted-foreground">Error al cargar restaurantes: {restaurantsError}</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Revisa la consola para más detalles
               </p>
-            </div>
-          ) : restaurants.length === 0 ? (
-            <div className="col-span-full text-center py-8">
+            </div> : restaurants.length === 0 ? <div className="col-span-full text-center py-8">
               <p className="text-muted-foreground">No se encontraron restaurantes</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Intenta cambiar los filtros de búsqueda
               </p>
-            </div>
-          ) : (
-            restaurants.map((restaurant) => (
-              <RestaurantCard
-                key={restaurant.id}
-                id={restaurant.id}
-                name={restaurant.name}
-                slug={restaurant.slug}
-                description={restaurant.description}
-                priceRange={restaurant.price_range}
-                googleRating={restaurant.google_rating}
-                distance={restaurant.distance_km}
-                cuisineTypes={restaurant.cuisine_types}
-                establishmentType={restaurant.establishment_type}
-                services={restaurant.services}
-                favoritesCount={restaurant.favorites_count}
-                coverImageUrl={restaurant.cover_image_url}
-                logoUrl={restaurant.logo_url}
-                onLoginRequired={handleLoginRequired}
-              />
-            ))
-          )}
+            </div> : restaurants.map(restaurant => <RestaurantCard key={restaurant.id} id={restaurant.id} name={restaurant.name} slug={restaurant.slug} description={restaurant.description} priceRange={restaurant.price_range} googleRating={restaurant.google_rating} distance={restaurant.distance_km} cuisineTypes={restaurant.cuisine_types} establishmentType={restaurant.establishment_type} services={restaurant.services} favoritesCount={restaurant.favorites_count} coverImageUrl={restaurant.cover_image_url} logoUrl={restaurant.logo_url} onLoginRequired={handleLoginRequired} />)}
         </div>
-      </>
-    );
+      </>;
   };
-
-  return (
-    <div className="min-h-screen bg-white pb-20 px-2 md:px-4 lg:px-[7.5%]">
+  return <div className="min-h-screen bg-white pb-20 px-2 md:px-4 lg:px-[7.5%]">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white -mx-2 md:-mx-4 lg:-mx-[7.5%] px-2 md:px-4 lg:px-[7.5%]">
         {renderHeader()}
 
         {/* Tipos de Cocina / Tipos de Comida */}
         <div className="px-4 pb-2 pt-1">
-          {activeBottomTab === 'dishes' ? (
-            <FoodTypeFilter 
-              selectedFoodTypes={selectedFoodTypes}
-              onFoodTypeChange={setSelectedFoodTypes}
-            />
-          ) : (
-            <CuisineFilter 
-              selectedCuisines={selectedCuisines}
-              onCuisineChange={setSelectedCuisines}
-            />
-          )}
+          {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
         </div>
 
         {/* Search bar for mobile - Full width below cuisine types */}
-        {isMobile && (
-          <div className="pb-2">
+        {isMobile && <div className="pb-2">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{ color: '#4B4B4B' }} />
-              <input
-                type="text"
-                placeholder={getSearchPlaceholder()}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
-                className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 placeholder:text-[#4B4B4B]"
-                style={{ 
-                  backgroundColor: '#F3F3F3',
-                  color: '#4B4B4B'
-                }}
-              />
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{
+            color: '#4B4B4B'
+          }} />
+              <input type="text" placeholder={getSearchPlaceholder()} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 placeholder:text-[#4B4B4B]" style={{
+            backgroundColor: '#F3F3F3',
+            color: '#4B4B4B'
+          }} />
             </div>
-          </div>
-        )}
+          </div>}
       </header>
 
       {/* Main Content */}
       <div className="w-full">
-        <div className="p-2 md:p-4">
+        <div className="p-0 md:p-4">
           {renderContent()}
         </div>
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNavigation 
-        activeTab={activeBottomTab}
-        onTabChange={(tab) => {
-          if (tab === 'account') {
-            setAccountModalOpen(true);
-            return;
-          }
-          
-          if (tab === 'dishes') {
-            navigate('/platos', { replace: true });
-          } else if (tab === 'restaurants') {
-            navigate('/restaurantes', { replace: true });
-          }
-        }}
-      />
+      <BottomNavigation activeTab={activeBottomTab} onTabChange={tab => {
+      if (tab === 'account') {
+        setAccountModalOpen(true);
+        return;
+      }
+      if (tab === 'dishes') {
+        navigate('/platos', {
+          replace: true
+        });
+      } else if (tab === 'restaurants') {
+        navigate('/restaurantes', {
+          replace: true
+        });
+      }
+    }} />
 
       {/* Modals */}
-      <AccountModal
-        open={accountModalOpen}
-        onOpenChange={setAccountModalOpen}
-      />
+      <AccountModal open={accountModalOpen} onOpenChange={setAccountModalOpen} />
 
-      <MenuModal
-        open={menuModalOpen}
-        onOpenChange={setMenuModalOpen}
-      />
+      <MenuModal open={menuModalOpen} onOpenChange={setMenuModalOpen} />
 
-      <LocationModal
-        open={locationModalOpen}
-        onOpenChange={setLocationModalOpen}
-        onLocationSelect={(location) => {
-          console.log('FoodieSpotLayout: Manual location selected:', location);
-          if (location.type === 'gps') {
-            setUserLocation({
-              lat: location.data.latitude,
-              lng: location.data.longitude
-            });
-            if (location.data.name && location.data.parent) {
-              const locationDisplay = `${location.data.name}, ${location.data.parent.split(',')[0]}`;
-              setCurrentLocationName(locationDisplay);
-            } else if (location.data.address) {
-              setCurrentLocationName(location.data.address);
-            } else {
-              setCurrentLocationName('Ubicación detectada');
-            }
-          } else if (location.type === 'city') {
-            setUserLocation({
-              lat: location.data.latitude,
-              lng: location.data.longitude
-            });
-            setCurrentLocationName(location.data.name);
-          } else if (location.type === 'suggestion') {
-            setUserLocation({
-              lat: location.data.latitude,
-              lng: location.data.longitude
-            });
-            const locationDisplay = location.data.parent 
-              ? `${location.data.name}, ${location.data.parent.split(',')[0]}`
-              : location.data.name;
-            setCurrentLocationName(locationDisplay);
-          } else if (location.type === 'manual') {
-            setCurrentLocationName(location.data.query);
-          }
-        }}
-      />
-    </div>
-  );
+      <LocationModal open={locationModalOpen} onOpenChange={setLocationModalOpen} onLocationSelect={location => {
+      console.log('FoodieSpotLayout: Manual location selected:', location);
+      if (location.type === 'gps') {
+        setUserLocation({
+          lat: location.data.latitude,
+          lng: location.data.longitude
+        });
+        if (location.data.name && location.data.parent) {
+          const locationDisplay = `${location.data.name}, ${location.data.parent.split(',')[0]}`;
+          setCurrentLocationName(locationDisplay);
+        } else if (location.data.address) {
+          setCurrentLocationName(location.data.address);
+        } else {
+          setCurrentLocationName('Ubicación detectada');
+        }
+      } else if (location.type === 'city') {
+        setUserLocation({
+          lat: location.data.latitude,
+          lng: location.data.longitude
+        });
+        setCurrentLocationName(location.data.name);
+      } else if (location.type === 'suggestion') {
+        setUserLocation({
+          lat: location.data.latitude,
+          lng: location.data.longitude
+        });
+        const locationDisplay = location.data.parent ? `${location.data.name}, ${location.data.parent.split(',')[0]}` : location.data.name;
+        setCurrentLocationName(locationDisplay);
+      } else if (location.type === 'manual') {
+        setCurrentLocationName(location.data.query);
+      }
+    }} />
+    </div>;
 }
