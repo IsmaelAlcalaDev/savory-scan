@@ -280,7 +280,7 @@ export default function RestaurantProfile() {
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        <div ref={heroRef} className="relative h-96 overflow-hidden">
+        <div ref={heroRef} className="relative h-96 md:h-96 sm:h-64 overflow-hidden">
           {currentImage && (
             <img 
               key={`${restaurant.id}-${currentImageIndex}`}
@@ -303,44 +303,37 @@ export default function RestaurantProfile() {
             <ArrowLeft className="h-6 w-6 text-white" />
           </Button>
           
-          <Button
-            onClick={handleShare}
-            size="lg"
-            variant="outline"
-            className="absolute top-6 right-6 rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
-          >
-            <Share2 className="h-6 w-6 text-white" />
-          </Button>
+          <div className="absolute top-6 right-6 flex gap-3">
+            <FavoriteButton
+              restaurantId={restaurant.id}
+              favoritesCount={restaurant.favorites_count}
+              size="lg"
+              className="rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
+            />
+            <Button
+              onClick={handleShare}
+              size="lg"
+              variant="outline"
+              className="rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
+            >
+              <Share2 className="h-6 w-6 text-white" />
+            </Button>
+          </div>
 
           {totalImages > 1 && (
-            <>
-              <button
-                onClick={prevImage}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-200 backdrop-blur-sm hover:scale-110 z-10"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={nextImage}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-200 backdrop-blur-sm hover:scale-110 z-10"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-              
-              <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                {Array.from({ length: totalImages }, (_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToImage(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                      index === currentImageIndex 
-                        ? 'bg-white scale-110' 
-                        : 'bg-white/40 hover:bg-white/60'
-                    }`}
-                  />
-                ))}
-              </div>
-            </>
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+              {Array.from({ length: totalImages }, (_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToImage(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    index === currentImageIndex 
+                      ? 'bg-white scale-110' 
+                      : 'bg-white/40 hover:bg-white/60'
+                  }`}
+                />
+              ))}
+            </div>
           )}
 
           {/* Desktop: Information over image */}
@@ -397,15 +390,6 @@ export default function RestaurantProfile() {
                       )}
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <FavoriteButton
-                    restaurantId={restaurant.id}
-                    favoritesCount={restaurant.favorites_count}
-                    size="lg"
-                    className="bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30"
-                  />
                 </div>
               </div>
             </div>
@@ -464,14 +448,6 @@ export default function RestaurantProfile() {
                     </div>
                   )}
                 </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <FavoriteButton
-                  restaurantId={restaurant.id}
-                  favoritesCount={restaurant.favorites_count}
-                  size="default"
-                />
               </div>
             </div>
           </div>
