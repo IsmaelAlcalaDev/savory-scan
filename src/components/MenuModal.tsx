@@ -1,10 +1,7 @@
-
 import React from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -73,14 +70,8 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">
-            FoodieSpot
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
+      <DialogContent className="max-w-md max-h-[80vh] p-0 overflow-hidden rounded-lg">
+        <div className="overflow-y-auto max-h-[80vh] p-6 space-y-6">
           {/* Selector de idioma */}
           <div>
             <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">
