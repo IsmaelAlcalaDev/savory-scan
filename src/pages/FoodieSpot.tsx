@@ -10,7 +10,7 @@ export default function FoodieSpot() {
         <meta name="description" content="Encuentra los mejores restaurantes para delivery cerca de ti" />
       </Helmet>
       
-      <FoodieSpotLayout initialTab="restaurants" />
+      <FoodieSpotLayout />
     </>
   );
 }
