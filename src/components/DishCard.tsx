@@ -188,14 +188,14 @@ export default function DishCard({ dish, restaurantId, expandedDishId, onExpande
 
           {/* Expandable Content */}
           <CollapsibleContent className="mt-3">
-            <div className="space-y-3 bg-accent/20 rounded-lg p-3">
+            <div className="space-y-3 bg-accent/20 rounded-lg p-0">
               {/* Description */}
               {dish.description && (
-                <p className="text-sm text-muted-foreground">{dish.description}</p>
+                <p className="text-sm text-muted-foreground px-3 pt-3">{dish.description}</p>
               )}
 
               {/* Diet and Allergen Tags */}
-              <div className="space-y-2">
+              <div className="space-y-2 px-3">
                 {(getDietBadges().length > 0 || (dish.allergens && dish.allergens.length > 0) || getSpiceIcons()) && (
                   <div className="flex flex-wrap gap-1">
                     {getDietBadges().map((badge, index) => (
@@ -219,10 +219,10 @@ export default function DishCard({ dish, restaurantId, expandedDishId, onExpande
 
               {/* Variants Selection */}
               {hasMultipleVariants && (
-                <div>
+                <div className="px-3">
                   <div className="space-y-1.5">
                     {dish.variants.map((variant) => (
-                      <div key={variant.id} className="flex items-center justify-between bg-background rounded-lg p-2">
+                      <div key={variant.id} className="flex items-center justify-between bg-background rounded-lg py-2 px-2">
                         <div>
                           <span className="font-medium text-sm">{variant.name}</span>
                           {variant.is_default && (
@@ -256,7 +256,7 @@ export default function DishCard({ dish, restaurantId, expandedDishId, onExpande
 
               {/* Diner Selection for dishes without variants */}
               {!hasMultipleVariants && hasMultipleDiners && (
-                <div>
+                <div className="px-3">
                   <DinerSelector
                     onDinerSelect={handleDinerSelect}
                     onManageDiners={openDinersModal}
@@ -266,7 +266,7 @@ export default function DishCard({ dish, restaurantId, expandedDishId, onExpande
 
               {/* Additional Info */}
               {dish.preparation_time_minutes && (
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground px-3 pb-3">
                   <span className="font-medium">Tiempo:</span> {dish.preparation_time_minutes} min
                 </div>
               )}
