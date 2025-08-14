@@ -92,54 +92,68 @@ export default function FilterTags({
     switch (filterKey) {
       case 'sort':
         return (
-          <SortFilter
-            selectedSort={selectedSort}
-            onSortChange={onSortChange}
-          />
+          <div className="[&_label]:text-base">
+            <SortFilter
+              selectedSort={selectedSort}
+              onSortChange={onSortChange}
+            />
+          </div>
         );
       case 'distance':
         return (
-          <DistanceFilter
-            selectedDistances={selectedDistance}
-            onDistanceChange={onDistanceChange}
-          />
+          <div className="[&_label]:text-base space-y-4">
+            <DistanceFilter
+              selectedDistances={selectedDistance}
+              onDistanceChange={onDistanceChange}
+            />
+          </div>
         );
       case 'price':
         return (
-          <PriceFilter
-            selectedPriceRanges={selectedPriceRanges}
-            onPriceRangeChange={onPriceRangeChange}
-          />
+          <div className="[&_label]:text-base space-y-4">
+            <PriceFilter
+              selectedPriceRanges={selectedPriceRanges}
+              onPriceRangeChange={onPriceRangeChange}
+            />
+          </div>
         );
       case 'rating':
         return (
-          <RatingFilter
-            selectedRating={selectedRating}
-            onRatingChange={onRatingChange}
-          />
+          <div className="[&_label]:text-base space-y-4">
+            <RatingFilter
+              selectedRating={selectedRating}
+              onRatingChange={onRatingChange}
+            />
+          </div>
         );
       case 'establishment':
         return (
-          <EstablishmentTypeFilter
-            selectedEstablishmentTypes={selectedEstablishmentTypes}
-            onEstablishmentTypeChange={onEstablishmentTypeChange}
-          />
+          <div className="[&_label]:text-base space-y-4">
+            <EstablishmentTypeFilter
+              selectedEstablishmentTypes={selectedEstablishmentTypes}
+              onEstablishmentTypeChange={onEstablishmentTypeChange}
+            />
+          </div>
         );
       case 'diet':
         return (
-          <DietFilter
-            selectedDietTypes={selectedDietTypes}
-            onDietTypeChange={onDietTypeChange}
-          />
+          <div className="[&_label]:text-base space-y-4">
+            <DietFilter
+              selectedDietTypes={selectedDietTypes}
+              onDietTypeChange={onDietTypeChange}
+            />
+          </div>
         );
       case 'schedule':
         return (
-          <TimeRangeFilter
-            selectedTimeRanges={selectedTimeRanges}
-            onTimeRangeChange={onTimeRangeChange}
-            isOpenNow={isOpenNow}
-            onOpenNowChange={onOpenNowChange}
-          />
+          <div className="[&_label]:text-base space-y-4">
+            <TimeRangeFilter
+              selectedTimeRanges={selectedTimeRanges}
+              onTimeRangeChange={onTimeRangeChange}
+              isOpenNow={isOpenNow}
+              onOpenNowChange={onOpenNowChange}
+            />
+          </div>
         );
       default:
         return (
@@ -157,8 +171,8 @@ export default function FilterTags({
         <h3 className="text-lg font-semibold">{getFilterTitle(filterKey)}</h3>
       </div>
       
-      {/* Filter content */}
-      <div className="p-4">
+      {/* Filter content with dividing lines */}
+      <div className="p-4 [&>div>div:not(:last-child)]:border-b [&>div>div:not(:last-child)]:border-gray-100 [&>div>div:not(:last-child)]:pb-4 [&>div>div:not(:first-child)]:pt-4">
         {getFilterContent(filterKey)}
       </div>
       
@@ -172,7 +186,8 @@ export default function FilterTags({
         </Button>
         <Button 
           onClick={onReset}
-          className="w-full"
+          variant="ghost"
+          className="w-full bg-transparent border-0 hover:bg-gray-50"
         >
           Restablecer
         </Button>
