@@ -1,11 +1,16 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import DishFavoriteButton from './DishFavoriteButton';
-import DinerSelector from './DinerSelector';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface DishCardProps {
   dish: Dish;
@@ -28,7 +33,7 @@ const allergenColorMap: Record<string, { color: string; label: string }> = {
 };
 
 export default function DishCard({ dish, restaurantId, onDishClick }: DishCardProps) {
-  const { addDishToOrder, openDinersModal } = useOrderSimulator();
+  const { addDishToOrder, openDinersModal, diners } = useOrderSimulator();
   const [showDinerSelector, setShowDinerSelector] = useState(false);
 
   const formatPrice = (price: number) => {
@@ -76,6 +81,14 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
 
   const handleAddToSimulator = (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Si solo hay un comensal, añadir directamente
+    if (diners.length === 1) {
+      addDishToOrder(dish, diners[0].id);
+      return;
+    }
+    
+    // Si hay múltiples comensales, mostrar selector
     setShowDinerSelector(true);
   };
 
@@ -131,18 +144,73 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
             </div>
           </div>
 
-          {/* Middle Row - Allergens (only if they exist) */}
-          {allergenCircles.length > 0 && (
-            <div className="flex items-center gap-2 mb-2">
-              {allergenCircles.map((allergen, index) => (
-                <div 
-                  key={index} 
-                  title={`Contiene: ${allergen!.label}`}
-                  className={`w-3 h-3 rounded-full ${allergen!.color} flex-shrink-0`}
-                />
-              ))}
-            </div>
-          )}
+          {/* Middle Row - Diner Selector (si está activo) y Allergens */}
+          <div className="flex items-center gap-3 mb-2">
+            {/* Diner Selector - aparece delante de los alérgenos */}
+            {showDinerSelector && diners.length > 1 && (
+              <div className="flex-shrink-0">
+                <Popover open={showDinerSelector} onOpenChange={setShowDinerSelector}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs bg-background border-primary/50"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Seleccionar comensal
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-2 z-50" align="start">
+                    <div className="space-y-1">
+                      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                        Asignar plato a:
+                      </div>
+                      {diners.map((diner) => (
+                        <Button
+                          key={diner.id}
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDinerSelect(diner.id);
+                          }}
+                          className="w-full justify-start h-7 text-xs"
+                        >
+                          {diner.name}
+                        </Button>
+                      ))}
+                      <hr className="my-1" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleManageDiners();
+                        }}
+                        className="w-full justify-start h-7 text-xs text-primary"
+                      >
+                        Gestionar comensales
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+
+            {/* Allergens (only if they exist and no diner selector showing) */}
+            {allergenCircles.length > 0 && (
+              <div className="flex items-center gap-2">
+                {allergenCircles.map((allergen, index) => (
+                  <div 
+                    key={index} 
+                    title={`Contiene: ${allergen!.label}`}
+                    className={`w-3 h-3 rounded-full ${allergen!.color} flex-shrink-0`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Bottom Row - Buttons in bottom right */}
           <div className="flex items-end justify-end">
@@ -156,24 +224,13 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                 savedFrom="menu_list"
               />
               
-              <div className="relative">
-                {showDinerSelector && (
-                  <div className="absolute bottom-full right-0 mb-2 z-10">
-                    <DinerSelector
-                      onDinerSelect={handleDinerSelect}
-                      onManageDiners={handleManageDiners}
-                    />
-                  </div>
-                )}
-                
-                <button
-                  onClick={handleAddToSimulator}
-                  className="w-8 h-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
-                  aria-label="Añadir al simulador"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-              </div>
+              <button
+                onClick={handleAddToSimulator}
+                className="w-8 h-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
+                aria-label="Añadir al simulador"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>
