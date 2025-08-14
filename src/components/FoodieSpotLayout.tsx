@@ -36,8 +36,9 @@ export default function FoodieSpotLayout() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
-  const { userProfile } = useUserProfile();
+  const { profile } = useUserProfile();
   const { location: ipLocation } = useIPLocation();
+  const { findNearestLocation } = useNearestLocation();
   
   // Estados principales
   const [viewMode, setViewMode] = useState<ViewMode>('restaurants');
@@ -46,10 +47,10 @@ export default function FoodieSpotLayout() {
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
   const [listMode, setListMode] = useState<'list' | 'grid'>('grid');
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [currentLocationName, setCurrentLocationName] = useState('Ubicación no disponible');
 
   // Geolocalización
   const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
-  const { nearestLocation } = useNearestLocation(userLocation?.lat || null, userLocation?.lng || null);
 
   // Hooks para datos
   const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useRestaurants({
@@ -63,7 +64,6 @@ export default function FoodieSpotLayout() {
     searchQuery: viewMode === 'dishes' ? searchQuery : '',
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
-    cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     foodTypeIds: selectedFoodTypes.length > 0 ? selectedFoodTypes : undefined,
   });
 
@@ -83,28 +83,40 @@ export default function FoodieSpotLayout() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const newLocation = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          });
+          };
+          setUserLocation(newLocation);
+          
+          // Find nearest location name
+          findNearestLocation(position.coords.latitude, position.coords.longitude)
+            .then(result => {
+              if (result) {
+                setCurrentLocationName(result.name);
+              }
+            });
         },
         (error) => {
           console.error('Error getting user location:', error);
-          if (ipLocation?.lat && ipLocation?.lng) {
-            setUserLocation({
-              lat: ipLocation.lat,
-              lng: ipLocation.lng
-            });
+          if (ipLocation?.latitude && ipLocation?.longitude) {
+            const newLocation = {
+              lat: ipLocation.latitude,
+              lng: ipLocation.longitude
+            };
+            setUserLocation(newLocation);
+            setCurrentLocationName(ipLocation.city);
           }
         }
       );
-    } else if (ipLocation?.lat && ipLocation?.lng) {
+    } else if (ipLocation?.latitude && ipLocation?.longitude) {
       setUserLocation({
-        lat: ipLocation.lat,
-        lng: ipLocation.lng
+        lat: ipLocation.latitude,
+        lng: ipLocation.longitude
       });
+      setCurrentLocationName(ipLocation.city);
     }
-  }, [ipLocation]);
+  }, [ipLocation, findNearestLocation]);
 
   // Handlers
   const handleSearchChange = (query: string) => {
@@ -131,7 +143,6 @@ export default function FoodieSpotLayout() {
   };
 
   const handleFavoriteChange = () => {
-    // Recargar datos cuando cambie un favorito
     console.log('Favorite changed - data will refresh automatically');
   };
 
@@ -140,29 +151,52 @@ export default function FoodieSpotLayout() {
   };
 
   const handleFavoritesClick = () => {
-    // Navegar a favoritos o mostrar modal de favoritos
     console.log('Navigate to favorites');
+  };
+
+  const handleLocationSelect = (selectedLocation: any) => {
+    if (selectedLocation?.lat && selectedLocation?.lng) {
+      setUserLocation({
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng
+      });
+      setCurrentLocationName(selectedLocation.name || 'Ubicación seleccionada');
+    }
+    setShowLocationModal(false);
   };
 
   // Renderizado de header según dispositivo
   const renderHeader = () => {
+    const commonProps = {
+      appName: "FoodieSpot",
+      appLogoUrl: "/placeholder.svg",
+      currentLocationName,
+      isLoadingLocation: false,
+      onLogoClick: () => navigate('/'),
+      onLocationClick: handleLocationClick,
+      onMenuClick: () => console.log('Menu clicked')
+    };
+
     if (isMobile) {
-      return (
-        <MobileHeader 
-          onLocationClick={handleLocationClick}
-          address={nearestLocation?.formatted_address || ipLocation?.city || 'Ubicación no disponible'}
-        />
-      );
+      return <MobileHeader {...commonProps} />;
     } else {
       return (
         <>
           <DesktopHeader 
-            onLocationClick={handleLocationClick}
-            address={nearestLocation?.formatted_address || ipLocation?.city || 'Ubicación no disponible'}
+            {...commonProps}
+            searchQuery={searchQuery}
+            isSearchFocused={false}
+            onSearchChange={handleSearchChange}
+            onSearchFocus={() => {}}
+            onSearchBlur={() => {}}
           />
           <TabletHeader 
-            onLocationClick={handleLocationClick}
-            address={nearestLocation?.formatted_address || ipLocation?.city || 'Ubicación no disponible'}
+            {...commonProps}
+            searchQuery={searchQuery}
+            isSearchFocused={false}
+            onSearchChange={handleSearchChange}
+            onSearchFocus={() => {}}
+            onSearchBlur={() => {}}
           />
         </>
       );
@@ -194,21 +228,21 @@ export default function FoodieSpotLayout() {
       {renderHeader()}
       
       <main className="container mx-auto px-4 pt-20 pb-20 lg:pb-8">
-        {/* Barra de búsqueda */}
-        <div className="mb-6">
-          <SearchBar
-            searchQuery={searchQuery}
-            onSearchChange={handleSearchChange}
-            placeholder={viewMode === 'restaurants' ? "Buscar restaurantes..." : "Buscar platos..."}
-          />
-        </div>
+        {/* Barra de búsqueda móvil */}
+        {isMobile && (
+          <div className="mb-6">
+            <SearchBar
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder={viewMode === 'restaurants' ? "Buscar restaurantes..." : "Buscar platos..."}
+            />
+          </div>
+        )}
 
         {/* Quick Action Tags */}
         <div className="mb-6">
           <QuickActionTags 
-            onLocationClick={handleLocationClick}
-            onFavoritesClick={handleFavoritesClick}
-            address={nearestLocation?.formatted_address || ipLocation?.city || 'Ubicación no disponible'}
+            address={currentLocationName}
           />
         </div>
 
@@ -297,8 +331,8 @@ export default function FoodieSpotLayout() {
                     name={restaurant.name}
                     slug={restaurant.slug}
                     priceRange={restaurant.price_range}
-                    rating={restaurant.google_rating}
-                    ratingCount={restaurant.google_rating_count}
+                    googleRating={restaurant.google_rating}
+                    googleRatingCount={restaurant.google_rating_count}
                     distance={restaurant.distance_km}
                     cuisineTypes={restaurant.cuisine_types}
                     establishmentType={restaurant.establishment_type}
@@ -320,12 +354,13 @@ export default function FoodieSpotLayout() {
       <LocationModal
         open={showLocationModal}
         onOpenChange={setShowLocationModal}
+        onLocationSelect={handleLocationSelect}
       />
 
       {/* Navegación inferior móvil */}
       <BottomNavigation 
-        currentView={viewMode}
-        onViewChange={handleViewModeChange}
+        activeTab={viewMode}
+        onTabChange={handleViewModeChange}
       />
     </div>
   );
