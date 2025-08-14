@@ -10,6 +10,7 @@ import { useFavorites } from '@/contexts/FavoritesContext';
 import { useSecurityLogger } from '@/hooks/useSecurityLogger';
 import RestaurantCard from '@/components/RestaurantCard';
 import FavoriteRestaurantItem from '@/components/FavoriteRestaurantItem';
+import FavoriteDishItem from '@/components/FavoriteDishItem';
 
 interface FavoriteRestaurant {
   id: number;
@@ -31,6 +32,7 @@ interface FavoriteDish {
   id: number;
   name: string;
   restaurant_name: string;
+  restaurant_id: number;
   base_price: number;
   image_url?: string;
   saved_at: string;
@@ -86,6 +88,26 @@ export default function FavoritesSection() {
     window.addEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
     return () => {
       window.removeEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
+    };
+  }, []);
+
+  // Listen to dishFavoriteToggled events for real-time updates
+  useEffect(() => {
+    const handleDishFavoriteToggled = (event: CustomEvent) => {
+      const { dishId, isFavorite } = event.detail;
+      
+      if (!isFavorite) {
+        // Dish was removed from favorites, remove it from the list
+        setFavoriteDishes(prev => prev.filter(item => item.id !== dishId));
+      } else {
+        // Dish was added to favorites, refresh the list to show it
+        loadFavorites();
+      }
+    };
+
+    window.addEventListener('dishFavoriteToggled', handleDishFavoriteToggled as EventListener);
+    return () => {
+      window.removeEventListener('dishFavoriteToggled', handleDishFavoriteToggled as EventListener);
     };
   }, []);
 
@@ -161,7 +183,6 @@ export default function FavoritesSection() {
     try {
       setLoading(true);
 
-      // Load favorite restaurants with all needed data
       const { data: restaurants, error: restaurantsError } = await supabase
         .from('user_saved_restaurants')
         .select(`
@@ -206,7 +227,6 @@ export default function FavoritesSection() {
 
       setFavoriteRestaurants(formattedRestaurants);
 
-      // Load favorite dishes
       const { data: dishes, error: dishesError } = await supabase
         .from('user_saved_dishes')
         .select(`
@@ -231,6 +251,7 @@ export default function FavoritesSection() {
         id: item.dishes.id,
         name: item.dishes.name,
         restaurant_name: item.dishes.restaurants?.name || '',
+        restaurant_id: item.dishes.restaurant_id,
         base_price: item.dishes.base_price,
         image_url: item.dishes.image_url,
         saved_at: item.saved_at
@@ -384,24 +405,18 @@ export default function FavoritesSection() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {favoriteDishes.map((dish) => (
-                <Card key={dish.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={dish.image_url || '/placeholder.svg'}
-                        alt={dish.name}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{dish.name}</h4>
-                        <p className="text-sm text-muted-foreground">{dish.restaurant_name}</p>
-                        <p className="font-medium text-primary">€{dish.base_price}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <FavoriteDishItem
+                  key={dish.id}
+                  id={dish.id}
+                  name={dish.name}
+                  restaurantName={dish.restaurant_name}
+                  restaurantId={dish.restaurant_id}
+                  basePrice={dish.base_price}
+                  imageUrl={dish.image_url}
+                  favoritesCount={0}
+                />
               ))}
             </div>
           )}
