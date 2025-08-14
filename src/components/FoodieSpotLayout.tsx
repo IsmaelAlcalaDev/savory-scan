@@ -448,9 +448,9 @@ export default function FoodieSpotLayout({
       </>;
   };
 
-  return <div className="min-h-screen bg-white pb-20 px-2 md:px-4 lg:px-[7.5%]">
+  return <div className="min-h-screen bg-white pb-20 px-4 md:px-6 lg:px-8 xl:px-12">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white -mx-2 md:-mx-4 lg:-mx-[7.5%] px-2 md:px-4 lg:px-[7.5%]">
+      <header className="sticky top-0 z-50 bg-white -mx-4 md:-mx-6 lg:-mx-8 xl:-mx-12 px-4 md:px-6 lg:px-8 xl:px-12">
         {renderHeader()}
 
         {/* Tipos de Cocina / Tipos de Comida */}
