@@ -29,12 +29,11 @@ import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 import RestaurantPlatforms from '@/components/RestaurantPlatforms';
 import CompactRestaurantSchedule from '@/components/CompactRestaurantSchedule';
 import QuickActionTags from '@/components/QuickActionTags';
-import DeliveryIcons from '@/components/DeliveryIcons';
+import DeliveryLogosSection from '@/components/DeliveryLogosSection';
 import CompactRestaurantEvents from '@/components/CompactRestaurantEvents';
 import CompactRestaurantPromotions from '@/components/CompactRestaurantPromotions';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import RestaurantSocialSection from '@/components/RestaurantSocialSection';
-import RestaurantDeliveryButtons from '@/components/RestaurantDeliveryButtons';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
@@ -278,7 +277,6 @@ export default function RestaurantProfile() {
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        {/* Hero Section with Image Carousel */}
         <div ref={heroRef} className="relative h-96 overflow-hidden">
           <img 
             key={`${restaurant.id}-${currentImageIndex}`}
@@ -291,7 +289,6 @@ export default function RestaurantProfile() {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
           
-          {/* Back Arrow */}
           <Button
             onClick={handleGoBack}
             size="lg"
@@ -301,7 +298,6 @@ export default function RestaurantProfile() {
             <ArrowLeft className="h-6 w-6 text-white" />
           </Button>
           
-          {/* Share Button */}
           <Button
             onClick={handleShare}
             size="lg"
@@ -342,7 +338,6 @@ export default function RestaurantProfile() {
             </>
           )}
 
-          {/* Restaurant Info Overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <div className="max-w-6xl mx-auto">
               <div className="flex items-end justify-between mb-6">
@@ -411,7 +406,6 @@ export default function RestaurantProfile() {
           </div>
         </div>
 
-        {/* Fixed Navigation Header - Only in mobile */}
         {isMobile && (
           <div 
             ref={headerRef}
@@ -423,7 +417,6 @@ export default function RestaurantProfile() {
           >
             <div className="max-w-6xl mx-auto px-4">
               <div className="flex items-center gap-4 py-4">
-                {/* Quick Action Tags */}
                 <QuickActionTags
                   phone={restaurant.phone}
                   website={restaurant.website}
@@ -438,14 +431,10 @@ export default function RestaurantProfile() {
           </div>
         )}
 
-        {/* Desktop/Mobile Content Layout */}
         <div className="max-w-6xl mx-auto px-4 py-8">
           {!isMobile ? (
-            // Desktop layout with two columns
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left Column - Main content */}
               <div className="lg:col-span-2 space-y-8">
-                {/* Quick Action Tags for Desktop */}
                 <QuickActionTags
                   phone={restaurant.phone}
                   website={restaurant.website}
@@ -456,7 +445,6 @@ export default function RestaurantProfile() {
                   onReservationClick={() => scrollToSection('reservas')}
                 />
 
-                {/* Servicios */}
                 {restaurant.services.length > 0 && (
                   <section 
                     id="servicios"
@@ -477,7 +465,10 @@ export default function RestaurantProfile() {
                   </section>
                 )}
 
-                {/* Reservas */}
+                {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
+                  <DeliveryLogosSection deliveryLinks={restaurant.delivery_links} />
+                )}
+
                 <section 
                   id="reservas"
                   ref={(el) => sectionsRef.current['reservas'] = el}
@@ -489,7 +480,6 @@ export default function RestaurantProfile() {
                   />
                 </section>
 
-                {/* Promociones */}
                 {restaurant.promotions && restaurant.promotions.length > 0 && (
                   <section 
                     id="promociones"
@@ -499,7 +489,6 @@ export default function RestaurantProfile() {
                   </section>
                 )}
 
-                {/* Eventos */}
                 <section 
                   id="eventos"
                   ref={(el) => sectionsRef.current['eventos'] = el}
@@ -507,7 +496,6 @@ export default function RestaurantProfile() {
                   <CompactRestaurantEvents restaurantId={restaurant?.id || 0} />
                 </section>
 
-                {/* Redes Sociales */}
                 {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
                   <section className="space-y-4">
                     <RestaurantSocialSection socialLinks={restaurant.social_links} />
@@ -515,32 +503,17 @@ export default function RestaurantProfile() {
                 )}
               </div>
 
-              {/* Right Column - Menu button and Schedules */}
               <div className="lg:col-span-1 space-y-6">
-                {/* Sticky sidebar content */}
                 <div className="sticky top-8 space-y-6">
-                  {/* Ver Carta Button and Delivery Buttons */}
-                  <div className="space-y-4">
-                    <Button
-                      onClick={handleViewMenu}
-                      size="lg"
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
-                    >
-                      <Utensils className="h-6 w-6 mr-2" />
-                      Ver Carta
-                    </Button>
-                    
-                    {/* Delivery Buttons */}
-                    {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
-                      <RestaurantDeliveryButtons deliveryLinks={restaurant.delivery_links} />
-                    )}
-                    
-                    <div className="flex justify-center">
-                      <DeliveryIcons restaurantLinks={restaurant.delivery_links || {}} />
-                    </div>
-                  </div>
+                  <Button
+                    onClick={handleViewMenu}
+                    size="lg"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
+                  >
+                    <Utensils className="h-6 w-6 mr-2" />
+                    Ver Carta
+                  </Button>
 
-                  {/* Horarios */}
                   <section 
                     id="horarios"
                     ref={(el) => sectionsRef.current['horarios'] = el}
@@ -588,9 +561,7 @@ export default function RestaurantProfile() {
               </div>
             </div>
           ) : (
-            // Mobile layout
             <div className="space-y-8">
-              {/* Horarios */}
               <section 
                 id="horarios"
                 ref={(el) => sectionsRef.current['horarios'] = el}
@@ -610,28 +581,15 @@ export default function RestaurantProfile() {
                 )}
               </section>
 
-              {/* Ver Carta Button and Delivery Buttons */}
-              <div className="space-y-4">
-                <Button
-                  onClick={handleViewMenu}
-                  size="lg"
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
-                >
-                  <Utensils className="h-6 w-6 mr-2" />
-                  Ver Carta
-                </Button>
-                
-                {/* Delivery Buttons */}
-                {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
-                  <RestaurantDeliveryButtons deliveryLinks={restaurant.delivery_links} />
-                )}
-                
-                <div className="flex justify-center">
-                  <DeliveryIcons restaurantLinks={restaurant.delivery_links || {}} />
-                </div>
-              </div>
+              <Button
+                onClick={handleViewMenu}
+                size="lg"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
+              >
+                <Utensils className="h-6 w-6 mr-2" />
+                Ver Carta
+              </Button>
 
-              {/* Servicios */}
               {restaurant.services.length > 0 && (
                 <section 
                   id="servicios"
@@ -652,7 +610,10 @@ export default function RestaurantProfile() {
                 </section>
               )}
 
-              {/* Reservas */}
+              {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
+                <DeliveryLogosSection deliveryLinks={restaurant.delivery_links} />
+              )}
+
               <section 
                 id="reservas"
                 ref={(el) => sectionsRef.current['reservas'] = el}
@@ -664,7 +625,6 @@ export default function RestaurantProfile() {
                 />
               </section>
 
-              {/* Promociones */}
               {restaurant.promotions && restaurant.promotions.length > 0 && (
                 <section 
                   id="promociones"
@@ -674,7 +634,6 @@ export default function RestaurantProfile() {
                 </section>
               )}
 
-              {/* Eventos */}
               <section 
                 id="eventos"
                 ref={(el) => sectionsRef.current['eventos'] = el}
@@ -682,7 +641,6 @@ export default function RestaurantProfile() {
                 <CompactRestaurantEvents restaurantId={restaurant?.id || 0} />
               </section>
 
-              {/* Redes Sociales */}
               {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
                 <section className="space-y-4">
                   <RestaurantSocialSection socialLinks={restaurant.social_links} />
@@ -692,7 +650,6 @@ export default function RestaurantProfile() {
           )}
         </div>
 
-        {/* Gallery Modal */}
         <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
           <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0">
             <div className="p-6 border-b">
@@ -718,7 +675,6 @@ export default function RestaurantProfile() {
           </DialogContent>
         </Dialog>
 
-        {/* Dish Modal */}
         <DishModal
           dish={selectedDish}
           restaurantId={restaurant?.id || 0}
