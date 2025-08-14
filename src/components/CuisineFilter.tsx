@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -51,7 +52,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
   if (loading) {
     return (
       <div className="relative w-full">
-        <div className="flex gap-12 pb-2 px-1 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-8 pb-2 px-1 overflow-x-auto scrollbar-hide">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0">
               <Skeleton className="h-16 w-16" />
@@ -94,7 +95,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
       
       <div 
         ref={scrollRef}
-        className="flex gap-12 pb-2 px-2 overflow-x-auto scrollbar-hide"
+        className="flex gap-8 pb-2 px-2 overflow-x-auto scrollbar-hide"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none'
@@ -107,7 +108,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
             className="flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0"
             onClick={() => handleCuisineToggle(cuisine.id)}
           >
-            <div className="flex items-center justify-center text-4xl transition-all duration-200">
+            <div className="flex items-center justify-center w-16 h-16 text-5xl transition-all duration-200">
               {cuisine.icon && (
                 <span 
                   role="img" 

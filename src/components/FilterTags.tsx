@@ -277,15 +277,15 @@ export default function FilterTags({
           </FilterTrigger>
         ))}
 
-        {/* Quick Filters - with distinctive border design */}
+        {/* Quick Filters - with no border design */}
         {quickFilters.map((filter) => (
           <Badge
             key={filter.key}
             variant="outline"
-            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full cursor-pointer border ${
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full cursor-pointer border-0 ${
               filter.active
-                ? 'bg-green-100 text-green-800 border-green-300' 
-                : 'text-gray-700 hover:bg-gray-50 border-gray-300'
+                ? 'bg-green-100 text-green-800' 
+                : 'text-gray-700 hover:bg-gray-50'
             }`}
             style={!filter.active ? { 
               backgroundColor: '#F9F9F9',
@@ -299,7 +299,7 @@ export default function FilterTags({
             }}
           >
             {filter.label}
-            {filter.active && <X className="h-3 w-3 ml-1" />}
+            {filter.active && <X className="h-3 w-3 ml-1 hover:opacity-70" />}
           </Badge>
         ))}
 
@@ -311,7 +311,7 @@ export default function FilterTags({
           >
             {selectedCuisines.length} cocina{selectedCuisines.length > 1 ? 's' : ''}
             <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
               onClick={() => onClearFilter('cuisine')}
             />
           </Badge>
@@ -324,7 +324,7 @@ export default function FilterTags({
           >
             {selectedFoodTypes.length} tipo{selectedFoodTypes.length > 1 ? 's' : ''}
             <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
               onClick={() => onClearFilter('foodType')}
             />
           </Badge>
@@ -337,7 +337,7 @@ export default function FilterTags({
           >
             Distancia
             <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
               onClick={() => onClearFilter('distance')}
             />
           </Badge>
@@ -350,7 +350,7 @@ export default function FilterTags({
           >
             {selectedPriceRanges.length} precio{selectedPriceRanges.length > 1 ? 's' : ''}
             <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
               onClick={() => onClearFilter('price')}
             />
           </Badge>
@@ -363,7 +363,7 @@ export default function FilterTags({
           >
             Valoración
             <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
               onClick={() => onClearFilter('rating')}
             />
           </Badge>
@@ -376,7 +376,7 @@ export default function FilterTags({
           >
             {selectedEstablishmentTypes.length} tipo{selectedEstablishmentTypes.length > 1 ? 's' : ''}
             <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
               onClick={() => onClearFilter('establishment')}
             />
           </Badge>
@@ -389,7 +389,7 @@ export default function FilterTags({
           >
             {selectedDietTypes.length} dieta{selectedDietTypes.length > 1 ? 's' : ''}
             <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
               onClick={() => onClearFilter('diet')}
             />
           </Badge>
@@ -402,7 +402,7 @@ export default function FilterTags({
           >
             Ordenado
             <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
               onClick={() => onClearFilter('sort')}
             />
           </Badge>
@@ -415,7 +415,7 @@ export default function FilterTags({
           >
             {selectedTimeRanges.length} horario{selectedTimeRanges.length > 1 ? 's' : ''}
             <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70" 
+              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
               onClick={() => onClearFilter('timeRange')}
             />
           </Badge>
