@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
@@ -829,28 +828,8 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       <header className="sticky top-0 z-50 bg-white -mx-2 md:-mx-4 lg:-mx-[7.5%] px-2 md:px-4 lg:px-[7.5%]">
         {renderHeader()}
 
-        {/* Tipos de Cocina / Tipos de Comida - Only show search on mobile if not shown in header */}
+        {/* Tipos de Cocina / Tipos de Comida */}
         <div className="px-4 pb-2 pt-2">
-          {/* Search bar for mobile (since it's not in MobileHeader) */}
-          {isMobile && (
-            <div className="mb-4">
-              <div className="relative">
-                <Search className={`absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors z-10 ${
-                  isSearchFocused ? 'text-primary' : 'text-muted-foreground'
-                }`} />
-                <input
-                  type="text"
-                  placeholder="Buscar restaurantes, platos..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  className="pl-10 pr-4 h-10 text-base bg-background/50 border border-muted-foreground backdrop-blur-sm rounded-full focus:border-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none"
-                />
-              </div>
-            </div>
-          )}
-          
           {activeBottomTab === 'dishes' ? (
             <FoodTypeFilter 
               selectedFoodTypes={selectedFoodTypes}
@@ -863,6 +842,28 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             />
           )}
         </div>
+
+        {/* Search bar for mobile - Full width below cuisine types */}
+        {isMobile && (
+          <div className="px-4 pb-4">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{ color: '#4B4B4B' }} />
+              <input
+                type="text"
+                placeholder="Buscar restaurantes, platos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0"
+                style={{ 
+                  backgroundColor: '#F3F3F3',
+                  color: '#4B4B4B'
+                }}
+              />
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
