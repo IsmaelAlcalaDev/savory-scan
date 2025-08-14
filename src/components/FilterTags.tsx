@@ -1,4 +1,4 @@
-import { X, ChevronDown, MapPin, DollarSign, Star, ArrowUpDown, Store, Utensils, Clock, RotateCcw } from 'lucide-react';
+import { X, ChevronDown, MapPin, Euro, Star, ArrowUpDown, Store, Utensils, Clock, RotateCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -78,7 +78,7 @@ export default function FilterTags({
   const getFilterIcon = (filterKey: string) => {
     switch (filterKey) {
       case 'distance': return MapPin;
-      case 'price': return DollarSign;
+      case 'price': return Euro;
       case 'rating': return Star;
       case 'sort': return ArrowUpDown;
       case 'establishment': return Store;
@@ -101,18 +101,23 @@ export default function FilterTags({
     }
   };
 
+  // Function to get the count of active filters for each filter type
+  const getFilterCount = (filterKey: string) => {
+    switch (filterKey) {
+      case 'sort': return selectedSort ? 1 : 0;
+      case 'distance': return selectedDistance.length;
+      case 'price': return selectedPriceRanges.length;
+      case 'rating': return selectedRating ? 1 : 0;
+      case 'establishment': return selectedEstablishmentTypes.length;
+      case 'diet': return selectedDietTypes.length;
+      case 'schedule': return selectedTimeRanges.length + (isOpenNow ? 1 : 0);
+      default: return 0;
+    }
+  };
+
   // Function to check if a specific filter is active
   const isFilterActive = (filterKey: string) => {
-    switch (filterKey) {
-      case 'sort': return !!selectedSort;
-      case 'distance': return selectedDistance.length > 0;
-      case 'price': return selectedPriceRanges.length > 0;
-      case 'rating': return !!selectedRating;
-      case 'establishment': return selectedEstablishmentTypes.length > 0;
-      case 'diet': return selectedDietTypes.length > 0;
-      case 'schedule': return selectedTimeRanges.length > 0 || isOpenNow;
-      default: return false;
-    }
+    return getFilterCount(filterKey) > 0;
   };
 
   const getFilterContent = (filterKey: string) => {
@@ -233,13 +238,6 @@ export default function FilterTags({
     { key: 'schedule', label: 'Horarios' },       // 7. Disponibilidad temporal
   ];
 
-  const quickFilters = [
-    { key: 'best-rated', label: 'Mejor valorados', active: false },
-    { key: 'open-now', label: 'Abierto ahora', active: isOpenNow },
-    { key: 'nearest', label: 'Más cerca', active: false },
-    { key: 'cheapest', label: 'Más económico', active: false },
-  ];
-
   const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
     const handleOpenChange = (open: boolean) => {
       setActiveFilterModal(open ? filterKey : null);
@@ -247,6 +245,7 @@ export default function FilterTags({
 
     const FilterIcon = getFilterIcon(filterKey);
     const isActive = isFilterActive(filterKey);
+    const count = getFilterCount(filterKey);
 
     return (
       <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
@@ -255,7 +254,7 @@ export default function FilterTags({
           size="sm"
           className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
-              ? 'bg-primary text-primary-foreground' 
+              ? 'bg-red-500 text-white' 
               : 'text-[#4B4B4B] hover:bg-gray-50'
           }`}
           style={!isActive ? { 
@@ -264,12 +263,10 @@ export default function FilterTags({
           } : {}}
           onClick={() => handleOpenChange(true)}
         >
-          {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-primary-foreground' : 'text-black'}`} />}
+          {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />}
           {children}
-          <ChevronDown className={`h-3 w-3 ${isActive ? 'text-primary-foreground' : 'text-black'}`} />
-          {isActive && (
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full"></div>
-          )}
+          {count > 0 && ` (${count})`}
+          <ChevronDown className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
         </Button>
         <SheetContent 
           side="bottom" 
@@ -316,162 +313,6 @@ export default function FilterTags({
               {filter.label}
             </FilterTrigger>
           ))}
-
-          {/* Quick Filters - with no border design */}
-          {quickFilters.map((filter) => (
-            <Badge
-              key={filter.key}
-              variant="outline"
-              className={`flex-shrink-0 h-8 px-4 text-xs rounded-full cursor-pointer border-0 ${
-                filter.active
-                  ? 'bg-green-100 text-green-800' 
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-              style={!filter.active ? { 
-                backgroundColor: '#F9F9F9',
-                color: '#4B4B4B'
-              } : {}}
-              onClick={() => {
-                if (filter.key === 'open-now') {
-                  onClearFilter('openNow');
-                }
-                // TODO: Implement other quick filters
-              }}
-            >
-              {filter.label}
-              {filter.active && <X className="h-3 w-3 ml-1 hover:opacity-70" />}
-            </Badge>
-          ))}
-
-          {/* Active Filters */}
-          {selectedCuisines.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-            >
-              {selectedCuisines.length} cocina{selectedCuisines.length > 1 ? 's' : ''}
-              <X 
-                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-                onClick={() => onClearFilter('cuisine')}
-              />
-            </Badge>
-          )}
-
-          {selectedFoodTypes.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-            >
-              {selectedFoodTypes.length} tipo{selectedFoodTypes.length > 1 ? 's' : ''}
-              <X 
-                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-                onClick={() => onClearFilter('foodType')}
-              />
-            </Badge>
-          )}
-
-          {selectedDistance.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-            >
-              Distancia
-              <X 
-                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-                onClick={() => onClearFilter('distance')}
-              />
-            </Badge>
-          )}
-
-          {selectedPriceRanges.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-            >
-              {selectedPriceRanges.length} precio{selectedPriceRanges.length > 1 ? 's' : ''}
-              <X 
-                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-                onClick={() => onClearFilter('price')}
-              />
-            </Badge>
-          )}
-
-          {selectedRating && (
-            <Badge
-              variant="secondary"
-              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-            >
-              Valoración
-              <X 
-                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-                onClick={() => onClearFilter('rating')}
-              />
-            </Badge>
-          )}
-
-          {selectedEstablishmentTypes.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-            >
-              {selectedEstablishmentTypes.length} tipo{selectedEstablishmentTypes.length > 1 ? 's' : ''}
-              <X 
-                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-                onClick={() => onClearFilter('establishment')}
-              />
-            </Badge>
-          )}
-
-          {selectedDietTypes.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-            >
-              {selectedDietTypes.length} dieta{selectedDietTypes.length > 1 ? 's' : ''}
-              <X 
-                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-                onClick={() => onClearFilter('diet')}
-              />
-            </Badge>
-          )}
-
-          {selectedSort && (
-            <Badge
-              variant="secondary"
-              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-            >
-              Ordenado
-              <X 
-                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-                onClick={() => onClearFilter('sort')}
-              />
-            </Badge>
-          )}
-
-          {selectedTimeRanges.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-            >
-              {selectedTimeRanges.length} horario{selectedTimeRanges.length > 1 ? 's' : ''}
-              <X 
-                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-                onClick={() => onClearFilter('timeRange')}
-              />
-            </Badge>
-          )}
-
-          {/* Clear all filters */}
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-shrink-0 h-8 px-4 text-xs text-muted-foreground hover:text-foreground rounded-full"
-              onClick={() => onClearFilter('all')}
-            >
-              Limpiar todo
-            </Button>
-          )}
         </div>
 
         <style>{`
