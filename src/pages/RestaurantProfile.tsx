@@ -503,7 +503,7 @@ export default function RestaurantProfile() {
         <div className={`bg-background lg:hidden ${
           isQuickActionsFixed ? 'mt-32' : ''
         }`}>
-          <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="max-w-6xl mx-auto px-4 py-2">
             {/* Row 1: Logo and Name */}
             <div className="flex items-center gap-3 mb-3">
               {restaurant.logo_url && (
