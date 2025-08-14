@@ -2,12 +2,13 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export interface UserDishFavorite {
-  id: string;
-  user_id: string;
   dish_id: number;
+  user_id: string;
+  restaurant_id: number;
   is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  saved_at: string;
+  saved_from: string;
+  unsaved_at?: string;
 }
 
 export const dishFavoritesService = {
@@ -20,6 +21,18 @@ export const dishFavoritesService = {
       }
 
       console.log('dishFavoritesService: Toggling favorite for dish:', dishId);
+
+      // First, get the restaurant_id for this dish
+      const { data: dishData, error: dishError } = await supabase
+        .from('dishes')
+        .select('restaurant_id, favorites_count')
+        .eq('id', dishId)
+        .single();
+
+      if (dishError) {
+        console.error('dishFavoritesService: Error fetching dish:', dishError);
+        throw dishError;
+      }
 
       // Check if already favorited
       const { data: existingFavorite, error: checkError } = await supabase
@@ -35,16 +48,25 @@ export const dishFavoritesService = {
       }
 
       let isNowFavorite = false;
+      const currentCount = dishData.favorites_count || 0;
 
       if (existingFavorite) {
         // Toggle existing record
         const newActiveState = !existingFavorite.is_active;
+        const updateData: any = { 
+          is_active: newActiveState
+        };
+
+        if (newActiveState) {
+          updateData.saved_at = new Date().toISOString();
+          updateData.unsaved_at = null;
+        } else {
+          updateData.unsaved_at = new Date().toISOString();
+        }
+
         const { error: updateError } = await supabase
           .from('user_saved_dishes')
-          .update({ 
-            is_active: newActiveState,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('user_id', user.id)
           .eq('dish_id', dishId);
 
@@ -61,8 +83,10 @@ export const dishFavoritesService = {
           .insert({
             user_id: user.id,
             dish_id: dishId,
+            restaurant_id: dishData.restaurant_id,
             is_active: true,
-            saved_from: savedFrom
+            saved_from: savedFrom,
+            saved_at: new Date().toISOString()
           });
 
         if (insertError) {
@@ -74,18 +98,6 @@ export const dishFavoritesService = {
       }
 
       // Update the dish favorites count manually
-      const { data: dish, error: dishError } = await supabase
-        .from('dishes')
-        .select('favorites_count')
-        .eq('id', dishId)
-        .single();
-
-      if (dishError) {
-        console.error('dishFavoritesService: Error fetching dish:', dishError);
-        throw dishError;
-      }
-
-      const currentCount = dish.favorites_count || 0;
       const newCount = Math.max(0, currentCount + (isNowFavorite ? 1 : -1));
 
       const { error: updateCountError } = await supabase
