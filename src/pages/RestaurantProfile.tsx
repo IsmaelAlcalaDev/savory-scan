@@ -48,6 +48,7 @@ export default function RestaurantProfile() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('servicios');
   const [isQuickActionsFixed, setIsQuickActionsFixed] = useState(false);
+  const [isVerCartaFixed, setIsVerCartaFixed] = useState(false);
   const [isHeaderFixed, setIsHeaderFixed] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
@@ -134,12 +135,20 @@ export default function RestaurantProfile() {
         if (shouldBeFixed !== isQuickActionsFixed) {
           setIsQuickActionsFixed(shouldBeFixed);
         }
+
+        // Also check for Ver Carta button fixed state
+        const quickActionsHeight = quickActionsRef.current.offsetHeight;
+        const verCartaShouldBeFixed = scrollTop > heroBottom + quickActionsHeight + 20;
+        
+        if (verCartaShouldBeFixed !== isVerCartaFixed) {
+          setIsVerCartaFixed(verCartaShouldBeFixed);
+        }
       }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isQuickActionsFixed, isMobile]);
+  }, [isQuickActionsFixed, isVerCartaFixed, isMobile]);
 
   const scrollToSection = (sectionId: string) => {
     const element = sectionsRef.current[sectionId];
@@ -462,7 +471,13 @@ export default function RestaurantProfile() {
 
         {/* Mobile: Ver Carta button right after quick actions */}
         {isMobile && (
-          <div className={`bg-background ${isQuickActionsFixed ? 'mt-20' : ''}`}>
+          <div className={`bg-background transition-all duration-300 ease-in-out ${
+            isQuickActionsFixed ? 'mt-20' : ''
+          } ${
+            isVerCartaFixed 
+              ? 'fixed top-20 left-0 right-0 z-30 shadow-lg' 
+              : 'relative'
+          }`}>
             <div className="max-w-6xl mx-auto px-4 py-4">
               <Button
                 onClick={handleViewMenu}
@@ -478,7 +493,11 @@ export default function RestaurantProfile() {
 
         {/* Mobile: Restaurant information below Ver Carta */}
         {isMobile && (
-          <div className="bg-background">
+          <div className={`bg-background ${
+            isQuickActionsFixed ? 'mt-0' : ''
+          } ${
+            isVerCartaFixed ? 'mt-20' : ''
+          }`}>
             <div className="max-w-6xl mx-auto px-4 py-6">
               <div className="flex items-start gap-4 mb-4">
                 {restaurant.logo_url && (
