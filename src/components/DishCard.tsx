@@ -1,9 +1,9 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, ChevronDown, Scale } from 'lucide-react';
 import { useState } from 'react';
 import DishFavoriteButton from './DishFavoriteButton';
+import VariantSelector from './VariantSelector';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import {
@@ -54,7 +54,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
       if (minPrice === maxPrice) {
         return formatPrice(minPrice);
       }
-      return `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`;
+      return `desde ${formatPrice(minPrice)}`;
     }
     return formatPrice(dish.base_price);
   };
@@ -79,12 +79,10 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
       .filter(Boolean);
   };
 
-  const handleAddToSimulator = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
+  const handleVariantSelect = (variantId: number | null) => {
     // Si solo hay un comensal, añadir directamente
     if (diners.length === 1) {
-      addDishToOrder(dish, diners[0].id);
+      addDishWithVariant(variantId, diners[0].id);
       return;
     }
     
@@ -92,8 +90,22 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
     setShowDinerSelector(true);
   };
 
-  const handleDinerSelect = (dinerId: string) => {
-    addDishToOrder(dish, dinerId);
+  const addDishWithVariant = (variantId: number | null, dinerId: string) => {
+    // Crear una copia del plato con la variante seleccionada
+    const dishToAdd = { ...dish };
+    if (variantId) {
+      const selectedVariant = dish.variants?.find(v => v.id === variantId);
+      if (selectedVariant) {
+        // Establecer la variante seleccionada como la única variante
+        dishToAdd.variants = [selectedVariant];
+      }
+    }
+    
+    addDishToOrder(dishToAdd, dinerId);
+  };
+
+  const handleDinerSelect = (dinerId: string, variantId?: number | null) => {
+    addDishWithVariant(variantId || null, dinerId);
     setShowDinerSelector(false);
   };
 
@@ -142,8 +154,9 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                 {dish.name}
               </h3>
               {hasVariants && (
-                <div className="flex items-center" title="Disponible en varios tamaños">
-                  <Scale className="h-3 w-3 text-muted-foreground" />
+                <div className="flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full" title="Disponible en varios tamaños">
+                  <Scale className="h-3 w-3 text-primary" />
+                  <span className="text-xs font-medium text-primary">Tamaños</span>
                 </div>
               )}
             </div>
@@ -232,13 +245,18 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                 savedFrom="menu_list"
               />
               
-              <button
-                onClick={handleAddToSimulator}
-                className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
-                aria-label="Añadir al simulador"
+              <VariantSelector
+                dish={dish}
+                onVariantSelect={handleVariantSelect}
               >
-                <Plus className="h-3.5 w-3.5" />
-              </button>
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
+                  aria-label="Añadir al simulador"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </VariantSelector>
             </div>
           </div>
         </div>
