@@ -86,11 +86,11 @@ export default function DishListCard({ dish, restaurantId, expandedDishId, onExp
 
   const getDietBadges = () => {
     const badges = [];
-    if (dish.is_vegetarian) badges.push({ label: '🌱 Vegetariano', color: 'bg-green-100 text-green-800' });
-    if (dish.is_vegan) badges.push({ label: '🌿 Vegano', color: 'bg-green-100 text-green-800' });
-    if (dish.is_gluten_free) badges.push({ label: '🌾 Sin gluten', color: 'bg-blue-100 text-blue-800' });
-    if (dish.is_lactose_free) badges.push({ label: '🥛 Sin lactosa', color: 'bg-purple-100 text-purple-800' });
-    if (dish.is_healthy) badges.push({ label: '💚 Saludable', color: 'bg-emerald-100 text-emerald-800' });
+    if (dish.is_vegetarian) badges.push({ label: 'Vegetariano', color: 'bg-green-100 text-green-800' });
+    if (dish.is_vegan) badges.push({ label: 'Vegano', color: 'bg-green-100 text-green-800' });
+    if (dish.is_gluten_free) badges.push({ label: 'Sin gluten', color: 'bg-blue-100 text-blue-800' });
+    if (dish.is_lactose_free) badges.push({ label: 'Sin lactosa', color: 'bg-purple-100 text-purple-800' });
+    if (dish.is_healthy) badges.push({ label: 'Saludable', color: 'bg-emerald-100 text-emerald-800' });
     return badges;
   };
 
@@ -173,45 +173,33 @@ export default function DishListCard({ dish, restaurantId, expandedDishId, onExp
           <div className="px-3 pb-3 space-y-3 bg-accent/20 rounded-b-lg">
             {/* Description */}
             {dish.description && (
-              <div>
-                <h4 className="font-medium text-sm mb-1">Descripción</h4>
-                <p className="text-sm text-muted-foreground">{dish.description}</p>
-              </div>
+              <p className="text-sm text-muted-foreground">{dish.description}</p>
             )}
 
             {/* Diet and Allergen Tags */}
             <div className="space-y-2">
               {getDietBadges().length > 0 && (
-                <div>
-                  <h4 className="font-medium text-sm mb-2">Dieta</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {getDietBadges().map((badge, index) => (
-                      <span key={index} className={`px-2 py-1 rounded-full text-xs ${badge.color}`}>
-                        {badge.label}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-1">
+                  {getDietBadges().map((badge, index) => (
+                    <span key={index} className={`px-2 py-1 rounded-full text-xs ${badge.color}`}>
+                      {badge.label}
+                    </span>
+                  ))}
                 </div>
               )}
 
               {dish.allergens && dish.allergens.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-sm mb-2">Alérgenos</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {dish.allergens.map((allergen, index) => (
-                      <span key={index} className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                        {allergen}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-1">
+                  {dish.allergens.map((allergen, index) => (
+                    <span key={index} className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                      {allergen}
+                    </span>
+                  ))}
                 </div>
               )}
 
               {getSpiceIcons() && (
-                <div>
-                  <h4 className="font-medium text-sm mb-1">Nivel de picante</h4>
-                  <div className="text-lg">{getSpiceIcons()}</div>
-                </div>
+                <div className="text-lg">{getSpiceIcons()}</div>
               )}
             </div>
 
@@ -219,17 +207,17 @@ export default function DishListCard({ dish, restaurantId, expandedDishId, onExp
             {hasMultipleVariants && (
               <div>
                 <h4 className="font-medium text-sm mb-2">Selecciona tamaño:</h4>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {dish.variants.map((variant) => (
-                    <div key={variant.id} className="flex items-center justify-between bg-background rounded-lg p-3">
+                    <div key={variant.id} className="flex items-center justify-between bg-background rounded-lg p-2">
                       <div>
                         <span className="font-medium text-sm">{variant.name}</span>
                         {variant.is_default && (
                           <span className="ml-2 text-xs text-muted-foreground">(Estándar)</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-semibold text-primary">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-primary text-sm">
                           {formatPrice(variant.price)}
                         </span>
                         {hasMultipleDiners ? (
@@ -240,10 +228,10 @@ export default function DishListCard({ dish, restaurantId, expandedDishId, onExp
                         ) : (
                           <button
                             onClick={() => handleAddVariantToOrder(variant.id, diners[0].id)}
-                            className="w-8 h-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
+                            className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
                             aria-label="Añadir variante"
                           >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-3.5 w-3.5" />
                           </button>
                         )}
                       </div>
@@ -265,13 +253,11 @@ export default function DishListCard({ dish, restaurantId, expandedDishId, onExp
             )}
 
             {/* Additional Info */}
-            <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
-              {dish.preparation_time_minutes && (
-                <div>
-                  <span className="font-medium">Tiempo:</span> {dish.preparation_time_minutes} min
-                </div>
-              )}
-            </div>
+            {dish.preparation_time_minutes && (
+              <div className="text-xs text-muted-foreground">
+                <span className="font-medium">Tiempo:</span> {dish.preparation_time_minutes} min
+              </div>
+            )}
           </div>
         </CollapsibleContent>
       </div>
