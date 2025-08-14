@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +19,7 @@ import LocationEntry from "./pages/LocationEntry";
 import Restaurants from "./pages/Restaurants";
 import Dishes from "./pages/Dishes";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { OrderSimulatorProvider } from "./contexts/OrderSimulatorContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,45 +41,47 @@ const App = () => {
           <AuthProvider>
             <FavoritesProvider>
               <DishFavoritesProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<LocationEntry />} />
-                      <Route path="/restaurantes" element={<Restaurants />} />
-                      <Route path="/platos" element={<Dishes />} />
-                      <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
-                      <Route path="/carta/:slug" element={<RestaurantMenu />} />
-                      <Route 
-                        path="/admin" 
-                        element={
-                          <ProtectedRoute requiredRole="admin">
-                            <SecureAdminPanel />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/superadmin" 
-                        element={
-                          <ProtectedRoute requiredRole="admin">
-                            <SuperAdminPanel />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/security" 
-                        element={
-                          <ProtectedRoute requiredRole="admin">
-                            <SecurityDashboard />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </BrowserRouter>
-                </TooltipProvider>
+                <OrderSimulatorProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <Routes>
+                        <Route path="/" element={<LocationEntry />} />
+                        <Route path="/restaurantes" element={<Restaurants />} />
+                        <Route path="/platos" element={<Dishes />} />
+                        <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
+                        <Route path="/carta/:slug" element={<RestaurantMenu />} />
+                        <Route 
+                          path="/admin" 
+                          element={
+                            <ProtectedRoute requiredRole="admin">
+                              <SecureAdminPanel />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/superadmin" 
+                          element={
+                            <ProtectedRoute requiredRole="admin">
+                              <SuperAdminPanel />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/security" 
+                          element={
+                            <ProtectedRoute requiredRole="admin">
+                              <SecurityDashboard />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </BrowserRouter>
+                  </TooltipProvider>
+                </OrderSimulatorProvider>
               </DishFavoritesProvider>
             </FavoritesProvider>
           </AuthProvider>

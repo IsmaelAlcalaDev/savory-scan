@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -15,12 +14,18 @@ import DishSearchBar from '@/components/DishSearchBar';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import LanguageSelector from '@/components/LanguageSelector';
 import { useState, useEffect, useMemo } from 'react';
+import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
+import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
+import OrderSimulatorModal from '@/components/OrderSimulatorModal';
+import AddDinersModal from '@/components/AddDinersModal';
+import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 
-export default function RestaurantMenu() {
+function RestaurantMenuContent() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { restaurant, loading: restaurantLoading, error: restaurantError } = useRestaurantProfile(slug || '');
   const { sections, loading: sectionsLoading, error: sectionsError } = useRestaurantMenuFallback(restaurant?.id || 0);
+  const { isSimulatorOpen, closeSimulator, isDinersModalOpen, closeDinersModal } = useOrderSimulator();
   
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
@@ -147,7 +152,7 @@ export default function RestaurantMenu() {
         <meta name="description" content={`Explora la carta completa de ${restaurant.name}. Descubre todos nuestros platos y encuentra tu favorito.`} />
       </Helmet>
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-20">
         {/* Simple Header Navigation */}
         <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-4">
@@ -243,6 +248,19 @@ export default function RestaurantMenu() {
           )}
         </div>
 
+        {/* Order Simulator Components */}
+        <OrderSimulatorSummary />
+        
+        <OrderSimulatorModal
+          isOpen={isSimulatorOpen}
+          onClose={closeSimulator}
+        />
+        
+        <AddDinersModal
+          isOpen={isDinersModalOpen}
+          onClose={closeDinersModal}
+        />
+
         {/* Dish Modal */}
         <DishModal
           dish={selectedDish}
@@ -252,5 +270,13 @@ export default function RestaurantMenu() {
         />
       </div>
     </>
+  );
+}
+
+export default function RestaurantMenu() {
+  return (
+    <OrderSimulatorProvider>
+      <RestaurantMenuContent />
+    </OrderSimulatorProvider>
   );
 }

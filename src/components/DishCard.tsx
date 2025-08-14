@@ -1,9 +1,11 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import DishFavoriteButton from './DishFavoriteButton';
+import DinerSelector from './DinerSelector';
 import type { Dish } from '@/hooks/useRestaurantMenu';
+import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 
 interface DishCardProps {
   dish: Dish;
@@ -26,6 +28,9 @@ const allergenColorMap: Record<string, { color: string; label: string }> = {
 };
 
 export default function DishCard({ dish, restaurantId, onDishClick }: DishCardProps) {
+  const { addDishToOrder, openDinersModal } = useOrderSimulator();
+  const [showDinerSelector, setShowDinerSelector] = useState(false);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -67,6 +72,21 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
         return null;
       })
       .filter(Boolean);
+  };
+
+  const handleAddToSimulator = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDinerSelector(true);
+  };
+
+  const handleDinerSelect = (dinerId: string) => {
+    addDishToOrder(dish, dinerId);
+    setShowDinerSelector(false);
+  };
+
+  const handleManageDiners = () => {
+    setShowDinerSelector(false);
+    openDinersModal();
   };
 
   const allergenCircles = getAllergenCircles();
@@ -136,16 +156,24 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                 savedFrom="menu_list"
               />
               
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDishClick?.(dish);
-                }}
-                className="w-8 h-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
-                aria-label="Añadir plato"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
+              <div className="relative">
+                {showDinerSelector && (
+                  <div className="absolute bottom-full right-0 mb-2 z-10">
+                    <DinerSelector
+                      onDinerSelect={handleDinerSelect}
+                      onManageDiners={handleManageDiners}
+                    />
+                  </div>
+                )}
+                
+                <button
+                  onClick={handleAddToSimulator}
+                  className="w-8 h-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
+                  aria-label="Añadir al simulador"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
