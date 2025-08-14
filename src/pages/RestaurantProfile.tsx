@@ -207,7 +207,7 @@ export default function RestaurantProfile() {
   };
 
   const handleViewMenu = () => {
-    navigate(`/carta-${restaurant?.slug}`);
+    navigate(`/carta/${restaurant?.slug}`);
   };
 
   const getCurrentImage = () => {
