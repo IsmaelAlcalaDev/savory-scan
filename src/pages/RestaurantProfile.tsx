@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -5,25 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
-  Star, 
-  MapPin, 
-  Share2,
   ChevronLeft,
   ChevronRight,
-  Heart,
-  Users,
-  TrendingUp,
-  ArrowLeft,
-  Utensils,
-  Images,
-  Info,
-  Clock,
   CheckCircle,
+  Clock,
+  Phone,
+  Mail,
+  MapPin
 } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
 import { useIsMobile } from '@/hooks/use-mobile';
-import FavoriteButton from '@/components/FavoriteButton';
 import DishModal from '@/components/DishModal';
 import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 import RestaurantPlatforms from '@/components/RestaurantPlatforms';
@@ -34,6 +27,10 @@ import CompactRestaurantEvents from '@/components/CompactRestaurantEvents';
 import CompactRestaurantPromotions from '@/components/CompactRestaurantPromotions';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import RestaurantSocialSection from '@/components/RestaurantSocialSection';
+import RestaurantProfileHeader from '@/components/RestaurantProfileHeader';
+import RestaurantStatsSection from '@/components/RestaurantStatsSection';
+import RestaurantNavSection from '@/components/RestaurantNavSection';
+import RestaurantContactInfo from '@/components/RestaurantContactInfo';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
@@ -42,65 +39,16 @@ export default function RestaurantProfile() {
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('servicios');
-  const [isHeaderFixed, setIsHeaderFixed] = useState(false);
 
-  const headerRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
   const sectionsRef = useRef<{ [key: string]: HTMLElement | null }>({});
-
-  const menuSections = [
-    { id: 'fotos', label: 'Fotos', icon: Images, action: () => setIsGalleryOpen(true) },
-    { id: 'servicios', label: 'Servicios', icon: CheckCircle },
-    { id: 'reservas', label: 'Reservas', icon: Users },
-    ...(restaurant?.promotions && restaurant.promotions.length > 0 ? [
-      { id: 'promociones', label: 'Promociones', icon: TrendingUp }
-    ] : []),
-    { id: 'eventos', label: 'Eventos', icon: Users },
-  ];
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (headerRef.current && heroRef.current) {
-        const heroHeight = heroRef.current.offsetHeight;
-        const scrollTop = window.scrollY;
-        
-        const shouldBeFixed = scrollTop > heroHeight - 100;
-        
-        if (shouldBeFixed !== isHeaderFixed) {
-          setIsHeaderFixed(shouldBeFixed);
-        }
-
-        const sectionPositions = Object.entries(sectionsRef.current)
-          .filter(([_, element]) => element !== null)
-          .map(([id, element]) => ({
-            id,
-            top: element ? element.offsetTop - 200 : 0
-          }))
-          .sort((a, b) => a.top - b.top);
-
-        const currentSection = sectionPositions
-          .reverse()
-          .find(section => scrollTop >= section.top);
-
-        if (currentSection && currentSection.id !== activeSection) {
-          setActiveSection(currentSection.id);
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeSection, isHeaderFixed]);
 
   const scrollToSection = (sectionId: string) => {
     const element = sectionsRef.current[sectionId];
     if (element) {
-      const headerHeight = isHeaderFixed ? 100 : 0;
-      const elementPosition = element.offsetTop - headerHeight - 20;
+      const elementPosition = element.offsetTop - 100;
       window.scrollTo({
         top: elementPosition,
         behavior: 'smooth'
@@ -108,11 +56,12 @@ export default function RestaurantProfile() {
     }
   };
 
-  const handleSectionClick = (section: typeof menuSections[0]) => {
-    if (section.action) {
-      section.action();
+  const handleSectionClick = (sectionId: string) => {
+    if (sectionId === 'fotos') {
+      setIsGalleryOpen(true);
     } else {
-      scrollToSection(section.id);
+      setActiveSection(sectionId);
+      scrollToSection(sectionId);
     }
   };
 
@@ -186,10 +135,6 @@ export default function RestaurantProfile() {
     }
   };
 
-  const goToImage = (index: number) => {
-    setCurrentImageIndex(index);
-  };
-
   useEffect(() => {
     if (totalImages <= 1) return;
     
@@ -206,12 +151,17 @@ export default function RestaurantProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="h-80 bg-muted animate-pulse" />
-        <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="h-96 bg-gradient-to-r from-gray-300 to-gray-400 animate-pulse" />
+        <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="space-y-6">
-            <Skeleton className="h-8 w-1/2" />
-            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-12 w-1/2" />
+            <Skeleton className="h-6 w-3/4" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-48 rounded-xl" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -220,25 +170,17 @@ export default function RestaurantProfile() {
 
   if (error || !restaurant) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Restaurante no encontrado</h1>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center bg-white rounded-2xl shadow-xl p-12 mx-4 max-w-md">
+          <h1 className="text-3xl font-bold mb-4 text-gray-900">Restaurante no encontrado</h1>
+          <p className="text-gray-600 mb-8">Lo sentimos, no pudimos encontrar este restaurante.</p>
+          <Button onClick={handleGoBack} className="bg-primary hover:bg-primary-dark">
+            Volver a restaurantes
+          </Button>
         </div>
       </div>
     );
   }
-
-  const getPriceRangeText = (priceRange: string) => {
-    switch (priceRange) {
-      case '€': return 'Económico';
-      case '€€': return 'Moderado';
-      case '€€€': return 'Caro';
-      case '€€€€': return 'Muy caro';
-      default: return priceRange;
-    }
-  };
 
   const currentImage = getCurrentImage();
   const allImages = getAllImages();
@@ -276,405 +218,228 @@ export default function RestaurantProfile() {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-background">
-        <div ref={heroRef} className="relative h-96 overflow-hidden">
-          <img 
-            key={`${restaurant.id}-${currentImageIndex}`}
-            src={currentImage} 
-            alt={restaurant.name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.currentTarget.src = '/placeholder.svg';
-            }}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+        {/* Header Section */}
+        <RestaurantProfileHeader
+          restaurant={restaurant}
+          currentImage={currentImage}
+          totalImages={totalImages}
+          currentImageIndex={currentImageIndex}
+          onGoBack={handleGoBack}
+          onShare={handleShare}
+          onPrevImage={prevImage}
+          onNextImage={nextImage}
+          onGalleryOpen={() => setIsGalleryOpen(true)}
+        />
+
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 pb-12">
+          {/* Stats Section */}
+          <RestaurantStatsSection restaurant={restaurant} />
+
+          {/* Navigation Section */}
+          <RestaurantNavSection
+            activeSection={activeSection}
+            onSectionClick={handleSectionClick}
+            onViewMenu={handleViewMenu}
+            hasPromotions={restaurant.promotions && restaurant.promotions.length > 0}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
-          
-          <Button
-            onClick={handleGoBack}
-            size="lg"
-            variant="outline"
-            className="absolute top-6 left-6 rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
-          >
-            <ArrowLeft className="h-6 w-6 text-white" />
-          </Button>
-          
-          <Button
-            onClick={handleShare}
-            size="lg"
-            variant="outline"
-            className="absolute top-6 right-6 rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
-          >
-            <Share2 className="h-6 w-6 text-white" />
-          </Button>
 
-          {totalImages > 1 && (
-            <>
-              <button
-                onClick={prevImage}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-200 backdrop-blur-sm hover:scale-110 z-10"
+          {/* Content Sections */}
+          <div className="space-y-12">
+            {/* Quick Actions */}
+            <section className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+              <h3 className="text-2xl font-bold mb-6 text-gray-900">Acciones Rápidas</h3>
+              <QuickActionTags
+                phone={restaurant.phone}
+                website={restaurant.website}
+                email={restaurant.email}
+                address={restaurant.address}
+                latitude={restaurant.latitude}
+                longitude={restaurant.longitude}
+                onReservationClick={() => scrollToSection('reservas')}
+              />
+            </section>
+
+            {/* Services Section */}
+            {restaurant.services.length > 0 && (
+              <section 
+                id="servicios"
+                ref={(el) => sectionsRef.current['servicios'] = el}
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
               >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={nextImage}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-200 backdrop-blur-sm hover:scale-110 z-10"
+                <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-900">
+                  <CheckCircle className="h-7 w-7 text-primary" />
+                  Servicios Disponibles
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {restaurant.services.map((service, index) => (
+                    <div key={index} className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/20">
+                      <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                      <span className="text-sm font-medium text-gray-900">{service}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Schedule Section */}
+            <section 
+              id="horarios"
+              ref={(el) => sectionsRef.current['horarios'] = el}
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+            >
+              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-900">
+                <Clock className="h-7 w-7 text-primary" />
+                Horarios de Apertura
+              </h3>
+              {restaurant.schedules.length > 0 ? (
+                <CompactRestaurantSchedule schedules={restaurant.schedules} />
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <Clock className="h-16 w-16 mx-auto mb-4 opacity-30" />
+                  <p className="text-lg">Horarios no disponibles</p>
+                </div>
+              )}
+            </section>
+
+            {/* Delivery Section */}
+            {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
+              <section className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                <DeliveryLogosSection deliveryLinks={restaurant.delivery_links} />
+              </section>
+            )}
+
+            {/* Reservations Section */}
+            <section 
+              id="reservas"
+              ref={(el) => sectionsRef.current['reservas'] = el}
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+            >
+              <RestaurantPlatforms
+                category="booking"
+                title="Reserva Online"
+                restaurantLinks={restaurant.social_links || {}}
+              />
+            </section>
+
+            {/* Promotions Section */}
+            {restaurant.promotions && restaurant.promotions.length > 0 && (
+              <section 
+                id="promociones"
+                ref={(el) => sectionsRef.current['promociones'] = el}
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
               >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-              
-              <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                {Array.from({ length: totalImages }, (_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToImage(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                      index === currentImageIndex 
-                        ? 'bg-white scale-110' 
-                        : 'bg-white/40 hover:bg-white/60'
-                    }`}
-                  />
-                ))}
+                <CompactRestaurantPromotions promotions={restaurant.promotions} />
+              </section>
+            )}
+
+            {/* Events Section */}
+            <section 
+              id="eventos"
+              ref={(el) => sectionsRef.current['eventos'] = el}
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+            >
+              <CompactRestaurantEvents restaurantId={restaurant?.id || 0} />
+            </section>
+
+            {/* Contact Section */}
+            <section 
+              id="contacto"
+              ref={(el) => sectionsRef.current['contacto'] = el}
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+            >
+              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-900">
+                <Phone className="h-7 w-7 text-primary" />
+                Información de Contacto
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {restaurant.phone && (
+                  <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                    <div className="bg-blue-500 rounded-full p-3">
+                      <Phone className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-600 font-medium mb-1">Teléfono</p>
+                      <a 
+                        href={`tel:${restaurant.phone}`} 
+                        className="text-lg font-semibold text-blue-900 hover:text-blue-700 transition-colors"
+                      >
+                        {restaurant.phone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+                  <div className="bg-green-500 rounded-full p-3">
+                    <MapPin className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-green-600 font-medium mb-1">Dirección</p>
+                    <p className="text-lg font-semibold text-green-900">{restaurant.address}</p>
+                  </div>
+                </div>
+
+                {restaurant.email && (
+                  <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                    <div className="bg-purple-500 rounded-full p-3">
+                      <Mail className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-purple-600 font-medium mb-1">Email</p>
+                      <a 
+                        href={`mailto:${restaurant.email}`} 
+                        className="text-lg font-semibold text-purple-900 hover:text-purple-700 transition-colors"
+                      >
+                        {restaurant.email}
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
-            </>
-          )}
+            </section>
 
-          <div className="absolute bottom-0 left-0 right-0 p-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex items-end justify-between mb-6">
-                <div className="flex items-center gap-4 flex-1">
-                  {restaurant.logo_url && (
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-2xl flex-shrink-0 backdrop-blur-sm">
-                      <img 
-                        src={restaurant.logo_url} 
-                        alt={`${restaurant.name} logo`}
-                        className="w-full h-full object-cover"
+            {/* Social Section */}
+            {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
+              <section className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                <RestaurantSocialSection socialLinks={restaurant.social_links} />
+              </section>
+            )}
+          </div>
+        </div>
+
+        {/* Gallery Dialog */}
+        <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
+          <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0 bg-black">
+            <div className="relative h-full">
+              <div className="absolute top-4 left-4 z-10">
+                <h2 className="text-2xl font-bold text-white bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2">
+                  Galería de {restaurant.name}
+                </h2>
+              </div>
+              <div className="overflow-y-auto h-full p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {allImages.map((image, index) => (
+                    <div key={index} className="aspect-video overflow-hidden rounded-xl">
+                      <img
+                        src={image}
+                        alt={`${restaurant.name} - imagen ${index + 1}`}
+                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 cursor-pointer"
+                        onClick={() => {
+                          setCurrentImageIndex(index);
+                          setIsGalleryOpen(false);
+                        }}
                       />
                     </div>
-                  )}
-                  
-                  <div className="flex-1">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white drop-shadow-2xl">
-                      {restaurant.name}
-                    </h1>
-                    
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                        {getPriceRangeText(restaurant.price_range)}
-                      </Badge>
-                      {restaurant.establishment_type && (
-                        <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                          {restaurant.establishment_type}
-                        </Badge>
-                      )}
-                      {restaurant.cuisine_types.map((cuisine, index) => (
-                        <Badge key={index} variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                          {cuisine}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-white/90">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        <span className="drop-shadow">{restaurant.address}</span>
-                      </div>
-                      {restaurant.google_rating && (
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-medium drop-shadow">
-                            {restaurant.google_rating}
-                            {restaurant.google_rating_count && (
-                              <span className="text-xs ml-1">({restaurant.google_rating_count})</span>
-                            )}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  ))}
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <FavoriteButton
-                    restaurantId={restaurant.id}
-                    favoritesCount={restaurant.favorites_count}
-                    size="lg"
-                    className="bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {isMobile && (
-          <div 
-            ref={headerRef}
-            className={`bg-background transition-all duration-500 ease-in-out ${
-              isHeaderFixed 
-                ? 'fixed top-0 left-0 right-0 z-40 shadow-lg border-b border-border' 
-                : 'relative'
-            }`}
-          >
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="flex items-center gap-4 py-4">
-                <QuickActionTags
-                  phone={restaurant.phone}
-                  website={restaurant.website}
-                  email={restaurant.email}
-                  address={restaurant.address}
-                  latitude={restaurant.latitude}
-                  longitude={restaurant.longitude}
-                  onReservationClick={() => scrollToSection('reservas')}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          {!isMobile ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                <QuickActionTags
-                  phone={restaurant.phone}
-                  website={restaurant.website}
-                  email={restaurant.email}
-                  address={restaurant.address}
-                  latitude={restaurant.latitude}
-                  longitude={restaurant.longitude}
-                  onReservationClick={() => scrollToSection('reservas')}
-                />
-
-                {restaurant.services.length > 0 && (
-                  <section 
-                    id="servicios"
-                    ref={(el) => sectionsRef.current['servicios'] = el}
-                    className="space-y-4"
-                  >
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-primary" />
-                      Servicios disponibles
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {restaurant.services.map((service, index) => (
-                        <Badge key={index} variant="outline" className="px-3 py-1 text-sm border-primary text-primary">
-                          {service}
-                        </Badge>
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
-                  <DeliveryLogosSection deliveryLinks={restaurant.delivery_links} />
-                )}
-
-                <section 
-                  id="reservas"
-                  ref={(el) => sectionsRef.current['reservas'] = el}
-                >
-                  <RestaurantPlatforms
-                    category="booking"
-                    title="Reserva online"
-                    restaurantLinks={restaurant.social_links || {}}
-                  />
-                </section>
-
-                {restaurant.promotions && restaurant.promotions.length > 0 && (
-                  <section 
-                    id="promociones"
-                    ref={(el) => sectionsRef.current['promociones'] = el}
-                  >
-                    <CompactRestaurantPromotions promotions={restaurant.promotions} />
-                  </section>
-                )}
-
-                <section 
-                  id="eventos"
-                  ref={(el) => sectionsRef.current['eventos'] = el}
-                >
-                  <CompactRestaurantEvents restaurantId={restaurant?.id || 0} />
-                </section>
-
-                {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
-                  <section className="space-y-4">
-                    <RestaurantSocialSection socialLinks={restaurant.social_links} />
-                  </section>
-                )}
-              </div>
-
-              <div className="lg:col-span-1 space-y-6">
-                <div className="sticky top-8 space-y-6">
-                  <Button
-                    onClick={handleViewMenu}
-                    size="lg"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
-                  >
-                    <Utensils className="h-6 w-6 mr-2" />
-                    Ver Carta
-                  </Button>
-
-                  <section 
-                    id="horarios"
-                    ref={(el) => sectionsRef.current['horarios'] = el}
-                    className="space-y-4"
-                  >
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-primary" />
-                      Horarios
-                    </h3>
-                    {restaurant.schedules.length > 0 ? (
-                      <div className="space-y-2">
-                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((dayName, index) => {
-                          const schedule = restaurant.schedules.find(s => s.day_of_week === (index + 1) % 7);
-                          const isToday = new Date().getDay() === (index + 1) % 7;
-                          
-                          return (
-                            <div
-                              key={index}
-                              className={`flex justify-between items-center py-2 px-3 rounded-lg transition-smooth ${
-                                isToday ? 'bg-primary/10' : 'bg-secondary/20'
-                              }`}
-                            >
-                              <span className={`text-sm font-medium ${isToday ? 'text-primary' : 'text-foreground'}`}>
-                                {dayName}
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                {schedule?.is_closed || !schedule ? (
-                                  'Cerrado'
-                                ) : (
-                                  `${schedule.opening_time.slice(0, 5)} - ${schedule.closing_time.slice(0, 5)}`
-                                )}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Horarios no disponibles</p>
-                      </div>
-                    )}
-                  </section>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-8">
-              <section 
-                id="horarios"
-                ref={(el) => sectionsRef.current['horarios'] = el}
-                className="space-y-4"
-              >
-                <h3 className="text-lg font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  Horarios
-                </h3>
-                {restaurant.schedules.length > 0 ? (
-                  <CompactRestaurantSchedule schedules={restaurant.schedules} />
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Horarios no disponibles</p>
-                  </div>
-                )}
-              </section>
-
-              <Button
-                onClick={handleViewMenu}
-                size="lg"
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
-              >
-                <Utensils className="h-6 w-6 mr-2" />
-                Ver Carta
-              </Button>
-
-              {restaurant.services.length > 0 && (
-                <section 
-                  id="servicios"
-                  ref={(el) => sectionsRef.current['servicios'] = el}
-                  className="space-y-4"
-                >
-                  <h3 className="text-lg font-medium flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                    Servicios disponibles
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {restaurant.services.map((service, index) => (
-                      <Badge key={index} variant="outline" className="px-3 py-1 text-sm border-primary text-primary">
-                        {service}
-                      </Badge>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
-                <DeliveryLogosSection deliveryLinks={restaurant.delivery_links} />
-              )}
-
-              <section 
-                id="reservas"
-                ref={(el) => sectionsRef.current['reservas'] = el}
-              >
-                <RestaurantPlatforms
-                  category="booking"
-                  title="Reserva online"
-                  restaurantLinks={restaurant.social_links || {}}
-                />
-              </section>
-
-              {restaurant.promotions && restaurant.promotions.length > 0 && (
-                <section 
-                  id="promociones"
-                  ref={(el) => sectionsRef.current['promociones'] = el}
-                >
-                  <CompactRestaurantPromotions promotions={restaurant.promotions} />
-                </section>
-              )}
-
-              <section 
-                id="eventos"
-                ref={(el) => sectionsRef.current['eventos'] = el}
-              >
-                <CompactRestaurantEvents restaurantId={restaurant?.id || 0} />
-              </section>
-
-              {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
-                <section className="space-y-4">
-                  <RestaurantSocialSection socialLinks={restaurant.social_links} />
-                </section>
-              )}
-            </div>
-          )}
-        </div>
-
-        <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
-          <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0">
-            <div className="p-6 border-b">
-              <h2 className="text-2xl font-bold">Galería de {restaurant.name}</h2>
-            </div>
-            <div className="overflow-y-auto p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {allImages.map((image, index) => (
-                  <div key={index} className="aspect-video overflow-hidden rounded-lg">
-                    <img
-                      src={image}
-                      alt={`${restaurant.name} - imagen ${index + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      onClick={() => {
-                        setCurrentImageIndex(index);
-                        setIsGalleryOpen(false);
-                      }}
-                    />
-                  </div>
-                ))}
               </div>
             </div>
           </DialogContent>
         </Dialog>
 
+        {/* Dish Modal */}
         <DishModal
           dish={selectedDish}
           restaurantId={restaurant?.id || 0}
@@ -682,20 +447,6 @@ export default function RestaurantProfile() {
           onClose={closeDishModal}
         />
       </div>
-
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            .scrollbar-hide {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-            }
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none;
-            }
-          `
-        }}
-      />
     </>
   );
 }
