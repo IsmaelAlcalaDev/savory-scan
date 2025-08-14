@@ -325,7 +325,8 @@ export default function RestaurantProfile() {
             <ArrowLeft className="h-6 w-6 text-white" />
           </Button>
           
-          <div className="absolute top-6 right-6 flex gap-3">
+          {/* Desktop: Buttons top right */}
+          <div className="absolute top-6 right-6 flex gap-3 md:flex hidden">
             <FavoriteButton
               restaurantId={restaurant.id}
               favoritesCount={restaurant.favorites_count}
@@ -339,6 +340,24 @@ export default function RestaurantProfile() {
               className="rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
             >
               <Share2 className="h-6 w-6 text-white" />
+            </Button>
+          </div>
+
+          {/* Mobile: Buttons bottom right */}
+          <div className="absolute bottom-6 right-6 flex gap-2 md:hidden">
+            <FavoriteButton
+              restaurantId={restaurant.id}
+              favoritesCount={restaurant.favorites_count}
+              size="sm"
+              className="rounded-full w-10 h-10 p-0 bg-white border-white shadow-lg hover:bg-gray-50 hover:scale-110 transition-all"
+            />
+            <Button
+              onClick={handleShare}
+              size="sm"
+              variant="outline"
+              className="rounded-full w-10 h-10 p-0 bg-white border-white shadow-lg hover:bg-gray-50 hover:scale-110 transition-all"
+            >
+              <Share2 className="h-4 w-4 text-gray-700" />
             </Button>
           </div>
 
@@ -422,7 +441,7 @@ export default function RestaurantProfile() {
         {isMobile && (
           <div 
             ref={quickActionsRef}
-            className={`bg-background transition-all duration-300 ease-in-out border-b border-border ${
+            className={`bg-background transition-all duration-300 ease-in-out ${
               isQuickActionsFixed 
                 ? 'fixed top-0 left-0 right-0 z-40 shadow-lg' 
                 : 'relative'
@@ -459,7 +478,7 @@ export default function RestaurantProfile() {
 
         {/* Mobile: Restaurant information below Ver Carta */}
         {isMobile && (
-          <div className="bg-background border-b border-border">
+          <div className="bg-background">
             <div className="max-w-6xl mx-auto px-4 py-6">
               <div className="flex items-start gap-4 mb-4">
                 {restaurant.logo_url && (
