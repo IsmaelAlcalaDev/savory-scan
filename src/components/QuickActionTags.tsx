@@ -15,7 +15,7 @@ interface QuickActionTagsProps {
   address: string;
   latitude?: number;
   longitude?: number;
-  onReservationClick?: () => void;
+  onReservationClick: () => void;
 }
 
 export default function QuickActionTags({ 
@@ -35,53 +35,63 @@ export default function QuickActionTags({
     }
   };
 
-  const actions = [
-    ...(phone ? [{
-      icon: Phone,
-      label: 'Llamar',
-      action: () => window.open(`tel:${phone}`)
-    }] : []),
-    {
-      icon: Navigation,
-      label: 'Cómo llegar',
-      action: handleNavigationClick
-    },
-    ...(website ? [{
-      icon: Globe,
-      label: 'Sitio web',
-      action: () => window.open(website, '_blank', 'noopener noreferrer')
-    }] : []),
-    ...(email ? [{
-      icon: Mail,
-      label: 'Email',
-      action: () => window.open(`mailto:${email}`)
-    }] : []),
-    ...(onReservationClick ? [{
-      icon: Calendar,
-      label: 'Reservas',
-      action: onReservationClick
-    }] : [])
-  ];
-
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-      {actions.map((action, index) => {
-        const Icon = action.icon;
-        return (
-          <Button
-            key={index}
-            size="lg"
-            variant="outline"
-            className="w-full h-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-white rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex flex-col sm:flex-row items-center gap-2 sm:gap-3"
-            onClick={action.action}
-          >
-            <Icon className="h-5 w-5 sm:h-5 sm:w-5 text-red-600 flex-shrink-0" />
-            <span className="text-red-600 font-medium text-xs sm:text-sm text-center sm:text-left">
-              {action.label}
-            </span>
-          </Button>
-        );
-      })}
+    <div className="flex flex-wrap gap-4 justify-start">
+      {phone && (
+        <Button
+          size="lg"
+          variant="outline"
+          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+          onClick={() => window.open(`tel:${phone}`)}
+        >
+          <Phone className="h-5 w-5 text-black" />
+          <span className="text-black font-medium">Llamar</span>
+        </Button>
+      )}
+      
+      <Button
+        size="lg"
+        variant="outline"
+        className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+        onClick={handleNavigationClick}
+      >
+        <Navigation className="h-5 w-5 text-black" />
+        <span className="text-black font-medium">Cómo llegar</span>
+      </Button>
+
+      {website && (
+        <Button
+          size="lg"
+          variant="outline"
+          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+          onClick={() => window.open(website, '_blank', 'noopener noreferrer')}
+        >
+          <Globe className="h-5 w-5 text-black" />
+          <span className="text-black font-medium">Sitio web</span>
+        </Button>
+      )}
+
+      {email && (
+        <Button
+          size="lg"
+          variant="outline"
+          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+          onClick={() => window.open(`mailto:${email}`)}
+        >
+          <Mail className="h-5 w-5 text-black" />
+          <span className="text-black font-medium">Email</span>
+        </Button>
+      )}
+
+      <Button
+        size="lg"
+        variant="outline"
+        className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+        onClick={onReservationClick}
+      >
+        <Calendar className="h-5 w-5 text-black" />
+        <span className="text-black font-medium">Reservas</span>
+      </Button>
     </div>
   );
 }

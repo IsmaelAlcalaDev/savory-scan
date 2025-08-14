@@ -1,43 +1,10 @@
 
 import { usePlatformConfigs } from '@/hooks/usePlatformConfigs';
 import { Truck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface DeliveryLogosSectionProps {
   deliveryLinks?: Record<string, string>;
 }
-
-const getPlatformStyles = (platformKey: string) => {
-  switch (platformKey.toLowerCase()) {
-    case 'glovo':
-      return {
-        bg: 'bg-yellow-400 hover:bg-yellow-500',
-        text: 'text-black'
-      };
-    case 'ubereats':
-    case 'uber-eats':
-      return {
-        bg: 'bg-black hover:bg-gray-800',
-        text: 'text-white'
-      };
-    case 'justeat':
-    case 'just-eat':
-      return {
-        bg: 'bg-orange-500 hover:bg-orange-600',
-        text: 'text-white'
-      };
-    case 'deliveroo':
-      return {
-        bg: 'bg-cyan-400 hover:bg-cyan-500',
-        text: 'text-white'
-      };
-    default:
-      return {
-        bg: 'bg-primary hover:bg-primary/90',
-        text: 'text-primary-foreground'
-      };
-  }
-};
 
 export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLogosSectionProps) {
   const { data: platforms, isLoading } = usePlatformConfigs('delivery');
@@ -61,20 +28,35 @@ export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLog
         <Truck className="h-4 w-4 text-primary" />
         Delivery
       </h3>
-      <div className="flex flex-wrap items-center justify-start gap-4">
+      <div className="flex flex-wrap items-center justify-start gap-8">
         {availablePlatforms.map((platform) => {
           const url = deliveryLinks[platform.platform_key];
-          const styles = getPlatformStyles(platform.platform_key);
           
           return (
-            <Button
+            <a
               key={platform.id}
-              size="lg"
-              className={`px-6 py-4 h-auto rounded-xl shadow-soft hover:shadow-card hover:scale-105 transition-all duration-300 border-0 ${styles.bg} ${styles.text}`}
-              onClick={() => window.open(url, '_blank', 'noopener noreferrer')}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-shrink-0 hover:opacity-80 transition-all duration-300 hover:scale-110 transform p-3 bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100"
+              title={`Pedir en ${platform.platform_name}`}
             >
-              <span className="font-medium">{platform.platform_name}</span>
-            </Button>
+              {platform.icon ? (
+                <img 
+                  src={platform.icon}
+                  alt={platform.platform_name}
+                  className="h-20 w-20 object-contain"
+                  onError={(e) => {
+                    console.error('Error loading logo for:', platform.platform_name);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="h-20 w-20 bg-gradient-to-br from-primary/10 to-primary/20 rounded-lg flex items-center justify-center">
+                  <Truck className="h-10 w-10 text-primary" />
+                </div>
+              )}
+            </a>
           );
         })}
       </div>
