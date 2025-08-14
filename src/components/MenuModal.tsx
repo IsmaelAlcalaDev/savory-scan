@@ -22,7 +22,7 @@ import {
   Users,
   Languages
 } from 'lucide-react';
-import LanguageSelector from './LanguageSelector';
+import { useLanguages } from '@/hooks/useLanguages';
 
 interface MenuModalProps {
   open: boolean;
@@ -30,8 +30,45 @@ interface MenuModalProps {
 }
 
 export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
+  const { data: languages = [], isLoading } = useLanguages();
+  const [selectedLanguage, setSelectedLanguage] = React.useState<any>(null);
+
+  // Set default language when data loads
+  React.useEffect(() => {
+    if (languages.length > 0 && !selectedLanguage) {
+      const defaultLanguage = languages.find((lang: any) => lang.code === 'es') || languages[0];
+      setSelectedLanguage(defaultLanguage);
+    }
+  }, [languages, selectedLanguage]);
+
+  const handleLanguageChange = (language: any) => {
+    setSelectedLanguage(language);
+    console.log('Changing language to:', language.code);
+  };
+
   const handleLinkClick = (url: string) => {
     window.open(url, '_blank');
+  };
+
+  const renderFlag = (language: any, size = 24) => {
+    if (language.flag_url) {
+      return (
+        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+          <img
+            src={language.flag_url}
+            alt={`${language.name} flag`}
+            className="w-full h-full object-cover"
+            width={size}
+            height={size}
+          />
+        </div>
+      );
+    }
+    return (
+      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium">
+        {language.code.toUpperCase()}
+      </div>
+    );
   };
 
   return (
@@ -50,9 +87,24 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
               <Languages className="h-5 w-5" />
               Idioma
             </h3>
-            <div className="flex justify-start pl-2">
-              <LanguageSelector />
-            </div>
+            {!isLoading && languages.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                {languages.map((language: any) => (
+                  <button
+                    key={language.id}
+                    onClick={() => handleLanguageChange(language)}
+                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                      selectedLanguage?.id === language.id
+                        ? 'border-primary bg-primary/10'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {renderFlag(language, 24)}
+                    <span className="text-sm font-medium">{language.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <Separator />
