@@ -371,8 +371,8 @@ export default function FoodieSpotLayout({
             onOpenNowChange={setIsOpenNow}
           />
 
-          {/* Results Header with simplified title */}
-          <div className="flex items-center justify-between mb-6">
+          {/* Results Header with adjusted spacing */}
+          <div className="flex items-center justify-between mb-3 mt-8">
             <div>
               <h2 className="text-sm font-medium mb-1 text-muted-foreground">
                 {dishesLoading ? 'Cargando...' : `${dishes.length} resultados`}
@@ -411,8 +411,8 @@ export default function FoodieSpotLayout({
           onOpenNowChange={setIsOpenNow}
         />
 
-        {/* Results Header with simplified title */}
-        <div className="flex items-center justify-between mb-6">
+        {/* Results Header with adjusted spacing */}
+        <div className="flex items-center justify-between mb-3 mt-8">
           <div>
             <h2 className="text-sm font-medium mb-1 text-muted-foreground">
               {restaurantsLoading ? 'Cargando...' : `${restaurants.length} resultados`}
