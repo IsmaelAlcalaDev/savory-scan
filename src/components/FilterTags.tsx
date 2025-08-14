@@ -165,19 +165,19 @@ export default function FilterTags({
   };
 
   const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
-    <div className="flex flex-col">
+    <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
       {/* Title */}
       <div className="text-center py-4">
         <h3 className="text-lg font-semibold">{getFilterTitle(filterKey)}</h3>
       </div>
       
       {/* Filter content with dividing lines */}
-      <div className="p-4 [&>div>div:not(:last-child)]:border-b [&>div>div:not(:last-child)]:border-gray-100 [&>div>div:not(:last-child)]:pb-4 [&>div>div:not(:first-child)]:pt-4">
+      <div className={`px-6 [&>div>div:not(:last-child)]:border-b [&>div>div:not(:last-child)]:border-gray-100 [&>div>div:not(:last-child)]:pb-4 [&>div>div:not(:first-child)]:pt-4 ${isMobile ? 'flex-1 overflow-y-auto' : ''}`}>
         {getFilterContent(filterKey)}
       </div>
       
       {/* Bottom buttons - Apply and Reset */}
-      <div className="p-4 space-y-3">
+      <div className={`p-4 space-y-3 ${isMobile ? 'mt-auto' : ''}`}>
         <Button 
           onClick={onApply}
           className="w-full"
@@ -236,7 +236,7 @@ export default function FilterTags({
           className={`p-0 ${
             isMobile 
               ? 'h-[100vh] rounded-none' 
-              : 'rounded-t-[20px] rounded-b-none'
+              : 'rounded-t-[20px] rounded-b-none h-auto'
           }`}
         >
           <FilterContent 
@@ -426,6 +426,24 @@ export default function FilterTags({
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
+        }
+        
+        /* Custom checkbox styles */
+        [data-radix-collection-item] input[type="checkbox"] {
+          width: 20px;
+          height: 20px;
+          border-radius: 2px;
+        }
+        
+        .peer {
+          width: 20px !important;
+          height: 20px !important;
+          border-radius: 2px !important;
+        }
+        
+        /* Increase spacing between checkbox and label */
+        .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+          margin-left: 12px;
         }
       `}</style>
     </div>
