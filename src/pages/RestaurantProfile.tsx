@@ -10,7 +10,7 @@ import { RestaurantSchedule } from '@/components/RestaurantSchedule';
 import { RestaurantSocialSection } from '@/components/RestaurantSocialSection';
 import { DeliveryPlatformsSection } from '@/components/DeliveryPlatformsSection';
 import { RestaurantGallery } from '@/components/RestaurantGallery';
-import { CompactRestaurantPromotions } from '@/components/CompactRestaurantPromotions';
+import CompactRestaurantPromotions from '@/components/CompactRestaurantPromotions';
 import { RestaurantMenuSection } from '@/components/RestaurantMenuSection';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { QuickActionTags } from '@/components/QuickActionTags';
