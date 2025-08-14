@@ -1,5 +1,3 @@
-
-
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +6,10 @@ import {
   Sheet,
   SheetContent,
 } from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+} from '@/components/ui/dialog';
 import SortFilter from './SortFilter';
 import DistanceFilter from './DistanceFilter';
 import PriceFilter from './PriceFilter';
@@ -63,6 +65,7 @@ export default function FilterTags({
   onOpenNowChange = () => {}
 }: FilterTagsProps) {
   const isMobile = useIsMobile();
+  const isTablet = !isMobile && window.innerWidth < 1024;
   const [activeFilterModal, setActiveFilterModal] = useState<string | null>(null);
   
   const hasActiveFilters = selectedCuisines.length > 0 || 
@@ -151,7 +154,6 @@ export default function FilterTags({
     }
   };
 
-  // Filter content for both mobile and desktop
   const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
     <div className="flex flex-col h-full">
       {/* Title */}
@@ -163,9 +165,9 @@ export default function FilterTags({
       <div className="p-4 border-b">
         <Button 
           onClick={onApply}
-          className="w-full bg-black text-white hover:bg-gray-800"
+          className="w-full"
         >
-          Aplicar
+          Aplicar filtros
         </Button>
       </div>
       
@@ -199,7 +201,7 @@ export default function FilterTags({
 
   const quickFilters = [
     { key: 'best-rated', label: 'Mejor valorados', active: false },
-    { key:'open-now', label: 'Abierto ahora', active: isOpenNow },
+    { key: 'open-now', label: 'Abierto ahora', active: isOpenNow },
     { key: 'nearest', label: 'Más cerca', active: false },
     { key: 'cheapest', label: 'Más económico', active: false },
   ];
@@ -209,8 +211,34 @@ export default function FilterTags({
       setActiveFilterModal(open ? filterKey : null);
     };
 
+    if (isMobile || isTablet) {
+      return (
+        <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0"
+            style={{ 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
+            onClick={() => handleOpenChange(true)}
+          >
+            {children}
+          </Button>
+          <SheetContent side="bottom" className="h-[90vh] p-0">
+            <FilterContent 
+              filterKey={filterKey}
+              onApply={() => setActiveFilterModal(null)} 
+              onReset={() => onClearFilter('all')} 
+            />
+          </SheetContent>
+        </Sheet>
+      );
+    }
+
     return (
-      <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
+      <Dialog open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
         <Button
           variant="outline"
           size="sm"
@@ -223,17 +251,14 @@ export default function FilterTags({
         >
           {children}
         </Button>
-        <SheetContent 
-          side="bottom" 
-          className={`${isMobile ? 'h-[90vh]' : 'h-[30vh]'} p-0 rounded-t-2xl`}
-        >
+        <DialogContent className="max-w-2xl max-h-[80vh] p-0">
           <FilterContent 
             filterKey={filterKey}
             onApply={() => setActiveFilterModal(null)} 
             onReset={() => onClearFilter('all')} 
           />
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     );
   };
 
@@ -419,4 +444,3 @@ export default function FilterTags({
     </div>
   );
 }
-
