@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -100,44 +101,54 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
 
   return (
     <div 
-      className="py-3 px-1 hover:bg-accent/50 transition-colors cursor-pointer rounded-lg" 
+      className="py-4 px-0 hover:bg-accent/30 transition-colors cursor-pointer" 
       onClick={() => onDishClick?.(dish)}
     >
-      <div className="flex gap-4 items-center w-full">
+      <div className="flex gap-4 items-start w-full">
         {/* Image */}
         <div className="flex-shrink-0">
           {dish.image_url ? (
-            <div className="w-20 h-20 rounded-lg overflow-hidden relative">
+            <div className="w-24 h-24 rounded-lg overflow-hidden relative">
               <img
                 src={dish.image_url}
                 alt={dish.image_alt || dish.name}
                 className="w-full h-full object-cover"
               />
               {dish.is_featured && (
-                <Badge className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs px-1 py-0">
+                <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 py-0">
                   ★
                 </Badge>
               )}
             </div>
           ) : (
-            <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+            <div className="w-24 h-24 bg-muted/50 rounded-lg flex items-center justify-center">
               <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
             </div>
           )}
         </div>
 
         {/* Content - Full Width */}
-        <div className="flex-1 min-w-0 flex items-center justify-between">
-          {/* Left Content */}
-          <div className="flex-1 min-w-0 pr-4">
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="font-semibold text-base text-foreground line-clamp-1">
-                {dish.name}
-              </h3>
+        <div className="flex-1 min-w-0 flex flex-col justify-between h-24">
+          {/* Top Row - Name and Price */}
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="font-semibold text-base text-foreground line-clamp-2 pr-4">
+              {dish.name}
+            </h3>
+            <div className="font-bold text-lg text-primary text-right flex-shrink-0">
+              {getDisplayPrice()}
             </div>
+          </div>
 
-            {/* Icons and metadata row */}
-            <div className="flex items-center gap-3 mb-2">
+          {/* Description - condensed */}
+          {dish.description && (
+            <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
+              {dish.description}
+            </p>
+          )}
+
+          {/* Bottom Row - Icons, time and actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
               {/* Diet icons */}
               {getDietIcon(dish).slice(0, 4).map(({ icon: Icon, label, color }, index) => (
                 <div key={index} title={label}>
@@ -165,28 +176,20 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
               {/* Preparation time */}
               {dish.preparation_time_minutes && (
                 <div className="flex items-center gap-1 text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-sm">{dish.preparation_time_minutes}min</span>
+                  <Clock className="h-3 w-3" />
+                  <span className="text-xs">{dish.preparation_time_minutes}min</span>
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Right Content - Price and Actions */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            {/* Price */}
-            <div className="font-bold text-lg text-primary text-right">
-              {getDisplayPrice()}
-            </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <DishFavoriteButton
                 dishId={dish.id}
                 restaurantId={restaurantId}
                 favoritesCount={dish.favorites_count}
                 size="sm"
-                className="bg-white/95 backdrop-blur-sm border-white/20 shadow-sm hover:bg-white"
+                className="bg-background/95 backdrop-blur-sm border-border/20 shadow-sm hover:bg-accent"
                 savedFrom="menu_list"
               />
               
