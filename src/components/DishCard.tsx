@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -71,19 +70,19 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
         )}
         
         {dish.is_featured && (
-          <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
+          <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground z-10">
             Destacado
           </Badge>
         )}
 
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 z-10">
           <DishFavoriteButton
             dishId={dish.id}
             favoritesCount={dish.favorites_count}
             savedFrom="dish_card"
             size="sm"
-            className="bg-white/90 backdrop-blur-sm"
-            onLoginRequired={() => {}}
+            className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
+            onLoginRequired={() => console.log('Login required for dish favorites')}
           />
         </div>
       </div>
