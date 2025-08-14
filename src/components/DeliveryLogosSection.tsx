@@ -9,12 +9,7 @@ interface DeliveryLogosSectionProps {
 export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLogosSectionProps) {
   const { data: platforms, isLoading } = usePlatformConfigs('delivery');
 
-  console.log('DeliveryLogosSection - platforms:', platforms);
-  console.log('DeliveryLogosSection - deliveryLinks:', deliveryLinks);
-  console.log('DeliveryLogosSection - isLoading:', isLoading);
-
   if (isLoading || !platforms?.length) {
-    console.log('DeliveryLogosSection - returning null due to loading or no platforms');
     return null;
   }
 
@@ -23,10 +18,7 @@ export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLog
     platform => deliveryLinks[platform.platform_key] && deliveryLinks[platform.platform_key].trim().length > 0
   );
 
-  console.log('DeliveryLogosSection - availablePlatforms:', availablePlatforms);
-
   if (availablePlatforms.length === 0) {
-    console.log('DeliveryLogosSection - no available platforms, returning null');
     return null;
   }
 
@@ -39,10 +31,6 @@ export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLog
       <div className="flex items-center gap-4">
         {availablePlatforms.map((platform) => {
           const url = deliveryLinks[platform.platform_key];
-          
-          console.log('DeliveryLogosSection - platform:', platform);
-          console.log('DeliveryLogosSection - platform icon:', platform.icon);
-          console.log('DeliveryLogosSection - url:', url);
           
           return (
             <a
@@ -59,11 +47,8 @@ export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLog
                   alt={platform.platform_name}
                   className="h-12 w-12 object-contain"
                   onError={(e) => {
-                    console.error('DeliveryLogosSection - Image load error for:', platform.platform_name, platform.icon);
+                    console.error('Error loading logo for:', platform.platform_name);
                     e.currentTarget.style.display = 'none';
-                  }}
-                  onLoad={() => {
-                    console.log('DeliveryLogosSection - Image loaded successfully for:', platform.platform_name);
                   }}
                 />
               ) : (

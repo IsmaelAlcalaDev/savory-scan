@@ -1469,6 +1469,7 @@ export type Database = {
           category: string
           created_at: string | null
           display_order: number | null
+          icon: string | null
           icon_color: string | null
           icon_name: string
           id: number
@@ -1482,6 +1483,7 @@ export type Database = {
           category: string
           created_at?: string | null
           display_order?: number | null
+          icon?: string | null
           icon_color?: string | null
           icon_name: string
           id?: number
@@ -1495,6 +1497,7 @@ export type Database = {
           category?: string
           created_at?: string | null
           display_order?: number | null
+          icon?: string | null
           icon_color?: string | null
           icon_name?: string
           id?: number
