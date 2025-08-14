@@ -48,6 +48,7 @@ export default function RestaurantProfile() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('servicios');
   const [isQuickActionsFixed, setIsQuickActionsFixed] = useState(false);
+  const [isHeaderFixed, setIsHeaderFixed] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -63,6 +64,28 @@ export default function RestaurantProfile() {
     ] : []),
     { id: 'eventos', label: 'Eventos', icon: Users },
   ];
+
+  const getAllImages = () => {
+    const images = [];
+    
+    // Always add cover image first if it exists
+    if (restaurant?.cover_image_url) {
+      images.push(restaurant.cover_image_url);
+    }
+    
+    // Then add gallery images
+    if (restaurant?.gallery && restaurant.gallery.length > 0) {
+      restaurant.gallery.forEach(item => {
+        if (item.image_url && item.image_url !== restaurant?.cover_image_url) {
+          images.push(item.image_url);
+        }
+      });
+    }
+    
+    return images;
+  };
+
+  const totalImages = getAllImages().length;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -168,26 +191,6 @@ export default function RestaurantProfile() {
     navigate(`/carta-${restaurant?.slug}`);
   };
 
-  const getAllImages = () => {
-    const images = [];
-    
-    // Always add cover image first if it exists
-    if (restaurant?.cover_image_url) {
-      images.push(restaurant.cover_image_url);
-    }
-    
-    // Then add gallery images
-    if (restaurant?.gallery && restaurant.gallery.length > 0) {
-      restaurant.gallery.forEach(item => {
-        if (item.image_url && item.image_url !== restaurant?.cover_image_url) {
-          images.push(item.image_url);
-        }
-      });
-    }
-    
-    return images;
-  };
-
   const getCurrentImage = () => {
     const allImages = getAllImages();
     if (allImages.length > 0) {
@@ -195,8 +198,6 @@ export default function RestaurantProfile() {
     }
     return '/placeholder.svg';
   };
-
-  const totalImages = getAllImages().length;
 
   const nextImage = () => {
     if (totalImages > 1) {
