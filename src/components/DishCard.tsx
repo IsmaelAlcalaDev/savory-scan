@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,12 +57,14 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
     <Card className="bg-gradient-card border-glass shadow-card hover:shadow-lg transition-shadow group cursor-pointer" onClick={() => onDishClick?.(dish)}>
       <div className="relative">
         {dish.image_url ? (
-          <div className="aspect-[4/3] overflow-hidden rounded-t-lg">
+          <div className="aspect-[4/3] overflow-hidden rounded-t-lg relative">
             <img
               src={dish.image_url}
               alt={dish.image_alt || dish.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
+            {/* Dark overlay for better button visibility */}
+            <div className="absolute inset-0 bg-black/20 rounded-t-lg" />
           </div>
         ) : (
           <div className="aspect-[4/3] bg-muted rounded-t-lg flex items-center justify-center">
@@ -81,6 +84,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
             favoritesCount={dish.favorites_count}
             savedFrom="dish_card"
             size="md"
+            className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
             onLoginRequired={() => console.log('Login required for dish favorites')}
           />
         </div>
