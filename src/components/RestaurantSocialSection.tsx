@@ -25,7 +25,7 @@ export default function RestaurantSocialSection({ socialLinks }: RestaurantSocia
   return (
     <section className="space-y-6">
       <h3 className="text-lg font-semibold">Síguenos en redes sociales</h3>
-      <div className="flex flex-wrap items-center justify-start gap-6">
+      <div className="flex flex-wrap items-center justify-start gap-4">
         {availablePlatforms.map((platform) => {
           const url = socialLinks[platform.platform_key];
           
@@ -42,16 +42,16 @@ export default function RestaurantSocialSection({ socialLinks }: RestaurantSocia
                 <img 
                   src={platform.icon}
                   alt={platform.platform_name}
-                  className="h-16 w-16 object-contain rounded-lg"
+                  className="h-12 w-12 object-contain rounded-lg"
                   onError={(e) => {
                     console.error('Error loading logo for:', platform.platform_name);
                     e.currentTarget.style.display = 'none';
                   }}
                 />
               ) : (
-                <div className="h-16 w-16 bg-muted rounded-lg flex items-center justify-center">
+                <div className="h-12 w-12 bg-muted rounded-lg flex items-center justify-center">
                   <div 
-                    className="h-8 w-8 rounded-full"
+                    className="h-6 w-6 rounded-full"
                     style={{ backgroundColor: platform.icon_color || '#6B7280' }}
                   />
                 </div>
