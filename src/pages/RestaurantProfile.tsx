@@ -479,11 +479,11 @@ export default function RestaurantProfile() {
               : 'relative'
           }`}
         >
-          <div className="max-w-6xl mx-auto px-4 py-2">
+          <div className="max-w-6xl mx-auto px-4 py-1">
             <Button
               onClick={handleViewMenu}
               size="lg"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg mb-2"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg mb-1"
             >
               <Utensils className="h-6 w-6 mr-2" />
               Ver Carta
