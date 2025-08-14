@@ -1,13 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import CuisineFilter from './CuisineFilter';
 import FoodTypeFilter from './FoodTypeFilter';
-import FiltersModal from './FiltersModal';
-import DishesFiltersModal from './DishesFiltersModal';
 import RestaurantCard from './RestaurantCard';
 import AllDishCard from './AllDishCard';
 import LocationModal from './LocationModal';
@@ -19,23 +17,8 @@ import TabletHeader from './TabletHeader';
 import DesktopHeader from './DesktopHeader';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
-import { useDistanceRanges } from '@/hooks/useDistanceRanges';
-import { useRatingOptions } from '@/hooks/useRatingOptions';
-import { useEstablishmentTypes } from '@/hooks/useEstablishmentTypes';
-import { useServices } from '@/hooks/useServices';
-import { usePriceRanges } from '@/hooks/usePriceRanges';
-import { useTimeRanges } from '@/hooks/useTimeRanges';
-import { useCuisineTypes } from '@/hooks/useCuisineTypes';
-import { useDietTypes } from '@/hooks/useDietTypes';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const filterOptions = [
-  { id: 'nearby', label: 'Cerca de mí', active: true },
-  { id: 'open', label: 'Abierto', active: false },
-  { id: 'economic', label: 'Económico', active: false },
-  { id: 'top', label: 'Top', active: false },
-];
 
 interface FoodieSpotLayoutProps {
   initialTab?: 'restaurants' | 'dishes' | 'account';
@@ -52,16 +35,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
-  const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
-  const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
-  const [selectedEstablishments, setSelectedEstablishments] = useState<number[]>([]);
-  const [selectedServices, setSelectedServices] = useState<number[]>([]);
-  const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
-  const [selectedTimeRanges, setSelectedTimeRanges] = useState<number[]>([]);
-  const [selectedDietTypes, setSelectedDietTypes] = useState<string[]>([]);
-  const [selectedSpiceLevels, setSelectedSpiceLevels] = useState<number[]>([]);
-  const [selectedPrepTimeRanges, setSelectedPrepTimeRanges] = useState<number[]>([]);
-  const [activeFilters, setActiveFilters] = useState<string[]>(['nearby']);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -84,15 +57,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     console.log('Route changed, updating active tab to:', newTab, 'from path:', location.pathname);
     setActiveBottomTab(newTab);
   }, [location.pathname]);
-
-  const { distanceRanges } = useDistanceRanges();
-  const { ratingOptions } = useRatingOptions();
-  const { establishmentTypes } = useEstablishmentTypes();
-  const { services } = useServices();
-  const { priceRanges } = usePriceRanges();
-  const { timeRanges } = useTimeRanges();
-  const { cuisineTypes } = useCuisineTypes();
-  const { dietTypes } = useDietTypes();
 
   // Cargar configuración de branding desde la BD
   const { data: appSettings } = useAppSettings();
@@ -196,7 +160,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     userLng: userLocation?.lng,
     maxDistance: 50,
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
-    minRating: selectedRatings.length > 0 ? Math.min(...selectedRatings) : 0
+    minRating: 0
   });
 
   const { dishes, loading: dishesLoading, error: dishesError } = useDishes({
@@ -204,11 +168,9 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
     maxDistance: 50,
-    selectedDietTypes,
-    selectedPriceRanges,
     selectedFoodTypes,
-    spiceLevels: selectedSpiceLevels,
-    prepTimeRanges: selectedPrepTimeRanges
+    spiceLevels: [],
+    prepTimeRanges: []
   });
 
   console.log('FoodieSpotLayout: Hook results:', { 
@@ -220,14 +182,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     dishesError,
     activeBottomTab
   });
-
-  const handleFilterToggle = (filterId: string) => {
-    setActiveFilters(prev => 
-      prev.includes(filterId) 
-        ? prev.filter(id => id !== filterId)
-        : [...prev, filterId]
-    );
-  };
 
   const handleLocationSelect = (location: { type: string; data?: any }) => {
     console.log('FoodieSpotLayout: Manual location selected:', location);
@@ -265,166 +219,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     console.log('Updated location name:', currentLocationName);
   };
 
-  const clearAllFilters = () => {
-    setSelectedCuisines([]);
-    setSelectedDistances([]);
-    setSelectedRatings([]);
-    setSelectedEstablishments([]);
-    setSelectedServices([]);
-    setSelectedPriceRanges([]);
-    setSelectedTimeRanges([]);
-    setSelectedDietTypes([]);
-    setActiveFilters([]);
-  };
-
-  const removeFilter = (filterType: string, value: any) => {
-    switch (filterType) {
-      case 'cuisine':
-        setSelectedCuisines(prev => prev.filter(id => id !== value));
-        break;
-      case 'distance':
-        setSelectedDistances(prev => prev.filter(id => id !== value));
-        break;
-      case 'rating':
-        setSelectedRatings(prev => prev.filter(id => id !== value));
-        break;
-      case 'establishment':
-        setSelectedEstablishments(prev => prev.filter(id => id !== value));
-        break;
-      case 'service':
-        setSelectedServices(prev => prev.filter(id => id !== value));
-        break;
-      case 'price':
-        setSelectedPriceRanges(prev => prev.filter(range => range !== value));
-        break;
-      case 'time':
-        setSelectedTimeRanges(prev => prev.filter(id => id !== value));
-        break;
-      case 'diet':
-        setSelectedDietTypes(prev => prev.filter(slug => slug !== value));
-        break;
-      case 'quick':
-        setActiveFilters(prev => prev.filter(id => id !== value));
-        break;
-    }
-  };
-
-  const getActiveFiltersDisplay = () => {
-    const filters = [];
-
-    // Quick filters (except 'nearby' as it's default)
-    activeFilters.forEach(filterId => {
-      if (filterId !== 'nearby') {
-        const quickFilter = filterOptions.find(f => f.id === filterId);
-        if (quickFilter) {
-          filters.push({
-            type: 'quick',
-            value: filterId,
-            label: quickFilter.label
-          });
-        }
-      }
-    });
-
-    // Cuisines
-    selectedCuisines.forEach(id => {
-      const cuisine = cuisineTypes?.find(c => c.id === id);
-      if (cuisine) {
-        filters.push({
-          type: 'cuisine',
-          value: id,
-          label: cuisine.name
-        });
-      }
-    });
-
-    // Distance
-    selectedDistances.forEach(id => {
-      const distance = distanceRanges?.find(d => d.id === id);
-      if (distance) {
-        filters.push({
-          type: 'distance',
-          value: id,
-          label: distance.display_text
-        });
-      }
-    });
-
-    // Rating
-    selectedRatings.forEach(id => {
-      const rating = ratingOptions?.find(r => r.id === id);
-      if (rating) {
-        filters.push({
-          type: 'rating',
-          value: id,
-          label: rating.display_text
-        });
-      }
-    });
-
-    // Establishments
-    selectedEstablishments.forEach(id => {
-      const establishment = establishmentTypes?.find(e => e.id === id);
-      if (establishment) {
-        filters.push({
-          type: 'establishment',
-          value: id,
-          label: establishment.name
-        });
-      }
-    });
-
-    // Services
-    selectedServices.forEach(id => {
-      const service = services?.find(s => s.id === id);
-      if (service) {
-        filters.push({
-          type: 'service',
-          value: id,
-          label: service.name
-        });
-      }
-    });
-
-    // Price ranges
-    selectedPriceRanges.forEach(value => {
-      const priceRange = priceRanges?.find(p => p.value === value);
-      if (priceRange) {
-        filters.push({
-          type: 'price',
-          value: value,
-          label: priceRange.display_text
-        });
-      }
-    });
-
-    // Time ranges
-    selectedTimeRanges.forEach(id => {
-      const timeRange = timeRanges?.find(t => t.id === id);
-      if (timeRange) {
-        filters.push({
-          type: 'time',
-          value: id,
-          label: timeRange.display_text
-        });
-      }
-    });
-
-    // Diet types
-    selectedDietTypes.forEach(slug => {
-      const dietType = dietTypes?.find(d => d.slug === slug);
-      if (dietType) {
-        filters.push({
-          type: 'diet',
-          value: slug,
-          label: dietType.name
-        });
-      }
-    });
-
-    return filters;
-  };
-
   const handleBottomTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
     console.log('Bottom tab change requested to:', tab);
     
@@ -442,11 +236,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
   const handleLoginRequired = () => {
     setAccountModalOpen(true);
-  };
-
-  const handleLogoClick = () => {
-    console.log('Logo clicked, navigating to /restaurantes');
-    navigate('/restaurantes');
   };
 
   // Determine which header to show based on screen size
@@ -500,48 +289,8 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     }
   };
 
-  const TagButton = ({ 
-    children, 
-    isSelected, 
-    onClick
-  }: {
-    children: React.ReactNode;
-    isSelected: boolean;
-    onClick: () => void;
-  }) => (
-    <button
-      onClick={onClick}
-      className={cn(
-        "h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full !bg-transparent !shadow-none !backdrop-blur-none flex items-center whitespace-nowrap flex-shrink-0",
-        isSelected 
-          ? "!bg-primary text-primary-foreground hover:!bg-primary/90 border-primary" 
-          : "!bg-transparent hover:!bg-muted/50 text-muted-foreground hover:text-foreground border-border"
-      )}
-    >
-      <span className="flex items-center">{children}</span>
-    </button>
-  );
-
-  const FilterTag = ({ 
-    children, 
-    onRemove
-  }: {
-    children: React.ReactNode;
-    onRemove: () => void;
-  }) => (
-    <button
-      onClick={onRemove}
-      className="h-7 px-2.5 text-xs font-medium transition-all duration-200 border rounded-full bg-transparent text-primary border-primary hover:bg-primary/5 flex items-center whitespace-nowrap flex-shrink-0"
-    >
-      <span className="flex items-center">{children}</span>
-      <X className="ml-1 h-3 w-3 flex-shrink-0" />
-    </button>
-  );
-
   const renderContent = () => {
     if (activeBottomTab === 'dishes') {
-      const activeFiltersDisplay = getActiveFiltersDisplay();
-
       // Dynamic title for dishes
       const getDynamicTitle = () => {
         if (userLocation) {
@@ -554,7 +303,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       return (
         <>
           {/* Results Header with Dynamic Title */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-semibold mb-1">
                 {dishesLoading ? 'Cargando platos...' : getDynamicTitle()}
@@ -564,68 +313,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
               )}
             </div>
           </div>
-
-          {/* Filter Badges */}
-          <div className="flex items-center gap-4 mb-6 pt-1 pb-1">
-            <div className="relative flex-1 min-w-0">
-              <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-14 pr-4">
-                {filterOptions.map((filter) => (
-                  <TagButton
-                    key={filter.id}
-                    isSelected={activeFilters.includes(filter.id)}
-                    onClick={() => handleFilterToggle(filter.id)}
-                  >
-                    {filter.label}
-                  </TagButton>
-                ))}
-              </div>
-              {/* Botón de filtros fijo */}
-              <div className="absolute left-0 top-0 bottom-0 flex items-center z-20 bg-white pr-2">
-                <DishesFiltersModal
-                  selectedDistances={selectedDistances}
-                  onDistanceChange={setSelectedDistances}
-                  selectedPriceRanges={selectedPriceRanges}
-                  onPriceRangeChange={setSelectedPriceRanges}
-                  selectedDietTypes={selectedDietTypes}
-                  onDietTypeChange={setSelectedDietTypes}
-                  selectedSpiceLevels={selectedSpiceLevels}
-                  onSpiceLevelChange={setSelectedSpiceLevels}
-                  selectedPrepTimeRanges={selectedPrepTimeRanges}
-                  onPrepTimeRangeChange={setSelectedPrepTimeRanges}
-                />
-              </div>
-              {/* Fade gradient for overflow */}
-              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Active Filters Display */}
-          {activeFiltersDisplay.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center gap-6">
-                <div className="relative flex-1 min-w-0">
-                  <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-1 pr-4">
-                    {activeFiltersDisplay.map((filter, index) => (
-                      <FilterTag
-                        key={`${filter.type}-${filter.value}-${index}`}
-                        onRemove={() => removeFilter(filter.type, filter.value)}
-                      >
-                        {filter.label}
-                      </FilterTag>
-                    ))}
-                  </div>
-                  {/* Fade gradient for overflow */}
-                  <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
-                </div>
-                <button 
-                  onClick={clearAllFilters}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 ml-2"
-                >
-                  Limpiar filtros
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Dishes Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
@@ -677,8 +364,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       );
     }
 
-    const activeFiltersDisplay = getActiveFiltersDisplay();
-
     // Dynamic title based on location
     const getDynamicTitle = () => {
       if (userLocation) {
@@ -692,7 +377,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     return (
       <>
         {/* Results Header with Dynamic Title */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-semibold mb-1">
               {restaurantsLoading ? 'Cargando restaurantes...' : getDynamicTitle()}
@@ -702,72 +387,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             )}
           </div>
         </div>
-
-        {/* Filter Badges */}
-        <div className="flex items-center gap-4 mb-6 pt-1 pb-1">
-          <div className="relative flex-1 min-w-0">
-            <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-14 pr-4">
-              {filterOptions.map((filter) => (
-                <TagButton
-                  key={filter.id}
-                  isSelected={activeFilters.includes(filter.id)}
-                  onClick={() => handleFilterToggle(filter.id)}
-                >
-                  {filter.label}
-                </TagButton>
-              ))}
-            </div>
-            {/* Botón de filtros fijo */}
-            <div className="absolute left-0 top-0 bottom-0 flex items-center z-20 bg-white pr-2">
-              <FiltersModal
-                selectedDistances={selectedDistances}
-                onDistanceChange={setSelectedDistances}
-                selectedRatings={selectedRatings}
-                onRatingChange={setSelectedRatings}
-                selectedEstablishments={selectedEstablishments}
-                onEstablishmentChange={setSelectedEstablishments}
-                selectedServices={selectedServices}
-                onServiceChange={setSelectedServices}
-                selectedPriceRanges={selectedPriceRanges}
-                onPriceRangeChange={setSelectedPriceRanges}
-                selectedTimeRanges={selectedTimeRanges}
-                onTimeRangeChange={setSelectedTimeRanges}
-                selectedDietTypes={selectedDietTypes}
-                onDietTypeChange={setSelectedDietTypes}
-              />
-            </div>
-            {/* Fade gradient for overflow */}
-            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
-          </div>
-        </div>
-
-        {/* Active Filters Display */}
-        {activeFiltersDisplay.length > 0 && (
-          <div className="mb-4">
-            <div className="flex items-center gap-6">
-              <div className="relative flex-1 min-w-0">
-                <div className="flex items-center gap-2 overflow-x-auto overflow-y-visible scrollbar-hide pl-1 pr-4">
-                  {activeFiltersDisplay.map((filter, index) => (
-                    <FilterTag
-                      key={`${filter.type}-${filter.value}-${index}`}
-                      onRemove={() => removeFilter(filter.type, filter.value)}
-                    >
-                      {filter.label}
-                    </FilterTag>
-                  ))}
-                </div>
-                {/* Fade gradient for overflow */}
-                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
-              </div>
-              <button 
-                onClick={clearAllFilters}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 ml-2"
-              >
-                Limpiar filtros
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
@@ -939,16 +558,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           }
         }}
       />
-      
-      <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 }
