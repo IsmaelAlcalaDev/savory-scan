@@ -127,29 +127,25 @@ export default function RestaurantProfile() {
     if (window.innerWidth >= 1024) return;
 
     const handleScroll = () => {
-      if (heroRef.current && quickActionsRef.current) {
-        const heroBottom = heroRef.current.offsetTop + heroRef.current.offsetHeight;
+      if (quickActionsRef.current) {
+        const quickActionsRect = quickActionsRef.current.getBoundingClientRect();
         const scrollTop = window.scrollY;
         
-        const shouldBeFixed = scrollTop > heroBottom;
+        // Only fix when the element naturally reaches the top
+        const shouldBeFixed = quickActionsRect.top <= 0 && !isQuickActionsFixed;
+        const shouldBeUnfixed = scrollTop <= (quickActionsRef.current.offsetTop - window.innerHeight) && isQuickActionsFixed;
         
-        if (shouldBeFixed !== isQuickActionsFixed) {
-          setIsQuickActionsFixed(shouldBeFixed);
-        }
-
-        // Also check for Ver Carta button fixed state
-        const quickActionsHeight = quickActionsRef.current.offsetHeight;
-        const verCartaShouldBeFixed = scrollTop > heroBottom + quickActionsHeight + 20;
-        
-        if (verCartaShouldBeFixed !== isVerCartaFixed) {
-          setIsVerCartaFixed(verCartaShouldBeFixed);
+        if (shouldBeFixed) {
+          setIsQuickActionsFixed(true);
+        } else if (shouldBeUnfixed) {
+          setIsQuickActionsFixed(false);
         }
       }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isQuickActionsFixed, isVerCartaFixed]);
+  }, [isQuickActionsFixed]);
 
   const scrollToSection = (sectionId: string) => {
     const element = sectionsRef.current[sectionId];
