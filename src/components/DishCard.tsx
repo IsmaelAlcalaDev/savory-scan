@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, ChevronDown, Scale } from 'lucide-react';
@@ -141,8 +142,8 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                 {dish.name}
               </h3>
               {hasVariants && (
-                <div className="flex items-center">
-                  <Scale className="h-3 w-3 text-muted-foreground" title="Disponible en varios tamaños" />
+                <div className="flex items-center" title="Disponible en varios tamaños">
+                  <Scale className="h-3 w-3 text-muted-foreground" />
                 </div>
               )}
             </div>
