@@ -28,7 +28,7 @@ export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLog
         <Truck className="h-4 w-4 text-primary" />
         Delivery
       </h3>
-      <div className="flex flex-wrap items-center justify-start gap-6">
+      <div className="flex flex-wrap items-center justify-start gap-8">
         {availablePlatforms.map((platform) => {
           const url = deliveryLinks[platform.platform_key];
           
@@ -38,22 +38,22 @@ export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLog
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-shrink-0 hover:opacity-80 transition-opacity duration-200 hover:scale-105 transform"
+              className="flex-shrink-0 hover:opacity-80 transition-all duration-300 hover:scale-110 transform p-3 bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100"
               title={`Pedir en ${platform.platform_name}`}
             >
               {platform.icon ? (
                 <img 
                   src={platform.icon}
                   alt={platform.platform_name}
-                  className="h-16 w-16 object-contain rounded-lg"
+                  className="h-20 w-20 object-contain"
                   onError={(e) => {
                     console.error('Error loading logo for:', platform.platform_name);
                     e.currentTarget.style.display = 'none';
                   }}
                 />
               ) : (
-                <div className="h-16 w-16 bg-muted rounded-lg flex items-center justify-center">
-                  <Truck className="h-8 w-8 text-muted-foreground" />
+                <div className="h-20 w-20 bg-gradient-to-br from-primary/10 to-primary/20 rounded-lg flex items-center justify-center">
+                  <Truck className="h-10 w-10 text-primary" />
                 </div>
               )}
             </a>
