@@ -3,7 +3,6 @@ import React from 'react';
 import { Search, MapPin, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import LanguageSelector from './LanguageSelector';
 
 interface DesktopHeaderProps {
   appName: string;
@@ -84,9 +83,8 @@ export default function DesktopHeader({
         </div>
       </div>
 
-      {/* Right Section: Language & Menu */}
-      <div className="flex items-center gap-12 flex-shrink-0">
-        <LanguageSelector />
+      {/* Right Section: Menu */}
+      <div className="flex items-center gap-4 flex-shrink-0">
         <button 
           className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
           onClick={onMenuClick}
