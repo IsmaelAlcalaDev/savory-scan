@@ -23,7 +23,7 @@ export default function MobileHeader({
   onMenuClick
 }: MobileHeaderProps) {
   return (
-    <div className="flex items-center justify-between py-3 px-4">
+    <div className="flex items-center justify-between pt-3 pb-1 px-4">
       {/* Logo */}
       <div className="flex items-center flex-shrink-0">
         <button onClick={onLogoClick} className="flex items-center">
