@@ -72,4 +72,3 @@ export default function VariantSelector({ dish, onVariantSelect, children }: Var
     </Popover>
   );
 }
-</VariantSelector>
