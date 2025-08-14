@@ -5,8 +5,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Utensils } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
-import { type Dish } from '@/hooks/useRestaurantMenu';
-import DishModal from '@/components/DishModal';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import AllergenFilterButton from '@/components/AllergenFilterButton';
 import DietFilterButton from '@/components/DietFilterButton';
@@ -27,24 +25,11 @@ function RestaurantMenuContent() {
   const { sections, loading: sectionsLoading, error: sectionsError } = useRestaurantMenuFallback(restaurant?.id || 0);
   const { isSimulatorOpen, closeSimulator, isDinersModalOpen, closeDinersModal } = useOrderSimulator();
   
-  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
-  const [isDishModalOpen, setIsDishModalOpen] = useState(false);
-  
   // Filter states
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<number | undefined>();
-
-  const handleDishClick = (dish: Dish) => {
-    setSelectedDish(dish);
-    setIsDishModalOpen(true);
-  };
-
-  const closeDishModal = () => {
-    setIsDishModalOpen(false);
-    setSelectedDish(null);
-  };
 
   const handleGoBack = () => {
     navigate(`/restaurant/${slug}`);
@@ -240,7 +225,6 @@ function RestaurantMenuContent() {
                   <RestaurantMenuSection
                     section={section}
                     restaurantId={restaurant.id}
-                    onDishClick={handleDishClick}
                   />
                 </div>
               ))}
@@ -259,14 +243,6 @@ function RestaurantMenuContent() {
         <AddDinersModal
           isOpen={isDinersModalOpen}
           onClose={closeDinersModal}
-        />
-
-        {/* Dish Modal */}
-        <DishModal
-          dish={selectedDish}
-          restaurantId={restaurant.id}
-          isOpen={isDishModalOpen}
-          onClose={closeDishModal}
         />
       </div>
     </>

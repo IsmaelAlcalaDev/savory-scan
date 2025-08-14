@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Utensils } from 'lucide-react';
@@ -10,13 +9,11 @@ import { useRestaurantDishes } from '@/hooks/useRestaurantDishes';
 interface RestaurantDishesGridProps {
   restaurantId: number;
   viewMode?: 'grid' | 'list';
-  onDishClick?: (dish: Dish) => void;
 }
 
 export default function RestaurantDishesGrid({ 
   restaurantId, 
-  viewMode = 'grid',
-  onDishClick 
+  viewMode = 'grid'
 }: RestaurantDishesGridProps) {
   console.log('RestaurantDishesGrid: Rendering with restaurantId:', restaurantId, 'viewMode:', viewMode);
   
@@ -105,7 +102,6 @@ export default function RestaurantDishesGrid({
               key={dish.id}
               dish={dish}
               restaurantId={restaurantId}
-              onDishClick={onDishClick}
             />
           );
         })}
@@ -122,7 +118,6 @@ export default function RestaurantDishesGrid({
             key={dish.id}
             dish={dish}
             restaurantId={restaurantId}
-            onDishClick={onDishClick}
           />
         );
       })}

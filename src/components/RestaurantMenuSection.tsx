@@ -1,15 +1,13 @@
 
 import { type MenuSection } from '@/hooks/useRestaurantMenu';
 import DishCard from './DishCard';
-import type { Dish } from '@/hooks/useRestaurantMenu';
 
 interface RestaurantMenuSectionProps {
   section: MenuSection;
   restaurantId: number;
-  onDishClick: (dish: Dish) => void;
 }
 
-export default function RestaurantMenuSection({ section, restaurantId, onDishClick }: RestaurantMenuSectionProps) {
+export default function RestaurantMenuSection({ section, restaurantId }: RestaurantMenuSectionProps) {
   if (!section.dishes || section.dishes.length === 0) {
     return null;
   }
@@ -29,7 +27,6 @@ export default function RestaurantMenuSection({ section, restaurantId, onDishCli
             key={dish.id}
             dish={dish}
             restaurantId={restaurantId}
-            onDishClick={onDishClick}
           />
         ))}
       </div>
