@@ -32,7 +32,11 @@ export default function FoodieSpotLayout({
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
-  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Separate search states for each tab
+  const [searchQueryRestaurants, setSearchQueryRestaurants] = useState('');
+  const [searchQueryDishes, setSearchQueryDishes] = useState('');
+  
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
@@ -64,11 +68,14 @@ export default function FoodieSpotLayout({
   };
   const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>(getActiveTabFromRoute());
 
-  // Update active tab when route changes
+  // Update active tab when route changes and scroll to top
   useEffect(() => {
     const newTab = getActiveTabFromRoute();
     console.log('Route changed, updating active tab to:', newTab, 'from path:', location.pathname);
     setActiveBottomTab(newTab);
+    
+    // Scroll to top when switching tabs
+    window.scrollTo(0, 0);
   }, [location.pathname]);
 
   // Cargar configuración de branding desde la BD
@@ -208,24 +215,40 @@ export default function FoodieSpotLayout({
         break;
     }
   };
+
+  // Get current search query based on active tab
+  const getCurrentSearchQuery = () => {
+    return activeBottomTab === 'dishes' ? searchQueryDishes : searchQueryRestaurants;
+  };
+
+  // Set search query for current tab
+  const setCurrentSearchQuery = (query: string) => {
+    if (activeBottomTab === 'dishes') {
+      setSearchQueryDishes(query);
+    } else {
+      setSearchQueryRestaurants(query);
+    }
+  };
+
   const {
     restaurants,
     loading: restaurantsLoading,
     error: restaurantsError
   } = useRestaurants({
-    searchQuery: activeBottomTab === 'restaurants' ? searchQuery : '',
+    searchQuery: searchQueryRestaurants,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
     maxDistance: 50,
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     minRating: 0
   });
+  
   const {
     dishes,
     loading: dishesLoading,
     error: dishesError
   } = useDishes({
-    searchQuery: activeBottomTab === 'dishes' ? searchQuery : '',
+    searchQuery: searchQueryDishes,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
     maxDistance: 50,
@@ -233,6 +256,7 @@ export default function FoodieSpotLayout({
     spiceLevels: [],
     prepTimeRanges: []
   });
+
   console.log('FoodieSpotLayout: Hook results:', {
     restaurants: restaurants.length,
     restaurantsLoading,
@@ -240,8 +264,11 @@ export default function FoodieSpotLayout({
     dishes: dishes.length,
     dishesLoading,
     dishesError,
-    activeBottomTab
+    activeBottomTab,
+    searchQueryRestaurants,
+    searchQueryDishes
   });
+
   const handleLocationSelect = (location: {
     type: string;
     data?: any;
@@ -278,6 +305,7 @@ export default function FoodieSpotLayout({
     }
     console.log('Updated location name:', currentLocationName);
   };
+
   const handleBottomTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
     console.log('Bottom tab change requested to:', tab);
     if (tab === 'account') {
@@ -294,6 +322,7 @@ export default function FoodieSpotLayout({
       });
     }
   };
+  
   const handleLoginRequired = () => {
     setAccountModalOpen(true);
   };
@@ -309,12 +338,13 @@ export default function FoodieSpotLayout({
       return <MobileHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} />;
     } else if (window.innerWidth < 1024) {
       // Tablet
-      return <TabletHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} searchQuery={searchQuery} searchPlaceholder={getSearchPlaceholder()} isSearchFocused={isSearchFocused} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} onSearchChange={setSearchQuery} onSearchFocus={() => setIsSearchFocused(true)} onSearchBlur={() => setIsSearchFocused(false)} />;
+      return <TabletHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} searchQuery={getCurrentSearchQuery()} searchPlaceholder={getSearchPlaceholder()} isSearchFocused={isSearchFocused} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} onSearchChange={setCurrentSearchQuery} onSearchFocus={() => setIsSearchFocused(true)} onSearchBlur={() => setIsSearchFocused(false)} />;
     } else {
       // Desktop
-      return <DesktopHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} searchQuery={searchQuery} searchPlaceholder={getSearchPlaceholder()} isSearchFocused={isSearchFocused} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} onSearchChange={setSearchQuery} onSearchFocus={() => setIsSearchFocused(true)} onSearchBlur={() => setIsSearchFocused(false)} />;
+      return <DesktopHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} searchQuery={getCurrentSearchQuery()} searchPlaceholder={getSearchPlaceholder()} isSearchFocused={isSearchFocused} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} onSearchChange={setCurrentSearchQuery} onSearchFocus={() => setIsSearchFocused(true)} onSearchBlur={() => setIsSearchFocused(false)} />;
     }
   };
+
   const renderContent = () => {
     if (activeBottomTab === 'dishes') {
       return <>
@@ -417,6 +447,7 @@ export default function FoodieSpotLayout({
         </div>
       </>;
   };
+
   return <div className="min-h-screen bg-white pb-20 px-2 md:px-4 lg:px-[7.5%]">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white -mx-2 md:-mx-4 lg:-mx-[7.5%] px-2 md:px-4 lg:px-[7.5%]">
@@ -433,7 +464,7 @@ export default function FoodieSpotLayout({
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{
             color: '#4B4B4B'
           }} />
-              <input type="text" placeholder={getSearchPlaceholder()} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 placeholder:text-[#4B4B4B]" style={{
+              <input type="text" placeholder={getSearchPlaceholder()} value={getCurrentSearchQuery()} onChange={e => setCurrentSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 placeholder:text-[#4B4B4B]" style={{
             backgroundColor: '#F3F3F3',
             color: '#4B4B4B'
           }} />
