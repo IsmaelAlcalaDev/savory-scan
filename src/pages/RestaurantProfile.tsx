@@ -357,8 +357,8 @@ export default function RestaurantProfile() {
             <ArrowLeft className="h-4 w-4 text-gray-700" />
           </Button>
           
-          {/* Desktop: Buttons top right */}
-          <div className="absolute top-6 right-6 flex gap-3 md:flex hidden">
+          {/* Desktop: Buttons bottom right */}
+          <div className="absolute bottom-6 right-6 flex gap-3 md:flex hidden">
             <FavoriteButton
               restaurantId={restaurant.id}
               favoritesCount={restaurant.favorites_count}
