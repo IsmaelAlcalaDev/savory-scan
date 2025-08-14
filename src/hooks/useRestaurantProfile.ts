@@ -112,6 +112,8 @@ export const useRestaurantProfile = (slug: string) => {
         }
 
         console.log('Restaurant data fetched:', restaurantData);
+        console.log('Social links raw data:', restaurantData.social_links);
+        console.log('Delivery links raw data:', restaurantData.delivery_links);
 
         // Get schedules
         const { data: schedules, error: schedulesError } = await supabase
@@ -194,6 +196,8 @@ export const useRestaurantProfile = (slug: string) => {
           promotions: promotions || []
         };
 
+        console.log('Final formatted data - Social links:', formattedData.social_links);
+        console.log('Final formatted data - Delivery links:', formattedData.delivery_links);
         console.log('Formatted restaurant data:', formattedData);
         setRestaurant(formattedData);
       } catch (err) {

@@ -49,7 +49,23 @@ const getSocialColor = (platform: string) => {
 };
 
 export default function SocialLinksSection({ socialLinks }: SocialLinksSectionProps) {
-  if (!socialLinks || Object.keys(socialLinks).length === 0) {
+  console.log('SocialLinksSection received socialLinks:', socialLinks);
+  console.log('SocialLinks type:', typeof socialLinks);
+  console.log('SocialLinks keys:', socialLinks ? Object.keys(socialLinks) : 'No socialLinks');
+
+  if (!socialLinks || typeof socialLinks !== 'object' || Object.keys(socialLinks).length === 0) {
+    console.log('No social links to display');
+    return null;
+  }
+
+  const validSocialLinks = Object.entries(socialLinks).filter(([platform, url]) => {
+    return url && typeof url === 'string' && url.trim().length > 0;
+  });
+
+  console.log('Valid social links:', validSocialLinks);
+
+  if (validSocialLinks.length === 0) {
+    console.log('No valid social links found');
     return null;
   }
 
@@ -57,7 +73,7 @@ export default function SocialLinksSection({ socialLinks }: SocialLinksSectionPr
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Redes Sociales</h3>
       <div className="space-y-3">
-        {Object.entries(socialLinks).map(([platform, url]) => {
+        {validSocialLinks.map(([platform, url]) => {
           const Icon = getSocialIcon(platform);
           const colorClass = getSocialColor(platform);
           
