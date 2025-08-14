@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Leaf, Wheat, Milk, Heart, Flame, Clock, Plus } from 'lucide-react';
-import DishFavoriteButton from './DishFavoriteButton';
+import FavoriteButton from './FavoriteButton';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 
 interface DishCardProps {
@@ -57,14 +57,12 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
     <Card className="bg-gradient-card border-glass shadow-card hover:shadow-lg transition-shadow group cursor-pointer" onClick={() => onDishClick?.(dish)}>
       <div className="relative">
         {dish.image_url ? (
-          <div className="aspect-[4/3] overflow-hidden rounded-t-lg relative">
+          <div className="aspect-[4/3] overflow-hidden rounded-t-lg">
             <img
               src={dish.image_url}
               alt={dish.image_alt || dish.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            {/* Dark overlay for better button visibility */}
-            <div className="absolute inset-0 bg-black/20 rounded-t-lg" />
           </div>
         ) : (
           <div className="aspect-[4/3] bg-muted rounded-t-lg flex items-center justify-center">
@@ -73,19 +71,19 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
         )}
         
         {dish.is_featured && (
-          <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground z-10">
+          <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
             Destacado
           </Badge>
         )}
 
-        <div className="absolute top-2 right-2 z-20">
-          <DishFavoriteButton
-            dishId={dish.id}
+        <div className="absolute top-2 right-2">
+          <FavoriteButton
+            restaurantId={restaurantId}
             favoritesCount={dish.favorites_count}
             savedFrom="dish_card"
-            size="md"
-            className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
-            onLoginRequired={() => console.log('Login required for dish favorites')}
+            size="sm"
+            className="bg-white/90 backdrop-blur-sm"
+            onLoginRequired={() => {}}
           />
         </div>
       </div>
