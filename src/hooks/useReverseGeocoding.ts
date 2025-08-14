@@ -6,6 +6,7 @@ interface GeocodeResult {
   city?: string;
   district?: string;
   country?: string;
+  localArea: string; // Nueva propiedad para la ubicación específica
 }
 
 export const useReverseGeocoding = () => {
@@ -32,11 +33,23 @@ export const useReverseGeocoding = () => {
         const district = data.address?.suburb || data.address?.neighbourhood;
         const country = data.address?.country;
 
+        // Crear ubicación local específica (más granular)
+        const localArea = 
+          data.address?.neighbourhood || 
+          data.address?.suburb || 
+          data.address?.hamlet ||
+          data.address?.village ||
+          data.address?.town ||
+          data.address?.municipality ||
+          city ||
+          'Ubicación detectada';
+
         return {
           address,
           city,
           district,
-          country
+          country,
+          localArea
         };
       }
       

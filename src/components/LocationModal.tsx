@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Search, MapPin, Navigation, Clock } from 'lucide-react';
 import {
@@ -15,6 +14,7 @@ import { useLocationHistory } from '@/hooks/useLocationHistory';
 import { useNearestLocation } from '@/hooks/useNearestLocation';
 import { Skeleton } from '@/components/ui/skeleton';
 import LocationInfo from './LocationInfo';
+import { useReverseGeocoding } from '@/hooks/useReverseGeocoding';
 
 interface LocationModalProps {
   open: boolean;
@@ -30,6 +30,7 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
   const { suggestions, loading: loadingSuggestions } = useLocationSuggestions(searchQuery);
   const { history, addToHistory, clearHistory } = useLocationHistory();
   const { findNearestLocation } = useNearestLocation();
+  const { reverseGeocode } = useReverseGeocoding();
 
   const handleGPSLocation = async () => {
     setIsLoadingGPS(true);
@@ -57,38 +58,35 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
       const { latitude, longitude } = position.coords;
       console.log('GPS coordinates obtained:', { latitude, longitude });
       
+      // Obtener información de geocodificación inversa
+      const geocodeResult = await reverseGeocode(latitude, longitude);
+      
       // Encontrar la ubicación más cercana en la base de datos
       const nearestLocation = await findNearestLocation(latitude, longitude);
       
+      let displayName = 'Ubicación detectada';
+      
       if (nearestLocation) {
-        const locationText = nearestLocation.parent 
-          ? `${nearestLocation.name}, ${nearestLocation.parent}`
-          : nearestLocation.name;
-        
-        setDetectedLocation(locationText);
-        
-        onLocationSelect({
-          type: 'gps',
-          data: {
-            latitude,
-            longitude,
-            name: nearestLocation.name,
-            type: nearestLocation.type,
-            parent: nearestLocation.parent,
-            address: locationText
-          }
-        });
-      } else {
-        setDetectedLocation('Ubicación detectada');
-        onLocationSelect({
-          type: 'gps',
-          data: {
-            latitude,
-            longitude,
-            address: 'Ubicación detectada'
-          }
-        });
+        // Usar solo el nombre del lugar más específico
+        displayName = nearestLocation.name;
+      } else if (geocodeResult) {
+        // Usar la ubicación local específica del geocoding
+        displayName = geocodeResult.localArea;
       }
+      
+      setDetectedLocation(displayName);
+      
+      onLocationSelect({
+        type: 'gps',
+        data: {
+          latitude,
+          longitude,
+          name: nearestLocation?.name || displayName,
+          type: nearestLocation?.type,
+          parent: nearestLocation?.parent,
+          address: displayName
+        }
+      });
       
       onOpenChange(false);
     } catch (error: any) {
@@ -126,7 +124,8 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
         latitude: suggestion.latitude,
         longitude: suggestion.longitude,
         type: suggestion.type,
-        parent: suggestion.parent
+        parent: suggestion.parent,
+        address: suggestion.name // Usar solo el nombre específico
       }
     });
     onOpenChange(false);
@@ -140,7 +139,8 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
         latitude: item.latitude,
         longitude: item.longitude,
         type: item.type,
-        parent: item.parent
+        parent: item.parent,
+        address: item.name // Usar solo el nombre específico
       }
     });
     onOpenChange(false);
