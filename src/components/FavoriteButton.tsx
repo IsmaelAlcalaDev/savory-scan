@@ -1,136 +1,93 @@
 
-import { useState } from 'react';
-import { Heart, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React from 'react';
+import { Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import { useMobileAuth } from '@/hooks/useMobileAuth';
+import { useAuthModal } from '@/hooks/useAuthModal';
+import MobileAuthDrawer from './MobileAuthDrawer';
+import AuthModal from './AuthModal';
 
 interface FavoriteButtonProps {
-  restaurantId: number;
-  favoritesCount: number;
-  savedFrom?: string;
-  size?: 'sm' | 'md' | 'lg';
+  restaurantId: string;
   className?: string;
-  onLoginRequired?: () => void;
-  showCount?: boolean;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-export default function FavoriteButton({
-  restaurantId,
-  favoritesCount,
-  savedFrom = 'button',
-  size = 'md',
-  className,
-  onLoginRequired,
-  showCount = false,
+export default function FavoriteButton({ 
+  restaurantId, 
+  className = '',
+  size = 'md'
 }: FavoriteButtonProps) {
-  const { isFavorite, isToggling, toggleFavorite } = useFavorites();
-  const [isAnimating, setIsAnimating] = useState(false);
+  const { favorites, addFavorite, removeFavorite } = useFavorites();
+  const { requireAuth, isAuthDrawerOpen, closeAuthDrawer, authContext } = useMobileAuth();
+  const { isOpen: isAuthModalOpen, openModal: openAuthModal, closeModal: closeAuthModal } = useAuthModal();
+  
+  const isFavorite = favorites.includes(restaurantId);
 
-  const handleLoginRequired = () => {
-    if (onLoginRequired) onLoginRequired();
-  };
+  const handleFavoriteToggle = () => {
+    const action = () => {
+      if (isFavorite) {
+        removeFavorite(restaurantId);
+      } else {
+        addFavorite(restaurantId);
+      }
+    };
 
-  const handleToggle = async (e?: React.MouseEvent<HTMLButtonElement>) => {
-    // Evitar navegación/click del contenedor (cards, links, etc.)
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    requireAuth(action, {
+      title: "Guarda tus favoritos",
+      description: "Inicia sesión para guardar este restaurante en tus favoritos y acceder a ellos desde cualquier dispositivo"
+    });
 
-    if (isToggling(restaurantId)) return;
-
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 300);
-
-    // Call toggle; do not touch local counts here
-    await toggleFavorite(restaurantId, savedFrom, handleLoginRequired);
-  };
-
-  const liked = isFavorite(restaurantId);
-  const loading = isToggling(restaurantId);
-
-  const getIconSize = () => {
-    switch (size) {
-      case 'sm': return 'h-4 w-4';
-      case 'lg': return 'h-6 w-6';
-      default: return 'h-5 w-5';
+    // Para desktop, abrir modal si no está autenticado
+    if (!requireAuth.isAuthenticated && !requireAuth.isMobile) {
+      openAuthModal();
     }
   };
 
-  const getButtonSize = () => {
-    switch (size) {
-      case 'sm': return 'w-8 h-8';
-      case 'lg': return 'w-12 h-12';
-      default: return 'w-10 h-10';
-    }
+  const sizeClasses = {
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+    lg: 'h-12 w-12'
   };
 
-  if (showCount) {
-    // Original version with counter
-    return (
-      <button
-        type="button"
-        onClick={handleToggle}
-        disabled={loading}
-        className={cn(
-          "inline-flex items-center gap-1 rounded-full border px-2 py-1 transition-colors",
-          "bg-background hover:bg-accent text-foreground",
-          loading && "opacity-70 cursor-not-allowed",
-          isAnimating && "scale-95",
-          className
-        )}
-        aria-pressed={liked}
-        aria-label={liked ? "Quitar de favoritos" : "Añadir a favoritos"}
-      >
-        {loading ? (
-          <Loader2 className={cn("animate-spin", getIconSize())} />
-        ) : (
-          <Heart
-            className={cn(
-              liked ? "fill-red-500 stroke-red-500" : "stroke-current",
-              getIconSize()
-            )}
-          />
-        )}
-        <span
-          className={cn(
-            "font-medium text-gray-700",
-            size === 'sm' ? "text-xs" : size === 'lg' ? "text-sm" : "text-xs"
-          )}
-        >
-          {Math.max(0, favoritesCount)}
-        </span>
-      </button>
-    );
-  }
+  const iconSizes = {
+    sm: 'h-4 w-4',
+    md: 'h-5 w-5', 
+    lg: 'h-6 w-6'
+  };
 
-  // Circular version without counter
   return (
-    <button
-      type="button"
-      onClick={handleToggle}
-      disabled={loading}
-      className={cn(
-        "rounded-full border bg-background hover:bg-accent text-foreground transition-colors",
-        "flex items-center justify-center",
-        loading && "opacity-70 cursor-not-allowed",
-        isAnimating && "scale-95",
-        getButtonSize(),
-        className
-      )}
-      aria-pressed={liked}
-      aria-label={liked ? "Quitar de favoritos" : "Añadir a favoritos"}
-    >
-      {loading ? (
-        <Loader2 className={cn("animate-spin", getIconSize())} />
-      ) : (
-        <Heart
-          className={cn(
-            liked ? "fill-red-500 stroke-red-500" : "stroke-current",
-            getIconSize()
-          )}
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleFavoriteToggle}
+        className={`${sizeClasses[size]} rounded-full bg-white/90 hover:bg-white shadow-lg transition-all duration-200 ${className}`}
+        aria-label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+      >
+        <Heart 
+          className={`${iconSizes[size]} transition-colors duration-200 ${
+            isFavorite 
+              ? 'fill-red-500 text-red-500' 
+              : 'text-gray-400 hover:text-red-500'
+          }`}
         />
-      )}
-    </button>
+      </Button>
+
+      {/* Mobile Auth Drawer */}
+      <MobileAuthDrawer
+        isOpen={isAuthDrawerOpen}
+        onClose={closeAuthDrawer}
+        title={authContext.title}
+        description={authContext.description}
+      />
+
+      {/* Desktop Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+      />
+    </>
   );
 }
