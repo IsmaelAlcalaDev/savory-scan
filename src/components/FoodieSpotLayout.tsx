@@ -9,7 +9,7 @@ import RestaurantCard from './RestaurantCard';
 import AllDishCard from './AllDishCard';
 import LocationModal from './LocationModal';
 import BottomNavigation from './BottomNavigation';
-import AccountModal from './AccountModal';
+import AuthModal from './AuthModal';
 import MenuModal from './MenuModal';
 import MobileHeader from './MobileHeader';
 import TabletHeader from './TabletHeader';
@@ -51,7 +51,7 @@ export default function FoodieSpotLayout({
   const [selectedTimeRanges, setSelectedTimeRanges] = useState<number[]>([]);
   const [isOpenNow, setIsOpenNow] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
-  const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -310,7 +310,7 @@ export default function FoodieSpotLayout({
   const handleBottomTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
     console.log('Bottom tab change requested to:', tab);
     if (tab === 'account') {
-      setAccountModalOpen(true);
+      setAuthModalOpen(true);
       return;
     }
     if (tab === 'dishes') {
@@ -325,7 +325,7 @@ export default function FoodieSpotLayout({
   };
   
   const handleLoginRequired = () => {
-    setAccountModalOpen(true);
+    setAuthModalOpen(true);
   };
 
   // Get dynamic placeholder based on active tab
@@ -507,7 +507,7 @@ export default function FoodieSpotLayout({
       <BottomNavigation activeTab={activeBottomTab} onTabChange={handleBottomTabChange} />
 
       {/* Modals */}
-      <AccountModal open={accountModalOpen} onOpenChange={setAccountModalOpen} />
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
 
       <MenuModal open={menuModalOpen} onOpenChange={setMenuModalOpen} />
 
