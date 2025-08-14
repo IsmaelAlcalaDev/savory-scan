@@ -19,7 +19,7 @@ export default function RestaurantMenuSection({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="text-left">
         <h2 className="text-xl font-bold text-foreground mb-1">{section.name}</h2>
         {section.description && (
