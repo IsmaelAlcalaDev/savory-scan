@@ -454,7 +454,7 @@ export default function FoodieSpotLayout({
           {renderHeader()}
         </div>
 
-        {/* Desktop content wrapper with larger margins */}
+        {/* Content wrapper with larger desktop margins */}
         <div className="px-4 md:px-6 lg:px-24 xl:px-32 2xl:px-48">
           {/* Tipos de Cocina / Tipos de Comida */}
           <div className="pb-1 pt-0">
@@ -484,58 +484,13 @@ export default function FoodieSpotLayout({
       </div>
 
       {/* Bottom Navigation - Full width */}
-      <BottomNavigation activeTab={activeBottomTab} onTabChange={tab => {
-      if (tab === 'account') {
-        setAccountModalOpen(true);
-        return;
-      }
-      if (tab === 'dishes') {
-        navigate('/platos', {
-          replace: true
-        });
-      } else if (tab === 'restaurants') {
-        navigate('/restaurantes', {
-          replace: true
-        });
-      }
-    }} />
+      <BottomNavigation activeTab={activeBottomTab} onTabChange={handleBottomTabChange} />
 
       {/* Modals */}
       <AccountModal open={accountModalOpen} onOpenChange={setAccountModalOpen} />
 
       <MenuModal open={menuModalOpen} onOpenChange={setMenuModalOpen} />
 
-      <LocationModal open={locationModalOpen} onOpenChange={setLocationModalOpen} onLocationSelect={location => {
-      console.log('FoodieSpotLayout: Manual location selected:', location);
-      if (location.type === 'gps') {
-        setUserLocation({
-          lat: location.data.latitude,
-          lng: location.data.longitude
-        });
-        if (location.data.name && location.data.parent) {
-          const locationDisplay = `${location.data.name}, ${location.data.parent.split(',')[0]}`;
-          setCurrentLocationName(locationDisplay);
-        } else if (location.data.address) {
-          setCurrentLocationName(location.data.address);
-        } else {
-          setCurrentLocationName('Ubicación detectada');
-        }
-      } else if (location.type === 'city') {
-        setUserLocation({
-          lat: location.data.latitude,
-          lng: location.data.longitude
-        });
-        setCurrentLocationName(location.data.name);
-      } else if (location.type === 'suggestion') {
-        setUserLocation({
-          lat: location.data.latitude,
-          lng: location.data.longitude
-        });
-        const locationDisplay = location.data.parent ? `${location.data.name}, ${location.data.parent.split(',')[0]}` : location.data.name;
-        setCurrentLocationName(locationDisplay);
-      } else if (location.type === 'manual') {
-        setCurrentLocationName(location.data.query);
-      }
-    }} />
+      <LocationModal open={locationModalOpen} onOpenChange={setLocationModalOpen} onLocationSelect={handleLocationSelect} />
     </div>;
 }
