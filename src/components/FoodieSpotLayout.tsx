@@ -298,21 +298,13 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
   const renderContent = () => {
     if (activeBottomTab === 'dishes') {
-      // Dynamic title for dishes
-      const getDynamicTitle = () => {
-        if (userLocation) {
-          return `${dishes.length} platos cerca de ti`;
-        }
-        return `${dishes.length} platos`;
-      };
-
       return (
         <>
-          {/* Results Header with Dynamic Title */}
+          {/* Results Header with simplified title */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-lg font-semibold mb-1">
-                {dishesLoading ? 'Cargando platos...' : getDynamicTitle()}
+              <h2 className="text-sm font-medium mb-1 text-muted-foreground">
+                {dishesLoading ? 'Cargando...' : `${dishes.length} resultados`}
               </h2>
               {dishesError && (
                 <p className="text-sm text-destructive mt-1">Error: {dishesError}</p>
@@ -329,23 +321,14 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       );
     }
 
-    // Dynamic title based on location
-    const getDynamicTitle = () => {
-      if (userLocation) {
-        return `${restaurants.length} restaurantes cerca de ti`;
-      }
-      
-      return `${restaurants.length} restaurantes`;
-    };
-
     // Default restaurants content (siempre mostrar cuando no sea 'dishes')
     return (
       <>
-        {/* Results Header with Dynamic Title */}
+        {/* Results Header with simplified title */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-semibold mb-1">
-              {restaurantsLoading ? 'Cargando restaurantes...' : getDynamicTitle()}
+            <h2 className="text-sm font-medium mb-1 text-muted-foreground">
+              {restaurantsLoading ? 'Cargando...' : `${restaurants.length} resultados`}
             </h2>
             {restaurantsError && (
               <p className="text-sm text-destructive mt-1">Error: {restaurantsError}</p>
