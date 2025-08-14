@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -23,18 +24,18 @@ interface DishCardProps {
   onDishClick?: (dish: Dish) => void;
 }
 
-// Mapping of common allergen slugs to icons
-const allergenIconMap: Record<string, { icon: typeof Leaf; label: string }> = {
-  'gluten': { icon: Wheat, label: 'Gluten' },
-  'dairy': { icon: Milk, label: 'Lácteos' },
-  'lactose': { icon: Milk, label: 'Lactosa' },
-  'fish': { icon: Fish, label: 'Pescado' },
-  'shellfish': { icon: Shell, label: 'Mariscos' },
-  'eggs': { icon: Egg, label: 'Huevos' },
-  'nuts': { icon: TreePine, label: 'Frutos secos' },
-  'peanuts': { icon: Cherry, label: 'Cacahuetes' },
-  'soy': { icon: Leaf, label: 'Soja' },
-  'sesame': { icon: Cherry, label: 'Sésamo' }
+// Mapping of common allergen slugs to colors
+const allergenColorMap: Record<string, { color: string; label: string }> = {
+  'gluten': { color: 'bg-amber-500', label: 'Gluten' },
+  'dairy': { color: 'bg-blue-500', label: 'Lácteos' },
+  'lactose': { color: 'bg-blue-400', label: 'Lactosa' },
+  'fish': { color: 'bg-cyan-500', label: 'Pescado' },
+  'shellfish': { color: 'bg-teal-500', label: 'Mariscos' },
+  'eggs': { color: 'bg-yellow-500', label: 'Huevos' },
+  'nuts': { color: 'bg-orange-600', label: 'Frutos secos' },
+  'peanuts': { color: 'bg-orange-500', label: 'Cacahuetes' },
+  'soy': { color: 'bg-green-600', label: 'Soja' },
+  'sesame': { color: 'bg-amber-600', label: 'Sésamo' }
 };
 
 export default function DishCard({ dish, restaurantId, onDishClick }: DishCardProps) {
@@ -78,17 +79,17 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
     return formatPrice(dish.base_price);
   };
 
-  // Get allergen icons (limit to 4-5 most important ones)
-  const getAllergenIcons = () => {
+  // Get allergen circles (limit to 6 most important ones)
+  const getAllergenCircles = () => {
     if (!dish.allergens || !Array.isArray(dish.allergens)) return [];
     
     return dish.allergens
-      .slice(0, 5)
+      .slice(0, 6)
       .map((allergen: string) => {
-        const allergenInfo = allergenIconMap[allergen.toLowerCase()];
+        const allergenInfo = allergenColorMap[allergen.toLowerCase()];
         if (allergenInfo) {
           return {
-            icon: allergenInfo.icon,
+            color: allergenInfo.color,
             label: allergenInfo.label,
             slug: allergen
           };
@@ -148,15 +149,14 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                 </div>
               ))}
 
-              {/* Allergen icons */}
-              {getAllergenIcons().slice(0, 3).map((allergen, index) => {
-                const Icon = allergen!.icon;
-                return (
-                  <div key={index} title={`Contiene: ${allergen!.label}`}>
-                    <Icon className="h-4 w-4 text-orange-500" />
-                  </div>
-                );
-              })}
+              {/* Allergen circles */}
+              {getAllergenCircles().map((allergen, index) => (
+                <div 
+                  key={index} 
+                  title={`Contiene: ${allergen!.label}`}
+                  className={`w-3 h-3 rounded-full ${allergen!.color} flex-shrink-0`}
+                />
+              ))}
 
               {/* Spice level */}
               {dish.spice_level > 0 && (
