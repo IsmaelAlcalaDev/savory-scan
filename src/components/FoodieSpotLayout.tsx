@@ -346,14 +346,14 @@ export default function FoodieSpotLayout({
   };
 
   const renderContent = () => {
-    const hasActiveFilters = selectedCuisines.length > 0 || 
+    const hasActiveFilters: boolean = selectedCuisines.length > 0 || 
     selectedFoodTypes.length > 0 || 
     selectedDistance.length > 0 || 
     selectedPriceRanges.length > 0 || 
-    selectedRating || 
+    !!selectedRating || 
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
-    selectedSort ||
+    !!selectedSort ||
     selectedTimeRanges.length > 0 ||
     isOpenNow;
 
