@@ -482,9 +482,9 @@ export default function RestaurantProfile() {
         {/* Mobile: Restaurant information below combined block */}
         {isMobile && (
           <div className={`bg-background ${
-            isQuickActionsFixed ? 'mt-36' : ''
+            isQuickActionsFixed ? 'mt-32' : ''
           }`}>
-            <div className="max-w-6xl mx-auto px-4 py-6">
+            <div className="max-w-6xl mx-auto px-4 py-4">
               {/* Row 1: Logo and Name */}
               <div className="flex items-center gap-3 mb-3">
                 {restaurant.logo_url && (
