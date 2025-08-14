@@ -36,6 +36,15 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
+  
+  // Nuevos estados para filtros
+  const [selectedDistance, setSelectedDistance] = useState<number[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
+  const [selectedRating, setSelectedRating] = useState<number | undefined>();
+  const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
+  const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
+  const [isOpenNow, setIsOpenNow] = useState(false);
+  
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -155,13 +164,43 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     }
   }, []);
 
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'sort' | 'quick', id?: number) => {
-    if (type === 'cuisine') {
-      setSelectedCuisines([]);
-    } else if (type === 'foodType') {
-      setSelectedFoodTypes([]);
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'all', id?: number) => {
+    switch (type) {
+      case 'cuisine':
+        setSelectedCuisines([]);
+        break;
+      case 'foodType':
+        setSelectedFoodTypes([]);
+        break;
+      case 'distance':
+        setSelectedDistance([]);
+        break;
+      case 'price':
+        setSelectedPriceRanges([]);
+        break;
+      case 'rating':
+        setSelectedRating(undefined);
+        break;
+      case 'establishment':
+        setSelectedEstablishmentTypes([]);
+        break;
+      case 'diet':
+        setSelectedDietTypes([]);
+        break;
+      case 'openNow':
+        setIsOpenNow(!isOpenNow);
+        break;
+      case 'all':
+        setSelectedCuisines([]);
+        setSelectedFoodTypes([]);
+        setSelectedDistance([]);
+        setSelectedPriceRanges([]);
+        setSelectedRating(undefined);
+        setSelectedEstablishmentTypes([]);
+        setSelectedDietTypes([]);
+        setIsOpenNow(false);
+        break;
     }
-    // TODO: Implementar lógica para sort y quick filters cuando se agreguen
   };
 
   const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useRestaurants({
@@ -315,6 +354,12 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             activeTab="dishes"
             selectedCuisines={selectedCuisines}
             selectedFoodTypes={selectedFoodTypes}
+            selectedDistance={selectedDistance}
+            selectedPriceRanges={selectedPriceRanges}
+            selectedRating={selectedRating}
+            selectedEstablishmentTypes={selectedEstablishmentTypes}
+            selectedDietTypes={selectedDietTypes}
+            isOpenNow={isOpenNow}
             onClearFilter={handleClearFilter}
           />
 
@@ -347,6 +392,12 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           activeTab="restaurants"
           selectedCuisines={selectedCuisines}
           selectedFoodTypes={selectedFoodTypes}
+          selectedDistance={selectedDistance}
+          selectedPriceRanges={selectedPriceRanges}
+          selectedRating={selectedRating}
+          selectedEstablishmentTypes={selectedEstablishmentTypes}
+          selectedDietTypes={selectedDietTypes}
+          isOpenNow={isOpenNow}
           onClearFilter={handleClearFilter}
         />
 
