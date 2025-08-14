@@ -51,9 +51,8 @@ export default function TimeRangeFilter({
         />
         <label 
           htmlFor="open-now"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
         >
-          <span>🟢</span>
           Abierto ahora
         </label>
       </div>
