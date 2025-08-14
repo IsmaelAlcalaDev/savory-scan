@@ -1,3 +1,4 @@
+
 import React from 'react';
 import FavoriteButton from '@/components/FavoriteButton';
 import { cn } from '@/lib/utils';
@@ -60,6 +61,7 @@ export default function FavoriteRestaurantItem({
           {/* Corazón fuera de la imagen */}
           <FavoriteButton
             restaurantId={id}
+            favoritesCount={favoritesCount}
             savedFrom="favorites_page"
             size="sm"
           />

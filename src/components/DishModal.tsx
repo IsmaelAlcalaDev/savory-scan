@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -155,6 +156,7 @@ export default function DishModal({ dish, restaurantId, isOpen, onClose }: DishM
           <div className="flex items-center justify-between pt-4 border-t">
             <FavoriteButton
               restaurantId={restaurantId}
+              favoritesCount={dish.favorites_count}
               savedFrom="dish_modal"
               size="md"
             />

@@ -1,3 +1,4 @@
+
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -98,6 +99,7 @@ export default function RestaurantCard({
           <div className="absolute bottom-2 right-2">
             <FavoriteButton
               restaurantId={id}
+              favoritesCount={favoritesCount}
               onLoginRequired={onLoginRequired}
               savedFrom="list_card"
               size="sm"
@@ -187,6 +189,7 @@ export default function RestaurantCard({
         <div className="absolute bottom-3 right-3">
           <FavoriteButton
             restaurantId={id}
+            favoritesCount={favoritesCount}
             onLoginRequired={onLoginRequired}
             savedFrom="grid_card"
             size="md"
