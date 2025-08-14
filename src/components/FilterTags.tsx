@@ -259,21 +259,18 @@ export default function FilterTags({
           </FilterTrigger>
         ))}
 
-        {/* Separador */}
-        <div className="h-8 w-px bg-gray-200 flex-shrink-0" />
-
-        {/* Quick Filters */}
+        {/* Quick Filters - with distinctive border design */}
         {quickFilters.map((filter) => (
           <Badge
             key={filter.key}
             variant="outline"
-            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full cursor-pointer border-0 ${
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full cursor-pointer border ${
               filter.active
-                ? 'bg-green-100 text-green-800' 
-                : 'text-gray-700 hover:bg-gray-50'
+                ? 'bg-green-100 text-green-800 border-green-300' 
+                : 'text-gray-700 hover:bg-gray-50 border-gray-300'
             }`}
             style={!filter.active ? { 
-              backgroundColor: '#F3F3F3',
+              backgroundColor: '#F9F9F9',
               color: '#4B4B4B'
             } : {}}
             onClick={() => {
