@@ -75,13 +75,12 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
           </Badge>
         )}
 
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-2 right-2 z-20">
           <DishFavoriteButton
             dishId={dish.id}
             favoritesCount={dish.favorites_count}
             savedFrom="dish_card"
-            size="sm"
-            className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
+            size="md"
             onLoginRequired={() => console.log('Login required for dish favorites')}
           />
         </div>
