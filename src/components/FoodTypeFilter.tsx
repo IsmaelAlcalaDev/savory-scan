@@ -2,6 +2,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFoodTypes } from '@/hooks/useFoodTypes';
 import { useRef, useState, useEffect } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FoodTypeFilterProps {
   selectedFoodTypes: number[];
@@ -40,6 +41,7 @@ export default function FoodTypeFilter({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const isMobile = useIsMobile();
 
   console.log('FoodTypeFilter state:', { foodTypes, loading, error, selectedFoodTypes });
 
@@ -101,19 +103,19 @@ export default function FoodTypeFilter({
 
   return (
     <div className="relative w-full">
-      {/* Fade effect on the left - only show when can scroll left */}
-      {canScrollLeft && (
+      {/* Fade effect on the left - only show when can scroll left and not on mobile */}
+      {canScrollLeft && !isMobile && (
         <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-white via-white/60 to-transparent z-10 pointer-events-none" />
       )}
       
-      {/* Fade effect on the right - only show when can scroll right */}
-      {canScrollRight && (
+      {/* Fade effect on the right - only show when can scroll right and not on mobile */}
+      {canScrollRight && !isMobile && (
         <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white via-white/60 to-transparent z-10 pointer-events-none" />
       )}
       
       <div 
         ref={scrollRef}
-        className="flex gap-4 pb-1 overflow-x-auto scrollbar-hide"
+        className="flex gap-4 pb-1 overflow-x-auto scrollbar-hide -ml-2"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none'
