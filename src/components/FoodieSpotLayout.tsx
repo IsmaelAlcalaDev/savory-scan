@@ -332,7 +332,6 @@ export default function FoodieSpotLayout({
     return activeBottomTab === 'dishes' ? 'Buscar platos...' : 'Buscar restaurantes...';
   };
 
-  // Determine which header to show based on screen size
   const renderHeader = () => {
     if (isMobile) {
       return <MobileHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} />;
@@ -454,7 +453,7 @@ export default function FoodieSpotLayout({
         {renderHeader()}
 
         {/* Tipos de Cocina / Tipos de Comida */}
-        <div className="px-4 pb-2 pt-1">
+        <div className="px-4 pb-1 pt-0">
           {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
         </div>
 
