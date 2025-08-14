@@ -1,88 +1,59 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { DishFavoritesProvider } from "./contexts/DishFavoritesContext";
+import Index from "./pages/Index";
+import Restaurants from "./pages/Restaurants";
 import RestaurantProfile from "./pages/RestaurantProfile";
 import RestaurantMenu from "./pages/RestaurantMenu";
-import SecureAdminPanel from "./pages/SecureAdminPanel";
-import SuperAdminPanel from "./pages/SuperAdminPanel";
-import SecurityDashboard from "./pages/SecurityDashboard";
-import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
-import LocationEntry from "./pages/LocationEntry";
-import Restaurants from "./pages/Restaurants";
 import Dishes from "./pages/Dishes";
-import ErrorBoundary from "./components/ErrorBoundary";
+import LocationEntry from "./pages/LocationEntry";
+import Auth from "./pages/Auth";
+import NotFound from "./pages/NotFound";
+import FoodieSpot from "./pages/FoodieSpot";
+import "./App.css";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
-const App = () => {
-  console.log('App: Starting application with enhanced security');
-
-  return (
-    <ErrorBoundary>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <FavoritesProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <Routes>
-                    <Route path="/" element={<LocationEntry />} />
-                    <Route path="/restaurantes" element={<Restaurants />} />
-                    <Route path="/platos" element={<Dishes />} />
-                    <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
-                    <Route path="/carta-:slug" element={<RestaurantMenu />} />
-                    <Route 
-                      path="/admin" 
-                      element={
-                        <ProtectedRoute requiredRole="admin">
-                          <SecureAdminPanel />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/superadmin" 
-                      element={
-                        <ProtectedRoute requiredRole="admin">
-                          <SuperAdminPanel />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/security" 
-                      element={
-                        <ProtectedRoute requiredRole="admin">
-                          <SecurityDashboard />
-                        </ProtectedRoute>
-                      } 
-                    />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </BrowserRouter>
-              </TooltipProvider>
-            </FavoritesProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </ErrorBoundary>
-  );
-};
+const App = () => (
+  <ErrorBoundary>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <FavoritesProvider>
+                <DishFavoritesProvider>
+                  <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/restaurantes" element={<Restaurants />} />
+                      <Route path="/restaurante/:slug" element={<RestaurantProfile />} />
+                      <Route path="/restaurante/:slug/carta" element={<RestaurantMenu />} />
+                      <Route path="/platos" element={<Dishes />} />
+                      <Route path="/ubicacion" element={<LocationEntry />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/foodie-spot" element={<FoodieSpot />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </div>
+                  <Toaster />
+                  <Sonner />
+                </DishFavoritesProvider>
+              </FavoritesProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
+  </ErrorBoundary>
+);
 
 export default App;

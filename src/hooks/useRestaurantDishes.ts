@@ -107,6 +107,26 @@ export const useRestaurantDishes = (restaurantId: number) => {
     };
 
     fetchDishes();
+
+    // Listen for dish favorite count updates
+    const handleDishFavoriteToggled = (event: CustomEvent) => {
+      const { dishId, newCount } = event.detail;
+      console.log('useRestaurantDishes: Received dishFavoriteToggled event:', { dishId, newCount });
+      
+      setDishes(prev =>
+        prev.map(d => 
+          d.id === dishId 
+            ? { ...d, favorites_count: Math.max(0, newCount) }
+            : d
+        )
+      );
+    };
+
+    window.addEventListener('dishFavoriteToggled', handleDishFavoriteToggled as EventListener);
+
+    return () => {
+      window.removeEventListener('dishFavoriteToggled', handleDishFavoriteToggled as EventListener);
+    };
   }, [restaurantId]);
 
   console.log('useRestaurantDishes: Hook state:', { dishes: dishes.length, loading, error });

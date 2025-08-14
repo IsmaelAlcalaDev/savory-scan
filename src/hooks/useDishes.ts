@@ -318,6 +318,22 @@ export const useDishes = (params: UseDishesParams = {}) => {
 
     isInitialMount.current = false;
 
+    // Listen for dish favorite count updates
+    const handleDishFavoriteToggled = (event: CustomEvent) => {
+      const { dishId, newCount } = event.detail;
+      console.log('useDishes: Received dishFavoriteToggled event:', { dishId, newCount });
+      
+      setDishes(prev =>
+        prev.map(d => 
+          d.id === dishId 
+            ? { ...d, favorites_count: Math.max(0, newCount) }
+            : d
+        )
+      );
+    };
+
+    window.addEventListener('dishFavoriteToggled', handleDishFavoriteToggled as EventListener);
+
     // Cleanup function
     return () => {
       if (fetchTimeoutRef.current) {
@@ -326,6 +342,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       if (currentController) {
         currentController.abort();
       }
+      window.removeEventListener('dishFavoriteToggled', handleDishFavoriteToggled as EventListener);
     };
   }, [fetchKey, fetchDishes]);
 
