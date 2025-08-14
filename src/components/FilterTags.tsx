@@ -263,10 +263,10 @@ export default function FilterTags({
           } : {}}
           onClick={() => handleOpenChange(true)}
         >
-          {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />}
+          {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black hover:text-black'}`} />}
           {children}
           {count > 0 && ` (${count})`}
-          <ChevronDown className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
+          <ChevronDown className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black hover:text-black'}`} />
         </Button>
         <SheetContent 
           side="bottom" 
