@@ -114,6 +114,16 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
     openDinersModal();
   };
 
+  const handleQuickAdd = () => {
+    // Si no hay variantes, añadir directamente
+    if (!dish.variants || dish.variants.length <= 1) {
+      handleVariantSelect(dish.variants?.[0]?.id || null);
+      return;
+    }
+    
+    // Si hay variantes múltiples, no hacer nada (el usuario debe usar el botón de variantes)
+  };
+
   const allergenCircles = getAllergenCircles();
   const hasVariants = dish.variants && dish.variants.length > 1;
 
@@ -123,7 +133,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
       onClick={() => onDishClick?.(dish)}
     >
       <div className="flex gap-3 items-start w-full">
-        {/* Image - Reduced from w-24 h-24 to w-20 h-20 */}
+        {/* Image */}
         <div className="flex-shrink-0">
           {dish.image_url ? (
             <div className="w-20 h-20 rounded-lg overflow-hidden relative">
@@ -145,7 +155,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
           )}
         </div>
 
-        {/* Content - Full Width - Adjusted height to match smaller image */}
+        {/* Content */}
         <div className="flex-1 min-w-0 flex flex-col justify-between h-20">
           {/* Top Row - Name and Price */}
           <div className="flex items-start justify-between mb-1">
@@ -153,21 +163,15 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
               <h3 className="font-semibold text-sm text-foreground line-clamp-2">
                 {dish.name}
               </h3>
-              {hasVariants && (
-                <div className="flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full" title="Disponible en varios tamaños">
-                  <Scale className="h-3 w-3 text-primary" />
-                  <span className="text-xs font-medium text-primary">Tamaños</span>
-                </div>
-              )}
             </div>
             <div className="font-bold text-base text-primary text-right flex-shrink-0">
               {getDisplayPrice()}
             </div>
           </div>
 
-          {/* Middle Row - Diner Selector (si está activo) y Allergens */}
+          {/* Middle Row - Diner Selector y Allergens */}
           <div className="flex items-center gap-2 mb-1">
-            {/* Diner Selector - aparece delante de los alérgenos */}
+            {/* Diner Selector */}
             {showDinerSelector && diners.length > 1 && (
               <div className="flex-shrink-0">
                 <Popover open={showDinerSelector} onOpenChange={setShowDinerSelector}>
@@ -219,7 +223,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
               </div>
             )}
 
-            {/* Allergens - Show when no diner selector is active */}
+            {/* Allergens */}
             {!showDinerSelector && allergenCircles.length > 0 && (
               <div className="flex items-center gap-1.5">
                 {allergenCircles.map((allergen, index) => (
@@ -233,7 +237,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
             )}
           </div>
 
-          {/* Bottom Row - Buttons in bottom right */}
+          {/* Bottom Row - Buttons */}
           <div className="flex items-end justify-end">
             <div className="flex items-center gap-2 flex-shrink-0">
               <DishFavoriteButton
@@ -245,22 +249,32 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                 savedFrom="menu_list"
               />
               
-              <VariantSelector
-                dish={dish}
-                onVariantSelect={handleVariantSelect}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQuickAdd();
+                }}
+                className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
+                aria-label="Añadir al simulador"
+                disabled={hasVariants}
+                title={hasVariants ? "Usa el botón 'Ver tamaños' para seleccionar" : "Añadir al simulador"}
               >
-                <button
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
-                  aria-label="Añadir al simulador"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                </button>
-              </VariantSelector>
+                <Plus className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Variant Selector Button - Debajo de la card */}
+      {hasVariants && (
+        <div className="mt-2 pl-23">
+          <VariantSelector
+            dish={dish}
+            onVariantSelect={handleVariantSelect}
+          />
+        </div>
+      )}
     </div>
   );
 }

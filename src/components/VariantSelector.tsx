@@ -12,10 +12,9 @@ import type { Dish } from '@/hooks/useRestaurantMenu';
 interface VariantSelectorProps {
   dish: Dish;
   onVariantSelect: (variantId: number | null) => void;
-  children: React.ReactNode;
 }
 
-export default function VariantSelector({ dish, onVariantSelect, children }: VariantSelectorProps) {
+export default function VariantSelector({ dish, onVariantSelect }: VariantSelectorProps) {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -23,24 +22,26 @@ export default function VariantSelector({ dish, onVariantSelect, children }: Var
     }).format(price);
   };
 
-  const defaultVariant = dish.variants?.find(v => v.is_default);
   const hasVariants = dish.variants && dish.variants.length > 1;
 
   if (!hasVariants) {
-    // Si no hay variantes múltiples, añadir directamente
-    return (
-      <div onClick={() => onVariantSelect(defaultVariant?.id || null)}>
-        {children}
-      </div>
-    );
+    return null;
   }
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        {children}
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full justify-between text-xs h-8"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Ver tamaños
+          <ChevronDown className="h-3 w-3" />
+        </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-3 z-50" align="end">
+      <PopoverContent className="w-64 p-3 z-50" align="center">
         <div className="space-y-2">
           <div className="px-1 py-1 text-sm font-medium text-foreground border-b pb-2">
             Selecciona el tamaño:
