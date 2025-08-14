@@ -15,7 +15,7 @@ interface QuickActionTagsProps {
   address: string;
   latitude?: number;
   longitude?: number;
-  onReservationClick: () => void;
+  onReservationClick?: () => void;
 }
 
 export default function QuickActionTags({ 
@@ -83,15 +83,17 @@ export default function QuickActionTags({
         </Button>
       )}
 
-      <Button
-        size="lg"
-        variant="outline"
-        className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
-        onClick={onReservationClick}
-      >
-        <Calendar className="h-5 w-5 text-red-600" />
-        <span className="text-red-600 font-medium">Reservas</span>
-      </Button>
+      {onReservationClick && (
+        <Button
+          size="lg"
+          variant="outline"
+          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+          onClick={onReservationClick}
+        >
+          <Calendar className="h-5 w-5 text-red-600" />
+          <span className="text-red-600 font-medium">Reservas</span>
+        </Button>
+      )}
     </div>
   );
 }
