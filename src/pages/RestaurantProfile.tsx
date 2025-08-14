@@ -362,16 +362,16 @@ export default function RestaurantProfile() {
             <FavoriteButton
               restaurantId={restaurant.id}
               favoritesCount={restaurant.favorites_count}
-              size="lg"
-              className="rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
+              size="sm"
+              className="rounded-full w-10 h-10 p-0 bg-white border-white shadow-lg hover:bg-gray-50 hover:scale-110 transition-all"
             />
             <Button
               onClick={handleShare}
-              size="lg"
+              size="sm"
               variant="outline"
-              className="rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
+              className="rounded-full w-10 h-10 p-0 bg-white border-white shadow-lg hover:bg-gray-50 hover:scale-110 transition-all"
             >
-              <Share2 className="h-6 w-6 text-white" />
+              <Share2 className="h-4 w-4 text-gray-700" />
             </Button>
           </div>
 
