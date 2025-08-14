@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { MapPin, Menu } from 'lucide-react';
+import { Search, MapPin, Menu, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 interface TabletHeaderProps {
@@ -8,9 +9,14 @@ interface TabletHeaderProps {
   appLogoUrl: string;
   currentLocationName: string;
   isLoadingLocation: boolean;
+  searchQuery: string;
+  isSearchFocused: boolean;
   onLogoClick: () => void;
   onLocationClick: () => void;
   onMenuClick: () => void;
+  onSearchChange: (value: string) => void;
+  onSearchFocus: () => void;
+  onSearchBlur: () => void;
 }
 
 export default function TabletHeader({
@@ -18,9 +24,14 @@ export default function TabletHeader({
   appLogoUrl,
   currentLocationName,
   isLoadingLocation,
+  searchQuery,
+  isSearchFocused,
   onLogoClick,
   onLocationClick,
-  onMenuClick
+  onMenuClick,
+  onSearchChange,
+  onSearchFocus,
+  onSearchBlur
 }: TabletHeaderProps) {
   return (
     <div className="flex items-center justify-between py-3 px-4 gap-4">
@@ -35,8 +46,9 @@ export default function TabletHeader({
         </button>
       </div>
 
-      {/* Location */}
-      <div className="flex-1 flex justify-center">
+      {/* Center: Location and Search */}
+      <div className="flex items-center gap-4 flex-1 max-w-2xl">
+        {/* Location */}
         <Button
           variant="ghost"
           onClick={onLocationClick}
@@ -47,6 +59,24 @@ export default function TabletHeader({
             {isLoadingLocation ? 'Detectando...' : currentLocationName}
           </span>
         </Button>
+
+        {/* Search */}
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className={`absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors z-10 ${
+              isSearchFocused ? 'text-primary' : 'text-muted-foreground'
+            }`} />
+            <Input
+              type="text"
+              placeholder="Buscar restaurantes, platos..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              onFocus={onSearchFocus}
+              onBlur={onSearchBlur}
+              className="pl-10 pr-4 h-10 text-base bg-background/50 border border-muted-foreground backdrop-blur-sm rounded-full focus:border-muted-foreground focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Menu */}
