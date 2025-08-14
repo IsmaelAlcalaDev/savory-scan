@@ -312,7 +312,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         <>
           {/* Filter Tags */}
           <FilterTags
-            activeTab={activeBottomTab}
+            activeTab="dishes"
             selectedCuisines={selectedCuisines}
             selectedFoodTypes={selectedFoodTypes}
             onClearFilter={handleClearFilter}
@@ -344,7 +344,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       <>
         {/* Filter Tags */}
         <FilterTags
-          activeTab={activeBottomTab}
+          activeTab="restaurants"
           selectedCuisines={selectedCuisines}
           selectedFoodTypes={selectedFoodTypes}
           onClearFilter={handleClearFilter}
