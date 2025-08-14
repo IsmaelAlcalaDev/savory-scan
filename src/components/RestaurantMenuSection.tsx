@@ -15,7 +15,7 @@ export default function RestaurantMenuSection({ section, restaurantId, onDishCli
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-foreground">{section.name}</h2>
         {section.description && (
@@ -23,7 +23,7 @@ export default function RestaurantMenuSection({ section, restaurantId, onDishCli
         )}
       </div>
       
-      <div className="space-y-3">
+      <div className="space-y-1">
         {section.dishes.map((dish) => (
           <DishCard
             key={dish.id}

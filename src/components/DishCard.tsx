@@ -1,5 +1,3 @@
-
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -101,38 +99,88 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
   };
 
   return (
-    <Card 
-      className="bg-gradient-card border-glass shadow-card hover:shadow-lg transition-shadow cursor-pointer" 
+    <div 
+      className="py-3 px-1 hover:bg-accent/50 transition-colors cursor-pointer rounded-lg" 
       onClick={() => onDishClick?.(dish)}
     >
-      <CardContent className="p-3">
-        <div className="flex gap-3">
-          {/* Image */}
-          <div className="flex-shrink-0">
-            {dish.image_url ? (
-              <div className="w-16 h-16 rounded-lg overflow-hidden relative">
-                <img
-                  src={dish.image_url}
-                  alt={dish.image_alt || dish.name}
-                  className="w-full h-full object-cover"
-                />
-                {dish.is_featured && (
-                  <Badge className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs px-1 py-0">
-                    ★
-                  </Badge>
-                )}
-              </div>
-            ) : (
-              <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
-              </div>
-            )}
+      <div className="flex gap-4 items-center w-full">
+        {/* Image */}
+        <div className="flex-shrink-0">
+          {dish.image_url ? (
+            <div className="w-20 h-20 rounded-lg overflow-hidden relative">
+              <img
+                src={dish.image_url}
+                alt={dish.image_alt || dish.name}
+                className="w-full h-full object-cover"
+              />
+              {dish.is_featured && (
+                <Badge className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs px-1 py-0">
+                  ★
+                </Badge>
+              )}
+            </div>
+          ) : (
+            <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+              <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
+            </div>
+          )}
+        </div>
+
+        {/* Content - Full Width */}
+        <div className="flex-1 min-w-0 flex items-center justify-between">
+          {/* Left Content */}
+          <div className="flex-1 min-w-0 pr-4">
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="font-semibold text-base text-foreground line-clamp-1">
+                {dish.name}
+              </h3>
+            </div>
+
+            {/* Icons and metadata row */}
+            <div className="flex items-center gap-3 mb-2">
+              {/* Diet icons */}
+              {getDietIcon(dish).slice(0, 4).map(({ icon: Icon, label, color }, index) => (
+                <div key={index} title={label}>
+                  <Icon className={`h-4 w-4 ${color}`} />
+                </div>
+              ))}
+
+              {/* Allergen icons */}
+              {getAllergenIcons().slice(0, 3).map((allergen, index) => {
+                const Icon = allergen!.icon;
+                return (
+                  <div key={index} title={`Contiene: ${allergen!.label}`}>
+                    <Icon className="h-4 w-4 text-orange-500" />
+                  </div>
+                );
+              })}
+
+              {/* Spice level */}
+              {dish.spice_level > 0 && (
+                <div className="flex items-center gap-0.5" title={`Nivel de picante: ${dish.spice_level}`}>
+                  {getSpiceLevel(dish.spice_level)}
+                </div>
+              )}
+
+              {/* Preparation time */}
+              {dish.preparation_time_minutes && (
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm">{dish.preparation_time_minutes}min</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 min-w-0 relative">
-            {/* Favorite button */}
-            <div className="absolute top-0 right-0 z-10">
+          {/* Right Content - Price and Actions */}
+          <div className="flex items-center gap-4 flex-shrink-0">
+            {/* Price */}
+            <div className="font-bold text-lg text-primary text-right">
+              {getDisplayPrice()}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
               <DishFavoriteButton
                 dishId={dish.id}
                 restaurantId={restaurantId}
@@ -141,88 +189,22 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                 className="bg-white/95 backdrop-blur-sm border-white/20 shadow-sm hover:bg-white"
                 savedFrom="menu_list"
               />
-            </div>
-
-            {/* Main content */}
-            <div className="pr-8 space-y-1">
-              <div className="flex items-start justify-between">
-                <h3 className="font-semibold text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                  {dish.name}
-                </h3>
-              </div>
               
-              {dish.description && (
-                <p className="text-muted-foreground text-xs line-clamp-1">
-                  {dish.description}
-                </p>
-              )}
-
-              {/* Price */}
-              <div className="font-bold text-lg text-primary">
-                {getDisplayPrice()}
-              </div>
-
-              {/* Icons and metadata row */}
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* Diet icons */}
-                {getDietIcon(dish).slice(0, 3).map(({ icon: Icon, label, color }, index) => (
-                  <div key={index} title={label}>
-                    <Icon className={`h-3 w-3 ${color}`} />
-                  </div>
-                ))}
-
-                {/* Allergen icons */}
-                {getAllergenIcons().slice(0, 3).map((allergen, index) => {
-                  const Icon = allergen!.icon;
-                  return (
-                    <div key={index} title={`Contiene: ${allergen!.label}`}>
-                      <Icon className="h-3 w-3 text-orange-500" />
-                    </div>
-                  );
-                })}
-
-                {/* Spice level */}
-                {dish.spice_level > 0 && (
-                  <div className="flex items-center gap-0.5" title={`Nivel de picante: ${dish.spice_level}`}>
-                    {getSpiceLevel(dish.spice_level)}
-                  </div>
-                )}
-
-                {/* Preparation time */}
-                {dish.preparation_time_minutes && (
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span className="text-xs">{dish.preparation_time_minutes}min</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Category */}
-              {dish.category_name && (
-                <Badge variant="outline" className="text-xs w-fit">
-                  {dish.category_name}
-                </Badge>
-              )}
-            </div>
-
-            {/* Add button */}
-            <div className="absolute bottom-0 right-0">
               <Button
                 size="sm"
-                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDishClick?.(dish);
                 }}
-                className="gap-1 h-7 px-2 text-xs"
+                className="gap-1 h-8 px-3 text-sm"
               >
-                <Plus className="h-3 w-3" />
+                <Plus className="h-4 w-4" />
                 Añadir
               </Button>
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
