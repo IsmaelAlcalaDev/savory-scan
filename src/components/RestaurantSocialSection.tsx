@@ -1,105 +1,65 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { 
-  Facebook, 
-  Instagram, 
-  Twitter, 
-  ExternalLink, 
-  Youtube,
-  Music
-} from 'lucide-react';
+import { usePlatformConfigs } from '@/hooks/usePlatformConfigs';
 
 interface RestaurantSocialSectionProps {
   socialLinks: Record<string, string>;
 }
 
-const getSocialIcon = (platform: string) => {
-  switch (platform.toLowerCase()) {
-    case 'facebook':
-      return Facebook;
-    case 'instagram':
-      return Instagram;
-    case 'twitter':
-      return Twitter;
-    case 'youtube':
-      return Youtube;
-    case 'tiktok':
-      return Music;
-    default:
-      return ExternalLink;
-  }
-};
-
-const getSocialColor = (platform: string) => {
-  switch (platform.toLowerCase()) {
-    case 'facebook':
-      return 'hover:bg-blue-600 hover:text-white border-blue-600 text-blue-600';
-    case 'instagram':
-      return 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white border-pink-500 text-pink-500';
-    case 'twitter':
-      return 'hover:bg-blue-400 hover:text-white border-blue-400 text-blue-400';
-    case 'youtube':
-      return 'hover:bg-red-600 hover:text-white border-red-600 text-red-600';
-    case 'tiktok':
-      return 'hover:bg-black hover:text-white border-black text-black';
-    default:
-      return 'hover:bg-primary hover:text-primary-foreground border-primary text-primary';
-  }
-};
-
-const getSocialName = (platform: string) => {
-  switch (platform.toLowerCase()) {
-    case 'facebook':
-      return 'Facebook';
-    case 'instagram':
-      return 'Instagram';
-    case 'twitter':
-      return 'Twitter';
-    case 'youtube':
-      return 'YouTube';
-    case 'tiktok':
-      return 'TikTok';
-    default:
-      return platform.charAt(0).toUpperCase() + platform.slice(1);
-  }
-};
-
 export default function RestaurantSocialSection({ socialLinks }: RestaurantSocialSectionProps) {
-  // Filter valid social links
-  const validSocialLinks = Object.entries(socialLinks).filter(([platform, url]) => {
-    return url && typeof url === 'string' && url.trim().length > 0;
-  });
+  const { data: platforms, isLoading } = usePlatformConfigs('social');
 
-  if (validSocialLinks.length === 0) {
+  if (isLoading || !platforms?.length) {
+    return null;
+  }
+
+  // Filtrar solo las plataformas que tienen enlaces
+  const availablePlatforms = platforms.filter(
+    platform => socialLinks[platform.platform_key] && socialLinks[platform.platform_key].trim().length > 0
+  );
+
+  if (availablePlatforms.length === 0) {
     return null;
   }
 
   return (
-    <div className="space-y-4">
+    <section className="space-y-6">
       <h3 className="text-lg font-semibold">Síguenos en redes sociales</h3>
-      <div className="flex flex-wrap gap-3">
-        {validSocialLinks.map(([platform, url]) => {
-          const Icon = getSocialIcon(platform);
-          const colorClass = getSocialColor(platform);
-          const name = getSocialName(platform);
+      <div className="flex flex-wrap items-center justify-start gap-6">
+        {availablePlatforms.map((platform) => {
+          const url = socialLinks[platform.platform_key];
           
           return (
-            <Button
-              key={platform}
-              variant="outline"
-              size="sm"
-              className={`rounded-full px-4 py-2 h-10 gap-2 hover:scale-105 transition-all border-2 ${colorClass}`}
-              asChild
+            <a
+              key={platform.id}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-shrink-0 hover:opacity-80 transition-opacity duration-200 hover:scale-105 transform"
+              title={`Síguenos en ${platform.platform_name}`}
             >
-              <a href={url} target="_blank" rel="noopener noreferrer">
-                <Icon className="h-4 w-4" />
-                {name}
-              </a>
-            </Button>
+              {platform.icon ? (
+                <img 
+                  src={platform.icon}
+                  alt={platform.platform_name}
+                  className="h-16 w-16 object-contain rounded-lg"
+                  onError={(e) => {
+                    console.error('Error loading logo for:', platform.platform_name);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="h-16 w-16 bg-muted rounded-lg flex items-center justify-center">
+                  <div 
+                    className="h-8 w-8 rounded-full"
+                    style={{ backgroundColor: platform.icon_color || '#6B7280' }}
+                  />
+                </div>
+              )}
+            </a>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }

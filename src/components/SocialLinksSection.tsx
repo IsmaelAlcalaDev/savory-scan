@@ -1,60 +1,19 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { 
-  Facebook, 
-  Instagram, 
-  Twitter, 
-  ExternalLink, 
-  Youtube,
-  Music
-} from 'lucide-react';
+import { usePlatformConfigs } from '@/hooks/usePlatformConfigs';
 
 interface SocialLinksSectionProps {
   socialLinks?: any;
 }
 
-const getSocialIcon = (platform: string) => {
-  switch (platform.toLowerCase()) {
-    case 'facebook':
-      return Facebook;
-    case 'instagram':
-      return Instagram;
-    case 'twitter':
-      return Twitter;
-    case 'youtube':
-      return Youtube;
-    case 'tiktok':
-      return Music;
-    default:
-      return ExternalLink;
-  }
-};
-
-const getSocialColor = (platform: string) => {
-  switch (platform.toLowerCase()) {
-    case 'facebook':
-      return 'hover:bg-blue-600 hover:text-white';
-    case 'instagram':
-      return 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white';
-    case 'twitter':
-      return 'hover:bg-blue-400 hover:text-white';
-    case 'youtube':
-      return 'hover:bg-red-600 hover:text-white';
-    case 'tiktok':
-      return 'hover:bg-black hover:text-white';
-    default:
-      return 'hover:bg-primary hover:text-primary-foreground';
-  }
-};
-
 export default function SocialLinksSection({ socialLinks }: SocialLinksSectionProps) {
-  console.log('SocialLinksSection received socialLinks:', socialLinks);
-  console.log('SocialLinks type:', typeof socialLinks);
-  console.log('SocialLinks keys:', socialLinks ? Object.keys(socialLinks) : 'No socialLinks');
+  const { data: platforms, isLoading } = usePlatformConfigs('social');
+
+  if (isLoading || !platforms?.length) {
+    return null;
+  }
 
   if (!socialLinks || typeof socialLinks !== 'object' || Object.keys(socialLinks).length === 0) {
-    console.log('No social links to display');
     return null;
   }
 
@@ -62,44 +21,53 @@ export default function SocialLinksSection({ socialLinks }: SocialLinksSectionPr
     return url && typeof url === 'string' && url.trim().length > 0;
   });
 
-  console.log('Valid social links:', validSocialLinks);
+  // Filtrar solo las plataformas que tienen enlaces y están configuradas
+  const availablePlatforms = platforms.filter(
+    platform => validSocialLinks.some(([key]) => key === platform.platform_key)
+  );
 
-  if (validSocialLinks.length === 0) {
-    console.log('No valid social links found');
+  if (availablePlatforms.length === 0) {
     return null;
   }
 
   return (
-    <div className="space-y-4">
+    <section className="space-y-6">
       <h3 className="text-lg font-semibold">Redes Sociales</h3>
-      <div className="space-y-3">
-        {validSocialLinks.map(([platform, url]) => {
-          const Icon = getSocialIcon(platform);
-          const colorClass = getSocialColor(platform);
+      <div className="flex flex-wrap items-center justify-start gap-6">
+        {availablePlatforms.map((platform) => {
+          const url = socialLinks[platform.platform_key];
           
           return (
-            <div key={platform} className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <Icon className="h-5 w-5" />
-                <div>
-                  <p className="font-medium capitalize">{platform}</p>
+            <a
+              key={platform.id}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-shrink-0 hover:opacity-80 transition-opacity duration-200 hover:scale-105 transform"
+              title={`Visitar ${platform.platform_name}`}
+            >
+              {platform.icon ? (
+                <img 
+                  src={platform.icon}
+                  alt={platform.platform_name}
+                  className="h-16 w-16 object-contain rounded-lg"
+                  onError={(e) => {
+                    console.error('Error loading logo for:', platform.platform_name);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="h-16 w-16 bg-muted rounded-lg flex items-center justify-center">
+                  <div 
+                    className="h-8 w-8 rounded-full"
+                    style={{ backgroundColor: platform.icon_color || '#6B7280' }}
+                  />
                 </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className={`transition-all duration-200 ${colorClass}`}
-                asChild
-              >
-                <a href={url as string} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Visitar
-                </a>
-              </Button>
-            </div>
+              )}
+            </a>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
