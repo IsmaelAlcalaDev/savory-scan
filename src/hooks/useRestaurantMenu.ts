@@ -27,6 +27,7 @@ export interface Dish {
   preparation_time_minutes?: number;
   favorites_count: number;
   category_name?: string;
+  allergens?: string[];
   variants: Array<{
     id: number;
     name: string;
@@ -80,6 +81,7 @@ export const useRestaurantMenu = (restaurantId: number) => {
             spice_level,
             preparation_time_minutes,
             favorites_count,
+            allergens,
             section_id,
             dish_categories(name),
             dish_variants(id, name, price, is_default, display_order)
@@ -114,6 +116,7 @@ export const useRestaurantMenu = (restaurantId: number) => {
               preparation_time_minutes: dish.preparation_time_minutes,
               favorites_count: dish.favorites_count,
               category_name: dish.dish_categories?.name,
+              allergens: dish.allergens,
               variants: (dish.dish_variants || [])
                 .sort((a: any, b: any) => a.display_order - b.display_order)
                 .map((variant: any) => ({
