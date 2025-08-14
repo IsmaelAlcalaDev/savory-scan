@@ -34,8 +34,8 @@ export default function QuickActionTags({
   };
 
   return (
-    <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex gap-3 pb-4">
+    <div className="w-full overflow-hidden">
+      <div className="flex gap-3 pb-4 overflow-x-auto scrollbar-hide">
         {phone && (
           <Button
             size="sm"
@@ -82,7 +82,6 @@ export default function QuickActionTags({
           </Button>
         )}
       </div>
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
+    </div>
   );
 }

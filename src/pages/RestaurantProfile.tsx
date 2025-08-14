@@ -343,7 +343,8 @@ export default function RestaurantProfile() {
             </>
           )}
 
-          <div className="absolute bottom-0 left-0 right-0 p-6">
+          {/* Desktop: Information over image */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 hidden md:block">
             <div className="max-w-6xl mx-auto">
               <div className="flex items-end justify-between mb-6">
                 <div className="flex items-center gap-4 flex-1">
@@ -406,6 +407,71 @@ export default function RestaurantProfile() {
                     className="bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30"
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile: Information below image */}
+        <div className="md:hidden bg-background border-b border-border">
+          <div className="max-w-6xl mx-auto px-4 py-6">
+            <div className="flex items-start gap-4 mb-4">
+              {restaurant.logo_url && (
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border shadow-lg flex-shrink-0">
+                  <img 
+                    src={restaurant.logo_url} 
+                    alt={`${restaurant.name} logo`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold mb-2 text-foreground">
+                  {restaurant.name}
+                </h1>
+                
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <Badge variant="secondary">
+                    {getPriceRangeText(restaurant.price_range)}
+                  </Badge>
+                  {restaurant.establishment_type && (
+                    <Badge variant="secondary">
+                      {restaurant.establishment_type}
+                    </Badge>
+                  )}
+                  {restaurant.cuisine_types.map((cuisine, index) => (
+                    <Badge key={index} variant="secondary">
+                      {cuisine}
+                    </Badge>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    <span>{restaurant.address}</span>
+                  </div>
+                  {restaurant.google_rating && (
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <span className="font-medium text-foreground">
+                        {restaurant.google_rating}
+                        {restaurant.google_rating_count && (
+                          <span className="text-xs ml-1">({restaurant.google_rating_count})</span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <FavoriteButton
+                  restaurantId={restaurant.id}
+                  favoritesCount={restaurant.favorites_count}
+                  size="default"
+                />
               </div>
             </div>
           </div>
