@@ -115,7 +115,7 @@ export default function DishListCard({ dish, restaurantId, expandedDishId, onExp
   return (
     <>
       <Collapsible open={isExpanded} onOpenChange={(open) => onExpandedChange(open ? dish.id : null)}>
-        <div className="border rounded-lg bg-background hover:bg-accent/30 transition-colors">
+        <div className="border rounded-lg bg-background transition-colors">
           <div className="flex gap-3 items-start p-3 cursor-pointer" onClick={handleCardClick}>
             {/* Image */}
             <div className="flex-shrink-0">

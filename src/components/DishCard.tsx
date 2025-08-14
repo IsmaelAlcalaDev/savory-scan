@@ -116,7 +116,7 @@ export default function DishCard({ dish, restaurantId, expandedDishId, onExpande
   return (
     <>
       <Collapsible open={isExpanded} onOpenChange={(open) => onExpandedChange(open ? dish.id : null)}>
-        <div className="py-3 px-0 hover:bg-accent/30 transition-colors">
+        <div className="py-3 px-0 transition-colors">
           <div className="flex gap-3 items-start w-full">
             {/* Image */}
             <div className="flex-shrink-0">
