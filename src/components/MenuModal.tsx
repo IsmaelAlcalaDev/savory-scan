@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -70,8 +71,8 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[80vh] p-0 overflow-hidden rounded-lg">
-        <div className="overflow-y-auto max-h-[80vh] p-6 space-y-6">
+      <DialogContent className="max-w-lg max-h-[80vh] p-0 overflow-hidden rounded-lg">
+        <div className="overflow-y-auto max-h-[80vh] p-6 space-y-6 rounded-lg">
           {/* Selector de idioma */}
           <div>
             <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">

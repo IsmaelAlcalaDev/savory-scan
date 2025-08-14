@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -116,7 +117,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white">
+      <DialogContent className="sm:max-w-lg bg-white">
         <DialogHeader className="text-center space-y-2">
           <DialogTitle className="text-2xl font-bold text-gray-900">
             {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
