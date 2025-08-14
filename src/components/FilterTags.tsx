@@ -1,7 +1,26 @@
+
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import FilterDialog from './FilterDialog';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface FilterTagsProps {
   activeTab: 'restaurants' | 'dishes';
@@ -12,11 +31,8 @@ interface FilterTagsProps {
   selectedRating?: number;
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
-  selectedSort?: string;
   isOpenNow?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'sort' | 'all', id?: number) => void;
-  onSortChange?: (sortId: string) => void;
-  onDistanceChange?: (distances: number[]) => void;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'all', id?: number) => void;
 }
 
 export default function FilterTags({ 
@@ -28,12 +44,11 @@ export default function FilterTags({
   selectedRating,
   selectedEstablishmentTypes = [],
   selectedDietTypes = [],
-  selectedSort = 'relevance',
   isOpenNow = false,
-  onClearFilter,
-  onSortChange = () => {},
-  onDistanceChange = () => {}
+  onClearFilter 
 }: FilterTagsProps) {
+  const isMobile = useIsMobile();
+  const isTablet = !isMobile && window.innerWidth < 1024;
   
   const hasActiveFilters = selectedCuisines.length > 0 || 
     selectedFoodTypes.length > 0 || 
@@ -42,41 +57,136 @@ export default function FilterTags({
     selectedRating || 
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
-    isOpenNow ||
-    selectedSort !== 'relevance';
+    isOpenNow;
+
+  const FilterContent = ({ onApply, onReset }: { onApply: () => void, onReset: () => void }) => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold mb-2">Filtros</h3>
+        <p className="text-sm text-muted-foreground">
+          Personaliza tu búsqueda de {activeTab === 'dishes' ? 'platos' : 'restaurantes'}
+        </p>
+      </div>
+      
+      {/* Filter sections would go here - placeholder for now */}
+      <div className="space-y-4">
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Ordenar</h4>
+          <p className="text-sm text-muted-foreground">Opciones de ordenamiento</p>
+        </div>
+        
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Distancia</h4>
+          <p className="text-sm text-muted-foreground">Selecciona el rango de distancia</p>
+        </div>
+        
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Precio</h4>
+          <p className="text-sm text-muted-foreground">Rango de precios</p>
+        </div>
+        
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Valoración</h4>
+          <p className="text-sm text-muted-foreground">Calificación mínima</p>
+        </div>
+        
+        {activeTab === 'restaurants' && (
+          <div className="p-4 border rounded-lg">
+            <h4 className="font-medium mb-2">Tipo de Comercio</h4>
+            <p className="text-sm text-muted-foreground">Tipo de establecimiento</p>
+          </div>
+        )}
+        
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Dieta</h4>
+          <p className="text-sm text-muted-foreground">Opciones dietéticas</p>
+        </div>
+        
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Horarios</h4>
+          <p className="text-sm text-muted-foreground">Disponibilidad horaria</p>
+        </div>
+      </div>
+      
+      <div className="flex gap-3 pt-4">
+        <Button 
+          onClick={onReset}
+          variant="outline" 
+          className="flex-1"
+        >
+          Restablecer
+        </Button>
+        <Button 
+          onClick={onApply}
+          className="flex-1"
+        >
+          Aplicar filtros
+        </Button>
+      </div>
+    </div>
+  );
 
   const filterTags = [
     { key: 'sort', label: 'Ordenar' },
     { key: 'distance', label: 'Distancia' },
     { key: 'price', label: 'Precio' },
     { key: 'rating', label: 'Valoración' },
-    ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo de comercio' }] : []),
+    ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
     { key: 'diet', label: 'Dieta' },
     { key: 'schedule', label: 'Horarios' },
   ];
 
   const quickFilters = [
-    { key: 'best-rated', label: 'Mejor valorados', active: selectedSort === 'rating' },
+    { key: 'best-rated', label: 'Mejor valorados', active: false },
     { key: 'open-now', label: 'Abierto ahora', active: isOpenNow },
-    { key: 'nearest', label: 'Más cerca', active: selectedSort === 'distance' },
-    { key: 'cheapest', label: 'Más económico', active: selectedSort === 'price_low' },
+    { key: 'nearest', label: 'Más cerca', active: false },
+    { key: 'cheapest', label: 'Más económico', active: false },
   ];
 
-  const handleQuickFilter = (filterKey: string) => {
-    switch (filterKey) {
-      case 'best-rated':
-        onSortChange(selectedSort === 'rating' ? 'relevance' : 'rating');
-        break;
-      case 'open-now':
-        onClearFilter('openNow');
-        break;
-      case 'nearest':
-        onSortChange(selectedSort === 'distance' ? 'relevance' : 'distance');
-        break;
-      case 'cheapest':
-        onSortChange(selectedSort === 'price_low' ? 'relevance' : 'price_low');
-        break;
+  const FilterTrigger = ({ children }: { children: React.ReactNode }) => {
+    if (isMobile || isTablet) {
+      return (
+        <Sheet>
+          <SheetTrigger asChild>
+            {children}
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[90vh]">
+            <SheetHeader>
+              <SheetTitle>Filtros</SheetTitle>
+              <SheetDescription>
+                Personaliza tu búsqueda de {activeTab === 'dishes' ? 'platos' : 'restaurantes'}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex-1 overflow-y-auto py-4">
+              <FilterContent 
+                onApply={() => {/* TODO: Close sheet and apply */}} 
+                onReset={() => onClearFilter('all')} 
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+      );
     }
+
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Filtros</DialogTitle>
+            <DialogDescription>
+              Personaliza tu búsqueda de {activeTab === 'dishes' ? 'platos' : 'restaurantes'}
+            </DialogDescription>
+          </DialogHeader>
+          <FilterContent 
+            onApply={() => {/* TODO: Close dialog and apply */}} 
+            onReset={() => onClearFilter('all')} 
+          />
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   return (
@@ -84,23 +194,7 @@ export default function FilterTags({
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
         {/* Filter Tags */}
         {filterTags.map((filter) => (
-          <FilterDialog
-            key={filter.key}
-            filterType={filter.key as any}
-            filterLabel={filter.label}
-            selectedSort={selectedSort}
-            selectedDistances={selectedDistance}
-            onSortChange={onSortChange}
-            onDistanceChange={onDistanceChange}
-            onApply={() => {}}
-            onReset={() => {
-              if (filter.key === 'sort') {
-                onClearFilter('sort');
-              } else if (filter.key === 'distance') {
-                onClearFilter('distance');
-              }
-            }}
-          >
+          <FilterTrigger key={filter.key}>
             <Button
               variant="outline"
               size="sm"
@@ -112,7 +206,7 @@ export default function FilterTags({
             >
               {filter.label}
             </Button>
-          </FilterDialog>
+          </FilterTrigger>
         ))}
 
         {/* Separador */}
@@ -132,7 +226,12 @@ export default function FilterTags({
               backgroundColor: '#F3F3F3',
               color: '#4B4B4B'
             } : {}}
-            onClick={() => handleQuickFilter(filter.key)}
+            onClick={() => {
+              if (filter.key === 'open-now') {
+                onClearFilter('openNow');
+              }
+              // TODO: Implement other quick filters
+            }}
           >
             {filter.label}
             {filter.active && <X className="h-3 w-3 ml-1" />}
