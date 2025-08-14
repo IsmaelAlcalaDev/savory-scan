@@ -39,31 +39,31 @@ export default function DishImageModal({ isOpen, onClose, dish }: DishImageModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full h-[90vh] p-0 bg-black/95 border-none">
-        <div className="relative w-full h-full flex items-center justify-center">
+      <DialogContent className="max-w-2xl w-auto h-auto p-0 bg-transparent border-none shadow-none">
+        <div className="relative">
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors flex items-center justify-center"
+            className="absolute -top-4 -right-4 z-20 w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 text-white transition-colors flex items-center justify-center"
             aria-label="Cerrar"
           >
             <X className="h-5 w-5" />
           </button>
 
-          {/* Image container */}
-          <div className="relative w-full h-full max-w-3xl max-h-[80vh] mx-auto">
+          {/* Image with overlay */}
+          <div className="relative rounded-lg overflow-hidden">
             <img
               src={dish.image_url}
               alt={dish.image_alt || dish.name}
-              className="w-full h-full object-contain rounded-lg"
+              className="w-full max-w-2xl max-h-[80vh] object-cover"
             />
             
-            {/* Overlay with title and price */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 rounded-b-lg">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 drop-shadow-lg">
+            {/* Title and price overlay */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4">
+              <h2 className="text-xl font-bold text-white mb-1 drop-shadow-lg">
                 {dish.name}
               </h2>
-              <div className="text-xl md:text-2xl font-bold text-primary drop-shadow-lg">
+              <div className="text-lg font-bold text-primary-foreground drop-shadow-lg">
                 {getDisplayPrice()}
               </div>
             </div>
