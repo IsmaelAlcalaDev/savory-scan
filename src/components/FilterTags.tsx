@@ -254,13 +254,16 @@ export default function FilterTags({
           size="sm"
           className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
-              ? 'bg-red-500 text-white' 
+              ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
               : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
           }`}
-          style={!isActive ? { 
+          style={isActive ? { 
+            backgroundColor: '#ef4444',
+            color: 'white'
+          } : { 
             backgroundColor: '#F3F3F3',
             color: '#4B4B4B'
-          } : {}}
+          }}
           onClick={() => handleOpenChange(true)}
         >
           {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />}
@@ -340,6 +343,12 @@ export default function FilterTags({
           /* Increase spacing between checkbox and label */
           .space-x-2 > :not([hidden]) ~ :not([hidden]) {
             margin-left: 12px;
+          }
+
+          /* Force disable hover on active filter buttons */
+          .bg-red-500:hover {
+            background-color: #ef4444 !important;
+            color: white !important;
           }
         `}</style>
       </div>
