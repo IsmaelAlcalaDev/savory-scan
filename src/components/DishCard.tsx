@@ -1,16 +1,10 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronDown, Scale } from 'lucide-react';
-import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
-import VariantSelector from './VariantSelector';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 
 interface DishCardProps {
   dish: Dish;
@@ -33,8 +27,7 @@ const allergenColorMap: Record<string, { color: string; label: string }> = {
 };
 
 export default function DishCard({ dish, restaurantId, onDishClick }: DishCardProps) {
-  const { addDishToOrder, openDinersModal, diners } = useOrderSimulator();
-  const [showDinerSelector, setShowDinerSelector] = useState(false);
+  const { addDishToOrder, diners } = useOrderSimulator();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
@@ -79,53 +72,20 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
       .filter(Boolean);
   };
 
-  const handleVariantSelect = (variantId: number | null) => {
-    // Si solo hay un comensal, añadir directamente
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Only for dishes without variants or with single variant
     if (diners.length === 1) {
-      addDishWithVariant(variantId, diners[0].id);
-      return;
+      addDishToOrder(dish, diners[0].id);
+    } else if (diners.length > 1) {
+      // If multiple diners, open modal to select diner
+      onDishClick?.(dish);
     }
-    
-    // Si hay múltiples comensales, mostrar selector
-    setShowDinerSelector(true);
-  };
-
-  const addDishWithVariant = (variantId: number | null, dinerId: string) => {
-    // Crear una copia del plato con la variante seleccionada
-    const dishToAdd = { ...dish };
-    if (variantId) {
-      const selectedVariant = dish.variants?.find(v => v.id === variantId);
-      if (selectedVariant) {
-        // Establecer la variante seleccionada como la única variante
-        dishToAdd.variants = [selectedVariant];
-      }
-    }
-    
-    addDishToOrder(dishToAdd, dinerId);
-  };
-
-  const handleDinerSelect = (dinerId: string, variantId?: number | null) => {
-    addDishWithVariant(variantId || null, dinerId);
-    setShowDinerSelector(false);
-  };
-
-  const handleManageDiners = () => {
-    setShowDinerSelector(false);
-    openDinersModal();
-  };
-
-  const handleQuickAdd = () => {
-    // Si no hay variantes, añadir directamente
-    if (!dish.variants || dish.variants.length <= 1) {
-      handleVariantSelect(dish.variants?.[0]?.id || null);
-      return;
-    }
-    
-    // Si hay variantes múltiples, no hacer nada (el usuario debe usar el botón de variantes)
   };
 
   const allergenCircles = getAllergenCircles();
-  const hasVariants = dish.variants && dish.variants.length > 1;
+  const hasMultipleVariants = dish.variants && dish.variants.length > 1;
+  const showQuickAddButton = !hasMultipleVariants;
 
   return (
     <div 
@@ -169,62 +129,9 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
             </div>
           </div>
 
-          {/* Middle Row - Diner Selector y Allergens */}
+          {/* Middle Row - Allergens */}
           <div className="flex items-center gap-2 mb-1">
-            {/* Diner Selector */}
-            {showDinerSelector && diners.length > 1 && (
-              <div className="flex-shrink-0">
-                <Popover open={showDinerSelector} onOpenChange={setShowDinerSelector}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-6 text-xs bg-background border-primary/50"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Seleccionar comensal
-                      <ChevronDown className="h-3 w-3 ml-1" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-48 p-2 z-50" align="start">
-                    <div className="space-y-1">
-                      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                        Asignar plato a:
-                      </div>
-                      {diners.map((diner) => (
-                        <Button
-                          key={diner.id}
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDinerSelect(diner.id);
-                          }}
-                          className="w-full justify-start h-7 text-xs"
-                        >
-                          {diner.name}
-                        </Button>
-                      ))}
-                      <hr className="my-1" />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleManageDiners();
-                        }}
-                        className="w-full justify-start h-7 text-xs text-primary"
-                      >
-                        Gestionar comensales
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
-
-            {/* Allergens */}
-            {!showDinerSelector && allergenCircles.length > 0 && (
+            {allergenCircles.length > 0 && (
               <div className="flex items-center gap-1.5">
                 {allergenCircles.map((allergen, index) => (
                   <div 
@@ -249,32 +156,20 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
                 savedFrom="menu_list"
               />
               
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleQuickAdd();
-                }}
-                className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
-                aria-label="Añadir al simulador"
-                disabled={hasVariants}
-                title={hasVariants ? "Usa el botón 'Ver tamaños' para seleccionar" : "Añadir al simulador"}
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </button>
+              {showQuickAddButton && (
+                <button
+                  onClick={handleQuickAdd}
+                  className="w-7 h-7 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center shadow-sm"
+                  aria-label="Añadir al simulador"
+                  title="Añadir al simulador"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Variant Selector Button - Debajo de la card */}
-      {hasVariants && (
-        <div className="mt-2 pl-23">
-          <VariantSelector
-            dish={dish}
-            onVariantSelect={handleVariantSelect}
-          />
-        </div>
-      )}
     </div>
   );
 }

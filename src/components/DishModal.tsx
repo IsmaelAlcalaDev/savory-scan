@@ -3,9 +3,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Leaf, Wheat, Milk, Heart, Flame, Clock, X } from 'lucide-react';
+import { Leaf, Wheat, Milk, Heart, Flame, Clock, X, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 import FavoriteButton from './FavoriteButton';
 import type { Dish } from '@/hooks/useRestaurantMenu';
+import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface DishModalProps {
   dish: Dish | null;
@@ -15,6 +22,10 @@ interface DishModalProps {
 }
 
 export default function DishModal({ dish, restaurantId, isOpen, onClose }: DishModalProps) {
+  const { addDishToOrder, diners, openDinersModal } = useOrderSimulator();
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
+  const [selectedDinerId, setSelectedDinerId] = useState<string | null>(null);
+
   if (!dish) return null;
 
   const getDietIcon = (dish: Dish) => {
@@ -40,6 +51,37 @@ export default function DishModal({ dish, restaurantId, isOpen, onClose }: DishM
       currency: 'EUR'
     }).format(price);
   };
+
+  const hasVariants = dish.variants && dish.variants.length > 1;
+  const defaultVariant = dish.variants?.find(v => v.is_default);
+  const selectedVariant = selectedVariantId 
+    ? dish.variants?.find(v => v.id === selectedVariantId)
+    : defaultVariant || dish.variants?.[0];
+
+  const handleAddToOrder = () => {
+    let targetDinerId = selectedDinerId;
+    
+    // If no diner selected and only one diner, use that one
+    if (!targetDinerId && diners.length === 1) {
+      targetDinerId = diners[0].id;
+    }
+    
+    // If still no diner selected, don't proceed
+    if (!targetDinerId) {
+      return;
+    }
+
+    // Create dish copy with selected variant
+    const dishToAdd = { ...dish };
+    if (selectedVariant) {
+      dishToAdd.variants = [selectedVariant];
+    }
+
+    addDishToOrder(dishToAdd, targetDinerId);
+    onClose();
+  };
+
+  const canAddToOrder = diners.length === 1 || selectedDinerId;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -121,16 +163,24 @@ export default function DishModal({ dish, restaurantId, isOpen, onClose }: DishM
 
           <Separator />
 
-          {/* Variants and Pricing */}
-          <div className="space-y-4">
-            <h3 className="font-semibold">Precios</h3>
-            {dish.variants && dish.variants.length > 0 ? (
-              <div className="space-y-3">
+          {/* Variant Selection */}
+          {hasVariants && (
+            <div className="space-y-4">
+              <h3 className="font-semibold">Selecciona el tamaño</h3>
+              <div className="space-y-2">
                 {dish.variants.map((variant) => (
-                  <div key={variant.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/20">
+                  <div 
+                    key={variant.id} 
+                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                      selectedVariantId === variant.id || (!selectedVariantId && variant.is_default)
+                        ? 'bg-primary/10 border-2 border-primary' 
+                        : 'bg-secondary/20 hover:bg-secondary/30 border-2 border-transparent'
+                    }`}
+                    onClick={() => setSelectedVariantId(variant.id)}
+                  >
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{variant.name}</span>
-                      {variant.is_default && (
+                      {variant.is_default && !selectedVariantId && (
                         <Badge variant="outline" className="text-xs">
                           Por defecto
                         </Badge>
@@ -142,15 +192,68 @@ export default function DishModal({ dish, restaurantId, isOpen, onClose }: DishM
                   </div>
                 ))}
               </div>
-            ) : (
+            </div>
+          )}
+
+          {/* Current Price Display */}
+          {!hasVariants && (
+            <div className="space-y-4">
+              <h3 className="font-semibold">Precio</h3>
               <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/20">
                 <span className="font-medium">Precio</span>
                 <span className="font-bold text-primary text-lg">
                   {formatPrice(dish.base_price)}
                 </span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          <Separator />
+
+          {/* Diner Selection (if multiple diners) */}
+          {diners.length > 1 && (
+            <div className="space-y-4">
+              <h3 className="font-semibold">Asignar a comensal</h3>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between"
+                  >
+                    {selectedDinerId 
+                      ? diners.find(d => d.id === selectedDinerId)?.name 
+                      : "Seleccionar comensal"
+                    }
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-2">
+                  <div className="space-y-1">
+                    {diners.map((diner) => (
+                      <Button
+                        key={diner.id}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedDinerId(diner.id)}
+                        className="w-full justify-start h-8"
+                      >
+                        {diner.name}
+                      </Button>
+                    ))}
+                    <hr className="my-1" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={openDinersModal}
+                      className="w-full justify-start h-8 text-primary"
+                    >
+                      Gestionar comensales
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex items-center justify-between pt-4 border-t">
@@ -161,8 +264,18 @@ export default function DishModal({ dish, restaurantId, isOpen, onClose }: DishM
               size="md"
             />
             
-            <Button size="lg" className="gap-2">
+            <Button 
+              size="lg" 
+              className="gap-2"
+              onClick={handleAddToOrder}
+              disabled={!canAddToOrder}
+            >
               Añadir al pedido
+              {selectedVariant && (
+                <span className="font-bold">
+                  {formatPrice(selectedVariant.price)}
+                </span>
+              )}
             </Button>
           </div>
         </div>
