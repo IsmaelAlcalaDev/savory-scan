@@ -1,3 +1,4 @@
+
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -5,18 +6,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Sheet,
   SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
 } from '@/components/ui/sheet';
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import SortFilter from './SortFilter';
 import DistanceFilter from './DistanceFilter';
@@ -87,6 +80,19 @@ export default function FilterTags({
     selectedTimeRanges.length > 0 ||
     isOpenNow;
 
+  const getFilterTitle = (filterKey: string) => {
+    switch (filterKey) {
+      case 'sort': return 'Ordenar';
+      case 'distance': return 'Distancia';
+      case 'price': return 'Precio';
+      case 'rating': return 'Valoración';
+      case 'establishment': return 'Tipo de Comercio';
+      case 'diet': return 'Dieta';
+      case 'schedule': return 'Horarios';
+      default: return 'Filtro';
+    }
+  };
+
   const getFilterContent = (filterKey: string) => {
     switch (filterKey) {
       case 'sort':
@@ -150,25 +156,35 @@ export default function FilterTags({
   };
 
   const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full">
+      {/* Title */}
+      <div className="text-center py-4 border-b">
+        <h3 className="text-lg font-semibold">{getFilterTitle(filterKey)}</h3>
+      </div>
+      
+      {/* Apply Button - Full Width */}
+      <div className="p-4 border-b">
+        <Button 
+          onClick={onApply}
+          className="w-full"
+        >
+          Aplicar filtros
+        </Button>
+      </div>
+      
       {/* Filter content */}
-      <div className="max-h-[60vh] overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-4">
         {getFilterContent(filterKey)}
       </div>
       
-      <div className="flex gap-3 pt-4">
+      {/* Reset Button - Bottom */}
+      <div className="p-4 border-t mt-auto">
         <Button 
           onClick={onReset}
           variant="outline" 
-          className="flex-1"
+          className="w-full"
         >
           Restablecer
-        </Button>
-        <Button 
-          onClick={onApply}
-          className="flex-1"
-        >
-          Aplicar filtros
         </Button>
       </div>
     </div>
@@ -199,17 +215,24 @@ export default function FilterTags({
     if (isMobile || isTablet) {
       return (
         <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
-          <SheetTrigger asChild>
-            {children}
-          </SheetTrigger>
-          <SheetContent side="bottom" className="h-[90vh]">
-            <div className="flex-1 overflow-y-auto py-4">
-              <FilterContent 
-                filterKey={filterKey}
-                onApply={() => setActiveFilterModal(null)} 
-                onReset={() => onClearFilter('all')} 
-              />
-            </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0"
+            style={{ 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
+            onClick={() => handleOpenChange(true)}
+          >
+            {filterTags.find(f => f.key === filterKey)?.label}
+          </Button>
+          <SheetContent side="bottom" className="h-[90vh] p-0">
+            <FilterContent 
+              filterKey={filterKey}
+              onApply={() => setActiveFilterModal(null)} 
+              onReset={() => onClearFilter('all')} 
+            />
           </SheetContent>
         </Sheet>
       );
@@ -217,10 +240,19 @@ export default function FilterTags({
 
     return (
       <Dialog open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
-        <DialogTrigger asChild>
-          {children}
-        </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0"
+          style={{ 
+            backgroundColor: '#F3F3F3',
+            color: '#4B4B4B'
+          }}
+          onClick={() => handleOpenChange(true)}
+        >
+          {filterTags.find(f => f.key === filterKey)?.label}
+        </Button>
+        <DialogContent className="max-w-2xl max-h-[80vh] p-0">
           <FilterContent 
             filterKey={filterKey}
             onApply={() => setActiveFilterModal(null)} 
@@ -236,19 +268,7 @@ export default function FilterTags({
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
         {/* Filter Tags */}
         {filterTags.map((filter) => (
-          <FilterTrigger key={filter.key} filterKey={filter.key}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0"
-              style={{ 
-                backgroundColor: '#F3F3F3',
-                color: '#4B4B4B'
-              }}
-            >
-              {filter.label}
-            </Button>
-          </FilterTrigger>
+          <FilterTrigger key={filter.key} filterKey={filter.key} />
         ))}
 
         {/* Separador */}
