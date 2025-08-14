@@ -151,19 +151,19 @@ export default function FilterTags({
   };
 
   const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Title */}
       <div className="text-center py-4">
         <h3 className="text-lg font-semibold">{getFilterTitle(filterKey)}</h3>
       </div>
       
       {/* Filter content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="p-4">
         {getFilterContent(filterKey)}
       </div>
       
       {/* Bottom buttons - Apply and Reset */}
-      <div className="p-4 mt-auto space-y-3">
+      <div className="p-4 space-y-3">
         <Button 
           onClick={onApply}
           className="w-full"
@@ -221,7 +221,7 @@ export default function FilterTags({
           className={`p-0 ${
             isMobile 
               ? 'h-[100vh] rounded-none' 
-              : 'h-[30vh] rounded-t-[20px] rounded-b-none'
+              : 'max-h-[80vh] rounded-t-[20px] rounded-b-none'
           }`}
         >
           <FilterContent 
