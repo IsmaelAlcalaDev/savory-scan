@@ -8,9 +8,7 @@ import {
   Users,
   TrendingUp,
   Clock,
-  MapPin,
-  Phone,
-  Mail
+  Phone
 } from 'lucide-react';
 
 interface RestaurantNavSectionProps {
@@ -30,7 +28,6 @@ export default function RestaurantNavSection({
     { id: 'fotos', label: 'Galería', icon: Images },
     { id: 'servicios', label: 'Servicios', icon: CheckCircle },
     { id: 'horarios', label: 'Horarios', icon: Clock },
-    { id: 'reservas', label: 'Reservas', icon: Users },
     ...(hasPromotions ? [
       { id: 'promociones', label: 'Promociones', icon: TrendingUp }
     ] : []),

@@ -257,7 +257,6 @@ export default function RestaurantProfile() {
                 address={restaurant.address}
                 latitude={restaurant.latitude}
                 longitude={restaurant.longitude}
-                onReservationClick={() => scrollToSection('reservas')}
               />
             </section>
 
@@ -309,19 +308,6 @@ export default function RestaurantProfile() {
                 <DeliveryLogosSection deliveryLinks={restaurant.delivery_links} />
               </section>
             )}
-
-            {/* Reservations Section */}
-            <section 
-              id="reservas"
-              ref={(el) => sectionsRef.current['reservas'] = el}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
-            >
-              <RestaurantPlatforms
-                category="booking"
-                title="Reserva Online"
-                restaurantLinks={restaurant.social_links || {}}
-              />
-            </section>
 
             {/* Promotions Section */}
             {restaurant.promotions && restaurant.promotions.length > 0 && (
