@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -21,7 +22,6 @@ export interface RestaurantProfile {
   favorites_count: number;
   favorites_count_week: number;
   favorites_count_month: number;
-  profile_views_count: number;
   establishment_type?: string;
   cuisine_types: string[];
   services: string[];
@@ -88,7 +88,6 @@ export const useRestaurantProfile = (slug: string) => {
             favorites_count,
             favorites_count_week,
             favorites_count_month,
-            profile_views_count,
             establishment_types!inner(name),
             restaurant_cuisines!inner(
               cuisine_types!inner(name)
@@ -112,15 +111,11 @@ export const useRestaurantProfile = (slug: string) => {
           throw new Error('Restaurante no encontrado');
         }
 
-        // Track profile view
-        try {
-          await supabase.rpc('track_profile_view', {
-            restaurant_id_param: restaurantData.id
-          });
-        } catch (trackError) {
-          console.error('Error tracking profile view:', trackError);
-          // Don't throw error here, just log it
-        }
+        console.log('Restaurant data fetched:', restaurantData);
+        console.log('Social links type:', typeof restaurantData.social_links);
+        console.log('Social links data:', restaurantData.social_links);
+        console.log('Delivery links type:', typeof restaurantData.delivery_links);
+        console.log('Delivery links data:', restaurantData.delivery_links);
 
         // Get schedules
         const { data: schedules, error: schedulesError } = await supabase
@@ -208,7 +203,6 @@ export const useRestaurantProfile = (slug: string) => {
           favorites_count: restaurantData.favorites_count || 0,
           favorites_count_week: restaurantData.favorites_count_week || 0,
           favorites_count_month: restaurantData.favorites_count_month || 0,
-          profile_views_count: restaurantData.profile_views_count || 0,
           establishment_type: restaurantData.establishment_types?.name,
           cuisine_types: restaurantData.restaurant_cuisines?.map((rc: any) => rc.cuisine_types?.name).filter(Boolean) || [],
           services: restaurantData.restaurant_services?.map((rs: any) => rs.services?.name).filter(Boolean) || [],

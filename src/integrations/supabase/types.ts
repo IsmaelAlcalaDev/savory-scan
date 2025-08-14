@@ -2114,10 +2114,6 @@ export type Database = {
           menu_views: number | null
           metric_date: string
           profile_views: number | null
-          profile_views_month: number | null
-          profile_views_today: number | null
-          profile_views_total: number | null
-          profile_views_week: number | null
           restaurant_id: number
           saves_count: number | null
           shares_count: number | null
@@ -2136,10 +2132,6 @@ export type Database = {
           menu_views?: number | null
           metric_date: string
           profile_views?: number | null
-          profile_views_month?: number | null
-          profile_views_today?: number | null
-          profile_views_total?: number | null
-          profile_views_week?: number | null
           restaurant_id: number
           saves_count?: number | null
           shares_count?: number | null
@@ -2158,10 +2150,6 @@ export type Database = {
           menu_views?: number | null
           metric_date?: string
           profile_views?: number | null
-          profile_views_month?: number | null
-          profile_views_today?: number | null
-          profile_views_total?: number | null
-          profile_views_week?: number | null
           restaurant_id?: number
           saves_count?: number | null
           shares_count?: number | null
@@ -2516,7 +2504,6 @@ export type Database = {
           phone: string | null
           postal_code: string | null
           price_range: Database["public"]["Enums"]["price_range"] | null
-          profile_views_count: number | null
           published_at: string | null
           reservation_link: string | null
           slug: string
@@ -2572,7 +2559,6 @@ export type Database = {
           phone?: string | null
           postal_code?: string | null
           price_range?: Database["public"]["Enums"]["price_range"] | null
-          profile_views_count?: number | null
           published_at?: string | null
           reservation_link?: string | null
           slug: string
@@ -2628,7 +2614,6 @@ export type Database = {
           phone?: string | null
           postal_code?: string | null
           price_range?: Database["public"]["Enums"]["price_range"] | null
-          profile_views_count?: number | null
           published_at?: string | null
           reservation_link?: string | null
           slug?: string
@@ -4619,10 +4604,6 @@ export type Database = {
       }
     }
     Functions: {
-      track_profile_view: {
-        Args: { restaurant_id_param: number }
-        Returns: undefined
-      }
       unaccent: {
         Args: { "": string }
         Returns: string
