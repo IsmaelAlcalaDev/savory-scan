@@ -10,6 +10,7 @@ interface DesktopHeaderProps {
   currentLocationName: string;
   isLoadingLocation: boolean;
   searchQuery: string;
+  searchPlaceholder: string;
   isSearchFocused: boolean;
   onLogoClick: () => void;
   onLocationClick: () => void;
@@ -25,6 +26,7 @@ export default function DesktopHeader({
   currentLocationName,
   isLoadingLocation,
   searchQuery,
+  searchPlaceholder,
   isSearchFocused,
   onLogoClick,
   onLocationClick,
@@ -70,12 +72,12 @@ export default function DesktopHeader({
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{ color: '#4B4B4B' }} />
             <Input
               type="text"
-              placeholder="Buscar restaurantes, platos..."
+              placeholder={searchPlaceholder}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               onFocus={onSearchFocus}
               onBlur={onSearchBlur}
-              className="pl-10 pr-4 h-10 text-base rounded-full border-0"
+              className="pl-10 pr-4 h-10 text-base rounded-full border-0 placeholder:text-[#4B4B4B]"
               style={{ 
                 backgroundColor: '#F3F3F3',
                 color: '#4B4B4B'

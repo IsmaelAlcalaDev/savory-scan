@@ -238,6 +238,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     setAccountModalOpen(true);
   };
 
+  // Get dynamic placeholder based on active tab
+  const getSearchPlaceholder = () => {
+    return activeBottomTab === 'dishes' ? 'Buscar platos...' : 'Buscar restaurantes...';
+  };
+
   // Determine which header to show based on screen size
   const renderHeader = () => {
     if (isMobile) {
@@ -260,6 +265,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           currentLocationName={currentLocationName}
           isLoadingLocation={isLoadingLocation}
           searchQuery={searchQuery}
+          searchPlaceholder={getSearchPlaceholder()}
           isSearchFocused={isSearchFocused}
           onLogoClick={() => navigate('/restaurantes')}
           onLocationClick={() => setLocationModalOpen(true)}
@@ -277,6 +283,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           currentLocationName={currentLocationName}
           isLoadingLocation={isLoadingLocation}
           searchQuery={searchQuery}
+          searchPlaceholder={getSearchPlaceholder()}
           isSearchFocused={isSearchFocused}
           onLogoClick={() => navigate('/restaurantes')}
           onLocationClick={() => setLocationModalOpen(true)}
@@ -305,7 +312,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           {/* Results Header with Dynamic Title */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-semibold mb-1">
+              <h2 className="text-lg font-semibold mb-1">
                 {dishesLoading ? 'Cargando platos...' : getDynamicTitle()}
               </h2>
               {dishesError && (
@@ -379,7 +386,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         {/* Results Header with Dynamic Title */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold mb-1">
+            <h2 className="text-lg font-semibold mb-1">
               {restaurantsLoading ? 'Cargando restaurantes...' : getDynamicTitle()}
             </h2>
             {restaurantsError && (
@@ -464,12 +471,12 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
         {/* Search bar for mobile - Full width below cuisine types */}
         {isMobile && (
-          <div className="px-4 pb-4">
+          <div className="pb-4">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{ color: '#4B4B4B' }} />
               <input
                 type="text"
-                placeholder="Buscar restaurantes, platos..."
+                placeholder={getSearchPlaceholder()}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
@@ -477,9 +484,15 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                 className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0"
                 style={{ 
                   backgroundColor: '#F3F3F3',
-                  color: '#4B4B4B'
-                }}
+                  color: '#4B4B4B',
+                  '--placeholder-color': '#4B4B4B'
+                } as any}
               />
+              <style jsx>{`
+                input::placeholder {
+                  color: #4B4B4B;
+                }
+              `}</style>
             </div>
           </div>
         )}
