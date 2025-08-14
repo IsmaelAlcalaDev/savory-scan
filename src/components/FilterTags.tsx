@@ -6,10 +6,6 @@ import {
   Sheet,
   SheetContent,
 } from '@/components/ui/sheet';
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
 import SortFilter from './SortFilter';
 import DistanceFilter from './DistanceFilter';
 import PriceFilter from './PriceFilter';
@@ -211,34 +207,8 @@ export default function FilterTags({
       setActiveFilterModal(open ? filterKey : null);
     };
 
-    if (isMobile || isTablet) {
-      return (
-        <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0"
-            style={{ 
-              backgroundColor: '#F3F3F3',
-              color: '#4B4B4B'
-            }}
-            onClick={() => handleOpenChange(true)}
-          >
-            {children}
-          </Button>
-          <SheetContent side="bottom" className="h-[90vh] p-0">
-            <FilterContent 
-              filterKey={filterKey}
-              onApply={() => setActiveFilterModal(null)} 
-              onReset={() => onClearFilter('all')} 
-            />
-          </SheetContent>
-        </Sheet>
-      );
-    }
-
     return (
-      <Dialog open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
+      <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
         <Button
           variant="outline"
           size="sm"
@@ -251,14 +221,21 @@ export default function FilterTags({
         >
           {children}
         </Button>
-        <DialogContent className="max-w-2xl max-h-[80vh] p-0">
+        <SheetContent 
+          side="bottom" 
+          className={`p-0 ${
+            isMobile 
+              ? 'h-[100vh] rounded-none' 
+              : 'h-[30vh] rounded-t-[20px] rounded-b-none'
+          }`}
+        >
           <FilterContent 
             filterKey={filterKey}
             onApply={() => setActiveFilterModal(null)} 
             onReset={() => onClearFilter('all')} 
           />
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     );
   };
 
