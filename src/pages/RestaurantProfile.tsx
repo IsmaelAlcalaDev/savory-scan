@@ -150,16 +150,18 @@ export default function RestaurantProfile() {
   const getAllImages = () => {
     const images = [];
     
+    // Always add cover image first if it exists
+    if (restaurant?.cover_image_url) {
+      images.push(restaurant.cover_image_url);
+    }
+    
+    // Then add gallery images
     if (restaurant?.gallery && restaurant.gallery.length > 0) {
       restaurant.gallery.forEach(item => {
-        if (item.image_url) {
+        if (item.image_url && item.image_url !== restaurant?.cover_image_url) {
           images.push(item.image_url);
         }
       });
-    }
-    
-    if (restaurant?.cover_image_url && images.length === 0) {
-      images.push(restaurant.cover_image_url);
     }
     
     return images;
@@ -170,7 +172,7 @@ export default function RestaurantProfile() {
     if (allImages.length > 0) {
       return allImages[currentImageIndex] || allImages[0];
     }
-    return restaurant?.cover_image_url || '/placeholder.svg';
+    return '/placeholder.svg';
   };
 
   const totalImages = getAllImages().length;
@@ -279,15 +281,17 @@ export default function RestaurantProfile() {
 
       <div className="min-h-screen bg-background">
         <div ref={heroRef} className="relative h-96 overflow-hidden">
-          <img 
-            key={`${restaurant.id}-${currentImageIndex}`}
-            src={currentImage} 
-            alt={restaurant.name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.currentTarget.src = '/placeholder.svg';
-            }}
-          />
+          {currentImage && (
+            <img 
+              key={`${restaurant.id}-${currentImageIndex}`}
+              src={currentImage} 
+              alt={restaurant.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder.svg';
+              }}
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
           
           <Button
