@@ -1,6 +1,7 @@
 
 import { usePlatformConfigs } from '@/hooks/usePlatformConfigs';
 import { Truck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface DeliveryLogosSectionProps {
   deliveryLinks?: Record<string, string>;
@@ -28,35 +29,33 @@ export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLog
         <Truck className="h-4 w-4 text-primary" />
         Delivery
       </h3>
-      <div className="flex flex-wrap items-center justify-start gap-8">
+      <div className="flex flex-wrap items-center justify-start gap-4">
         {availablePlatforms.map((platform) => {
           const url = deliveryLinks[platform.platform_key];
           
           return (
-            <a
+            <Button
               key={platform.id}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-shrink-0 hover:opacity-80 transition-all duration-300 hover:scale-110 transform p-3 bg-white rounded-xl shadow-soft hover:shadow-card border border-gray-100"
-              title={`Pedir en ${platform.platform_name}`}
+              size="lg"
+              variant="outline"
+              className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+              onClick={() => window.open(url, '_blank', 'noopener noreferrer')}
             >
               {platform.icon ? (
                 <img 
                   src={platform.icon}
                   alt={platform.platform_name}
-                  className="h-20 w-20 object-contain"
+                  className="h-8 w-8 object-contain"
                   onError={(e) => {
                     console.error('Error loading logo for:', platform.platform_name);
                     e.currentTarget.style.display = 'none';
                   }}
                 />
               ) : (
-                <div className="h-20 w-20 bg-gradient-to-br from-primary/10 to-primary/20 rounded-lg flex items-center justify-center">
-                  <Truck className="h-10 w-10 text-primary" />
-                </div>
+                <Truck className="h-8 w-8 text-red-600" />
               )}
-            </a>
+              <span className="text-red-600 font-medium">{platform.platform_name}</span>
+            </Button>
           );
         })}
       </div>
