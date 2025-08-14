@@ -1,4 +1,3 @@
-
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -225,7 +224,7 @@ export default function FilterTags({
             }}
             onClick={() => handleOpenChange(true)}
           >
-            {filterTags.find(f => f.key === filterKey)?.label}
+            {children}
           </Button>
           <SheetContent side="bottom" className="h-[90vh] p-0">
             <FilterContent 
@@ -250,7 +249,7 @@ export default function FilterTags({
           }}
           onClick={() => handleOpenChange(true)}
         >
-          {filterTags.find(f => f.key === filterKey)?.label}
+          {children}
         </Button>
         <DialogContent className="max-w-2xl max-h-[80vh] p-0">
           <FilterContent 
@@ -268,7 +267,9 @@ export default function FilterTags({
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
         {/* Filter Tags */}
         {filterTags.map((filter) => (
-          <FilterTrigger key={filter.key} filterKey={filter.key} />
+          <FilterTrigger key={filter.key} filterKey={filter.key}>
+            {filter.label}
+          </FilterTrigger>
         ))}
 
         {/* Separador */}
