@@ -218,8 +218,7 @@ export default function FilterTags({
         </Button>
         <Button 
           onClick={onReset}
-          variant="ghost"
-          className="w-full bg-transparent border-0 hover:bg-gray-50"
+          className="w-full bg-black text-white hover:bg-gray-800 rounded-full"
         >
           Restablecer
         </Button>
