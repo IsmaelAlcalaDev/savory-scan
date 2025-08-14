@@ -11,14 +11,16 @@ import RestaurantSocialSection from '@/components/RestaurantSocialSection';
 import DeliveryPlatformsSection from '@/components/DeliveryPlatformsSection';
 import RestaurantGallery from '@/components/RestaurantGallery';
 import CompactRestaurantPromotions from '@/components/CompactRestaurantPromotions';
-import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import FavoriteButton from '@/components/FavoriteButton';
 import QuickActionTags from '@/components/QuickActionTags';
+import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
+import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 
 const RestaurantProfile = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
+  const { sections: menuSections, loading: menuLoading } = useRestaurantMenu(restaurant?.id || 0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
 
@@ -300,10 +302,10 @@ const RestaurantProfile = () => {
             <QuickActionTags 
               phone={restaurant.phone}
               website={restaurant.website}
+              email={restaurant.email}
               address={restaurant.address}
               latitude={restaurant.latitude}
               longitude={restaurant.longitude}
-              deliveryLinks={restaurant.delivery_links}
             />
           </div>
 
@@ -319,13 +321,22 @@ const RestaurantProfile = () => {
             </div>
           )}
 
-          <div className="px-6">
-            <RestaurantMenuSection restaurantId={restaurant.id} />
-          </div>
+          {menuSections && menuSections.length > 0 && (
+            <div className="px-6 space-y-6">
+              <h2 className="text-2xl font-bold text-foreground">Menú</h2>
+              {menuSections.map((section) => (
+                <RestaurantMenuSection
+                  key={section.id}
+                  section={section}
+                  restaurantId={restaurant.id}
+                />
+              ))}
+            </div>
+          )}
 
           {restaurant.gallery && restaurant.gallery.length > 1 && (
             <div className="px-6">
-              <RestaurantGallery images={restaurant.gallery} restaurantName={restaurant.name} />
+              <RestaurantGallery gallery={restaurant.gallery} restaurantName={restaurant.name} />
             </div>
           )}
 
