@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Leaf, Wheat, Milk, Heart, Flame, Clock, Plus } from 'lucide-react';
-import FavoriteButton from './FavoriteButton';
+import DishFavoriteButton from './DishFavoriteButton';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 
 interface DishCardProps {
@@ -77,8 +77,8 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
         )}
 
         <div className="absolute top-2 right-2">
-          <FavoriteButton
-            restaurantId={restaurantId}
+          <DishFavoriteButton
+            dishId={dish.id}
             favoritesCount={dish.favorites_count}
             savedFrom="dish_card"
             size="sm"
