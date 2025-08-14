@@ -41,7 +41,7 @@ export default function QuickActionTags({
         <Button
           size="lg"
           variant="outline"
-          className="px-6 py-4 h-auto bg-red-50 rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
           onClick={() => window.open(`tel:${phone}`)}
         >
           <Phone className="h-5 w-5 text-red-600" />
@@ -52,7 +52,7 @@ export default function QuickActionTags({
       <Button
         size="lg"
         variant="outline"
-        className="px-6 py-4 h-auto bg-red-50 rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+        className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
         onClick={handleNavigationClick}
       >
         <Navigation className="h-5 w-5 text-red-600" />
@@ -63,7 +63,7 @@ export default function QuickActionTags({
         <Button
           size="lg"
           variant="outline"
-          className="px-6 py-4 h-auto bg-red-50 rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
           onClick={() => window.open(website, '_blank', 'noopener noreferrer')}
         >
           <Globe className="h-5 w-5 text-red-600" />
@@ -75,7 +75,7 @@ export default function QuickActionTags({
         <Button
           size="lg"
           variant="outline"
-          className="px-6 py-4 h-auto bg-red-50 rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+          className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
           onClick={() => window.open(`mailto:${email}`)}
         >
           <Mail className="h-5 w-5 text-red-600" />
@@ -86,7 +86,7 @@ export default function QuickActionTags({
       <Button
         size="lg"
         variant="outline"
-        className="px-6 py-4 h-auto bg-red-50 rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+        className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
         onClick={onReservationClick}
       >
         <Calendar className="h-5 w-5 text-red-600" />
