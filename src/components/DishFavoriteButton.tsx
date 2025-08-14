@@ -6,6 +6,7 @@ import { useDishFavorites } from '@/contexts/DishFavoritesContext';
 
 interface DishFavoriteButtonProps {
   dishId: number;
+  restaurantId: number;
   favoritesCount: number;
   savedFrom?: string;
   size?: 'sm' | 'md' | 'lg';
@@ -16,6 +17,7 @@ interface DishFavoriteButtonProps {
 
 export default function DishFavoriteButton({
   dishId,
+  restaurantId,
   favoritesCount,
   savedFrom = 'button',
   size = 'md',
@@ -42,8 +44,8 @@ export default function DishFavoriteButton({
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
 
-    // Call toggle; do not touch local counts here
-    await toggleDishFavorite(dishId, savedFrom, handleLoginRequired);
+    // Call toggle with restaurant ID
+    await toggleDishFavorite(dishId, restaurantId, savedFrom, handleLoginRequired);
   };
 
   const liked = isDishFavorite(dishId);

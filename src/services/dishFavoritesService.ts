@@ -15,6 +15,7 @@ export class DishFavoritesService {
    */
   static async toggleDishFavorite(
     dishId: number,
+    restaurantId: number,
     savedFrom: string = 'button'
   ): Promise<DishFavoriteToggleResult> {
     try {
@@ -49,6 +50,7 @@ export class DishFavoritesService {
           .insert({
             user_id: userId,
             dish_id: dishId,
+            restaurant_id: restaurantId,
             is_active: true,
             saved_from: savedFrom,
             saved_at: new Date().toISOString()

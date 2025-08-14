@@ -13,6 +13,7 @@ interface AllDishCardProps {
   categoryName?: string;
   restaurantName: string;
   restaurantSlug: string;
+  restaurantId: number;
   restaurantRating?: number;
   distance?: number;
   formattedPrice: string;
@@ -30,6 +31,7 @@ export default function AllDishCard({
   categoryName,
   restaurantName,
   restaurantSlug,
+  restaurantId,
   restaurantRating,
   distance,
   formattedPrice,
@@ -90,6 +92,7 @@ export default function AllDishCard({
           <div className="absolute bottom-2 right-2 z-20">
             <DishFavoriteButton
               dishId={id}
+              restaurantId={restaurantId}
               favoritesCount={0}
               size="sm"
               className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
@@ -163,6 +166,7 @@ export default function AllDishCard({
         <div className="absolute bottom-3 right-3 z-20">
           <DishFavoriteButton
             dishId={id}
+            restaurantId={restaurantId}
             favoritesCount={0}
             size="md"
             className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"

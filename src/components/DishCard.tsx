@@ -81,6 +81,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
         <div className="absolute top-2 right-2 z-20">
           <DishFavoriteButton
             dishId={dish.id}
+            restaurantId={restaurantId}
             favoritesCount={dish.favorites_count}
             size="sm"
             className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"

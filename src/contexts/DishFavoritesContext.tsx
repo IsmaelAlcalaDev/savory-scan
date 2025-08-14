@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +9,7 @@ import { DishFavoritesService } from '@/services/dishFavoritesService';
 interface DishFavoritesContextType {
   isDishFavorite: (dishId: number) => boolean;
   isToggling: (dishId: number) => boolean;
-  toggleDishFavorite: (dishId: number, savedFrom?: string, openLoginModal?: () => void) => Promise<boolean>;
+  toggleDishFavorite: (dishId: number, restaurantId: number, savedFrom?: string, openLoginModal?: () => void) => Promise<boolean>;
   setDishFavoriteState: (dishId: number, isFavorite: boolean) => void;
   refreshDishFavorites: () => Promise<void>;
   dishFavoritesCount: number;
@@ -156,11 +157,12 @@ export const DishFavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const toggleDishFavorite = async (
-    dishId: number, 
+    dishId: number,
+    restaurantId: number,
     savedFrom: string = 'toggle',
     openLoginModal?: () => void
   ): Promise<boolean> => {
-    console.log('DishFavoritesProvider: Toggle dish favorite called for dish', dishId);
+    console.log('DishFavoritesProvider: Toggle dish favorite called for dish', dishId, 'restaurant', restaurantId);
     
     // Check authentication
     if (!user) {
@@ -195,7 +197,7 @@ export const DishFavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       console.log('DishFavoritesProvider: Calling DishFavoritesService.toggleDishFavorite');
       
-      const result = await DishFavoritesService.toggleDishFavorite(dishId, savedFrom);
+      const result = await DishFavoritesService.toggleDishFavorite(dishId, restaurantId, savedFrom);
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to toggle dish favorite');
@@ -208,7 +210,8 @@ export const DishFavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
         await logSecurityEvent('dish_favorite_toggled', 'dish', String(dishId), {
           newState: result.isFavorite,
           previousState: currentState,
-          savedFrom
+          savedFrom,
+          restaurantId
         });
       } catch (error) {
         console.error('DishFavoritesProvider: Error logging security event:', error);
@@ -224,7 +227,8 @@ export const DishFavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
           error: error?.message,
           userId: user.id,
           currentState,
-          savedFrom
+          savedFrom,
+          restaurantId
         });
       } catch (logError) {
         console.error('DishFavoritesProvider: Error logging security event:', logError);
