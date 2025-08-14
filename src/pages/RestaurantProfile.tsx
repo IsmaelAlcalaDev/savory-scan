@@ -1,191 +1,68 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Star, 
-  MapPin, 
-  Share2,
-  ChevronLeft,
-  ChevronRight,
-  Heart,
-  Users,
-  TrendingUp,
-  ArrowLeft,
-  Utensils,
-  Images,
-  Info,
-  Clock,
-  CheckCircle,
-} from 'lucide-react';
+import { ArrowLeft, Share2, Star, MapPin, Eye } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
-import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
-import { useIsMobile } from '@/hooks/use-mobile';
-import FavoriteButton from '@/components/FavoriteButton';
-import DishModal from '@/components/DishModal';
-import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
-import RestaurantPlatforms from '@/components/RestaurantPlatforms';
-import CompactRestaurantSchedule from '@/components/CompactRestaurantSchedule';
-import QuickActionTags from '@/components/QuickActionTags';
-import CompactRestaurantEvents from '@/components/CompactRestaurantEvents';
-import CompactRestaurantPromotions from '@/components/CompactRestaurantPromotions';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import RestaurantSocialSection from '@/components/RestaurantSocialSection';
-import RestaurantServicesList from '@/components/RestaurantServicesList';
-import RestaurantDeliveryLinks from '@/components/RestaurantDeliveryLinks';
+import { toast } from '@/hooks/use-toast';
+import { RestaurantSchedule } from '@/components/RestaurantSchedule';
+import { RestaurantSocialSection } from '@/components/RestaurantSocialSection';
+import { DeliveryPlatformsSection } from '@/components/DeliveryPlatformsSection';
+import { RestaurantGallery } from '@/components/RestaurantGallery';
+import { CompactRestaurantPromotions } from '@/components/CompactRestaurantPromotions';
+import { RestaurantMenuSection } from '@/components/RestaurantMenuSection';
+import { FavoriteButton } from '@/components/FavoriteButton';
+import { QuickActionTags } from '@/components/QuickActionTags';
 
-export default function RestaurantProfile() {
+const RestaurantProfile = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
-  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
-  const [isDishModalOpen, setIsDishModalOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [activeSection, setActiveSection] = useState('servicios');
-  const [isHeaderFixed, setIsHeaderFixed] = useState(false);
-
-  const headerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
-  const sectionsRef = useRef<{ [key: string]: HTMLElement | null }>({});
-
-  const menuSections = [
-    { id: 'fotos', label: 'Fotos', icon: Images, action: () => setIsGalleryOpen(true) },
-    { id: 'servicios', label: 'Servicios', icon: CheckCircle },
-    { id: 'reservas', label: 'Reservas', icon: Users },
-    ...(restaurant?.promotions && restaurant.promotions.length > 0 ? [
-      { id: 'promociones', label: 'Promociones', icon: TrendingUp }
-    ] : []),
-    { id: 'eventos', label: 'Eventos', icon: Users },
-  ];
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (headerRef.current && heroRef.current) {
-        const heroHeight = heroRef.current.offsetHeight;
-        const scrollTop = window.scrollY;
-        
-        const shouldBeFixed = scrollTop > heroHeight - 100;
-        
-        if (shouldBeFixed !== isHeaderFixed) {
-          setIsHeaderFixed(shouldBeFixed);
-        }
-
-        const sectionPositions = Object.entries(sectionsRef.current)
-          .filter(([_, element]) => element !== null)
-          .map(([id, element]) => ({
-            id,
-            top: element ? element.offsetTop - 200 : 0
-          }))
-          .sort((a, b) => a.top - b.top);
-
-        const currentSection = sectionPositions
-          .reverse()
-          .find(section => scrollTop >= section.top);
-
-        if (currentSection && currentSection.id !== activeSection) {
-          setActiveSection(currentSection.id);
-        }
+    const interval = setInterval(() => {
+      if (totalImages > 1) {
+        setCurrentImageIndex((prev) => (prev + 1) % totalImages);
       }
-    };
+    }, 5000);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeSection, isHeaderFixed]);
-
-  const scrollToSection = (sectionId: string) => {
-    const element = sectionsRef.current[sectionId];
-    if (element) {
-      const headerHeight = isHeaderFixed ? 100 : 0;
-      const elementPosition = element.offsetTop - headerHeight - 20;
-      window.scrollTo({
-        top: elementPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const handleSectionClick = (section: typeof menuSections[0]) => {
-    if (section.action) {
-      section.action();
-    } else {
-      scrollToSection(section.id);
-    }
-  };
-
-  const handleDishClick = (dish: Dish) => {
-    setSelectedDish(dish);
-    setIsDishModalOpen(true);
-  };
-
-  const closeDishModal = () => {
-    setIsDishModalOpen(false);
-    setSelectedDish(null);
-  };
-
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: restaurant?.name,
-        text: `Descubre ${restaurant?.name} en SavorySearch`,
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-    }
-  };
+    return () => clearInterval(interval);
+  }, [totalImages]);
 
   const handleGoBack = () => {
-    navigate('/restaurantes');
+    navigate(-1);
   };
 
-  const handleViewMenu = () => {
-    navigate(`/carta-${restaurant?.slug}`);
-  };
+  const handleShare = async () => {
+    if (!restaurant) return;
 
-  const getAllImages = () => {
-    const images = [];
-    
-    // Always add cover image first if it exists
-    if (restaurant?.cover_image_url) {
-      images.push(restaurant.cover_image_url);
-    }
-    
-    // Then add gallery images
-    if (restaurant?.gallery && restaurant.gallery.length > 0) {
-      restaurant.gallery.forEach(item => {
-        if (item.image_url && item.image_url !== restaurant?.cover_image_url) {
-          images.push(item.image_url);
-        }
-      });
-    }
-    
-    return images;
-  };
-
-  const getCurrentImage = () => {
-    const allImages = getAllImages();
-    if (allImages.length > 0) {
-      return allImages[currentImageIndex] || allImages[0];
-    }
-    return '/placeholder.svg';
-  };
-
-  const totalImages = getAllImages().length;
-
-  const nextImage = () => {
-    if (totalImages > 1) {
-      setCurrentImageIndex(prev => prev >= totalImages - 1 ? 0 : prev + 1);
-    }
-  };
-
-  const prevImage = () => {
-    if (totalImages > 1) {
-      setCurrentImageIndex(prev => prev <= 0 ? totalImages - 1 : prev - 1);
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: restaurant.name,
+          text: `Descubre ${restaurant.name} en FoodieSpot`,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Enlace copiado",
+          description: "El enlace se ha copiado al portapapeles"
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo copiar el enlace",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -193,29 +70,12 @@ export default function RestaurantProfile() {
     setCurrentImageIndex(index);
   };
 
-  useEffect(() => {
-    if (totalImages <= 1) return;
-    
-    const interval = setInterval(() => {
-      setCurrentImageIndex(prev => prev >= totalImages - 1 ? 0 : prev + 1);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [totalImages, restaurant?.id]);
-
-  useEffect(() => {
-    setCurrentImageIndex(0);
-  }, [restaurant?.id]);
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="h-80 bg-muted animate-pulse" />
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="space-y-6">
-            <Skeleton className="h-8 w-1/2" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando restaurante...</p>
         </div>
       </div>
     );
@@ -223,60 +83,41 @@ export default function RestaurantProfile() {
 
   if (error || !restaurant) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Restaurante no encontrado</h1>
-          </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-2">Restaurante no encontrado</h1>
+          <p className="text-muted-foreground mb-4">{error || 'El restaurante que buscas no existe'}</p>
+          <Button onClick={handleGoBack}>
+            Volver atrás
+          </Button>
         </div>
       </div>
     );
   }
 
-  const getPriceRangeText = (priceRange: string) => {
-    switch (priceRange) {
-      case '€': return 'Económico';
-      case '€€': return 'Moderado';
-      case '€€€': return 'Caro';
-      case '€€€€': return 'Muy caro';
-      default: return priceRange;
-    }
-  };
+  const images = restaurant.gallery?.length > 0 
+    ? restaurant.gallery.map(img => img.image_url)
+    : restaurant.cover_image_url 
+    ? [restaurant.cover_image_url]
+    : [];
+  
+  const totalImages = images.length;
+  const currentImage = images[currentImageIndex];
 
-  const currentImage = getCurrentImage();
-  const allImages = getAllImages();
+  const formatViewsCount = (count: number) => {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`;
+    } else if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`;
+    }
+    return count.toString();
+  };
 
   return (
     <>
       <Helmet>
-        <title>{restaurant.name} | Restaurante en {restaurant.address}</title>
-        <meta name="description" content={`Descubre ${restaurant.name}, ${restaurant.establishment_type} especializado en ${restaurant.cuisine_types.join(', ')}. Reserva ahora y disfruta de una experiencia gastronómica única.`} />
-        <meta name="keywords" content={`${restaurant.name}, restaurante, ${restaurant.cuisine_types.join(', ')}, ${restaurant.establishment_type}`} />
-        <link rel="canonical" href={`https://savorysearch.com/restaurant/${restaurant.slug}`} />
-
-        <meta property="og:title" content={`${restaurant.name} | SavorySearch`} />
-        <meta property="og:description" content={`Restaurante ${restaurant.name} - ${restaurant.establishment_type}`} />
-        <meta property="og:image" content={currentImage || '/og-default.jpg'} />
-        <meta property="og:url" content={`https://savorysearch.com/restaurant/${restaurant.slug}`} />
-        <meta property="og:type" content="restaurant" />
-
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Restaurant",
-            "name": restaurant.name,
-            "address": restaurant.address,
-            "telephone": restaurant.phone,
-            "url": restaurant.website,
-            "priceRange": restaurant.price_range,
-            "servesCuisine": restaurant.cuisine_types,
-            "aggregateRating": restaurant.google_rating ? {
-              "@type": "AggregateRating",
-              "ratingValue": restaurant.google_rating,
-              "reviewCount": restaurant.google_rating_count
-            } : undefined
-          })}
-        </script>
+        <title>{restaurant.name} - FoodieSpot</title>
+        <meta name="description" content={`Descubre ${restaurant.name} en ${restaurant.address}. ${restaurant.cuisine_types.join(', ')}.`} />
       </Helmet>
 
       <div className="min-h-screen bg-background">
@@ -288,11 +129,13 @@ export default function RestaurantProfile() {
               alt={restaurant.name}
               className="w-full h-full object-cover"
               onError={(e) => {
-                e.currentTarget.src = '/placeholder.svg';
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
               }}
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           
           <Button
             onClick={handleGoBack}
@@ -337,57 +180,50 @@ export default function RestaurantProfile() {
           )}
 
           {/* Desktop: Information over image */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 hidden md:block">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex items-end justify-between mb-6">
-                <div className="flex items-center gap-4 flex-1">
-                  {restaurant.logo_url && (
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-2xl flex-shrink-0 backdrop-blur-sm">
-                      <img 
-                        src={restaurant.logo_url} 
-                        alt={`${restaurant.name} logo`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  <div className="flex-1">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white drop-shadow-2xl">
-                      {restaurant.name}
-                    </h1>
-                    
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                        {getPriceRangeText(restaurant.price_range)}
-                      </Badge>
-                      {restaurant.establishment_type && (
-                        <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                          {restaurant.establishment_type}
-                        </Badge>
-                      )}
+          <div className="hidden md:block absolute bottom-0 left-0 right-0 p-8">
+            <div className="flex items-end justify-between">
+              <div className="flex items-center gap-6">
+                {restaurant.logo_url && (
+                  <div className="flex-shrink-0">
+                    <img 
+                      src={restaurant.logo_url} 
+                      alt={`${restaurant.name} logo`}
+                      className="w-20 h-20 rounded-2xl object-cover bg-white/10 backdrop-blur-sm border border-white/20"
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-3">
+                  <div>
+                    <h1 className="text-4xl font-bold text-white mb-2">{restaurant.name}</h1>
+                    <div className="flex flex-wrap gap-2">
                       {restaurant.cuisine_types.map((cuisine, index) => (
-                        <Badge key={index} variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                        <Badge key={index} variant="secondary" className="bg-white/20 text-white border-white/30">
                           {cuisine}
                         </Badge>
                       ))}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-white/90">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        <span className="drop-shadow">{restaurant.address}</span>
-                      </div>
-                      {restaurant.google_rating && (
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-medium drop-shadow">
-                            {restaurant.google_rating}
-                            {restaurant.google_rating_count && (
-                              <span className="text-xs ml-1">({restaurant.google_rating_count})</span>
-                            )}
-                          </span>
-                        </div>
+                      {restaurant.establishment_type && (
+                        <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                          {restaurant.establishment_type}
+                        </Badge>
                       )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-6 text-white">
+                    {restaurant.google_rating && (
+                      <div className="flex items-center gap-2">
+                        <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                        <span className="font-semibold">{restaurant.google_rating}</span>
+                        {restaurant.google_rating_count && (
+                          <span className="text-white/80">({restaurant.google_rating_count})</span>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      <span className="text-sm">{restaurant.address}</span>
                     </div>
                   </div>
                 </div>
@@ -397,270 +233,115 @@ export default function RestaurantProfile() {
         </div>
 
         {/* Mobile: Information below image */}
-        <div className="md:hidden bg-background border-b border-border">
-          <div className="max-w-6xl mx-auto px-4 py-6">
-            <div className="flex items-start gap-4 mb-4">
+        <div className="md:hidden">
+          <div className="p-6 space-y-4">
+            {/* Logo y Nombre */}
+            <div className="flex items-center gap-4">
               {restaurant.logo_url && (
-                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border shadow-lg flex-shrink-0">
+                <div className="flex-shrink-0">
                   <img 
                     src={restaurant.logo_url} 
                     alt={`${restaurant.name} logo`}
-                    className="w-full h-full object-cover"
+                    className="w-16 h-16 rounded-xl object-cover bg-muted"
                   />
                 </div>
               )}
-              
               <div className="flex-1">
-                <h1 className="text-2xl font-bold mb-2 text-foreground">
-                  {restaurant.name}
-                </h1>
-                
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <Badge variant="secondary">
-                    {getPriceRangeText(restaurant.price_range)}
-                  </Badge>
-                  {restaurant.establishment_type && (
-                    <Badge variant="secondary">
-                      {restaurant.establishment_type}
-                    </Badge>
-                  )}
-                  {restaurant.cuisine_types.map((cuisine, index) => (
-                    <Badge key={index} variant="secondary">
-                      {cuisine}
-                    </Badge>
-                  ))}
-                </div>
+                <h1 className="text-2xl font-bold text-foreground">{restaurant.name}</h1>
+              </div>
+            </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{restaurant.address}</span>
+            {/* Etiquetas */}
+            <div className="flex flex-wrap gap-2">
+              {restaurant.cuisine_types.map((cuisine, index) => (
+                <Badge key={index} variant="secondary">
+                  {cuisine}
+                </Badge>
+              ))}
+              {restaurant.establishment_type && (
+                <Badge variant="secondary">
+                  {restaurant.establishment_type}
+                </Badge>
+              )}
+            </div>
+
+            {/* Dirección, Rating y Visitas */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                <span className="text-sm">{restaurant.address}</span>
+              </div>
+              
+              <div className="flex items-center gap-6">
+                {restaurant.google_rating && (
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-semibold text-foreground">{restaurant.google_rating}</span>
+                    {restaurant.google_rating_count && (
+                      <span className="text-muted-foreground text-sm">({restaurant.google_rating_count})</span>
+                    )}
                   </div>
-                  {restaurant.google_rating && (
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium text-foreground">
-                        {restaurant.google_rating}
-                        {restaurant.google_rating_count && (
-                          <span className="text-xs ml-1">({restaurant.google_rating_count})</span>
-                        )}
-                      </span>
-                    </div>
-                  )}
+                )}
+                
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Eye className="h-4 w-4" />
+                  <span className="text-sm">{formatViewsCount(restaurant.profile_views_count)} visitas</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {isMobile && (
-          <div 
-            ref={headerRef}
-            className={`bg-background transition-all duration-500 ease-in-out ${
-              isHeaderFixed 
-                ? 'fixed top-0 left-0 right-0 z-40 shadow-lg border-b border-border' 
-                : 'relative'
-            }`}
-          >
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="flex items-center gap-4 py-4">
-                <QuickActionTags
-                  phone={restaurant.phone}
-                  website={restaurant.website}
-                  email={restaurant.email}
-                  address={restaurant.address}
-                  latitude={restaurant.latitude}
-                  longitude={restaurant.longitude}
-                />
-              </div>
-            </div>
+        {/* Content sections */}
+        <div className="space-y-8 pb-8">
+          <div className="px-6">
+            <QuickActionTags 
+              phone={restaurant.phone}
+              website={restaurant.website}
+              address={restaurant.address}
+              latitude={restaurant.latitude}
+              longitude={restaurant.longitude}
+              deliveryLinks={restaurant.delivery_links}
+            />
           </div>
-        )}
 
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          {!isMobile ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                <QuickActionTags
-                  phone={restaurant.phone}
-                  website={restaurant.website}
-                  email={restaurant.email}
-                  address={restaurant.address}
-                  latitude={restaurant.latitude}
-                  longitude={restaurant.longitude}
-                />
-
-                <RestaurantServicesList services={restaurant.services} />
-
-                <RestaurantDeliveryLinks deliveryLinks={restaurant.delivery_links} />
-
-                <section 
-                  id="eventos"
-                  ref={(el) => sectionsRef.current['eventos'] = el}
-                >
-                  <CompactRestaurantEvents restaurantId={restaurant?.id || 0} />
-                </section>
-
-                {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
-                  <section className="space-y-4">
-                    <RestaurantSocialSection socialLinks={restaurant.social_links} />
-                  </section>
-                )}
-              </div>
-
-              <div className="lg:col-span-1 space-y-6">
-                <div className="sticky top-8 space-y-6">
-                  <Button
-                    onClick={handleViewMenu}
-                    size="lg"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
-                  >
-                    <Utensils className="h-6 w-6 mr-2" />
-                    Ver Carta
-                  </Button>
-
-                  <section 
-                    id="horarios"
-                    ref={(el) => sectionsRef.current['horarios'] = el}
-                    className="space-y-4"
-                  >
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-primary" />
-                      Horarios
-                    </h3>
-                    {restaurant.schedules.length > 0 ? (
-                      <div className="space-y-2">
-                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((dayName, index) => {
-                          const schedule = restaurant.schedules.find(s => s.day_of_week === (index + 1) % 7);
-                          const isToday = new Date().getDay() === (index + 1) % 7;
-                          
-                          return (
-                            <div
-                              key={index}
-                              className={`flex justify-between items-center py-2 px-3 rounded-lg transition-smooth ${
-                                isToday ? 'bg-primary/10' : 'bg-secondary/20'
-                              }`}
-                            >
-                              <span className={`text-sm font-medium ${isToday ? 'text-primary' : 'text-foreground'}`}>
-                                {dayName}
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                {schedule?.is_closed || !schedule ? (
-                                  'Cerrado'
-                                ) : (
-                                  `${schedule.opening_time.slice(0, 5)} - ${schedule.closing_time.slice(0, 5)}`
-                                )}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Horarios no disponibles</p>
-                      </div>
-                    )}
-                  </section>
-                </div>
-              </div>
+          {restaurant.schedules && restaurant.schedules.length > 0 && (
+            <div className="px-6">
+              <RestaurantSchedule schedules={restaurant.schedules} />
             </div>
-          ) : (
-            <div className="space-y-8">
-              <section 
-                id="horarios"
-                ref={(el) => sectionsRef.current['horarios'] = el}
-                className="space-y-4"
-              >
-                <h3 className="text-lg font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  Horarios
-                </h3>
-                {restaurant.schedules.length > 0 ? (
-                  <CompactRestaurantSchedule schedules={restaurant.schedules} />
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Horarios no disponibles</p>
-                  </div>
-                )}
-              </section>
+          )}
 
-              <Button
-                onClick={handleViewMenu}
-                size="lg"
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg"
-              >
-                <Utensils className="h-6 w-6 mr-2" />
-                Ver Carta
-              </Button>
+          {restaurant.promotions && restaurant.promotions.length > 0 && (
+            <div className="px-6">
+              <CompactRestaurantPromotions promotions={restaurant.promotions} />
+            </div>
+          )}
 
-              <RestaurantServicesList services={restaurant.services} />
+          <div className="px-6">
+            <RestaurantMenuSection restaurantId={restaurant.id} />
+          </div>
 
-              <RestaurantDeliveryLinks deliveryLinks={restaurant.delivery_links} />
+          {restaurant.gallery && restaurant.gallery.length > 1 && (
+            <div className="px-6">
+              <RestaurantGallery images={restaurant.gallery} restaurantName={restaurant.name} />
+            </div>
+          )}
 
-              <section 
-                id="eventos"
-                ref={(el) => sectionsRef.current['eventos'] = el}
-              >
-                <CompactRestaurantEvents restaurantId={restaurant?.id || 0} />
-              </section>
+          {(restaurant.social_links && Object.keys(restaurant.social_links).length > 0) && (
+            <div className="px-6">
+              <RestaurantSocialSection socialLinks={restaurant.social_links} />
+            </div>
+          )}
 
-              {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
-                <section className="space-y-4">
-                  <RestaurantSocialSection socialLinks={restaurant.social_links} />
-                </section>
-              )}
+          {(restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0) && (
+            <div className="px-6">
+              <DeliveryPlatformsSection deliveryLinks={restaurant.delivery_links} />
             </div>
           )}
         </div>
-
-        <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
-          <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0">
-            <div className="p-6 border-b">
-              <h2 className="text-2xl font-bold">Galería de {restaurant.name}</h2>
-            </div>
-            <div className="overflow-y-auto p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {allImages.map((image, index) => (
-                  <div key={index} className="aspect-video overflow-hidden rounded-lg">
-                    <img
-                      src={image}
-                      alt={`${restaurant.name} - imagen ${index + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      onClick={() => {
-                        setCurrentImageIndex(index);
-                        setIsGalleryOpen(false);
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <DishModal
-          dish={selectedDish}
-          restaurantId={restaurant?.id || 0}
-          isOpen={isDishModalOpen}
-          onClose={closeDishModal}
-        />
       </div>
-
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            .scrollbar-hide {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-            }
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none;
-            }
-          `
-        }}
-      />
     </>
   );
-}
+};
+
+export default RestaurantProfile;
