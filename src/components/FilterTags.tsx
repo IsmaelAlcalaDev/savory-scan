@@ -153,7 +153,7 @@ export default function FilterTags({
   const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
     <div className="flex flex-col h-full">
       {/* Title */}
-      <div className="text-center py-4 border-b">
+      <div className="text-center py-4">
         <h3 className="text-lg font-semibold">{getFilterTitle(filterKey)}</h3>
       </div>
       
@@ -163,7 +163,7 @@ export default function FilterTags({
       </div>
       
       {/* Bottom buttons - Apply and Reset */}
-      <div className="p-4 border-t mt-auto space-y-3">
+      <div className="p-4 mt-auto space-y-3">
         <Button 
           onClick={onApply}
           className="w-full"
@@ -172,7 +172,6 @@ export default function FilterTags({
         </Button>
         <Button 
           onClick={onReset}
-          variant="outline" 
           className="w-full"
         >
           Restablecer
