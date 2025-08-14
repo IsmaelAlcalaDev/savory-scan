@@ -130,10 +130,12 @@ export default function RestaurantProfile() {
       if (quickActionsRef.current) {
         const quickActionsRect = quickActionsRef.current.getBoundingClientRect();
         const scrollTop = window.scrollY;
+        const elementOriginalTop = quickActionsRef.current.offsetTop;
         
         // Only fix when the element naturally reaches the top
         const shouldBeFixed = quickActionsRect.top <= 0 && !isQuickActionsFixed;
-        const shouldBeUnfixed = scrollTop <= (quickActionsRef.current.offsetTop - window.innerHeight) && isQuickActionsFixed;
+        // Unfix when scrolling back to the original position
+        const shouldBeUnfixed = scrollTop <= elementOriginalTop && isQuickActionsFixed;
         
         if (shouldBeFixed) {
           setIsQuickActionsFixed(true);
