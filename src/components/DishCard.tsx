@@ -1,7 +1,6 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronDown, Resize } from 'lucide-react';
+import { Plus, ChevronDown, Scale } from 'lucide-react';
 import { useState } from 'react';
 import DishFavoriteButton from './DishFavoriteButton';
 import type { Dish } from '@/hooks/useRestaurantMenu';
@@ -143,7 +142,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
               </h3>
               {hasVariants && (
                 <div className="flex items-center">
-                  <Resize className="h-3 w-3 text-muted-foreground" title="Disponible en varios tamaños" />
+                  <Scale className="h-3 w-3 text-muted-foreground" title="Disponible en varios tamaños" />
                 </div>
               )}
             </div>
