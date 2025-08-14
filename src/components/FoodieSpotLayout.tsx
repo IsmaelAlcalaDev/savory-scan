@@ -169,6 +169,7 @@ export default function FoodieSpotLayout({
       requestGPSLocation();
     }
   }, []);
+
   const handleClearFilter = (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'sort' | 'timeRange' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':

@@ -256,7 +256,7 @@ export default function FilterTags({
           className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
               ? 'bg-primary text-primary-foreground' 
-              : 'text-[#4B4B4B]'
+              : 'text-[#4B4B4B] hover:bg-gray-50'
           }`}
           style={!isActive ? { 
             backgroundColor: '#F3F3F3',
