@@ -195,14 +195,15 @@ export default function FilterTags({
     </div>
   );
 
+  // Reordered filter tags based on UX psychology principles
   const filterTags = [
-    { key: 'sort', label: 'Ordenar' },
-    { key: 'distance', label: 'Distancia' },
-    { key: 'price', label: 'Precio' },
-    { key: 'rating', label: 'Valoración' },
-    ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
-    { key: 'diet', label: 'Dieta' },
-    { key: 'schedule', label: 'Horarios' },
+    { key: 'distance', label: 'Distancia' },      // 1. Proximidad física - criterio primario
+    { key: 'price', label: 'Precio' },            // 2. Consideración económica - criterio secundario
+    { key: 'rating', label: 'Valoración' },       // 3. Validación social y calidad
+    { key: 'sort', label: 'Ordenar' },            // 4. Herramienta de organización
+    ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []), // 5. Categorización específica
+    { key: 'diet', label: 'Dieta' },              // 6. Necesidades específicas
+    { key: 'schedule', label: 'Horarios' },       // 7. Disponibilidad temporal
   ];
 
   const quickFilters = [
