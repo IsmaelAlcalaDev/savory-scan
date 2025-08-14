@@ -327,11 +327,11 @@ export default function RestaurantProfile() {
           
           <Button
             onClick={handleGoBack}
-            size="lg"
+            size="sm"
             variant="outline"
-            className="absolute top-6 left-6 rounded-full w-14 h-14 p-0 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 hover:scale-110 transition-all"
+            className="absolute top-6 left-6 rounded-full w-10 h-10 p-0 bg-white border-white shadow-lg hover:bg-gray-50 hover:scale-110 transition-all"
           >
-            <ArrowLeft className="h-6 w-6 text-white" />
+            <ArrowLeft className="h-4 w-4 text-gray-700" />
           </Button>
           
           {/* Desktop: Buttons top right */}
