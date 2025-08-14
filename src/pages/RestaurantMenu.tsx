@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Star, MapPin, Utensils } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
-import { useRestaurantDishes, type Dish } from '@/hooks/useRestaurantDishes';
+import { type Dish } from '@/hooks/useRestaurantDishes';
 import DishModal from '@/components/DishModal';
 import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
+import ViewModeToggle from '@/components/ViewModeToggle';
 import { useState } from 'react';
 
 export default function RestaurantMenu() {
@@ -17,6 +18,7 @@ export default function RestaurantMenu() {
   const { restaurant, loading: restaurantLoading, error: restaurantError } = useRestaurantProfile(slug || '');
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list'); // Default to list view
 
   const handleDishClick = (dish: Dish) => {
     setSelectedDish(dish);
@@ -81,7 +83,7 @@ export default function RestaurantMenu() {
         {/* Header */}
         <div className="bg-muted/30 border-b">
           <div className="max-w-6xl mx-auto px-4 py-6">
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center justify-between mb-6">
               <Button
                 onClick={handleGoBack}
                 variant="outline"
@@ -91,6 +93,12 @@ export default function RestaurantMenu() {
                 <ArrowLeft className="h-4 w-4" />
                 Volver al restaurante
               </Button>
+
+              {/* View Mode Toggle */}
+              <ViewModeToggle
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+              />
             </div>
 
             <div className="flex items-center gap-6">
@@ -147,6 +155,7 @@ export default function RestaurantMenu() {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <RestaurantDishesGrid
             restaurantId={restaurant.id}
+            viewMode={viewMode}
             onDishClick={handleDishClick}
           />
         </div>

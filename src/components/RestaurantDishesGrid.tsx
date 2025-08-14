@@ -3,16 +3,22 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Utensils } from 'lucide-react';
 import DishCard from './DishCard';
+import DishListCard from './DishListCard';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useRestaurantDishes } from '@/hooks/useRestaurantDishes';
 
 interface RestaurantDishesGridProps {
   restaurantId: number;
+  viewMode?: 'grid' | 'list';
   onDishClick?: (dish: Dish) => void;
 }
 
-export default function RestaurantDishesGrid({ restaurantId, onDishClick }: RestaurantDishesGridProps) {
-  console.log('RestaurantDishesGrid: Rendering with restaurantId:', restaurantId);
+export default function RestaurantDishesGrid({ 
+  restaurantId, 
+  viewMode = 'grid',
+  onDishClick 
+}: RestaurantDishesGridProps) {
+  console.log('RestaurantDishesGrid: Rendering with restaurantId:', restaurantId, 'viewMode:', viewMode);
   
   const { dishes, loading, error } = useRestaurantDishes(restaurantId);
 
@@ -20,6 +26,28 @@ export default function RestaurantDishesGrid({ restaurantId, onDishClick }: Rest
 
   if (loading) {
     console.log('RestaurantDishesGrid: Showing loading state');
+    if (viewMode === 'list') {
+      return (
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="flex gap-3 p-3 border rounded-lg">
+              <Skeleton className="w-16 h-16 rounded-lg flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-5 w-20" />
+                <div className="flex gap-1">
+                  <Skeleton className="h-3 w-3 rounded-full" />
+                  <Skeleton className="h-3 w-3 rounded-full" />
+                  <Skeleton className="h-3 w-3 rounded-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -65,12 +93,30 @@ export default function RestaurantDishesGrid({ restaurantId, onDishClick }: Rest
     );
   }
 
-  console.log('RestaurantDishesGrid: Rendering dishes grid with', dishes.length, 'dishes');
+  console.log('RestaurantDishesGrid: Rendering dishes', viewMode, 'with', dishes.length, 'dishes');
+
+  if (viewMode === 'list') {
+    return (
+      <div className="space-y-3">
+        {dishes.map((dish) => {
+          console.log('RestaurantDishesGrid: Rendering dish in list mode:', dish.name);
+          return (
+            <DishListCard
+              key={dish.id}
+              dish={dish}
+              restaurantId={restaurantId}
+              onDishClick={onDishClick}
+            />
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {dishes.map((dish) => {
-        console.log('RestaurantDishesGrid: Rendering dish:', dish.name);
+        console.log('RestaurantDishesGrid: Rendering dish in grid mode:', dish.name);
         return (
           <DishCard
             key={dish.id}
