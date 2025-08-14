@@ -1,4 +1,3 @@
-
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -141,7 +140,7 @@ export default function AllDishCard({
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
-              const target = e.target as HTMLImageSource;
+              const target = e.target as HTMLImageElement;
               target.style.display = 'none';
             }}
           />
