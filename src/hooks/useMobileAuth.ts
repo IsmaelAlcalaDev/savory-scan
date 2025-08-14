@@ -12,6 +12,7 @@ export const useMobileAuth = () => {
   
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const isAuthenticated = !!user;
 
   const requireAuth = (action: () => void, context?: {
     title?: string;
@@ -44,6 +45,6 @@ export const useMobileAuth = () => {
     requireAuth,
     closeAuthDrawer,
     isMobile,
-    isAuthenticated: !!user
+    isAuthenticated
   };
 };

@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -79,11 +78,9 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
         <div className="absolute top-2 right-2">
           <FavoriteButton
             restaurantId={restaurantId}
-            favoritesCount={dish.favorites_count}
             savedFrom="dish_card"
             size="sm"
             className="bg-white/90 backdrop-blur-sm"
-            onLoginRequired={() => {}}
           />
         </div>
       </div>

@@ -9,29 +9,31 @@ import MobileAuthDrawer from './MobileAuthDrawer';
 import AuthModal from './AuthModal';
 
 interface FavoriteButtonProps {
-  restaurantId: string;
+  restaurantId: number;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  favoritesCount?: number;
+  savedFrom?: string;
+  onLoginRequired?: () => void;
 }
 
 export default function FavoriteButton({ 
   restaurantId, 
   className = '',
-  size = 'md'
+  size = 'md',
+  savedFrom = 'button',
+  onLoginRequired
 }: FavoriteButtonProps) {
-  const { favorites, addFavorite, removeFavorite } = useFavorites();
-  const { requireAuth, isAuthDrawerOpen, closeAuthDrawer, authContext } = useMobileAuth();
+  const { isFavorite, toggleFavorite, isToggling } = useFavorites();
+  const { requireAuth, isAuthDrawerOpen, closeAuthDrawer, authContext, isAuthenticated, isMobile } = useMobileAuth();
   const { isOpen: isAuthModalOpen, openModal: openAuthModal, closeModal: closeAuthModal } = useAuthModal();
   
-  const isFavorite = favorites.includes(restaurantId);
+  const isRestaurantFavorite = isFavorite(restaurantId);
+  const isLoading = isToggling(restaurantId);
 
   const handleFavoriteToggle = () => {
-    const action = () => {
-      if (isFavorite) {
-        removeFavorite(restaurantId);
-      } else {
-        addFavorite(restaurantId);
-      }
+    const action = async () => {
+      await toggleFavorite(restaurantId, savedFrom, onLoginRequired);
     };
 
     requireAuth(action, {
@@ -40,7 +42,7 @@ export default function FavoriteButton({
     });
 
     // Para desktop, abrir modal si no está autenticado
-    if (!requireAuth.isAuthenticated && !requireAuth.isMobile) {
+    if (!isAuthenticated && !isMobile) {
       openAuthModal();
     }
   };
@@ -63,12 +65,13 @@ export default function FavoriteButton({
         variant="ghost"
         size="icon"
         onClick={handleFavoriteToggle}
+        disabled={isLoading}
         className={`${sizeClasses[size]} rounded-full bg-white/90 hover:bg-white shadow-lg transition-all duration-200 ${className}`}
-        aria-label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+        aria-label={isRestaurantFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
       >
         <Heart 
           className={`${iconSizes[size]} transition-colors duration-200 ${
-            isFavorite 
+            isRestaurantFavorite 
               ? 'fill-red-500 text-red-500' 
               : 'text-gray-400 hover:text-red-500'
           }`}
