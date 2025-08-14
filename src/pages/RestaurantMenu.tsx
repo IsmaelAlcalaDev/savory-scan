@@ -219,7 +219,7 @@ function RestaurantMenuContent() {
               </p>
             </div>
           ) : (
-            <div className="space-y-12">
+            <div className="space-y-4">
               {filteredSections.map((section) => (
                 <div key={section.id} id={`section-${section.id}`}>
                   <RestaurantMenuSection
