@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
@@ -380,7 +381,7 @@ export default function FoodieSpotLayout({
             onEstablishmentTypeChange={setSelectedEstablishmentTypes}
             onDietTypeChange={setSelectedDietTypes}
             onTimeRangeChange={setSelectedTimeRanges}
-            onOpenNowChange={setIsOpenNow}
+            onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
           />
 
           {/* Results Header with adjusted spacing */}
@@ -424,7 +425,7 @@ export default function FoodieSpotLayout({
           onEstablishmentTypeChange={setSelectedEstablishmentTypes}
           onDietTypeChange={setSelectedDietTypes}
           onTimeRangeChange={setSelectedTimeRanges}
-          onOpenNowChange={setIsOpenNow}
+          onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
         />
 
         {/* Results Header with adjusted spacing */}
