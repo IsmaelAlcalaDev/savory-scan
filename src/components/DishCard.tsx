@@ -12,24 +12,9 @@ import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 interface DishCardProps {
   dish: Dish;
   restaurantId: number;
-  onDishClick?: (dish: Dish) => void;
 }
 
-// Mapping of common allergen slugs to colors
-const allergenColorMap: Record<string, { color: string; label: string }> = {
-  'gluten': { color: 'bg-amber-500', label: 'Gluten' },
-  'dairy': { color: 'bg-blue-500', label: 'Lácteos' },
-  'lactose': { color: 'bg-blue-400', label: 'Lactosa' },
-  'fish': { color: 'bg-cyan-500', label: 'Pescado' },
-  'shellfish': { color: 'bg-teal-500', label: 'Mariscos' },
-  'eggs': { color: 'bg-yellow-500', label: 'Huevos' },
-  'nuts': { color: 'bg-orange-600', label: 'Frutos secos' },
-  'peanuts': { color: 'bg-orange-500', label: 'Cacahuetes' },
-  'soy': { color: 'bg-green-600', label: 'Soja' },
-  'sesame': { color: 'bg-amber-600', label: 'Sésamo' }
-};
-
-export default function DishCard({ dish, restaurantId, onDishClick }: DishCardProps) {
+export default function DishCard({ dish, restaurantId }: DishCardProps) {
   const { addDishToOrder, diners, openDinersModal } = useOrderSimulator();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -56,26 +41,6 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
     return formatPrice(dish.base_price);
   };
 
-  // Get allergen circles (limit to 6 most important ones)
-  const getAllergenCircles = () => {
-    if (!dish.allergens || !Array.isArray(dish.allergens)) return [];
-    
-    return dish.allergens
-      .slice(0, 6)
-      .map((allergen: string) => {
-        const allergenInfo = allergenColorMap[allergen.toLowerCase()];
-        if (allergenInfo) {
-          return {
-            color: allergenInfo.color,
-            label: allergenInfo.label,
-            slug: allergen
-          };
-        }
-        return null;
-      })
-      .filter(Boolean);
-  };
-
   const handlePlusClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -97,7 +62,6 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
 
   const handleCardClick = () => {
     setIsExpanded(!isExpanded);
-    onDishClick?.(dish);
   };
 
   const handleAddVariantToOrder = (variantId: number | null, dinerId: string) => {
@@ -124,7 +88,6 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
     setIsExpanded(false);
   };
 
-  const allergenCircles = getAllergenCircles();
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
   const hasMultipleDiners = diners.length > 1;
 
@@ -168,20 +131,14 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
               </div>
             </div>
 
-            {/* Middle Row - Allergens */}
-            <div className="flex items-center gap-2 mb-1">
-              {allergenCircles.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  {allergenCircles.map((allergen, index) => (
-                    <div 
-                      key={index} 
-                      title={`Contiene: ${allergen!.label}`}
-                      className={`w-3 h-3 rounded-full ${allergen!.color} flex-shrink-0`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Middle Row - Description */}
+            {dish.description && (
+              <div className="mb-1">
+                <p className="text-xs text-muted-foreground line-clamp-1">
+                  {dish.description}
+                </p>
+              </div>
+            )}
 
             {/* Bottom Row - Buttons */}
             <div className="flex items-end justify-end">
