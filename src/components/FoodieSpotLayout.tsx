@@ -19,7 +19,7 @@ import { useDishes } from '@/hooks/useDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Skeleton } from '@/components/ui/skeleton';
 import DishesGrid from './DishesGrid';
-import FilterTags from './FilterTags';
+import FilterTags, { ResetFiltersButton } from './FilterTags';
 
 interface FoodieSpotLayoutProps {
   initialTab?: 'restaurants' | 'dishes' | 'account';
@@ -345,6 +345,17 @@ export default function FoodieSpotLayout({
   };
 
   const renderContent = () => {
+    const hasActiveFilters = selectedCuisines.length > 0 || 
+    selectedFoodTypes.length > 0 || 
+    selectedDistance.length > 0 || 
+    selectedPriceRanges.length > 0 || 
+    selectedRating || 
+    selectedEstablishmentTypes.length > 0 || 
+    selectedDietTypes.length > 0 || 
+    selectedSort ||
+    selectedTimeRanges.length > 0 ||
+    isOpenNow;
+
     if (activeBottomTab === 'dishes') {
       return <>
           {/* Filter Tags */}
@@ -379,6 +390,10 @@ export default function FoodieSpotLayout({
               </h2>
               {dishesError && <p className="text-sm text-destructive mt-1">Error: {dishesError}</p>}
             </div>
+            <ResetFiltersButton 
+              hasActiveFilters={hasActiveFilters} 
+              onClearAll={() => handleClearFilter('all')} 
+            />
           </div>
 
           <DishesGrid dishes={dishes} loading={dishesLoading} error={dishesError} />
@@ -419,6 +434,10 @@ export default function FoodieSpotLayout({
             </h2>
             {restaurantsError && <p className="text-sm text-destructive mt-1">Error: {restaurantsError}</p>}
           </div>
+          <ResetFiltersButton 
+            hasActiveFilters={hasActiveFilters} 
+            onClearAll={() => handleClearFilter('all')} 
+          />
         </div>
 
         {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}

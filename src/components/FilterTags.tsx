@@ -1,4 +1,4 @@
-import { X, ChevronDown, MapPin, DollarSign, Star, ArrowUpDown, Store, Utensils, Clock } from 'lucide-react';
+import { X, ChevronDown, MapPin, DollarSign, Star, ArrowUpDown, Store, Utensils, Clock, RotateCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -98,6 +98,20 @@ export default function FilterTags({
       case 'diet': return 'Dieta';
       case 'schedule': return 'Horarios';
       default: return 'Filtro';
+    }
+  };
+
+  // Function to check if a specific filter is active
+  const isFilterActive = (filterKey: string) => {
+    switch (filterKey) {
+      case 'sort': return !!selectedSort;
+      case 'distance': return selectedDistance.length > 0;
+      case 'price': return selectedPriceRanges.length > 0;
+      case 'rating': return !!selectedRating;
+      case 'establishment': return selectedEstablishmentTypes.length > 0;
+      case 'diet': return selectedDietTypes.length > 0;
+      case 'schedule': return selectedTimeRanges.length > 0 || isOpenNow;
+      default: return false;
     }
   };
 
@@ -232,22 +246,30 @@ export default function FilterTags({
     };
 
     const FilterIcon = getFilterIcon(filterKey);
+    const isActive = isFilterActive(filterKey);
 
     return (
       <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
         <Button
           variant="outline"
           size="sm"
-          className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2"
-          style={{ 
+          className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 relative ${
+            isActive 
+              ? 'bg-primary text-primary-foreground' 
+              : 'text-[#4B4B4B]'
+          }`}
+          style={!isActive ? { 
             backgroundColor: '#F3F3F3',
             color: '#4B4B4B'
-          }}
+          } : {}}
           onClick={() => handleOpenChange(true)}
         >
-          {FilterIcon && <FilterIcon className="h-3 w-3 text-black" />}
+          {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-primary-foreground' : 'text-black'}`} />}
           {children}
-          <ChevronDown className="h-3 w-3 text-black" />
+          <ChevronDown className={`h-3 w-3 ${isActive ? 'text-primary-foreground' : 'text-black'}`} />
+          {isActive && (
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full"></div>
+          )}
         </Button>
         <SheetContent 
           side="bottom" 
@@ -267,200 +289,241 @@ export default function FilterTags({
     );
   };
 
+  // Component to render the reset button next to results
+  const ResetFiltersButton = () => {
+    if (!hasActiveFilters) return null;
+    
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground h-auto p-1"
+        onClick={() => onClearFilter('all')}
+      >
+        <RotateCcw className="h-3 w-3" />
+        Restablecer
+      </Button>
+    );
+  };
+
   return (
-    <div className="w-full py-0">
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-        {/* Filter Tags */}
-        {filterTags.map((filter) => (
-          <FilterTrigger key={filter.key} filterKey={filter.key}>
-            {filter.label}
-          </FilterTrigger>
-        ))}
+    <>
+      <div className="w-full py-0">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+          {/* Filter Tags */}
+          {filterTags.map((filter) => (
+            <FilterTrigger key={filter.key} filterKey={filter.key}>
+              {filter.label}
+            </FilterTrigger>
+          ))}
 
-        {/* Quick Filters - with no border design */}
-        {quickFilters.map((filter) => (
-          <Badge
-            key={filter.key}
-            variant="outline"
-            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full cursor-pointer border-0 ${
-              filter.active
-                ? 'bg-green-100 text-green-800' 
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-            style={!filter.active ? { 
-              backgroundColor: '#F9F9F9',
-              color: '#4B4B4B'
-            } : {}}
-            onClick={() => {
-              if (filter.key === 'open-now') {
-                onClearFilter('openNow');
-              }
-              // TODO: Implement other quick filters
-            }}
-          >
-            {filter.label}
-            {filter.active && <X className="h-3 w-3 ml-1 hover:opacity-70" />}
-          </Badge>
-        ))}
+          {/* Quick Filters - with no border design */}
+          {quickFilters.map((filter) => (
+            <Badge
+              key={filter.key}
+              variant="outline"
+              className={`flex-shrink-0 h-8 px-4 text-xs rounded-full cursor-pointer border-0 ${
+                filter.active
+                  ? 'bg-green-100 text-green-800' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+              style={!filter.active ? { 
+                backgroundColor: '#F9F9F9',
+                color: '#4B4B4B'
+              } : {}}
+              onClick={() => {
+                if (filter.key === 'open-now') {
+                  onClearFilter('openNow');
+                }
+                // TODO: Implement other quick filters
+              }}
+            >
+              {filter.label}
+              {filter.active && <X className="h-3 w-3 ml-1 hover:opacity-70" />}
+            </Badge>
+          ))}
 
-        {/* Active Filters */}
-        {selectedCuisines.length > 0 && (
-          <Badge
-            variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-          >
-            {selectedCuisines.length} cocina{selectedCuisines.length > 1 ? 's' : ''}
-            <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-              onClick={() => onClearFilter('cuisine')}
-            />
-          </Badge>
-        )}
+          {/* Active Filters */}
+          {selectedCuisines.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            >
+              {selectedCuisines.length} cocina{selectedCuisines.length > 1 ? 's' : ''}
+              <X 
+                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
+                onClick={() => onClearFilter('cuisine')}
+              />
+            </Badge>
+          )}
 
-        {selectedFoodTypes.length > 0 && (
-          <Badge
-            variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-          >
-            {selectedFoodTypes.length} tipo{selectedFoodTypes.length > 1 ? 's' : ''}
-            <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-              onClick={() => onClearFilter('foodType')}
-            />
-          </Badge>
-        )}
+          {selectedFoodTypes.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            >
+              {selectedFoodTypes.length} tipo{selectedFoodTypes.length > 1 ? 's' : ''}
+              <X 
+                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
+                onClick={() => onClearFilter('foodType')}
+              />
+            </Badge>
+          )}
 
-        {selectedDistance.length > 0 && (
-          <Badge
-            variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-          >
-            Distancia
-            <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-              onClick={() => onClearFilter('distance')}
-            />
-          </Badge>
-        )}
+          {selectedDistance.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            >
+              Distancia
+              <X 
+                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
+                onClick={() => onClearFilter('distance')}
+              />
+            </Badge>
+          )}
 
-        {selectedPriceRanges.length > 0 && (
-          <Badge
-            variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-          >
-            {selectedPriceRanges.length} precio{selectedPriceRanges.length > 1 ? 's' : ''}
-            <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-              onClick={() => onClearFilter('price')}
-            />
-          </Badge>
-        )}
+          {selectedPriceRanges.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            >
+              {selectedPriceRanges.length} precio{selectedPriceRanges.length > 1 ? 's' : ''}
+              <X 
+                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
+                onClick={() => onClearFilter('price')}
+              />
+            </Badge>
+          )}
 
-        {selectedRating && (
-          <Badge
-            variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-          >
-            Valoración
-            <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-              onClick={() => onClearFilter('rating')}
-            />
-          </Badge>
-        )}
+          {selectedRating && (
+            <Badge
+              variant="secondary"
+              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            >
+              Valoración
+              <X 
+                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
+                onClick={() => onClearFilter('rating')}
+              />
+            </Badge>
+          )}
 
-        {selectedEstablishmentTypes.length > 0 && (
-          <Badge
-            variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-          >
-            {selectedEstablishmentTypes.length} tipo{selectedEstablishmentTypes.length > 1 ? 's' : ''}
-            <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-              onClick={() => onClearFilter('establishment')}
-            />
-          </Badge>
-        )}
+          {selectedEstablishmentTypes.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            >
+              {selectedEstablishmentTypes.length} tipo{selectedEstablishmentTypes.length > 1 ? 's' : ''}
+              <X 
+                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
+                onClick={() => onClearFilter('establishment')}
+              />
+            </Badge>
+          )}
 
-        {selectedDietTypes.length > 0 && (
-          <Badge
-            variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-          >
-            {selectedDietTypes.length} dieta{selectedDietTypes.length > 1 ? 's' : ''}
-            <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-              onClick={() => onClearFilter('diet')}
-            />
-          </Badge>
-        )}
+          {selectedDietTypes.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            >
+              {selectedDietTypes.length} dieta{selectedDietTypes.length > 1 ? 's' : ''}
+              <X 
+                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
+                onClick={() => onClearFilter('diet')}
+              />
+            </Badge>
+          )}
 
-        {selectedSort && (
-          <Badge
-            variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-          >
-            Ordenado
-            <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-              onClick={() => onClearFilter('sort')}
-            />
-          </Badge>
-        )}
+          {selectedSort && (
+            <Badge
+              variant="secondary"
+              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            >
+              Ordenado
+              <X 
+                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
+                onClick={() => onClearFilter('sort')}
+              />
+            </Badge>
+          )}
 
-        {selectedTimeRanges.length > 0 && (
-          <Badge
-            variant="secondary"
-            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
-          >
-            {selectedTimeRanges.length} horario{selectedTimeRanges.length > 1 ? 's' : ''}
-            <X 
-              className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
-              onClick={() => onClearFilter('timeRange')}
-            />
-          </Badge>
-        )}
+          {selectedTimeRanges.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
+            >
+              {selectedTimeRanges.length} horario{selectedTimeRanges.length > 1 ? 's' : ''}
+              <X 
+                className="h-3 w-3 ml-1 cursor-pointer hover:text-primary/70 hover:opacity-70" 
+                onClick={() => onClearFilter('timeRange')}
+              />
+            </Badge>
+          )}
 
-        {/* Clear all filters */}
-        {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex-shrink-0 h-8 px-4 text-xs text-muted-foreground hover:text-foreground rounded-full"
-            onClick={() => onClearFilter('all')}
-          >
-            Limpiar todo
-          </Button>
-        )}
+          {/* Clear all filters */}
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-shrink-0 h-8 px-4 text-xs text-muted-foreground hover:text-foreground rounded-full"
+              onClick={() => onClearFilter('all')}
+            >
+              Limpiar todo
+            </Button>
+          )}
+        </div>
+
+        <style>{`
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          
+          /* Custom checkbox styles */
+          [data-radix-collection-item] input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            border-radius: 2px;
+          }
+          
+          .peer {
+            width: 20px !important;
+            height: 20px !important;
+            border-radius: 2px !important;
+          }
+          
+          /* Increase spacing between checkbox and label */
+          .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+            margin-left: 12px;
+          }
+        `}</style>
       </div>
-
-      <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        
-        /* Custom checkbox styles */
-        [data-radix-collection-item] input[type="checkbox"] {
-          width: 20px;
-          height: 20px;
-          border-radius: 2px;
-        }
-        
-        .peer {
-          width: 20px !important;
-          height: 20px !important;
-          border-radius: 2px !important;
-        }
-        
-        /* Increase spacing between checkbox and label */
-        .space-x-2 > :not([hidden]) ~ :not([hidden]) {
-          margin-left: 12px;
-        }
-      `}</style>
-    </div>
+      
+      {/* Export the ResetFiltersButton component for use in results header */}
+      <div style={{ display: 'none' }}>
+        <ResetFiltersButton />
+      </div>
+    </>
   );
 }
+
+// Export the ResetFiltersButton as a separate component
+export const ResetFiltersButton = ({ hasActiveFilters, onClearAll }: { hasActiveFilters: boolean, onClearAll: () => void }) => {
+  if (!hasActiveFilters) return null;
+  
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground h-auto p-1"
+      onClick={onClearAll}
+    >
+      <RotateCcw className="h-3 w-3" />
+      Restablecer
+    </Button>
+  );
+};
