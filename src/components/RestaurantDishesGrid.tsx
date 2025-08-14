@@ -1,6 +1,8 @@
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Utensils } from 'lucide-react';
+import { useState } from 'react';
 import DishCard from './DishCard';
 import DishListCard from './DishListCard';
 import type { Dish } from '@/hooks/useRestaurantMenu';
@@ -18,6 +20,7 @@ export default function RestaurantDishesGrid({
   console.log('RestaurantDishesGrid: Rendering with restaurantId:', restaurantId, 'viewMode:', viewMode);
   
   const { dishes, loading, error } = useRestaurantDishes(restaurantId);
+  const [expandedDishId, setExpandedDishId] = useState<number | null>(null);
 
   console.log('RestaurantDishesGrid: Hook result:', { dishes: dishes.length, loading, error });
 
@@ -102,6 +105,8 @@ export default function RestaurantDishesGrid({
               key={dish.id}
               dish={dish}
               restaurantId={restaurantId}
+              expandedDishId={expandedDishId}
+              onExpandedChange={setExpandedDishId}
             />
           );
         })}
@@ -118,6 +123,8 @@ export default function RestaurantDishesGrid({
             key={dish.id}
             dish={dish}
             restaurantId={restaurantId}
+            expandedDishId={expandedDishId}
+            onExpandedChange={setExpandedDishId}
           />
         );
       })}
