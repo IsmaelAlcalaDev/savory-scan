@@ -157,23 +157,19 @@ export default function FilterTags({
         <h3 className="text-lg font-semibold">{getFilterTitle(filterKey)}</h3>
       </div>
       
-      {/* Apply Button - Full Width */}
-      <div className="p-4 border-b">
+      {/* Filter content */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {getFilterContent(filterKey)}
+      </div>
+      
+      {/* Bottom buttons - Apply and Reset */}
+      <div className="p-4 border-t mt-auto space-y-3">
         <Button 
           onClick={onApply}
           className="w-full"
         >
           Aplicar filtros
         </Button>
-      </div>
-      
-      {/* Filter content */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {getFilterContent(filterKey)}
-      </div>
-      
-      {/* Reset Button - Bottom */}
-      <div className="p-4 border-t mt-auto">
         <Button 
           onClick={onReset}
           variant="outline" 
