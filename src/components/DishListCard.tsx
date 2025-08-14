@@ -166,18 +166,18 @@ export default function DishListCard({ dish, restaurantId, onDishClick }: DishLi
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Diet icons */}
                 {getDietIcon(dish).slice(0, 3).map(({ icon: Icon, label, color }, index) => (
-                  <Icon key={index} className={`h-3 w-3 ${color}`} title={label} />
+                  <div key={index} title={label}>
+                    <Icon className={`h-3 w-3 ${color}`} />
+                  </div>
                 ))}
 
                 {/* Allergen icons */}
                 {getAllergenIcons().slice(0, 3).map((allergen, index) => {
                   const Icon = allergen!.icon;
                   return (
-                    <Icon 
-                      key={index} 
-                      className="h-3 w-3 text-orange-500" 
-                      title={`Contiene: ${allergen!.label}`} 
-                    />
+                    <div key={index} title={`Contiene: ${allergen!.label}`}>
+                      <Icon className="h-3 w-3 text-orange-500" />
+                    </div>
                   );
                 })}
 
