@@ -575,6 +575,59 @@ export default function RestaurantProfile() {
 
               <RestaurantServicesList services={restaurant.services} />
 
+              {/* Desktop: Horarios section without container */}
+              <section 
+                id="horarios"
+                ref={(el) => sectionsRef.current['horarios'] = el}
+                className="space-y-4 hidden lg:block"
+              >
+                <h3 className="text-lg font-medium flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  Horarios
+                  {(() => {
+                    const currentStatus = getCurrentDayStatus();
+                    return (
+                      <span className={`text-sm font-medium ${currentStatus.className}`}>
+                        • {currentStatus.status}
+                      </span>
+                    );
+                  })()}
+                </h3>
+                {restaurant.schedules.length > 0 ? (
+                  <div className="space-y-2">
+                    {['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'].map((dayName, index) => {
+                      const schedule = restaurant.schedules.find(s => s.day_of_week === index);
+                      const isToday = new Date().getDay() === index;
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`flex justify-between items-center py-2 px-3 rounded-lg transition-smooth ${
+                            isToday ? 'bg-primary/10' : 'bg-secondary/20'
+                          }`}
+                        >
+                          <span className={`font-medium ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                            {dayName}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {schedule?.is_closed || !schedule ? (
+                              'Cerrado'
+                            ) : (
+                              `${formatTime(schedule.opening_time)} - ${formatTime(schedule.closing_time)}`
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Horarios no disponibles</p>
+                  </div>
+                )}
+              </section>
+
               <RestaurantDeliveryLinks deliveryLinks={restaurant.delivery_links} />
 
               <section 
@@ -604,14 +657,6 @@ export default function RestaurantProfile() {
                     Ver Carta
                   </Button>
                 </div>
-
-                <section 
-                  id="horarios"
-                  ref={(el) => sectionsRef.current['horarios'] = el}
-                  className="space-y-4"
-                >
-                  <RestaurantSchedule schedules={restaurant.schedules} />
-                </section>
               </div>
             </div>
           </div>
