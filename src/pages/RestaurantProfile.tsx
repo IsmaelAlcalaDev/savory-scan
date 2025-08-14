@@ -479,11 +479,11 @@ export default function RestaurantProfile() {
               : 'relative'
           }`}
         >
-          <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="max-w-6xl mx-auto px-4 py-2">
             <Button
               onClick={handleViewMenu}
               size="lg"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg mb-4"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg mb-2"
             >
               <Utensils className="h-6 w-6 mr-2" />
               Ver Carta
@@ -503,9 +503,9 @@ export default function RestaurantProfile() {
         <div className={`bg-background lg:hidden ${
           isQuickActionsFixed ? 'mt-32' : ''
         }`}>
-          <div className="max-w-6xl mx-auto px-4 py-2">
+          <div className="max-w-6xl mx-auto px-4 py-0">
             {/* Row 1: Logo and Name */}
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-3 mb-2">
               {restaurant.logo_url && (
                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border shadow-lg flex-shrink-0">
                   <img 
@@ -521,7 +521,7 @@ export default function RestaurantProfile() {
             </div>
 
             {/* Row 2: Tags */}
-            <div className="flex flex-wrap items-center gap-2 mb-3">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               <Badge variant="secondary">
                 {getPriceRangeText(restaurant.price_range)}
               </Badge>
@@ -538,7 +538,7 @@ export default function RestaurantProfile() {
             </div>
 
             {/* Row 3: Address and Rating */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-2">
               <div className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
                 <span>{restaurant.address}</span>
@@ -559,7 +559,7 @@ export default function RestaurantProfile() {
         </div>
 
         <div className="max-w-6xl mx-auto px-4 py-2">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               {/* Desktop only: Quick Actions */}
               <div className="hidden lg:block">
@@ -662,7 +662,7 @@ export default function RestaurantProfile() {
           </div>
 
           {/* Non-desktop: Content sections */}
-          <div className="lg:hidden space-y-6 mt-6">
+          <div className="lg:hidden space-y-6 mt-4">
             <section 
               id="horarios"
               ref={(el) => sectionsRef.current['horarios'] = el}
