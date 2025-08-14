@@ -416,7 +416,7 @@ export default function RestaurantProfile() {
               <div className="flex items-end justify-between mb-6">
                 <div className="flex items-center gap-4 flex-1">
                   {restaurant.logo_url && (
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-2xl flex-shrink-0 backdrop-blur-sm">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-2xl flex-shrink-0">
                       <img 
                         src={restaurant.logo_url} 
                         alt={`${restaurant.name} logo`}
@@ -560,7 +560,7 @@ export default function RestaurantProfile() {
 
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-6">
               {/* Desktop only: Quick Actions */}
               <div className="hidden lg:block">
                 <QuickActionTags
@@ -662,7 +662,7 @@ export default function RestaurantProfile() {
           </div>
 
           {/* Non-desktop: Content sections */}
-          <div className="lg:hidden space-y-8 mt-8">
+          <div className="lg:hidden space-y-6 mt-6">
             <section 
               id="horarios"
               ref={(el) => sectionsRef.current['horarios'] = el}
