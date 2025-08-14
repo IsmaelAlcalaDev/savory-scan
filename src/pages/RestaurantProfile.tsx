@@ -479,17 +479,15 @@ export default function RestaurantProfile() {
                 : 'relative'
             }`}
           >
-            <div className="max-w-6xl mx-auto px-4 pt-3 pb-2">
+            <div className="max-w-6xl mx-auto px-4 py-4">
               <Button
                 onClick={handleViewMenu}
                 size="lg"
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg mb-3"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg mb-4"
               >
                 <Utensils className="h-6 w-6 mr-2" />
                 Ver Carta
               </Button>
-            </div>
-            <div className="max-w-6xl mx-auto px-4 pb-3">
               <QuickActionTags
                 phone={restaurant.phone}
                 website={restaurant.website}
@@ -507,7 +505,7 @@ export default function RestaurantProfile() {
           <div className={`bg-background ${
             isQuickActionsFixed ? 'mt-32' : ''
           }`}>
-            <div className="max-w-6xl mx-auto px-4 py-3">
+            <div className="max-w-6xl mx-auto px-4 py-4">
               {/* Row 1: Logo and Name */}
               <div className="flex items-center gap-3 mb-3">
                 {restaurant.logo_url && (
