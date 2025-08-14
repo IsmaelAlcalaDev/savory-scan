@@ -70,11 +70,11 @@ export default function FoodTypeFilter({
   if (loading) {
     return (
       <div className="relative w-full">
-        <div className="flex gap-12 pb-2 px-1 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-4 pb-1 px-1 overflow-x-auto scrollbar-hide">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0">
+            <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
               <Skeleton className="h-16 w-16" />
-              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-3 w-12" />
             </div>
           ))}
         </div>
@@ -103,17 +103,17 @@ export default function FoodTypeFilter({
     <div className="relative w-full">
       {/* Fade effect on the left - only show when can scroll left */}
       {canScrollLeft && (
-        <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white via-white/60 to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-white via-white/60 to-transparent z-10 pointer-events-none" />
       )}
       
       {/* Fade effect on the right - only show when can scroll right */}
       {canScrollRight && (
-        <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white via-white/60 to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white via-white/60 to-transparent z-10 pointer-events-none" />
       )}
       
       <div 
         ref={scrollRef}
-        className="flex gap-12 pb-2 px-2 overflow-x-auto scrollbar-hide"
+        className="flex gap-4 pb-1 px-2 overflow-x-auto scrollbar-hide"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none'
@@ -126,10 +126,10 @@ export default function FoodTypeFilter({
           return (
             <div
               key={foodType.id}
-              className="flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0"
+              className="flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0 min-w-[70px]"
               onClick={() => handleFoodTypeClick(foodType.id)}
             >
-              <div className="flex items-center justify-center text-4xl transition-all duration-200">
+              <div className="flex items-center justify-center w-16 h-16 text-4xl transition-all duration-200">
                 <span 
                   role="img" 
                   aria-label={foodType.name}
@@ -143,7 +143,7 @@ export default function FoodTypeFilter({
                 </span>
               </div>
               <span className={`
-                text-xs font-medium text-center whitespace-nowrap transition-colors text-black
+                text-xs font-medium text-center whitespace-nowrap transition-colors text-black max-w-[70px] truncate
                 ${selectedFoodTypes.includes(foodType.id) 
                   ? 'text-primary' 
                   : 'text-black'

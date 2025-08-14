@@ -268,7 +268,7 @@ export default function FilterTags({
   };
 
   return (
-    <div className="w-full py-3">
+    <div className="w-full py-1">
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
         {/* Filter Tags */}
         {filterTags.map((filter) => (
