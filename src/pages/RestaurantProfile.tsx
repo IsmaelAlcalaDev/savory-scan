@@ -24,7 +24,6 @@ import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
 import { useIsMobile } from '@/hooks/use-mobile';
 import FavoriteButton from '@/components/FavoriteButton';
-import DishModal from '@/components/DishModal';
 import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';
 import RestaurantPlatforms from '@/components/RestaurantPlatforms';
 import RestaurantSchedule from '@/components/RestaurantSchedule';
@@ -41,8 +40,6 @@ export default function RestaurantProfile() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
-  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
-  const [isDishModalOpen, setIsDishModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -178,16 +175,6 @@ export default function RestaurantProfile() {
     } else {
       scrollToSection(section.id);
     }
-  };
-
-  const handleDishClick = (dish: Dish) => {
-    setSelectedDish(dish);
-    setIsDishModalOpen(true);
-  };
-
-  const closeDishModal = () => {
-    setIsDishModalOpen(false);
-    setSelectedDish(null);
   };
 
   const handleShare = () => {
@@ -751,13 +738,6 @@ export default function RestaurantProfile() {
             </div>
           </DialogContent>
         </Dialog>
-
-        <DishModal
-          dish={selectedDish}
-          restaurantId={restaurant?.id || 0}
-          isOpen={isDishModalOpen}
-          onClose={closeDishModal}
-        />
       </div>
 
       <style
