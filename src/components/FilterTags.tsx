@@ -1,7 +1,26 @@
 
-import { X, ChevronDown, Filter, SortAsc, MapPin, DollarSign, Star, Store, Utensils, Clock } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface FilterTagsProps {
   activeTab: 'restaurants' | 'dishes';
@@ -28,6 +47,9 @@ export default function FilterTags({
   isOpenNow = false,
   onClearFilter 
 }: FilterTagsProps) {
+  const isMobile = useIsMobile();
+  const isTablet = !isMobile && window.innerWidth < 1024;
+  
   const hasActiveFilters = selectedCuisines.length > 0 || 
     selectedFoodTypes.length > 0 || 
     selectedDistance.length > 0 || 
@@ -37,134 +59,190 @@ export default function FilterTags({
     selectedDietTypes.length > 0 || 
     isOpenNow;
 
+  const FilterContent = ({ onApply, onReset }: { onApply: () => void, onReset: () => void }) => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold mb-2">Filtros</h3>
+        <p className="text-sm text-muted-foreground">
+          Personaliza tu búsqueda de {activeTab === 'dishes' ? 'platos' : 'restaurantes'}
+        </p>
+      </div>
+      
+      {/* Filter sections would go here - placeholder for now */}
+      <div className="space-y-4">
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Ordenar</h4>
+          <p className="text-sm text-muted-foreground">Opciones de ordenamiento</p>
+        </div>
+        
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Distancia</h4>
+          <p className="text-sm text-muted-foreground">Selecciona el rango de distancia</p>
+        </div>
+        
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Precio</h4>
+          <p className="text-sm text-muted-foreground">Rango de precios</p>
+        </div>
+        
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Valoración</h4>
+          <p className="text-sm text-muted-foreground">Calificación mínima</p>
+        </div>
+        
+        {activeTab === 'restaurants' && (
+          <div className="p-4 border rounded-lg">
+            <h4 className="font-medium mb-2">Tipo de Comercio</h4>
+            <p className="text-sm text-muted-foreground">Tipo de establecimiento</p>
+          </div>
+        )}
+        
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Dieta</h4>
+          <p className="text-sm text-muted-foreground">Opciones dietéticas</p>
+        </div>
+        
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-medium mb-2">Horarios</h4>
+          <p className="text-sm text-muted-foreground">Disponibilidad horaria</p>
+        </div>
+      </div>
+      
+      <div className="flex gap-3 pt-4">
+        <Button 
+          onClick={onReset}
+          variant="outline" 
+          className="flex-1"
+        >
+          Restablecer
+        </Button>
+        <Button 
+          onClick={onApply}
+          className="flex-1"
+        >
+          Aplicar filtros
+        </Button>
+      </div>
+    </div>
+  );
+
+  const filterTags = [
+    { key: 'sort', label: 'Ordenar' },
+    { key: 'distance', label: 'Distancia' },
+    { key: 'price', label: 'Precio' },
+    { key: 'rating', label: 'Valoración' },
+    ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
+    { key: 'diet', label: 'Dieta' },
+    { key: 'schedule', label: 'Horarios' },
+  ];
+
+  const quickFilters = [
+    { key: 'best-rated', label: 'Mejor valorados', active: false },
+    { key: 'open-now', label: 'Abierto ahora', active: isOpenNow },
+    { key: 'nearest', label: 'Más cerca', active: false },
+    { key: 'cheapest', label: 'Más económico', active: false },
+  ];
+
+  const FilterTrigger = ({ children }: { children: React.ReactNode }) => {
+    if (isMobile || isTablet) {
+      return (
+        <Sheet>
+          <SheetTrigger asChild>
+            {children}
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[90vh]">
+            <SheetHeader>
+              <SheetTitle>Filtros</SheetTitle>
+              <SheetDescription>
+                Personaliza tu búsqueda de {activeTab === 'dishes' ? 'platos' : 'restaurantes'}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex-1 overflow-y-auto py-4">
+              <FilterContent 
+                onApply={() => {/* TODO: Close sheet and apply */}} 
+                onReset={() => onClearFilter('all')} 
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+      );
+    }
+
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Filtros</DialogTitle>
+            <DialogDescription>
+              Personaliza tu búsqueda de {activeTab === 'dishes' ? 'platos' : 'restaurantes'}
+            </DialogDescription>
+          </DialogHeader>
+          <FilterContent 
+            onApply={() => {/* TODO: Close dialog and apply */}} 
+            onReset={() => onClearFilter('all')} 
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <div className="w-full py-3">
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-        {/* Sección Ordenar */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-shrink-0 h-8 px-3 text-xs bg-white border-gray-200"
-        >
-          <SortAsc className="h-3 w-3 mr-1" />
-          Ordenar
-          <ChevronDown className="h-3 w-3 ml-1" />
-        </Button>
-
-        {/* Sección Distancia */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-shrink-0 h-8 px-3 text-xs bg-white border-gray-200"
-        >
-          <MapPin className="h-3 w-3 mr-1" />
-          Distancia
-          <ChevronDown className="h-3 w-3 ml-1" />
-        </Button>
-
-        {/* Sección Precio */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-shrink-0 h-8 px-3 text-xs bg-white border-gray-200"
-        >
-          <DollarSign className="h-3 w-3 mr-1" />
-          Precio
-          <ChevronDown className="h-3 w-3 ml-1" />
-        </Button>
-
-        {/* Sección Rating */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-shrink-0 h-8 px-3 text-xs bg-white border-gray-200"
-        >
-          <Star className="h-3 w-3 mr-1" />
-          Valoración
-          <ChevronDown className="h-3 w-3 ml-1" />
-        </Button>
-
-        {/* Sección Tipo de Comercio (solo para restaurantes) */}
-        {activeTab === 'restaurants' && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-shrink-0 h-8 px-3 text-xs bg-white border-gray-200"
-          >
-            <Store className="h-3 w-3 mr-1" />
-            Tipo
-            <ChevronDown className="h-3 w-3 ml-1" />
-          </Button>
-        )}
-
-        {/* Sección Dieta */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-shrink-0 h-8 px-3 text-xs bg-white border-gray-200"
-        >
-          <Utensils className="h-3 w-3 mr-1" />
-          Dieta
-          <ChevronDown className="h-3 w-3 ml-1" />
-        </Button>
-
-        {/* Sección Horarios */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-shrink-0 h-8 px-3 text-xs bg-white border-gray-200"
-        >
-          <Clock className="h-3 w-3 mr-1" />
-          Horarios
-          <ChevronDown className="h-3 w-3 ml-1" />
-        </Button>
+        {/* Filter Tags */}
+        {filterTags.map((filter) => (
+          <FilterTrigger key={filter.key}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0"
+              style={{ 
+                backgroundColor: '#F3F3F3',
+                color: '#4B4B4B'
+              }}
+            >
+              {filter.label}
+            </Button>
+          </FilterTrigger>
+        ))}
 
         {/* Separador */}
         <div className="h-8 w-px bg-gray-200 flex-shrink-0" />
 
-        {/* Filtros Rápidos */}
-        <Badge
-          variant="outline"
-          className="flex-shrink-0 h-8 px-3 text-xs bg-white border-green-200 text-green-700 hover:bg-green-50 cursor-pointer"
-          onClick={() => {/* TODO: Implementar mejor valorados */}}
-        >
-          Mejor valorados
-        </Badge>
+        {/* Quick Filters */}
+        {quickFilters.map((filter) => (
+          <Badge
+            key={filter.key}
+            variant="outline"
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full cursor-pointer border-0 ${
+              filter.active
+                ? 'bg-green-100 text-green-800' 
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+            style={!filter.active ? { 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            } : {}}
+            onClick={() => {
+              if (filter.key === 'open-now') {
+                onClearFilter('openNow');
+              }
+              // TODO: Implement other quick filters
+            }}
+          >
+            {filter.label}
+            {filter.active && <X className="h-3 w-3 ml-1" />}
+          </Badge>
+        ))}
 
-        <Badge
-          variant="outline"
-          className={`flex-shrink-0 h-8 px-3 text-xs cursor-pointer ${
-            isOpenNow 
-              ? 'bg-green-100 border-green-300 text-green-800' 
-              : 'bg-white border-blue-200 text-blue-700 hover:bg-blue-50'
-          }`}
-          onClick={() => onClearFilter('openNow')}
-        >
-          Abierto ahora
-          {isOpenNow && <X className="h-3 w-3 ml-1" />}
-        </Badge>
-
-        <Badge
-          variant="outline"
-          className="flex-shrink-0 h-8 px-3 text-xs bg-white border-purple-200 text-purple-700 hover:bg-purple-50 cursor-pointer"
-          onClick={() => {/* TODO: Implementar más cerca */}}
-        >
-          Más cerca
-        </Badge>
-
-        <Badge
-          variant="outline"
-          className="flex-shrink-0 h-8 px-3 text-xs bg-white border-orange-200 text-orange-700 hover:bg-orange-50 cursor-pointer"
-          onClick={() => {/* TODO: Implementar más económico */}}
-        >
-          Más económico
-        </Badge>
-
-        {/* Filtros Activos */}
+        {/* Active Filters */}
         {selectedCuisines.length > 0 && (
           <Badge
             variant="secondary"
-            className="flex-shrink-0 h-8 px-3 text-xs bg-primary/10 text-primary border-primary/20"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
           >
             {selectedCuisines.length} cocina{selectedCuisines.length > 1 ? 's' : ''}
             <X 
@@ -177,7 +255,7 @@ export default function FilterTags({
         {selectedFoodTypes.length > 0 && (
           <Badge
             variant="secondary"
-            className="flex-shrink-0 h-8 px-3 text-xs bg-primary/10 text-primary border-primary/20"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
           >
             {selectedFoodTypes.length} tipo{selectedFoodTypes.length > 1 ? 's' : ''}
             <X 
@@ -190,7 +268,7 @@ export default function FilterTags({
         {selectedDistance.length > 0 && (
           <Badge
             variant="secondary"
-            className="flex-shrink-0 h-8 px-3 text-xs bg-primary/10 text-primary border-primary/20"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
           >
             Distancia
             <X 
@@ -203,7 +281,7 @@ export default function FilterTags({
         {selectedPriceRanges.length > 0 && (
           <Badge
             variant="secondary"
-            className="flex-shrink-0 h-8 px-3 text-xs bg-primary/10 text-primary border-primary/20"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
           >
             {selectedPriceRanges.length} precio{selectedPriceRanges.length > 1 ? 's' : ''}
             <X 
@@ -216,7 +294,7 @@ export default function FilterTags({
         {selectedRating && (
           <Badge
             variant="secondary"
-            className="flex-shrink-0 h-8 px-3 text-xs bg-primary/10 text-primary border-primary/20"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
           >
             {selectedRating}+ estrellas
             <X 
@@ -229,7 +307,7 @@ export default function FilterTags({
         {selectedEstablishmentTypes.length > 0 && (
           <Badge
             variant="secondary"
-            className="flex-shrink-0 h-8 px-3 text-xs bg-primary/10 text-primary border-primary/20"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
           >
             {selectedEstablishmentTypes.length} tipo{selectedEstablishmentTypes.length > 1 ? 's' : ''}
             <X 
@@ -242,7 +320,7 @@ export default function FilterTags({
         {selectedDietTypes.length > 0 && (
           <Badge
             variant="secondary"
-            className="flex-shrink-0 h-8 px-3 text-xs bg-primary/10 text-primary border-primary/20"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full bg-primary/10 text-primary border-primary/20"
           >
             {selectedDietTypes.length} dieta{selectedDietTypes.length > 1 ? 's' : ''}
             <X 
@@ -252,12 +330,12 @@ export default function FilterTags({
           </Badge>
         )}
 
-        {/* Limpiar todos los filtros */}
+        {/* Clear all filters */}
         {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
-            className="flex-shrink-0 h-8 px-3 text-xs text-muted-foreground hover:text-foreground"
+            className="flex-shrink-0 h-8 px-4 text-xs text-muted-foreground hover:text-foreground rounded-full"
             onClick={() => onClearFilter('all')}
           >
             Limpiar todo
