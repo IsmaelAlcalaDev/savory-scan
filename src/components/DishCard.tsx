@@ -2,7 +2,6 @@ import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
 import DinerSelector from './DinerSelector';
-import DishImageModal from './DishImageModal';
 import DishVariantsModal from './DishVariantsModal';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
@@ -17,7 +16,6 @@ interface DishCardProps {
 
 export default function DishCard({ dish, restaurantId }: DishCardProps) {
   const { addDishToOrder, diners, openDinersModal } = useOrderSimulator();
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isVariantsModalOpen, setIsVariantsModalOpen] = useState(false);
 
   const formatPrice = (price: number) => {
@@ -41,13 +39,6 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
       return `desde ${formatPrice(minPrice)}`;
     }
     return formatPrice(dish.base_price);
-  };
-
-  const handleImageClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (dish.image_url) {
-      setIsImageModalOpen(true);
-    }
   };
 
   const handleAddVariantToOrder = (variantId: number, dinerId: string) => {
@@ -93,10 +84,7 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
           {/* Image */}
           <div className="flex-shrink-0">
             {dish.image_url ? (
-              <div 
-                className="w-20 h-20 rounded-lg overflow-hidden relative cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={handleImageClick}
-              >
+              <div className="w-20 h-20 rounded-lg overflow-hidden relative">
                 <img
                   src={dish.image_url}
                   alt={dish.image_alt || dish.name}
@@ -154,13 +142,6 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
           </div>
         </div>
       </div>
-
-      {/* Image Modal */}
-      <DishImageModal
-        isOpen={isImageModalOpen}
-        onClose={() => setIsImageModalOpen(false)}
-        dish={dish}
-      />
 
       {/* Variants Modal */}
       <DishVariantsModal

@@ -4,8 +4,6 @@ import { Plus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import DinerSelector from './DinerSelector';
 import type { Dish } from '@/hooks/useRestaurantMenu';
@@ -51,28 +49,24 @@ export default function DishVariantsModal({ isOpen, onClose, dish, onVariantAdd 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-left">Selecciona el tamaño</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        {/* Large Dish Image */}
+        {dish.image_url && (
+          <div className="w-full h-48 rounded-lg overflow-hidden mb-4">
+            <img
+              src={dish.image_url}
+              alt={dish.image_alt || dish.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
 
         {/* Dish Info */}
-        <div className="flex gap-3 mb-4">
-          {dish.image_url && (
-            <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-              <img
-                src={dish.image_url}
-                alt={dish.image_alt || dish.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
+        <div className="mb-4">
+          <h3 className="font-bold text-xl mb-2">{dish.name}</h3>
+          {dish.description && (
+            <p className="text-sm text-muted-foreground mb-3">{dish.description}</p>
           )}
-          <div className="flex-1">
-            <h3 className="font-semibold text-sm mb-1">{dish.name}</h3>
-            {dish.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2">{dish.description}</p>
-            )}
-          </div>
         </div>
 
         {/* Diet and Allergen Tags */}
