@@ -63,7 +63,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     searchQuery,
     userLat,
     userLng,
-    selectedCuisines,
+    cuisineTypeIds: selectedCuisines,
   });
 
    const { dishes, loading: dishesLoading, error: dishesError } = useDishes({
@@ -235,7 +235,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       <main className="flex-1 px-2 md:px-4 lg:px-[7.5%] pb-20 md:pb-4">
         <div className="max-w-7xl mx-auto">
           {/* Quick Action Tags */}
-          <QuickActionTags />
+          <QuickActionTags address="Ubicación actual" />
 
           {/* Main Content Area */}
           <div className="flex gap-6">
@@ -331,6 +331,21 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                   {filteredRestaurants.map((restaurant) => (
                     <RestaurantCard
                       key={restaurant.id}
+                      id={restaurant.id}
+                      name={restaurant.name}
+                      slug={restaurant.slug}
+                      description={restaurant.description}
+                      priceRange={restaurant.price_range}
+                      googleRating={restaurant.google_rating}
+                      googleRatingCount={restaurant.google_rating_count}
+                      distance={restaurant.distance_km}
+                      cuisineTypes={restaurant.cuisine_types}
+                      establishmentType={restaurant.establishment_type}
+                      services={restaurant.services}
+                      favoritesCount={restaurant.favorites_count}
+                      coverImageUrl={restaurant.cover_image_url}
+                      logoUrl={restaurant.logo_url}
+                      layout={viewMode}
                     />
                   ))}
                 </div>
@@ -343,7 +358,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       {/* Modals */}
       <LocationModal 
         open={locationModalOpen}
-        onClose={() => setLocationModalOpen(false)}
+        onOpenChange={setLocationModalOpen}
       />
 
       <BottomNavigation activeTab={activeBottomTab as 'restaurants' | 'dishes' | 'account'} onTabChange={setActiveBottomTab} />

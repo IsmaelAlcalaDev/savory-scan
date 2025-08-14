@@ -16,10 +16,10 @@ export default function PriceRangeFilter({ selectedPriceRanges, onPriceRangeChan
   const [isOpen, setIsOpen] = useState(false);
   const { priceRanges, loading, error } = usePriceRanges();
 
-  const handlePriceRangeToggle = (rangeSymbol: string) => {
-    const newSelected = selectedPriceRanges.includes(rangeSymbol)
-      ? selectedPriceRanges.filter(symbol => symbol !== rangeSymbol)
-      : [...selectedPriceRanges, rangeSymbol];
+  const handlePriceRangeToggle = (rangeValue: string) => {
+    const newSelected = selectedPriceRanges.includes(rangeValue)
+      ? selectedPriceRanges.filter(value => value !== rangeValue)
+      : [...selectedPriceRanges, rangeValue];
     onPriceRangeChange(newSelected);
   };
 
@@ -44,14 +44,14 @@ export default function PriceRangeFilter({ selectedPriceRanges, onPriceRangeChan
         <div key={range.id} className="flex items-center space-x-2">
           <Checkbox 
             id={`price-${range.id}`}
-            checked={selectedPriceRanges.includes(range.symbol)}
-            onCheckedChange={() => handlePriceRangeToggle(range.symbol)}
+            checked={selectedPriceRanges.includes(range.value)}
+            onCheckedChange={() => handlePriceRangeToggle(range.value)}
           />
           <label 
             htmlFor={`price-${range.id}`}
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
           >
-            <span>{range.symbol}</span>
+            <span>{range.value}</span>
             {range.display_text}
           </label>
         </div>
