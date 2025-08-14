@@ -76,11 +76,12 @@ export const useDishes = (params: UseDishesParams = {}) => {
   useEffect(() => {
     const fetchDishes = async () => {
       try {
-        console.log('useDishes: Fetching dishes with params:', params);
+        console.log('useDishes: Starting fetch with params:', params);
         setLoading(true);
+        setError(null);
 
-        // Fetch dishes with restaurant and category information
-        const { data, error } = await supabase
+        // Fetch dishes with restaurant information
+        const { data, error: fetchError } = await supabase
           .from('dishes')
           .select(`
             id,
@@ -116,22 +117,21 @@ export const useDishes = (params: UseDishesParams = {}) => {
           .eq('restaurants.is_active', true)
           .limit(100);
 
-        if (error) {
-          console.error('useDishes: Error fetching dishes:', error);
-          setError(error.message);
-          return;
+        if (fetchError) {
+          console.error('useDishes: Supabase error:', fetchError);
+          throw fetchError;
         }
 
-        if (!data) {
-          console.log('useDishes: No dishes data returned');
+        console.log('useDishes: Raw data received:', data?.length || 0, 'dishes');
+
+        if (!data || data.length === 0) {
+          console.log('useDishes: No data returned from query');
           setDishes([]);
           return;
         }
 
-        console.log('useDishes: Raw dishes data received:', data.length);
-
-        // Transform data (calculate distance but don't filter by it)
-        let processedDishes: DishData[] = data.map(dish => {
+        // Transform data
+        const processedDishes: DishData[] = data.map(dish => {
           const restaurant = dish.restaurants;
           const category = dish.dish_categories;
           
@@ -169,19 +169,25 @@ export const useDishes = (params: UseDishesParams = {}) => {
           };
         });
 
-        // Apply client-side filters (but NOT distance filter)
+        console.log('useDishes: Processed dishes:', processedDishes.length);
+
+        // Apply filters
+        let filteredDishes = processedDishes;
+
+        // Search filter
         if (searchQuery && searchQuery.trim()) {
           const query = searchQuery.toLowerCase().trim();
-          processedDishes = processedDishes.filter(dish =>
+          filteredDishes = filteredDishes.filter(dish =>
             dish.name.toLowerCase().includes(query) ||
             dish.description?.toLowerCase().includes(query) ||
             dish.restaurant_name.toLowerCase().includes(query)
           );
+          console.log('useDishes: After search filter:', filteredDishes.length);
         }
 
         // Diet type filters
         if (selectedDietTypes.length > 0) {
-          processedDishes = processedDishes.filter(dish => {
+          filteredDishes = filteredDishes.filter(dish => {
             return selectedDietTypes.some(dietType => {
               switch (dietType) {
                 case 'vegetarian':
@@ -199,11 +205,12 @@ export const useDishes = (params: UseDishesParams = {}) => {
               }
             });
           });
+          console.log('useDishes: After diet filter:', filteredDishes.length);
         }
 
         // Price range filters
         if (selectedPriceRanges.length > 0) {
-          processedDishes = processedDishes.filter(dish => {
+          filteredDishes = filteredDishes.filter(dish => {
             return selectedPriceRanges.some(range => {
               switch (range) {
                 case 'budget':
@@ -217,18 +224,20 @@ export const useDishes = (params: UseDishesParams = {}) => {
               }
             });
           });
+          console.log('useDishes: After price filter:', filteredDishes.length);
         }
 
         // Spice level filters
         if (spiceLevels.length > 0) {
-          processedDishes = processedDishes.filter(dish =>
+          filteredDishes = filteredDishes.filter(dish =>
             spiceLevels.includes(dish.spice_level)
           );
+          console.log('useDishes: After spice filter:', filteredDishes.length);
         }
 
         // Preparation time filters
         if (prepTimeRanges.length > 0) {
-          processedDishes = processedDishes.filter(dish => {
+          filteredDishes = filteredDishes.filter(dish => {
             if (!dish.preparation_time_minutes) return false;
             return prepTimeRanges.some(range => {
               switch (range) {
@@ -243,10 +252,11 @@ export const useDishes = (params: UseDishesParams = {}) => {
               }
             });
           });
+          console.log('useDishes: After time filter:', filteredDishes.length);
         }
 
-        // Sort by distance if available, then by featured status, but don't filter by distance
-        processedDishes.sort((a, b) => {
+        // Sort by distance if available, then by featured status
+        filteredDishes.sort((a, b) => {
           if (a.distance_km !== undefined && b.distance_km !== undefined) {
             return a.distance_km - b.distance_km;
           }
@@ -255,13 +265,14 @@ export const useDishes = (params: UseDishesParams = {}) => {
           return 0;
         });
 
-        console.log('useDishes: Processed dishes:', processedDishes.length);
-        setDishes(processedDishes);
-        setError(null);
+        console.log('useDishes: Final dishes to display:', filteredDishes.length);
+        setDishes(filteredDishes);
 
       } catch (err) {
-        console.error('useDishes: Unexpected error:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        console.error('useDishes: Error in fetchDishes:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Error desconocido al cargar platos';
+        setError(errorMessage);
+        setDishes([]);
       } finally {
         setLoading(false);
       }
@@ -269,6 +280,8 @@ export const useDishes = (params: UseDishesParams = {}) => {
 
     fetchDishes();
   }, [searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, spiceLevels, prepTimeRanges]);
+
+  console.log('useDishes: Hook returning:', { dishes: dishes.length, loading, error });
 
   return { dishes, loading, error };
 };
