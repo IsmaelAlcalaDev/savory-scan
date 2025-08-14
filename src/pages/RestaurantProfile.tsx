@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -48,7 +47,7 @@ export default function RestaurantProfile() {
   const scrollToSection = (sectionId: string) => {
     const element = sectionsRef.current[sectionId];
     if (element) {
-      const elementPosition = element.offsetTop - 100;
+      const elementPosition = element.offsetTop - (isMobile ? 80 : 100);
       window.scrollTo({
         top: elementPosition,
         behavior: 'smooth'
@@ -152,14 +151,14 @@ export default function RestaurantProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="h-96 bg-gradient-to-r from-gray-300 to-gray-400 animate-pulse" />
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="space-y-6">
-            <Skeleton className="h-12 w-1/2" />
-            <Skeleton className="h-6 w-3/4" />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="h-64 sm:h-80 md:h-96 bg-gradient-to-r from-gray-300 to-gray-400 animate-pulse" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+          <div className="space-y-4 sm:space-y-6">
+            <Skeleton className="h-8 sm:h-12 w-1/2" />
+            <Skeleton className="h-4 sm:h-6 w-3/4" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-48 rounded-xl" />
+                <Skeleton key={i} className="h-32 sm:h-48 rounded-xl" />
               ))}
             </div>
           </div>
@@ -170,11 +169,11 @@ export default function RestaurantProfile() {
 
   if (error || !restaurant) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="text-center bg-white rounded-2xl shadow-xl p-12 mx-4 max-w-md">
-          <h1 className="text-3xl font-bold mb-4 text-gray-900">Restaurante no encontrado</h1>
-          <p className="text-gray-600 mb-8">Lo sentimos, no pudimos encontrar este restaurante.</p>
-          <Button onClick={handleGoBack} className="bg-primary hover:bg-primary-dark">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="text-center bg-white rounded-2xl shadow-xl p-8 sm:p-12 mx-4 max-w-md w-full">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4 text-gray-900">Restaurante no encontrado</h1>
+          <p className="text-gray-600 mb-6 sm:mb-8 text-sm sm:text-base">Lo sentimos, no pudimos encontrar este restaurante.</p>
+          <Button onClick={handleGoBack} className="w-full sm:w-auto bg-primary hover:bg-primary-dark">
             Volver a restaurantes
           </Button>
         </div>
@@ -232,8 +231,8 @@ export default function RestaurantProfile() {
           onGalleryOpen={() => setIsGalleryOpen(true)}
         />
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 pb-12">
+        {/* Main Content - Responsive Container */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pb-8 sm:pb-12">
           {/* Stats Section */}
           <RestaurantStatsSection restaurant={restaurant} />
 
@@ -245,11 +244,11 @@ export default function RestaurantProfile() {
             hasPromotions={restaurant.promotions && restaurant.promotions.length > 0}
           />
 
-          {/* Content Sections */}
-          <div className="space-y-12">
+          {/* Content Sections - Responsive Spacing */}
+          <div className="space-y-8 sm:space-y-12">
             {/* Quick Actions */}
-            <section className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-              <h3 className="text-2xl font-bold mb-6 text-gray-900">Acciones Rápidas</h3>
+            <section className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 md:p-8">
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-900">Acciones Rápidas</h3>
               <QuickActionTags
                 phone={restaurant.phone}
                 website={restaurant.website}
@@ -265,17 +264,17 @@ export default function RestaurantProfile() {
               <section 
                 id="servicios"
                 ref={(el) => sectionsRef.current['servicios'] = el}
-                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+                className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 md:p-8"
               >
-                <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-900">
-                  <CheckCircle className="h-7 w-7 text-primary" />
+                <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-3 text-gray-900">
+                  <CheckCircle className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
                   Servicios Disponibles
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                   {restaurant.services.map((service, index) => (
-                    <div key={index} className="flex items-center gap-3 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/20">
-                      <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                      <span className="text-sm font-medium text-gray-900">{service}</span>
+                    <div key={index} className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/20">
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                      <span className="text-sm sm:text-sm font-medium text-gray-900">{service}</span>
                     </div>
                   ))}
                 </div>
@@ -286,25 +285,25 @@ export default function RestaurantProfile() {
             <section 
               id="horarios"
               ref={(el) => sectionsRef.current['horarios'] = el}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 md:p-8"
             >
-              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-900">
-                <Clock className="h-7 w-7 text-primary" />
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-3 text-gray-900">
+                <Clock className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
                 Horarios de Apertura
               </h3>
               {restaurant.schedules.length > 0 ? (
                 <CompactRestaurantSchedule schedules={restaurant.schedules} />
               ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Clock className="h-16 w-16 mx-auto mb-4 opacity-30" />
-                  <p className="text-lg">Horarios no disponibles</p>
+                <div className="text-center py-8 sm:py-12 text-gray-500">
+                  <Clock className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 opacity-30" />
+                  <p className="text-base sm:text-lg">Horarios no disponibles</p>
                 </div>
               )}
             </section>
 
             {/* Delivery Section */}
             {restaurant.delivery_links && Object.keys(restaurant.delivery_links).length > 0 && (
-              <section className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+              <section className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 md:p-8">
                 <DeliveryLogosSection deliveryLinks={restaurant.delivery_links} />
               </section>
             )}
@@ -314,7 +313,7 @@ export default function RestaurantProfile() {
               <section 
                 id="promociones"
                 ref={(el) => sectionsRef.current['promociones'] = el}
-                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+                className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 md:p-8"
               >
                 <CompactRestaurantPromotions promotions={restaurant.promotions} />
               </section>
@@ -324,7 +323,7 @@ export default function RestaurantProfile() {
             <section 
               id="eventos"
               ref={(el) => sectionsRef.current['eventos'] = el}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 md:p-8"
             >
               <CompactRestaurantEvents restaurantId={restaurant?.id || 0} />
             </section>
@@ -333,23 +332,23 @@ export default function RestaurantProfile() {
             <section 
               id="contacto"
               ref={(el) => sectionsRef.current['contacto'] = el}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 md:p-8"
             >
-              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-900">
-                <Phone className="h-7 w-7 text-primary" />
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-3 text-gray-900">
+                <Phone className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
                 Información de Contacto
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {restaurant.phone && (
-                  <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
-                    <div className="bg-blue-500 rounded-full p-3">
-                      <Phone className="h-6 w-6 text-white" />
+                  <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                    <div className="bg-blue-500 rounded-full p-2 sm:p-3">
+                      <Phone className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm text-blue-600 font-medium mb-1">Teléfono</p>
+                      <p className="text-xs sm:text-sm text-blue-600 font-medium mb-1">Teléfono</p>
                       <a 
                         href={`tel:${restaurant.phone}`} 
-                        className="text-lg font-semibold text-blue-900 hover:text-blue-700 transition-colors"
+                        className="text-base sm:text-lg font-semibold text-blue-900 hover:text-blue-700 transition-colors"
                       >
                         {restaurant.phone}
                       </a>
@@ -357,26 +356,26 @@ export default function RestaurantProfile() {
                   </div>
                 )}
 
-                <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
-                  <div className="bg-green-500 rounded-full p-3">
-                    <MapPin className="h-6 w-6 text-white" />
+                <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+                  <div className="bg-green-500 rounded-full p-2 sm:p-3">
+                    <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm text-green-600 font-medium mb-1">Dirección</p>
-                    <p className="text-lg font-semibold text-green-900">{restaurant.address}</p>
+                    <p className="text-xs sm:text-sm text-green-600 font-medium mb-1">Dirección</p>
+                    <p className="text-base sm:text-lg font-semibold text-green-900">{restaurant.address}</p>
                   </div>
                 </div>
 
                 {restaurant.email && (
-                  <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
-                    <div className="bg-purple-500 rounded-full p-3">
-                      <Mail className="h-6 w-6 text-white" />
+                  <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                    <div className="bg-purple-500 rounded-full p-2 sm:p-3">
+                      <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm text-purple-600 font-medium mb-1">Email</p>
+                      <p className="text-xs sm:text-sm text-purple-600 font-medium mb-1">Email</p>
                       <a 
                         href={`mailto:${restaurant.email}`} 
-                        className="text-lg font-semibold text-purple-900 hover:text-purple-700 transition-colors"
+                        className="text-base sm:text-lg font-semibold text-purple-900 hover:text-purple-700 transition-colors break-all"
                       >
                         {restaurant.email}
                       </a>
@@ -388,26 +387,26 @@ export default function RestaurantProfile() {
 
             {/* Social Section */}
             {restaurant.social_links && Object.keys(restaurant.social_links).length > 0 && (
-              <section className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+              <section className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 md:p-8">
                 <RestaurantSocialSection socialLinks={restaurant.social_links} />
               </section>
             )}
           </div>
         </div>
 
-        {/* Gallery Dialog */}
+        {/* Gallery Dialog - Responsive */}
         <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
-          <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0 bg-black">
+          <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0 bg-black m-2 sm:m-4">
             <div className="relative h-full">
-              <div className="absolute top-4 left-4 z-10">
-                <h2 className="text-2xl font-bold text-white bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2">
+              <div className="absolute top-2 sm:top-4 left-2 sm:left-4 z-10">
+                <h2 className="text-lg sm:text-2xl font-bold text-white bg-black/50 backdrop-blur-sm rounded-lg px-3 sm:px-4 py-2">
                   Galería de {restaurant.name}
                 </h2>
               </div>
-              <div className="overflow-y-auto h-full p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="overflow-y-auto h-full p-3 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                   {allImages.map((image, index) => (
-                    <div key={index} className="aspect-video overflow-hidden rounded-xl">
+                    <div key={index} className="aspect-video overflow-hidden rounded-lg sm:rounded-xl">
                       <img
                         src={image}
                         alt={`${restaurant.name} - imagen ${index + 1}`}

@@ -5,8 +5,6 @@ import {
   Star, 
   Heart, 
   TrendingUp, 
-  Users,
-  Award,
   Calendar
 } from 'lucide-react';
 import { RestaurantProfile } from '@/hooks/useRestaurantProfile';
@@ -56,24 +54,24 @@ export default function RestaurantStatsSection({ restaurant }: RestaurantStatsSe
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-12">
       {stats.map((stat, index) => (
         <Card key={index} className={`border-2 ${stat.borderColor} hover:shadow-lg transition-all duration-300 hover:scale-105`}>
-          <CardContent className={`p-6 ${stat.bgColor}`}>
-            <div className="flex items-center justify-between mb-3">
-              <stat.icon className={`h-8 w-8 ${stat.color}`} />
-              <div className="text-right">
-                <div className={`text-2xl font-bold ${stat.color}`}>
+          <CardContent className={`p-3 sm:p-4 md:p-6 ${stat.bgColor}`}>
+            <div className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between mb-2 sm:mb-3">
+              <stat.icon className={`h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 ${stat.color} mb-2 sm:mb-0`} />
+              <div className="text-center sm:text-right">
+                <div className={`text-lg sm:text-xl md:text-2xl font-bold ${stat.color}`}>
                   {stat.value}
                 </div>
               </div>
             </div>
-            <div>
-              <div className="text-sm font-medium text-gray-900 mb-1">
+            <div className="text-center sm:text-left">
+              <div className="text-xs sm:text-sm font-medium text-gray-900 mb-1">
                 {stat.label}
               </div>
               {stat.subValue && (
-                <div className="text-xs text-gray-600">
+                <div className="text-xs sm:text-xs text-gray-600">
                   {stat.subValue}
                 </div>
               )}
