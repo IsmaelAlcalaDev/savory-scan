@@ -7,6 +7,38 @@ interface DeliveryLogosSectionProps {
   deliveryLinks?: Record<string, string>;
 }
 
+const getPlatformStyles = (platformKey: string) => {
+  switch (platformKey.toLowerCase()) {
+    case 'glovo':
+      return {
+        bg: 'bg-yellow-400 hover:bg-yellow-500',
+        text: 'text-black'
+      };
+    case 'ubereats':
+    case 'uber-eats':
+      return {
+        bg: 'bg-black hover:bg-gray-800',
+        text: 'text-white'
+      };
+    case 'justeat':
+    case 'just-eat':
+      return {
+        bg: 'bg-orange-500 hover:bg-orange-600',
+        text: 'text-white'
+      };
+    case 'deliveroo':
+      return {
+        bg: 'bg-cyan-400 hover:bg-cyan-500',
+        text: 'text-white'
+      };
+    default:
+      return {
+        bg: 'bg-primary hover:bg-primary/90',
+        text: 'text-primary-foreground'
+      };
+  }
+};
+
 export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLogosSectionProps) {
   const { data: platforms, isLoading } = usePlatformConfigs('delivery');
 
@@ -32,29 +64,16 @@ export default function DeliveryLogosSection({ deliveryLinks = {} }: DeliveryLog
       <div className="flex flex-wrap items-center justify-start gap-4">
         {availablePlatforms.map((platform) => {
           const url = deliveryLinks[platform.platform_key];
+          const styles = getPlatformStyles(platform.platform_key);
           
           return (
             <Button
               key={platform.id}
               size="lg"
-              variant="outline"
-              className="px-6 py-4 h-auto bg-white rounded-xl shadow-soft hover:shadow-card border-2 border-red-500 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+              className={`px-6 py-4 h-auto rounded-xl shadow-soft hover:shadow-card hover:scale-105 transition-all duration-300 border-0 ${styles.bg} ${styles.text}`}
               onClick={() => window.open(url, '_blank', 'noopener noreferrer')}
             >
-              {platform.icon ? (
-                <img 
-                  src={platform.icon}
-                  alt={platform.platform_name}
-                  className="h-8 w-8 object-contain"
-                  onError={(e) => {
-                    console.error('Error loading logo for:', platform.platform_name);
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              ) : (
-                <Truck className="h-8 w-8 text-red-600" />
-              )}
-              <span className="text-red-600 font-medium">{platform.platform_name}</span>
+              <span className="font-medium">{platform.platform_name}</span>
             </Button>
           );
         })}
