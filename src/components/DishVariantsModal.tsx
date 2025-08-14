@@ -29,13 +29,29 @@ export default function DishVariantsModal({ isOpen, onClose, dish, onVariantAdd 
     }).format(price);
   };
 
+  const getDietBadges = () => {
+    const badges = [];
+    if (dish.is_vegetarian) badges.push({ label: 'Vegetariano', color: 'bg-green-100 text-green-800' });
+    if (dish.is_vegan) badges.push({ label: 'Vegano', color: 'bg-green-100 text-green-800' });
+    if (dish.is_gluten_free) badges.push({ label: 'Sin gluten', color: 'bg-blue-100 text-blue-800' });
+    if (dish.is_lactose_free) badges.push({ label: 'Sin lactosa', color: 'bg-purple-100 text-purple-800' });
+    if (dish.is_healthy) badges.push({ label: 'Saludable', color: 'bg-emerald-100 text-emerald-800' });
+    return badges;
+  };
+
+  const getSpiceIcons = () => {
+    const spiceLevel = dish.spice_level;
+    if (spiceLevel === 0) return null;
+    return '🌶️'.repeat(Math.min(spiceLevel, 5));
+  };
+
   if (!dish.variants || dish.variants.length <= 1) {
     return null;
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-left">Selecciona el tamaño</DialogTitle>
         </DialogHeader>
@@ -58,6 +74,36 @@ export default function DishVariantsModal({ isOpen, onClose, dish, onVariantAdd 
             )}
           </div>
         </div>
+
+        {/* Diet and Allergen Tags */}
+        {(getDietBadges().length > 0 || (dish.allergens && dish.allergens.length > 0) || getSpiceIcons()) && (
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-1">
+              {getDietBadges().map((badge, index) => (
+                <span key={index} className={`px-2 py-1 rounded-full text-xs ${badge.color}`}>
+                  {badge.label}
+                </span>
+              ))}
+              
+              {dish.allergens && dish.allergens.map((allergen, index) => (
+                <span key={index} className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                  {allergen}
+                </span>
+              ))}
+              
+              {getSpiceIcons() && (
+                <span className="text-lg">{getSpiceIcons()}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Additional Info */}
+        {dish.preparation_time_minutes && (
+          <div className="text-xs text-muted-foreground mb-4">
+            <span className="font-medium">Tiempo de preparación:</span> {dish.preparation_time_minutes} min
+          </div>
+        )}
 
         {/* Variants List */}
         <div className="space-y-2 max-h-60 overflow-y-auto">

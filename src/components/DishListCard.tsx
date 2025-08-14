@@ -84,22 +84,6 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
     }
   };
 
-  const getDietBadges = () => {
-    const badges = [];
-    if (dish.is_vegetarian) badges.push({ label: 'Vegetariano', color: 'bg-green-100 text-green-800' });
-    if (dish.is_vegan) badges.push({ label: 'Vegano', color: 'bg-green-100 text-green-800' });
-    if (dish.is_gluten_free) badges.push({ label: 'Sin gluten', color: 'bg-blue-100 text-blue-800' });
-    if (dish.is_lactose_free) badges.push({ label: 'Sin lactosa', color: 'bg-purple-100 text-purple-800' });
-    if (dish.is_healthy) badges.push({ label: 'Saludable', color: 'bg-emerald-100 text-emerald-800' });
-    return badges;
-  };
-
-  const getSpiceIcons = () => {
-    const spiceLevel = dish.spice_level;
-    if (spiceLevel === 0) return null;
-    return '🌶️'.repeat(Math.min(spiceLevel, 5));
-  };
-
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
 
   return (
@@ -168,42 +152,6 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Content that was previously in collapsible - now always visible */}
-        <div className="px-3 pb-3 space-y-2">
-          {/* Description */}
-          {dish.description && (
-            <p className="text-sm text-muted-foreground">{dish.description}</p>
-          )}
-
-          {/* Diet and Allergen Tags */}
-          {(getDietBadges().length > 0 || (dish.allergens && dish.allergens.length > 0) || getSpiceIcons()) && (
-            <div className="flex flex-wrap gap-1">
-              {getDietBadges().map((badge, index) => (
-                <span key={index} className={`px-2 py-1 rounded-full text-xs ${badge.color}`}>
-                  {badge.label}
-                </span>
-              ))}
-              
-              {dish.allergens && dish.allergens.map((allergen, index) => (
-                <span key={index} className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                  {allergen}
-                </span>
-              ))}
-              
-              {getSpiceIcons() && (
-                <span className="text-lg">{getSpiceIcons()}</span>
-              )}
-            </div>
-          )}
-
-          {/* Additional Info */}
-          {dish.preparation_time_minutes && (
-            <div className="text-xs text-muted-foreground">
-              <span className="font-medium">Tiempo:</span> {dish.preparation_time_minutes} min
-            </div>
-          )}
         </div>
       </div>
 
