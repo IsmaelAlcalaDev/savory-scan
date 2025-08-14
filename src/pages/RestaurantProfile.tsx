@@ -48,6 +48,7 @@ export default function RestaurantProfile() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('servicios');
   const [isQuickActionsFixed, setIsQuickActionsFixed] = useState(false);
+  const [originalQuickActionsTop, setOriginalQuickActionsTop] = useState<number | null>(null);
   const [isVerCartaFixed, setIsVerCartaFixed] = useState(false);
   const [isHeaderFixed, setIsHeaderFixed] = useState(false);
 
@@ -89,6 +90,16 @@ export default function RestaurantProfile() {
   const totalImages = getAllImages().length;
 
   useEffect(() => {
+    if (quickActionsRef.current && originalQuickActionsTop === null) {
+      const rect = quickActionsRef.current.getBoundingClientRect();
+      const scrollTop = window.scrollY;
+      const originalTop = rect.top + scrollTop;
+      setOriginalQuickActionsTop(originalTop);
+      console.log('Original quick actions top:', originalTop);
+    }
+  }, [restaurant, originalQuickActionsTop]);
+
+  useEffect(() => {
     const handleScroll = () => {
       if (headerRef.current && heroRef.current) {
         const heroHeight = heroRef.current.offsetHeight;
@@ -127,15 +138,15 @@ export default function RestaurantProfile() {
     if (window.innerWidth >= 1024) return;
 
     const handleScroll = () => {
-      if (quickActionsRef.current) {
-        const quickActionsRect = quickActionsRef.current.getBoundingClientRect();
+      if (quickActionsRef.current && originalQuickActionsTop !== null) {
         const scrollTop = window.scrollY;
-        const elementOriginalTop = quickActionsRef.current.offsetTop;
         
-        // Only fix when the element naturally reaches the top
-        const shouldBeFixed = quickActionsRect.top <= 0 && !isQuickActionsFixed;
-        // Unfix when scrolling back to the original position
-        const shouldBeUnfixed = scrollTop <= elementOriginalTop && isQuickActionsFixed;
+        // Should be fixed when we scroll past the original position
+        const shouldBeFixed = scrollTop > originalQuickActionsTop && !isQuickActionsFixed;
+        // Should be unfixed when we scroll back above the original position
+        const shouldBeUnfixed = scrollTop <= originalQuickActionsTop && isQuickActionsFixed;
+        
+        console.log('Scroll position:', scrollTop, 'Original top:', originalQuickActionsTop, 'Should fix:', shouldBeFixed, 'Should unfix:', shouldBeUnfixed);
         
         if (shouldBeFixed) {
           setIsQuickActionsFixed(true);
@@ -147,7 +158,7 @@ export default function RestaurantProfile() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isQuickActionsFixed]);
+  }, [isQuickActionsFixed, originalQuickActionsTop]);
 
   const scrollToSection = (sectionId: string) => {
     const element = sectionsRef.current[sectionId];
@@ -276,7 +287,6 @@ export default function RestaurantProfile() {
   const currentImage = getCurrentImage();
   const allImages = getAllImages();
 
-  // Add this helper function after the existing utility functions
   const getCurrentDayStatus = () => {
     const now = new Date();
     const currentDay = now.getDay();
