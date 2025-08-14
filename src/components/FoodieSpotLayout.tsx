@@ -473,7 +473,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         {renderHeader()}
 
         {/* Tipos de Cocina / Tipos de Comida */}
-        <div className="px-4 pb-2 pt-2">
+        <div className="px-4 pb-2 pt-1">
           {activeBottomTab === 'dishes' ? (
             <FoodTypeFilter 
               selectedFoodTypes={selectedFoodTypes}
@@ -489,7 +489,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
         {/* Search bar for mobile - Full width below cuisine types */}
         {isMobile && (
-          <div className="pb-4">
+          <div className="pb-2">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{ color: '#4B4B4B' }} />
               <input
