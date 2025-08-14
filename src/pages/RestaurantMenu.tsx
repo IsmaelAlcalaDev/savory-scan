@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Star, MapPin, Utensils } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
-import { useRestaurantMenu } from '@/hooks/useRestaurantMenu';
+import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import { type Dish } from '@/hooks/useRestaurantMenu';
 import DishModal from '@/components/DishModal';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
@@ -20,7 +20,7 @@ export default function RestaurantMenu() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { restaurant, loading: restaurantLoading, error: restaurantError } = useRestaurantProfile(slug || '');
-  const { sections, loading: sectionsLoading, error: sectionsError } = useRestaurantMenu(restaurant?.id || 0);
+  const { sections, loading: sectionsLoading, error: sectionsError } = useRestaurantMenuFallback(restaurant?.id || 0);
   
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
@@ -111,6 +111,7 @@ export default function RestaurantMenu() {
 
   console.log('RestaurantMenu: Rendering with slug:', slug);
   console.log('RestaurantMenu: Restaurant data:', { restaurant, restaurantLoading, restaurantError });
+  console.log('RestaurantMenu: Sections data:', { sections, sectionsLoading, sectionsError });
 
   if (restaurantLoading || sectionsLoading) {
     console.log('RestaurantMenu: Showing loading state');
