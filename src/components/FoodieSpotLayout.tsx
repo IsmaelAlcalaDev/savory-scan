@@ -1,7 +1,8 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, MapPin, Heart } from 'lucide-react';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import RestaurantCard from './RestaurantCard';
@@ -44,10 +45,10 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [selectedSpiceLevels, setSelectedSpiceLevels] = useState<number[]>([]);
   const [selectedPrepTimeRanges, setSelectedPrepTimeRanges] = useState<number[]>([]);
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  const isTablet = useMediaQuery("(max-width: 1024px)");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const isTablet = false; // Simplified for now
 
   // Get user location from local storage
   const storedLat = typeof window !== 'undefined' ? localStorage.getItem('latitude') : null;
@@ -62,13 +63,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     searchQuery,
     userLat,
     userLng,
-    selectedDistances,
-    selectedRatings,
-    selectedEstablishments,
-    selectedServices,
-    selectedPriceRanges,
-    selectedTimeRanges,
-    selectedDietTypes,
     selectedCuisines,
   });
 
@@ -89,18 +83,19 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
   // Function to update URL parameters
   const updateUrlParams = useCallback(() => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(location.search);
     params.set('tab', activeBottomTab);
-    router.push(`/?${params.toString()}`);
-  }, [activeBottomTab, searchParams, router]);
+    navigate(`/?${params.toString()}`);
+  }, [activeBottomTab, location.search, navigate]);
 
   // Set initial tab from URL on mount
   useEffect(() => {
-    const tabFromUrl = searchParams.get('tab');
+    const params = new URLSearchParams(location.search);
+    const tabFromUrl = params.get('tab');
     if (tabFromUrl && tabFromUrl !== activeBottomTab) {
       setActiveBottomTab(tabFromUrl);
     }
-  }, [searchParams, activeBottomTab]);
+  }, [location.search, activeBottomTab]);
 
   // Update URL when activeTab changes
   useEffect(() => {
@@ -240,10 +235,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       <main className="flex-1 px-2 md:px-4 lg:px-[7.5%] pb-20 md:pb-4">
         <div className="max-w-7xl mx-auto">
           {/* Quick Action Tags */}
-          <QuickActionTags 
-            onLocationClick={() => setLocationModalOpen(true)}
-            onFavoritesClick={() => setActiveBottomTab('favorites')}
-          />
+          <QuickActionTags />
 
           {/* Main Content Area */}
           <div className="flex gap-6">
@@ -331,12 +323,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
               {/* Tab Content */}
               {activeBottomTab === 'dishes' ? (
-                <AllDishCard
-                  dishes={filteredDishes}
-                  loading={dishesLoading}
-                  error={dishesError}
-                  viewMode={viewMode}
-                />
+                <AllDishCard />
               ) : activeBottomTab === 'favorites' ? (
                 <FavoritesSection />
               ) : (
@@ -344,9 +331,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                   {filteredRestaurants.map((restaurant) => (
                     <RestaurantCard
                       key={restaurant.id}
-                      restaurant={restaurant}
-                      onFavoriteChange={() => {}}
-                      viewMode={viewMode}
                     />
                   ))}
                 </div>
@@ -358,11 +342,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
       {/* Modals */}
       <LocationModal 
-        isOpen={locationModalOpen}
+        open={locationModalOpen}
         onClose={() => setLocationModalOpen(false)}
       />
 
-      <BottomNavigation activeTab={activeBottomTab} onTabChange={setActiveBottomTab} />
+      <BottomNavigation activeTab={activeBottomTab as 'restaurants' | 'dishes' | 'account'} onTabChange={setActiveBottomTab} />
     </div>
   );
 }
