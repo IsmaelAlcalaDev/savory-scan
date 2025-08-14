@@ -385,7 +385,7 @@ export default function RestaurantProfile() {
 
         {/* Mobile: Ver Carta and Quick Actions combined block */}
         {isMobile && <div ref={quickActionsRef} className={`bg-background transition-all duration-300 ease-in-out ${isQuickActionsFixed ? 'fixed top-0 left-0 right-0 z-40 shadow-lg' : 'relative'}`}>
-            <div className="max-w-6xl mx-auto px-4 pt-3 pb-2">
+            <div className="max-w-6xl mx-auto px-4 pt-3 pb-0">
               <Button onClick={handleViewMenu} size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 text-lg mb-3">
                 <Utensils className="h-6 w-6 mr-2" />
                 Ver Carta
