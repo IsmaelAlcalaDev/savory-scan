@@ -1,3 +1,4 @@
+
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,11 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import SortFilter from './SortFilter';
 import DistanceFilter from './DistanceFilter';
 import PriceFilter from './PriceFilter';
@@ -154,7 +160,32 @@ export default function FilterTags({
     }
   };
 
-  const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
+  // Desktop popover content
+  const DesktopFilterContent = ({ filterKey }: { filterKey: string }) => (
+    <div className="w-80">
+      <div className="p-4 space-y-4">
+        {getFilterContent(filterKey)}
+        <div className="pt-4 border-t space-y-2">
+          <Button 
+            onClick={() => setActiveFilterModal(null)}
+            className="w-full bg-black text-white hover:bg-gray-800"
+          >
+            Aplicar
+          </Button>
+          <Button 
+            onClick={() => onClearFilter('all')}
+            variant="outline" 
+            className="w-full"
+          >
+            Restablecer
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Mobile/tablet modal content
+  const MobileFilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
     <div className="flex flex-col h-full">
       {/* Title */}
       <div className="text-center py-4 border-b">
@@ -165,9 +196,9 @@ export default function FilterTags({
       <div className="p-4 border-b">
         <Button 
           onClick={onApply}
-          className="w-full"
+          className="w-full bg-black text-white hover:bg-gray-800"
         >
-          Aplicar filtros
+          Aplicar
         </Button>
       </div>
       
@@ -211,6 +242,7 @@ export default function FilterTags({
       setActiveFilterModal(open ? filterKey : null);
     };
 
+    // Mobile and tablet use Sheet (full screen)
     if (isMobile || isTablet) {
       return (
         <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
@@ -227,7 +259,7 @@ export default function FilterTags({
             {children}
           </Button>
           <SheetContent side="bottom" className="h-[90vh] p-0">
-            <FilterContent 
+            <MobileFilterContent 
               filterKey={filterKey}
               onApply={() => setActiveFilterModal(null)} 
               onReset={() => onClearFilter('all')} 
@@ -237,28 +269,26 @@ export default function FilterTags({
       );
     }
 
+    // Desktop uses Popover (dropdown style)
     return (
-      <Dialog open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0"
-          style={{ 
-            backgroundColor: '#F3F3F3',
-            color: '#4B4B4B'
-          }}
-          onClick={() => handleOpenChange(true)}
-        >
-          {children}
-        </Button>
-        <DialogContent className="max-w-2xl max-h-[80vh] p-0">
-          <FilterContent 
-            filterKey={filterKey}
-            onApply={() => setActiveFilterModal(null)} 
-            onReset={() => onClearFilter('all')} 
-          />
-        </DialogContent>
-      </Dialog>
+      <Popover open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-shrink-0 h-8 px-4 text-xs rounded-full border-0"
+            style={{ 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
+          >
+            {children}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0" align="start">
+          <DesktopFilterContent filterKey={filterKey} />
+        </PopoverContent>
+      </Popover>
     );
   };
 
