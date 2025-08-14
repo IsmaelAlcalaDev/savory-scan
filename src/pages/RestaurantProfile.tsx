@@ -446,7 +446,7 @@ export default function RestaurantProfile() {
           </div>
         </div>
 
-        {/* Mobile: Quick Actions right after hero image */}
+        {/* Mobile: Quick Actions and Ver Carta combined block */}
         {isMobile && (
           <div 
             ref={quickActionsRef}
@@ -456,7 +456,7 @@ export default function RestaurantProfile() {
                 : 'relative'
             }`}
           >
-            <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="max-w-6xl mx-auto px-4 pt-4 pb-2">
               <QuickActionTags
                 phone={restaurant.phone}
                 website={restaurant.website}
@@ -466,19 +466,7 @@ export default function RestaurantProfile() {
                 longitude={restaurant.longitude}
               />
             </div>
-          </div>
-        )}
-
-        {/* Mobile: Ver Carta button right after quick actions */}
-        {isMobile && (
-          <div className={`bg-background transition-all duration-300 ease-in-out ${
-            isQuickActionsFixed ? 'mt-20' : ''
-          } ${
-            isVerCartaFixed 
-              ? 'fixed top-20 left-0 right-0 z-30 shadow-lg' 
-              : 'relative'
-          }`}>
-            <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="max-w-6xl mx-auto px-4 pb-4">
               <Button
                 onClick={handleViewMenu}
                 size="lg"
@@ -491,12 +479,10 @@ export default function RestaurantProfile() {
           </div>
         )}
 
-        {/* Mobile: Restaurant information below Ver Carta */}
+        {/* Mobile: Restaurant information below combined block */}
         {isMobile && (
           <div className={`bg-background ${
-            isQuickActionsFixed ? 'mt-0' : ''
-          } ${
-            isVerCartaFixed ? 'mt-20' : ''
+            isQuickActionsFixed ? 'mt-32' : ''
           }`}>
             <div className="max-w-6xl mx-auto px-4 py-6">
               <div className="flex items-start gap-4 mb-4">
