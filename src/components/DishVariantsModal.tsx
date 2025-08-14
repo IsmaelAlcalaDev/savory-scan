@@ -49,7 +49,7 @@ export default function DishVariantsModal({ isOpen, onClose, dish, onVariantAdd 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 rounded-xl border-0 shadow-lg">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 rounded-xl border-0 shadow-lg mx-4">
         {/* Custom Close Button */}
         <button
           onClick={onClose}
