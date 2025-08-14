@@ -461,8 +461,8 @@ export default function FoodieSpotLayout({
             {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
           </div>
 
-          {/* Search bar for mobile - Full width below cuisine types */}
-          {isMobile && <div className="pb-2">
+          {/* Search bar for mobile - Full width below cuisine types with doubled spacing */}
+          {isMobile && <div className="pb-4">
               <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{
               color: '#4B4B4B'
