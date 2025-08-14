@@ -5,7 +5,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -14,7 +13,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -153,13 +151,6 @@ export default function FilterTags({
 
   const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
     <div className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-lg font-semibold mb-2">Filtros</h3>
-        <p className="text-sm text-muted-foreground">
-          Personaliza tu búsqueda de {activeTab === 'dishes' ? 'platos' : 'restaurantes'}
-        </p>
-      </div>
-      
       {/* Filter content */}
       <div className="max-h-[60vh] overflow-y-auto">
         {getFilterContent(filterKey)}
@@ -212,12 +203,6 @@ export default function FilterTags({
             {children}
           </SheetTrigger>
           <SheetContent side="bottom" className="h-[90vh]">
-            <SheetHeader>
-              <SheetTitle>Filtros</SheetTitle>
-              <SheetDescription>
-                Personaliza tu búsqueda de {activeTab === 'dishes' ? 'platos' : 'restaurantes'}
-              </SheetDescription>
-            </SheetHeader>
             <div className="flex-1 overflow-y-auto py-4">
               <FilterContent 
                 filterKey={filterKey}
@@ -236,12 +221,6 @@ export default function FilterTags({
           {children}
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Filtros</DialogTitle>
-            <DialogDescription>
-              Personaliza tu búsqueda de {activeTab === 'dishes' ? 'platos' : 'restaurantes'}
-            </DialogDescription>
-          </DialogHeader>
           <FilterContent 
             filterKey={filterKey}
             onApply={() => setActiveFilterModal(null)} 
