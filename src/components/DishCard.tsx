@@ -84,6 +84,7 @@ export default function DishCard({ dish, restaurantId, onDishClick }: DishCardPr
             favoritesCount={dish.favorites_count}
             size="sm"
             className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
+            savedFrom="menu_card"
           />
         </div>
       </div>

@@ -2,25 +2,33 @@
 import { useState } from 'react';
 import { Heart, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDishFavorites } from '@/contexts/DishFavoritesContext';
 
 interface DishFavoriteButtonProps {
   dishId: number;
   favoritesCount: number;
+  savedFrom?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  onLoginRequired?: () => void;
   showCount?: boolean;
 }
 
 export default function DishFavoriteButton({
   dishId,
   favoritesCount,
+  savedFrom = 'button',
   size = 'md',
   className,
+  onLoginRequired,
   showCount = false,
 }: DishFavoriteButtonProps) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { isDishFavorite, isToggling, toggleDishFavorite } = useDishFavorites();
   const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleLoginRequired = () => {
+    if (onLoginRequired) onLoginRequired();
+  };
 
   const handleToggle = async (e?: React.MouseEvent<HTMLButtonElement>) => {
     // Evitar navegación/click del contenedor (cards, links, etc.)
@@ -29,19 +37,17 @@ export default function DishFavoriteButton({
       e.stopPropagation();
     }
 
-    if (isLoading) return;
+    if (isToggling(dishId)) return;
 
     setIsAnimating(true);
-    setIsLoading(true);
     setTimeout(() => setIsAnimating(false), 300);
 
-    // TODO: Implementar lógica de favoritos para platos
-    // Por ahora solo cambia el estado local
-    setTimeout(() => {
-      setIsLiked(!isLiked);
-      setIsLoading(false);
-    }, 500);
+    // Call toggle; do not touch local counts here
+    await toggleDishFavorite(dishId, savedFrom, handleLoginRequired);
   };
+
+  const liked = isDishFavorite(dishId);
+  const loading = isToggling(dishId);
 
   const getIconSize = () => {
     switch (size) {
@@ -65,23 +71,23 @@ export default function DishFavoriteButton({
       <button
         type="button"
         onClick={handleToggle}
-        disabled={isLoading}
+        disabled={loading}
         className={cn(
           "inline-flex items-center gap-1 rounded-full border px-2 py-1 transition-colors",
           "bg-background hover:bg-accent text-foreground",
-          isLoading && "opacity-70 cursor-not-allowed",
+          loading && "opacity-70 cursor-not-allowed",
           isAnimating && "scale-95",
           className
         )}
-        aria-pressed={isLiked}
-        aria-label={isLiked ? "Quitar de favoritos" : "Añadir a favoritos"}
+        aria-pressed={liked}
+        aria-label={liked ? "Quitar de favoritos" : "Añadir a favoritos"}
       >
-        {isLoading ? (
+        {loading ? (
           <Loader2 className={cn("animate-spin", getIconSize())} />
         ) : (
           <Heart
             className={cn(
-              isLiked ? "fill-red-500 stroke-red-500" : "stroke-current",
+              liked ? "fill-red-500 stroke-red-500" : "stroke-current",
               getIconSize()
             )}
           />
@@ -103,24 +109,24 @@ export default function DishFavoriteButton({
     <button
       type="button"
       onClick={handleToggle}
-      disabled={isLoading}
+      disabled={loading}
       className={cn(
         "rounded-full border bg-background hover:bg-accent text-foreground transition-colors",
         "flex items-center justify-center",
-        isLoading && "opacity-70 cursor-not-allowed",
+        loading && "opacity-70 cursor-not-allowed",
         isAnimating && "scale-95",
         getButtonSize(),
         className
       )}
-      aria-pressed={isLiked}
-      aria-label={isLiked ? "Quitar de favoritos" : "Añadir a favoritos"}
+      aria-pressed={liked}
+      aria-label={liked ? "Quitar de favoritos" : "Añadir a favoritos"}
     >
-      {isLoading ? (
+      {loading ? (
         <Loader2 className={cn("animate-spin", getIconSize())} />
       ) : (
         <Heart
           className={cn(
-            isLiked ? "fill-red-500 stroke-red-500" : "stroke-current",
+            liked ? "fill-red-500 stroke-red-500" : "stroke-current",
             getIconSize()
           )}
         />

@@ -1,3 +1,4 @@
+
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -86,12 +87,13 @@ export default function AllDishCard({
             </div>
           )}
 
-          <div className="absolute top-2 right-2 z-20">
+          <div className="absolute bottom-2 right-2 z-20">
             <DishFavoriteButton
               dishId={id}
               favoritesCount={0}
               size="sm"
               className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
+              savedFrom="list_card"
             />
           </div>
         </div>
@@ -158,12 +160,13 @@ export default function AllDishCard({
           </div>
         )}
 
-        <div className="absolute top-3 right-3 z-20">
+        <div className="absolute bottom-3 right-3 z-20">
           <DishFavoriteButton
             dishId={id}
             favoritesCount={0}
-            size="sm"
+            size="md"
             className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
+            savedFrom="grid_card"
           />
         </div>
       </div>
