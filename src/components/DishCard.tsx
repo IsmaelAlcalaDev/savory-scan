@@ -121,13 +121,13 @@ export default function DishCard({
   return (
     <>
       <div 
-        className={`bg-background cursor-pointer ${!isFirstInSection ? 'border-t' : ''} border-b border-border/50`}
+        className="bg-background cursor-pointer"
         onClick={handleCardClick}
       >
         <div className="py-4 px-0 transition-colors">
           <div className="flex gap-3 items-start w-full">
             {/* Image */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 relative">
               {dish.image_url ? (
                 <div className="w-20 h-20 rounded-lg overflow-hidden relative">
                   <img
@@ -146,6 +146,27 @@ export default function DishCard({
                   <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
                 </div>
               )}
+              
+              {/* Buttons positioned at bottom of image */}
+              <div className="absolute -bottom-1 -right-1 flex items-center gap-1">
+                <DishFavoriteButton
+                  dishId={dish.id}
+                  restaurantId={restaurantId}
+                  favoritesCount={dish.favorites_count}
+                  size="md"
+                  className="border-0 bg-background hover:bg-accent text-foreground w-9 h-9 shadow-sm"
+                  savedFrom="menu_list"
+                />
+                
+                <button
+                  onClick={handlePlusClick}
+                  className="w-9 h-9 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
+                  aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
+                  title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
             </div>
 
             {/* Content */}
@@ -173,29 +194,6 @@ export default function DishCard({
                 </div>
                 <div className="font-bold text-lg text-primary text-right flex-shrink-0">
                   {getDisplayPrice()}
-                </div>
-              </div>
-
-              {/* Bottom Row - Buttons */}
-              <div className="flex items-end justify-end mt-auto">
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <DishFavoriteButton
-                    dishId={dish.id}
-                    restaurantId={restaurantId}
-                    favoritesCount={dish.favorites_count}
-                    size="md"
-                    className="border-0 bg-transparent hover:bg-transparent text-foreground w-8 h-8"
-                    savedFrom="menu_list"
-                  />
-                  
-                  <button
-                    onClick={handlePlusClick}
-                    className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
-                    aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
-                    title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
                 </div>
               </div>
             </div>
