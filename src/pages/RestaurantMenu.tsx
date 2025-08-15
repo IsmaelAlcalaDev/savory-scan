@@ -7,7 +7,7 @@ import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
-import ExpandableSearchBar from '@/components/ExpandableSearchBar';
+import InlineSearchBar from '@/components/InlineSearchBar';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
 import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
@@ -27,7 +27,7 @@ function RestaurantMenuContent() {
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<number | undefined>();
-  const [isExpandableSearchOpen, setIsExpandableSearchOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Ref for intersection observer
   const sectionsRefs = useRef<{ [key: number]: HTMLElement | null }>({});
@@ -100,11 +100,12 @@ function RestaurantMenuContent() {
   };
 
   const handleSearchToggle = () => {
-    setIsExpandableSearchOpen(!isExpandableSearchOpen);
+    setIsSearchOpen(!isSearchOpen);
   };
 
-  const handleExpandableSearchClose = () => {
-    setIsExpandableSearchOpen(false);
+  const handleSearchClose = () => {
+    setIsSearchOpen(false);
+    setSearchQuery(''); // Clear search when closing
   };
 
   // Set initial active section when filteredSections are loaded
@@ -164,7 +165,7 @@ function RestaurantMenuContent() {
   }, [filteredSections]);
 
   if (restaurantLoading || sectionsLoading) {
-    return <div className="min-h-screen bg-muted/20">
+    return <div className="min-h-screen bg-gray-100">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <Skeleton className="h-12 w-64 mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -177,7 +178,7 @@ function RestaurantMenuContent() {
   }
 
   if (restaurantError || sectionsError || !restaurant) {
-    return <div className="min-h-screen bg-muted/20">
+    return <div className="min-h-screen bg-gray-100">
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Restaurante no encontrado</h1>
@@ -199,68 +200,50 @@ function RestaurantMenuContent() {
         <meta name="description" content={`Explora la carta completa de ${restaurant.name}. Descubre todos nuestros platos y encuentra tu favorito.`} />
       </Helmet>
 
-      <div className="min-h-screen bg-muted/20 pb-20">
-        {/* Sticky Header Navigation with Search */}
-        <div className="sticky top-0 z-50 bg-background shadow-sm">
-          <div className="bg-background">
-            <div className="max-w-6xl mx-auto px-4 py-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Button onClick={handleGoBack} variant="ghost" size="sm" className="flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-
-                  {restaurant.logo_url && (
-                    <div className="w-8 h-8 rounded-full overflow-hidden border border-border flex-shrink-0">
-                      <img src={restaurant.logo_url} alt={`${restaurant.name} logo`} className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  
-                  <h1 className="text-lg font-bold">
-                    {restaurant.name}
-                  </h1>
-                </div>
-
-                {/* Right side: Search icon only */}
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={handleSearchToggle}
-                    className="p-2 border-0 bg-transparent hover:bg-gray-100 focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors rounded-full"
-                  >
-                    <Search className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
+      <div className="min-h-screen bg-gray-100 pb-20">
+        {/* Sticky Header with Inline Search */}
+        <div className="sticky top-0 z-50">
+          <InlineSearchBar
+            isOpen={isSearchOpen}
+            onClose={handleSearchClose}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            placeholder="Buscar platos..."
+            restaurantName={restaurant.name}
+            restaurantLogo={restaurant.logo_url}
+            onGoBack={handleGoBack}
+          />
+          
+          {/* Add click handler to search button when not in search mode */}
+          {!isSearchOpen && (
+            <div 
+              className="absolute top-2 right-6 p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+              onClick={handleSearchToggle}
+            >
+              <Search className="h-5 w-5" />
             </div>
+          )}
 
-            {/* Expandable Search Bar */}
-            <ExpandableSearchBar
-              isOpen={isExpandableSearchOpen}
-              onClose={handleExpandableSearchClose}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              placeholder="Buscar platos..."
-            />
-          </div>
-
-          {/* Section Navigation */}
-          <div className="bg-background border-b">
-            <MenuSectionTabs 
-              sections={filteredSections} 
-              activeSection={activeSection} 
-              onSectionClick={handleSectionClick}
-              selectedAllergens={selectedAllergens}
-              selectedDietTypes={selectedDietTypes}
-              onAllergenChange={setSelectedAllergens}
-              onDietTypeChange={setSelectedDietTypes}
-            />
-          </div>
+          {/* Section Navigation - only show when search is not active */}
+          {!isSearchOpen && (
+            <div className="bg-white border-b">
+              <MenuSectionTabs 
+                sections={filteredSections} 
+                activeSection={activeSection} 
+                onSectionClick={handleSectionClick}
+                selectedAllergens={selectedAllergens}
+                selectedDietTypes={selectedDietTypes}
+                onAllergenChange={setSelectedAllergens}
+                onDietTypeChange={setSelectedDietTypes}
+              />
+            </div>
+          )}
         </div>
 
         {/* Menu Content */}
         <div className="max-w-6xl mx-auto px-4 py-8">
           {filteredSections.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 bg-white rounded-lg">
               <Utensils className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
               <h3 className="text-lg font-semibold mb-2">No se encontraron platos</h3>
               <p className="text-muted-foreground">
@@ -270,9 +253,9 @@ function RestaurantMenuContent() {
               </p>
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-6">
               {filteredSections.map(section => (
-                <div key={section.id} id={`section-${section.id}`}>
+                <div key={section.id} id={`section-${section.id}`} className="rounded-lg overflow-hidden shadow-sm">
                   <RestaurantMenuSection section={section} restaurantId={restaurant.id} />
                 </div>
               ))}

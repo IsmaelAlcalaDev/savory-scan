@@ -121,11 +121,16 @@ export default function DishCard({
 
   return (
     <>
+      {/* Full-width divider above each dish (except first in section) */}
+      {!isFirstInSection && (
+        <div className="w-full h-px bg-gray-200 -mx-4"></div>
+      )}
+      
       <div 
-        className={`bg-background cursor-pointer ${!isFirstInSection ? 'border-t' : ''} border-b border-border/50`}
+        className="bg-white cursor-pointer"
         onClick={handleCardClick}
       >
-        <div className="py-4 px-0 transition-colors">
+        <div className="py-4 px-4 transition-colors hover:bg-gray-50">
           <div className="flex gap-3 items-start w-full">
             {/* Content - Responsive width based on image presence */}
             <div className={`min-w-0 h-20 ${hasImage ? 'flex-1' : 'w-full'}`}>
