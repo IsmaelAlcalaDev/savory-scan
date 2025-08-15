@@ -1,5 +1,5 @@
 
-import { X, ChevronDown, MapPin, Euro, Star, ArrowUpDown, Store, Utensils, Clock, RotateCcw } from 'lucide-react';
+import { X, ChevronDown, MapPin, Euro, Star, Store, Utensils, Clock, RotateCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -7,7 +7,6 @@ import {
   Sheet,
   SheetContent,
 } from '@/components/ui/sheet';
-import SortFilter from './SortFilter';
 import DistanceFilter from './DistanceFilter';
 import PriceFilter from './PriceFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
@@ -23,12 +22,10 @@ interface FilterTagsProps {
   selectedPriceRanges?: string[];
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
-  selectedSort?: string;
   selectedTimeRanges?: number[];
   isOpenNow?: boolean;
   isHighRated?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'establishment' | 'diet' | 'openNow' | 'sort' | 'timeRange' | 'highRated' | 'all', id?: number) => void;
-  onSortChange?: (sort: string) => void;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'establishment' | 'diet' | 'openNow' | 'timeRange' | 'highRated' | 'all', id?: number) => void;
   onDistanceChange?: (distances: number[]) => void;
   onPriceRangeChange?: (ranges: string[]) => void;
   onEstablishmentTypeChange?: (types: number[]) => void;
@@ -46,12 +43,10 @@ export default function FilterTags({
   selectedPriceRanges = [],
   selectedEstablishmentTypes = [],
   selectedDietTypes = [],
-  selectedSort,
   selectedTimeRanges = [],
   isOpenNow = false,
   isHighRated = false,
   onClearFilter,
-  onSortChange = () => {},
   onDistanceChange = () => {},
   onPriceRangeChange = () => {},
   onEstablishmentTypeChange = () => {},
@@ -69,7 +64,6 @@ export default function FilterTags({
     selectedPriceRanges.length > 0 || 
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
-    selectedSort ||
     selectedTimeRanges.length > 0 ||
     isOpenNow ||
     isHighRated;
@@ -78,7 +72,6 @@ export default function FilterTags({
     switch (filterKey) {
       case 'distance': return MapPin;
       case 'price': return Euro;
-      case 'sort': return ArrowUpDown;
       case 'establishment': return Store;
       case 'diet': return Utensils;
       case 'schedule': return Clock;
@@ -88,7 +81,6 @@ export default function FilterTags({
 
   const getFilterTitle = (filterKey: string) => {
     switch (filterKey) {
-      case 'sort': return 'Ordenar';
       case 'distance': return 'Distancia';
       case 'price': return 'Precio';
       case 'establishment': return 'Tipo de Comercio';
@@ -100,7 +92,6 @@ export default function FilterTags({
 
   const getFilterCount = (filterKey: string) => {
     switch (filterKey) {
-      case 'sort': return selectedSort ? 1 : 0;
       case 'distance': return selectedDistance.length;
       case 'price': return selectedPriceRanges.length;
       case 'establishment': return selectedEstablishmentTypes.length;
@@ -116,15 +107,6 @@ export default function FilterTags({
 
   const getFilterContent = (filterKey: string) => {
     switch (filterKey) {
-      case 'sort':
-        return (
-          <div className="[&_label]:text-base">
-            <SortFilter
-              selectedSort={selectedSort}
-              onSortChange={onSortChange}
-            />
-          </div>
-        );
       case 'distance':
         return (
           <div className="[&_label]:text-base space-y-4">
@@ -218,7 +200,6 @@ export default function FilterTags({
   const filterTags = [
     { key: 'distance', label: 'Distancia' },
     { key: 'price', label: 'Precio' },
-    { key: 'sort', label: 'Ordenar' },
     ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
     { key: 'diet', label: 'Dieta' },
     { key: 'schedule', label: 'Horarios' },

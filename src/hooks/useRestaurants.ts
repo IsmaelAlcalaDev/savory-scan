@@ -30,6 +30,7 @@ interface UseRestaurantsProps {
   priceRanges?: string[];
   isHighRated?: boolean;
   selectedDistanceRangeIds?: number[];
+  selectedEstablishmentTypes?: number[];
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -51,7 +52,8 @@ export const useRestaurants = ({
   cuisineTypeIds,
   priceRanges,
   isHighRated = false,
-  selectedDistanceRangeIds
+  selectedDistanceRangeIds,
+  selectedEstablishmentTypes
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,8 @@ export const useRestaurants = ({
           cuisineTypeIds,
           priceRanges,
           isHighRated,
-          selectedDistanceRangeIds
+          selectedDistanceRangeIds,
+          selectedEstablishmentTypes
         });
 
         // Get effective max distance from selected distance ranges
@@ -158,6 +161,12 @@ export const useRestaurants = ({
           query = query.in('restaurant_cuisines.cuisine_type_id', cuisineTypeIds);
         }
 
+        // Apply establishment type filtering
+        if (selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0) {
+          console.log('Applying establishment type filter for IDs:', selectedEstablishmentTypes);
+          query = query.in('establishment_type_id', selectedEstablishmentTypes);
+        }
+
         const { data, error } = await query.limit(50);
 
         if (error) {
@@ -213,6 +222,9 @@ export const useRestaurants = ({
         }
         if (isHighRated) {
           console.log('Filtered restaurants by high rating (+4.5):', sortedData.map(r => ({ name: r.name, rating: r.google_rating })));
+        }
+        if (selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0) {
+          console.log('Filtered restaurants by establishment types:', sortedData.map(r => ({ name: r.name, type: r.establishment_type })));
         }
         
         setRestaurants(sortedData);
@@ -272,7 +284,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedDistanceRangeIds]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedDistanceRangeIds, selectedEstablishmentTypes]);
 
   return { restaurants, loading, error };
 };
