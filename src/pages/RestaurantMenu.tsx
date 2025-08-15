@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -58,8 +59,8 @@ function RestaurantMenuContent() {
     setActiveSection(sectionId);
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
-      // Calculate offset to account for sticky header (80px) + some padding (20px)
-      const headerOffset = 100;
+      // Calculate offset to account for sticky header (80px) + sticky nav (60px) + some padding (20px)
+      const headerOffset = 160;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -199,8 +200,8 @@ function RestaurantMenuContent() {
           </div>
         </div>
 
-        {/* Sticky Section Navigation */}
-        <div className={`fixed top-20 left-0 right-0 z-30 bg-background border-b transition-transform duration-200 ${
+        {/* Sticky Section Navigation - positioned right below header */}
+        <div className={`fixed top-[73px] left-0 right-0 z-30 bg-background border-b transition-transform duration-200 ${
           showStickyNav ? 'translate-y-0' : '-translate-y-full'
         }`}>
           <MenuSectionTabs sections={filteredSections} activeSection={activeSection} onSectionClick={handleSectionClick} />
