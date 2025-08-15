@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
 import DinerSelector from './DinerSelector';
 import DishVariantsModal from './DishVariantsModal';
+import DishInfoModal from './DishInfoModal';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import { useState } from 'react';
@@ -23,6 +24,7 @@ export default function DishCard({
 }: DishCardProps) {
   const { addDishToOrder, diners, openDinersModal } = useOrderSimulator();
   const [isVariantsModalOpen, setIsVariantsModalOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
@@ -83,6 +85,10 @@ export default function DishCard({
     }
   };
 
+  const handleDishAdd = (dinerId: string) => {
+    addDishToOrder(dish, dinerId);
+  };
+
   const handlePlusClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -99,12 +105,25 @@ export default function DishCard({
     }
   };
 
+  const handleCardClick = () => {
+    const hasMultipleVariants = dish.variants && dish.variants.length > 1;
+    
+    if (hasMultipleVariants) {
+      setIsVariantsModalOpen(true);
+    } else {
+      setIsInfoModalOpen(true);
+    }
+  };
+
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
   const customTags = Array.isArray(dish.custom_tags) ? dish.custom_tags : [];
 
   return (
     <>
-      <div className={`bg-background ${!isFirstInSection ? 'border-t' : ''} border-b border-border/50`}>
+      <div 
+        className={`bg-background cursor-pointer ${!isFirstInSection ? 'border-t' : ''} border-b border-border/50`}
+        onClick={handleCardClick}
+      >
         <div className="py-4 px-0 transition-colors">
           <div className="flex gap-3 items-start w-full">
             {/* Image */}
@@ -164,18 +183,18 @@ export default function DishCard({
                     dishId={dish.id}
                     restaurantId={restaurantId}
                     favoritesCount={dish.favorites_count}
-                    size="sm"
-                    className="border-0 bg-transparent hover:bg-transparent text-foreground w-6 h-6"
+                    size="md"
+                    className="border-0 bg-transparent hover:bg-transparent text-foreground w-8 h-8"
                     savedFrom="menu_list"
                   />
                   
                   <button
                     onClick={handlePlusClick}
-                    className="w-6 h-6 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
+                    className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
                     aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
                     title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
                   >
-                    <Plus className="h-3 w-3" />
+                    <Plus className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -190,6 +209,14 @@ export default function DishCard({
         onClose={() => setIsVariantsModalOpen(false)}
         dish={dish}
         onVariantAdd={handleAddVariantToOrder}
+      />
+
+      {/* Info Modal for dishes without variants */}
+      <DishInfoModal
+        isOpen={isInfoModalOpen}
+        onClose={() => setIsInfoModalOpen(false)}
+        dish={dish}
+        onDishAdd={handleDishAdd}
       />
     </>
   );
