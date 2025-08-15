@@ -20,12 +20,16 @@ export default function AllergenFilterButton({ selectedAllergens, onAllergenChan
         <Button 
           variant="ghost" 
           size="sm"
-          className="relative gap-2 rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border-0 text-xs px-3 py-1 h-7"
+          className={`flex-shrink-0 rounded-full text-sm px-4 py-2 h-8 border-0 ${
+            selectedAllergens.length > 0
+              ? 'bg-red-500 hover:bg-red-600 text-white' 
+              : 'bg-gray-100 hover:bg-red-500 hover:text-white text-gray-900'
+          }`}
         >
-          <AlertTriangle className="h-3 w-3" />
+          <AlertTriangle className="h-3 w-3 mr-1" />
           Alérgenos
           {selectedAllergens.length > 0 && (
-            <Badge variant="secondary" className="ml-1 h-4 w-4 rounded-full p-0 text-xs">
+            <Badge variant="secondary" className="ml-1 h-4 w-4 rounded-full p-0 text-xs bg-white text-red-500">
               {selectedAllergens.length}
             </Badge>
           )}
