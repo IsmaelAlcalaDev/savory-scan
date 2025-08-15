@@ -239,9 +239,9 @@ export default function FoodieSpotLayout({
     searchQuery: searchQueryRestaurants,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
-    maxDistance: 50,
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
-    minRating: 0
+    minRating: 0,
+    selectedDistanceRangeIds: selectedDistance.length > 0 ? selectedDistance : undefined
   });
   
   const {

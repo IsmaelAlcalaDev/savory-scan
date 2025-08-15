@@ -28,6 +28,7 @@ interface UseRestaurantsProps {
   cuisineTypeIds?: number[];
   priceRanges?: PriceRange[];
   minRating?: number;
+  selectedDistanceRangeIds?: number[];
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -48,7 +49,8 @@ export const useRestaurants = ({
   maxDistance = 50,
   cuisineTypeIds,
   priceRanges,
-  minRating = 0
+  minRating = 0,
+  selectedDistanceRangeIds
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,8 +68,29 @@ export const useRestaurants = ({
           maxDistance,
           cuisineTypeIds,
           priceRanges,
-          minRating
+          minRating,
+          selectedDistanceRangeIds
         });
+
+        // Get effective max distance from selected distance ranges
+        let effectiveMaxDistance = maxDistance;
+        if (selectedDistanceRangeIds && selectedDistanceRangeIds.length > 0) {
+          console.log('Fetching distance ranges for IDs:', selectedDistanceRangeIds);
+          
+          const { data: distanceRanges, error: distanceError } = await supabase
+            .from('distance_ranges')
+            .select('id, distance_km')
+            .in('id', selectedDistanceRangeIds);
+
+          if (distanceError) {
+            console.error('Error fetching distance ranges:', distanceError);
+          } else if (distanceRanges && distanceRanges.length > 0) {
+            // Find the maximum distance from selected ranges
+            const maxSelectedDistance = Math.max(...distanceRanges.map(range => Number(range.distance_km)));
+            effectiveMaxDistance = maxSelectedDistance;
+            console.log('Effective max distance from selected ranges:', effectiveMaxDistance);
+          }
+        }
 
         let query = supabase
           .from('restaurants')
@@ -149,14 +172,18 @@ export const useRestaurants = ({
 
         let sortedData = formattedData;
         if (userLat && userLng) {
+          // Filter by effective max distance first
           sortedData = formattedData
-            .filter(restaurant => restaurant.distance_km !== null)
+            .filter(restaurant => {
+              if (restaurant.distance_km === null) return false;
+              return restaurant.distance_km <= effectiveMaxDistance;
+            })
             .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
           
-          console.log('Restaurants sorted by distance:', sortedData.slice(0, 5));
+          console.log('Restaurants filtered by distance and sorted:', sortedData.length, 'within', effectiveMaxDistance, 'km');
         }
 
-        console.log('Final formatted restaurants after cuisine filter:', sortedData.length);
+        console.log('Final formatted restaurants after all filters:', sortedData.length);
         if (cuisineTypeIds && cuisineTypeIds.length > 0) {
           console.log('Filtered restaurants by cuisine types:', sortedData.map(r => ({ name: r.name, cuisines: r.cuisine_types })));
         }
@@ -218,7 +245,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, minRating]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, minRating, selectedDistanceRangeIds]);
 
   return { restaurants, loading, error };
 };
