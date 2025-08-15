@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Filter } from 'lucide-react';
@@ -13,13 +13,15 @@ interface UnifiedFiltersModalProps {
   selectedDietTypes: number[];
   onAllergenChange: (allergens: string[]) => void;
   onDietTypeChange: (types: number[]) => void;
+  trigger?: ReactNode;
 }
 
 export default function UnifiedFiltersModal({
   selectedAllergens,
   selectedDietTypes,
   onAllergenChange,
-  onDietTypeChange
+  onDietTypeChange,
+  trigger
 }: UnifiedFiltersModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   
@@ -30,22 +32,26 @@ export default function UnifiedFiltersModal({
     onDietTypeChange([]);
   };
 
+  const defaultTrigger = (
+    <Button 
+      variant="outline" 
+      size="sm" 
+      className="relative flex items-center gap-2"
+    >
+      <Filter className="h-4 w-4" />
+      Filtros
+      {activeFiltersCount > 0 && (
+        <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 text-xs">
+          {activeFiltersCount}
+        </Badge>
+      )}
+    </Button>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="relative flex items-center gap-2"
-        >
-          <Filter className="h-4 w-4" />
-          Filtros
-          {activeFiltersCount > 0 && (
-            <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 text-xs">
-              {activeFiltersCount}
-            </Badge>
-          )}
-        </Button>
+        {trigger || defaultTrigger}
       </DialogTrigger>
       
       <DialogContent className="max-w-md">

@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -226,7 +225,11 @@ function RestaurantMenuContent() {
             <MenuSectionTabs 
               sections={filteredSections} 
               activeSection={activeSection} 
-              onSectionClick={handleSectionClick} 
+              onSectionClick={handleSectionClick}
+              selectedAllergens={selectedAllergens}
+              selectedDietTypes={selectedDietTypes}
+              onAllergenChange={setSelectedAllergens}
+              onDietTypeChange={setSelectedDietTypes}
             />
           </div>
         )}
@@ -236,7 +239,11 @@ function RestaurantMenuContent() {
           <MenuSectionTabs 
             sections={filteredSections} 
             activeSection={activeSection} 
-            onSectionClick={handleSectionClick} 
+            onSectionClick={handleSectionClick}
+            selectedAllergens={selectedAllergens}
+            selectedDietTypes={selectedDietTypes}
+            onAllergenChange={setSelectedAllergens}
+            onDietTypeChange={setSelectedDietTypes}
           />
         </div>
 
