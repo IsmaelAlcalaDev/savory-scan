@@ -35,7 +35,7 @@ interface UseDishesParams {
   userLat?: number;
   userLng?: number;
   maxDistance?: number;
-  selectedDietTypes?: string[];
+  selectedDietTypes?: number[];
   selectedPriceRanges?: string[];
   selectedFoodTypes?: number[];
   spiceLevels?: number[];
@@ -203,16 +203,16 @@ export const useDishes = (params: UseDishesParams = {}) => {
         );
       }
 
-      // Diet type filters
+      // Diet type filters - Updated to use numeric IDs
       if (selectedDietTypes.length > 0) {
         filteredDishes = filteredDishes.filter(dish => {
-          return selectedDietTypes.some(dietType => {
-            switch (dietType) {
-              case 'vegetarian': return dish.is_vegetarian;
-              case 'vegan': return dish.is_vegan;
-              case 'gluten-free': return dish.is_gluten_free;
-              case 'lactose-free': return dish.is_lactose_free;
-              case 'healthy': return dish.is_healthy;
+          return selectedDietTypes.some(dietTypeId => {
+            switch (dietTypeId) {
+              case 1: return dish.is_vegetarian; // Assuming ID 1 is vegetarian
+              case 2: return dish.is_vegan; // Assuming ID 2 is vegan
+              case 3: return dish.is_gluten_free; // Assuming ID 3 is gluten-free
+              case 4: return dish.is_lactose_free; // Assuming ID 4 is lactose-free
+              case 5: return dish.is_healthy; // Assuming ID 5 is healthy
               default: return false;
             }
           });

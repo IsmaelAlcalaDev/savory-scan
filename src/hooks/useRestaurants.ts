@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -9,7 +8,6 @@ interface Restaurant {
   description?: string;
   price_range: string;
   google_rating?: number;
-  google_rating_count?: number;
   distance_km?: number;
   cuisine_types: string[];
   establishment_type?: string;
@@ -31,6 +29,7 @@ interface UseRestaurantsProps {
   isHighRated?: boolean;
   selectedDistanceRangeIds?: number[];
   selectedEstablishmentTypes?: number[];
+  selectedDietTypes?: number[];
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -53,7 +52,8 @@ export const useRestaurants = ({
   priceRanges,
   isHighRated = false,
   selectedDistanceRangeIds,
-  selectedEstablishmentTypes
+  selectedEstablishmentTypes,
+  selectedDietTypes
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +73,8 @@ export const useRestaurants = ({
           priceRanges,
           isHighRated,
           selectedDistanceRangeIds,
-          selectedEstablishmentTypes
+          selectedEstablishmentTypes,
+          selectedDietTypes
         });
 
         // Get effective max distance from selected distance ranges
@@ -176,7 +177,7 @@ export const useRestaurants = ({
 
         console.log('Raw data from restaurants table:', data);
 
-        const formattedData = data?.map((restaurant: any) => {
+        let formattedData = data?.map((restaurant: any) => {
           let distance_km = null;
           if (userLat && userLng && restaurant.latitude && restaurant.longitude) {
             distance_km = haversineDistance(userLat, userLng, restaurant.latitude, restaurant.longitude);
@@ -199,6 +200,50 @@ export const useRestaurants = ({
             logo_url: restaurant.logo_url
           };
         }).filter(Boolean) || [];
+
+        // Apply diet type filtering by checking restaurant dishes
+        if (selectedDietTypes && selectedDietTypes.length > 0) {
+          console.log('Applying diet type filter for IDs:', selectedDietTypes);
+          
+          const restaurantIds = formattedData.map(r => r.id);
+          if (restaurantIds.length > 0) {
+            // Query dishes that match the diet types for these restaurants
+            const { data: dishesData, error: dishesError } = await supabase
+              .from('dishes')
+              .select('restaurant_id')
+              .in('restaurant_id', restaurantIds)
+              .eq('is_active', true)
+              .is('deleted_at', null);
+
+            if (dishesError) {
+              console.error('Error fetching dishes for diet filtering:', dishesError);
+            } else if (dishesData) {
+              // Filter dishes that match the selected diet types
+              const matchingDishes = dishesData.filter(dish => {
+                return selectedDietTypes.some(dietTypeId => {
+                  switch (dietTypeId) {
+                    case 1: return dish.is_vegetarian; // Assuming ID 1 is vegetarian
+                    case 2: return dish.is_vegan; // Assuming ID 2 is vegan
+                    case 3: return dish.is_gluten_free; // Assuming ID 3 is gluten-free
+                    case 4: return dish.is_lactose_free; // Assuming ID 4 is lactose-free
+                    case 5: return dish.is_healthy; // Assuming ID 5 is healthy
+                    default: return false;
+                  }
+                });
+              });
+
+              // Get unique restaurant IDs that have matching dishes
+              const restaurantIdsWithMatchingDishes = [...new Set(matchingDishes.map(dish => dish.restaurant_id))];
+              
+              // Filter restaurants to only include those with matching dishes
+              formattedData = formattedData.filter(restaurant => 
+                restaurantIdsWithMatchingDishes.includes(restaurant.id)
+              );
+              
+              console.log('Restaurants after diet filtering:', formattedData.length);
+            }
+          }
+        }
 
         let sortedData = formattedData;
         if (userLat && userLng) {
@@ -225,6 +270,9 @@ export const useRestaurants = ({
         }
         if (selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0) {
           console.log('Filtered restaurants by establishment types:', sortedData.map(r => ({ name: r.name, type: r.establishment_type })));
+        }
+        if (selectedDietTypes && selectedDietTypes.length > 0) {
+          console.log('Filtered restaurants by diet types:', sortedData.map(r => ({ name: r.name, id: r.id })));
         }
         
         setRestaurants(sortedData);
@@ -284,7 +332,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedDistanceRangeIds, selectedEstablishmentTypes]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedDistanceRangeIds, selectedEstablishmentTypes, selectedDietTypes]);
 
   return { restaurants, loading, error };
 };

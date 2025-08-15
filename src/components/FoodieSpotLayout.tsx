@@ -238,7 +238,8 @@ export default function FoodieSpotLayout({
     priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
     isHighRated: isHighRated,
     selectedDistanceRangeIds: selectedDistance.length > 0 ? selectedDistance : undefined,
-    selectedEstablishmentTypes: selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined
+    selectedEstablishmentTypes: selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined,
+    selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined
   });
   
   const {
@@ -251,6 +252,7 @@ export default function FoodieSpotLayout({
     userLng: userLocation?.lng,
     maxDistance: 50,
     selectedFoodTypes,
+    selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
     spiceLevels: [],
     prepTimeRanges: []
   });
