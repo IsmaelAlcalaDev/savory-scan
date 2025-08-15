@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
@@ -7,6 +6,7 @@ import DishVariantsModal from './DishVariantsModal';
 import DishInfoModal from './DishInfoModal';
 import DishPrice from './DishPrice';
 import type { Dish } from '@/hooks/useRestaurantMenu';
+import type { Promotion } from '@/hooks/usePromotions';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import { useState } from 'react';
 
@@ -15,9 +15,18 @@ interface DishListCardProps {
   restaurantId: number;
   expandedDishId: number | null;
   onExpandedChange: (dishId: number | null) => void;
+  promotions?: Promotion[];
+  getPromotionForDish?: (dishId: number, sectionId?: number) => Promotion | undefined;
+  calculateDiscountedPrice?: (originalPrice: number, promotion: Promotion) => number;
 }
 
-export default function DishListCard({ dish, restaurantId }: DishListCardProps) {
+export default function DishListCard({ 
+  dish, 
+  restaurantId,
+  promotions = [],
+  getPromotionForDish = () => undefined,
+  calculateDiscountedPrice = (price) => price
+}: DishListCardProps) {
   const { addDishToOrder, diners, openDinersModal } = useOrderSimulator();
   const [isVariantsModalOpen, setIsVariantsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -130,6 +139,9 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
                 dishId={dish.id}
                 restaurantId={restaurantId}
                 sectionId={dish.section_id}
+                promotions={promotions}
+                getPromotionForDish={getPromotionForDish}
+                calculateDiscountedPrice={calculateDiscountedPrice}
                 className="font-bold text-sm text-primary text-right flex-shrink-0"
               />
             </div>
