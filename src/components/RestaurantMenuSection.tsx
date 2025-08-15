@@ -20,8 +20,8 @@ export default function RestaurantMenuSection({
 
   return (
     <div id={`section-${section.id}`} className="w-full">
-      {/* Top border line */}
-      <div className="border-t border-border"></div>
+      {/* Top border line - more discrete */}
+      <div className="border-t border-gray-100"></div>
       
       {/* Section header with custom gray background - full width */}
       <div style={{ backgroundColor: '#fafafa' }} className="px-4 py-4">
@@ -49,8 +49,8 @@ export default function RestaurantMenuSection({
         ))}
       </div>
       
-      {/* Bottom border line */}
-      <div className="border-b border-border"></div>
+      {/* Bottom border line - more discrete */}
+      <div className="border-b border-gray-100"></div>
     </div>
   );
 }

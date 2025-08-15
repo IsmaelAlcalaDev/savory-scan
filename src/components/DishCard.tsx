@@ -103,10 +103,8 @@ export default function DishCard({
 
   return (
     <div className="w-full">
-      {/* Full-width divider above each dish (except first in section) */}
-      {!isFirstInSection && (
-        <div className="w-full h-px bg-gray-200"></div>
-      )}
+      {/* Full-width divider above each dish - more discrete gray color */}
+      <div className="w-full h-px bg-gray-100"></div>
       
       <div 
         className="bg-white cursor-pointer w-full"
