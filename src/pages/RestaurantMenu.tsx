@@ -185,7 +185,7 @@ function RestaurantMenuContent() {
         {/* Sticky Header Navigation with Search */}
         <div className="sticky top-0 z-50 bg-background shadow-sm">
           <div className="bg-background">
-            <div className="max-w-6xl mx-auto px-4 py-3">
+            <div className="max-w-6xl mx-auto px-4 py-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <Button onClick={handleGoBack} variant="ghost" size="sm" className="flex items-center gap-2">
