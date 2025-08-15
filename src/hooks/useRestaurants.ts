@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,7 +28,7 @@ interface UseRestaurantsProps {
   maxDistance?: number;
   cuisineTypeIds?: number[];
   priceRanges?: string[];
-  minRating?: number;
+  isHighRated?: boolean;
   selectedDistanceRangeIds?: number[];
 }
 
@@ -49,7 +50,7 @@ export const useRestaurants = ({
   maxDistance = 50,
   cuisineTypeIds,
   priceRanges,
-  minRating = 0,
+  isHighRated = false,
   selectedDistanceRangeIds
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -68,7 +69,7 @@ export const useRestaurants = ({
           maxDistance,
           cuisineTypeIds,
           priceRanges,
-          minRating,
+          isHighRated,
           selectedDistanceRangeIds
         });
 
@@ -141,8 +142,8 @@ export const useRestaurants = ({
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         }
 
-        if (minRating > 0) {
-          query = query.gte('google_rating', minRating);
+        if (isHighRated) {
+          query = query.gte('google_rating', 4.5);
         }
 
         if (priceDisplayTexts && priceDisplayTexts.length > 0) {
@@ -210,6 +211,9 @@ export const useRestaurants = ({
         if (priceDisplayTexts && priceDisplayTexts.length > 0) {
           console.log('Filtered restaurants by price ranges:', sortedData.map(r => ({ name: r.name, price: r.price_range })));
         }
+        if (isHighRated) {
+          console.log('Filtered restaurants by high rating (+4.5):', sortedData.map(r => ({ name: r.name, rating: r.google_rating })));
+        }
         
         setRestaurants(sortedData);
 
@@ -268,7 +272,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, minRating, selectedDistanceRangeIds]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedDistanceRangeIds]);
 
   return { restaurants, loading, error };
 };

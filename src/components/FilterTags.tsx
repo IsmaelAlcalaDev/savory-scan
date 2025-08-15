@@ -10,7 +10,6 @@ import {
 import SortFilter from './SortFilter';
 import DistanceFilter from './DistanceFilter';
 import PriceFilter from './PriceFilter';
-import RatingFilter from './RatingFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import DietFilter from './DietFilter';
 import TimeRangeFilter from './TimeRangeFilter';
@@ -22,21 +21,21 @@ interface FilterTagsProps {
   selectedFoodTypes: number[];
   selectedDistance?: number[];
   selectedPriceRanges?: string[];
-  selectedRating?: number;
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
   selectedSort?: string;
   selectedTimeRanges?: number[];
   isOpenNow?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'sort' | 'timeRange' | 'all', id?: number) => void;
+  isHighRated?: boolean;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'establishment' | 'diet' | 'openNow' | 'sort' | 'timeRange' | 'highRated' | 'all', id?: number) => void;
   onSortChange?: (sort: string) => void;
   onDistanceChange?: (distances: number[]) => void;
   onPriceRangeChange?: (ranges: string[]) => void;
-  onRatingChange?: (rating: number | undefined) => void;
   onEstablishmentTypeChange?: (types: number[]) => void;
   onDietTypeChange?: (types: number[]) => void;
   onTimeRangeChange?: (ranges: number[]) => void;
   onOpenNowChange?: (isOpen: boolean) => void;
+  onHighRatedChange?: (isHighRated: boolean) => void;
 }
 
 export default function FilterTags({ 
@@ -45,21 +44,21 @@ export default function FilterTags({
   selectedFoodTypes,
   selectedDistance = [],
   selectedPriceRanges = [],
-  selectedRating,
   selectedEstablishmentTypes = [],
   selectedDietTypes = [],
   selectedSort,
   selectedTimeRanges = [],
   isOpenNow = false,
+  isHighRated = false,
   onClearFilter,
   onSortChange = () => {},
   onDistanceChange = () => {},
   onPriceRangeChange = () => {},
-  onRatingChange = () => {},
   onEstablishmentTypeChange = () => {},
   onDietTypeChange = () => {},
   onTimeRangeChange = () => {},
-  onOpenNowChange = () => {}
+  onOpenNowChange = () => {},
+  onHighRatedChange = () => {}
 }: FilterTagsProps) {
   const isMobile = useIsMobile();
   const [activeFilterModal, setActiveFilterModal] = useState<string | null>(null);
@@ -68,18 +67,17 @@ export default function FilterTags({
     selectedFoodTypes.length > 0 || 
     selectedDistance.length > 0 || 
     selectedPriceRanges.length > 0 || 
-    selectedRating || 
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
     selectedSort ||
     selectedTimeRanges.length > 0 ||
-    isOpenNow;
+    isOpenNow ||
+    isHighRated;
 
   const getFilterIcon = (filterKey: string) => {
     switch (filterKey) {
       case 'distance': return MapPin;
       case 'price': return Euro;
-      case 'rating': return Star;
       case 'sort': return ArrowUpDown;
       case 'establishment': return Store;
       case 'diet': return Utensils;
@@ -93,7 +91,6 @@ export default function FilterTags({
       case 'sort': return 'Ordenar';
       case 'distance': return 'Distancia';
       case 'price': return 'Precio';
-      case 'rating': return 'Valoración';
       case 'establishment': return 'Tipo de Comercio';
       case 'diet': return 'Dieta';
       case 'schedule': return 'Horarios';
@@ -106,7 +103,6 @@ export default function FilterTags({
       case 'sort': return selectedSort ? 1 : 0;
       case 'distance': return selectedDistance.length;
       case 'price': return selectedPriceRanges.length;
-      case 'rating': return selectedRating ? 1 : 0;
       case 'establishment': return selectedEstablishmentTypes.length;
       case 'diet': return selectedDietTypes.length;
       case 'schedule': return selectedTimeRanges.length + (isOpenNow ? 1 : 0);
@@ -144,15 +140,6 @@ export default function FilterTags({
             <PriceFilter
               selectedPriceRanges={selectedPriceRanges}
               onPriceRangeChange={onPriceRangeChange}
-            />
-          </div>
-        );
-      case 'rating':
-        return (
-          <div className="[&_label]:text-base space-y-4">
-            <RatingFilter
-              selectedRating={selectedRating}
-              onRatingChange={onRatingChange}
             />
           </div>
         );
@@ -231,7 +218,6 @@ export default function FilterTags({
   const filterTags = [
     { key: 'distance', label: 'Distancia' },
     { key: 'price', label: 'Precio' },
-    { key: 'rating', label: 'Valoración' },
     { key: 'sort', label: 'Ordenar' },
     ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
     { key: 'diet', label: 'Dieta' },
@@ -293,6 +279,28 @@ export default function FilterTags({
     <>
       <div className="w-full py-0">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+          {/* High Rating Quick Filter Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
+              isHighRated 
+                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
+                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
+            }`}
+            style={isHighRated ? { 
+              backgroundColor: '#ef4444',
+              color: 'white'
+            } : { 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
+            onClick={() => onHighRatedChange(!isHighRated)}
+          >
+            <Star className={`h-3 w-3 ${isHighRated ? 'text-white fill-white' : 'text-black'}`} />
+            +4.5
+          </Button>
+
           {filterTags.map((filter) => (
             <FilterTrigger key={filter.key} filterKey={filter.key}>
               {filter.label}
