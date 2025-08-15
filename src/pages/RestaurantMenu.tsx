@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -59,8 +58,8 @@ function RestaurantMenuContent() {
     setActiveSection(sectionId);
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
-      // Calculate offset to account for sticky header (80px) + sticky nav (60px) + some padding (20px)
-      const headerOffset = 160;
+      // Calculate offset to account for sticky header (80px) + some padding (20px)
+      const headerOffset = 100;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -228,9 +227,6 @@ function RestaurantMenuContent() {
             <DishSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} placeholder="Buscar platos..." />
           </div>
         </div>
-
-        {/* Section Navigation */}
-        <MenuSectionTabs sections={filteredSections} activeSection={activeSection} onSectionClick={handleSectionClick} />
 
         {/* Menu Content */}
         <div className="max-w-6xl mx-auto px-4 py-8">
