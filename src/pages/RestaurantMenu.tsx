@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -40,7 +41,17 @@ function RestaurantMenuContent() {
     navigate(`/restaurant/${slug}`);
   };
 
-
+  const handleSectionClick = (sectionId: number) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(`section-${sectionId}`);
+    if (element) {
+      const offsetTop = element.offsetTop - headerHeight - 60; // Account for header + sticky nav
+      window.scrollTo({
+        top: offsetTop,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Filter sections and dishes based on active filters
   const filteredSections = useMemo(() => {
@@ -159,7 +170,11 @@ function RestaurantMenuContent() {
             <MenuSectionTabs 
               sections={filteredSections} 
               activeSection={activeSection} 
-              onSectionClick={handleSectionClick} 
+              onSectionClick={handleSectionClick}
+              selectedAllergens={selectedAllergens}
+              selectedDietTypes={selectedDietTypes}
+              onAllergenChange={setSelectedAllergens}
+              onDietTypeChange={setSelectedDietTypes}
             />
           </div>
         )}
@@ -201,7 +216,11 @@ function RestaurantMenuContent() {
           <MenuSectionTabs 
             sections={filteredSections} 
             activeSection={activeSection} 
-            onSectionClick={handleSectionClick} 
+            onSectionClick={handleSectionClick}
+            selectedAllergens={selectedAllergens}
+            selectedDietTypes={selectedDietTypes}
+            onAllergenChange={setSelectedAllergens}
+            onDietTypeChange={setSelectedDietTypes}
           />
         </div>
 
