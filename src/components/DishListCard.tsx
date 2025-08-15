@@ -5,9 +5,11 @@ import DishFavoriteButton from './DishFavoriteButton';
 import DinerSelector from './DinerSelector';
 import DishVariantsModal from './DishVariantsModal';
 import DishInfoModal from './DishInfoModal';
+import DietaryIcons from './DietaryIcons';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import { useState } from 'react';
+import { generateSpecialTags, generateDietaryIcons } from '@/utils/dishTagUtils';
 
 interface DishListCardProps {
   dish: Dish;
@@ -91,6 +93,10 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
   };
 
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
+  
+  // Generate special tags and dietary icons using the new utility functions
+  const specialTags = generateSpecialTags(dish);
+  const dietaryIcons = generateDietaryIcons(dish);
 
   return (
     <>
@@ -99,33 +105,42 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
         onClick={handleCardClick}
       >
         <div className="flex gap-2.5 items-start p-2.5">
-          {/* Image */}
+          {/* Image - Always show, use placeholder if no image */}
           <div className="flex-shrink-0">
-            {dish.image_url ? (
-              <div className="w-16 h-16 rounded-lg overflow-hidden relative">
-                <img
-                  src={dish.image_url}
-                  alt={dish.image_alt || dish.name}
-                  className="w-full h-full object-cover"
-                />
-                {dish.is_featured && (
-                  <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 py-0">
-                    ★
-                  </Badge>
-                )}
-              </div>
-            ) : (
-              <div className="w-16 h-16 bg-muted/50 rounded-lg flex items-center justify-center">
-                <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
-              </div>
-            )}
+            <div className="w-16 h-16 rounded-lg overflow-hidden relative">
+              <img
+                src={dish.image_url || '/placeholder.svg'}
+                alt={dish.image_alt || dish.name}
+                className="w-full h-full object-cover"
+              />
+              {dish.is_featured && (
+                <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 py-0">
+                  ★
+                </Badge>
+              )}
+            </div>
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0 flex flex-col justify-between h-16">
-            {/* Top Row - Name and Price */}
+            {/* Top Row - Special Tags */}
+            {specialTags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-1">
+                {specialTags.map((tag, index) => (
+                  <Badge 
+                    key={`${tag.type}-${index}`}
+                    variant="outline"
+                    className={`text-xs px-1.5 py-0.5 h-4 ${tag.style}`}
+                  >
+                    {tag.text}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Middle Row - Name and Price */}
             <div className="flex items-start justify-between mb-1">
-              <div className="flex items-center gap-2 pr-3">
+              <div className="flex items-center gap-2 pr-3 flex-1 min-w-0">
                 <h3 className="font-semibold text-sm text-foreground line-clamp-2">
                   {dish.name}
                 </h3>
@@ -135,8 +150,11 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
               </div>
             </div>
 
-            {/* Bottom Row - Buttons */}
-            <div className="flex items-end justify-end mt-auto">
+            {/* Bottom Row - Dietary Icons and Buttons */}
+            <div className="flex items-end justify-between mt-auto">
+              <div className="flex-1">
+                <DietaryIcons icons={dietaryIcons} size="sm" />
+              </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <DishFavoriteButton
                   dishId={dish.id}

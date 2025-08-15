@@ -1,13 +1,15 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
 import DinerSelector from './DinerSelector';
 import DishVariantsModal from './DishVariantsModal';
 import DishInfoModal from './DishInfoModal';
+import DietaryIcons from './DietaryIcons';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import { useState } from 'react';
-import { generatePriorityTags } from '@/utils/dishTagUtils';
+import { generateSpecialTags, generateDietaryIcons } from '@/utils/dishTagUtils';
 
 interface DishCardProps {
   dish: Dish;
@@ -96,10 +98,10 @@ export default function DishCard({
   };
 
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
-  const hasImage = Boolean(dish.image_url);
   
-  // Generate priority tags using the new utility
-  const priorityTags = generatePriorityTags(dish);
+  // Generate special tags and dietary icons using the new utility functions
+  const specialTags = generateSpecialTags(dish);
+  const dietaryIcons = generateDietaryIcons(dish);
 
   return (
     <div className="w-full">
@@ -113,11 +115,30 @@ export default function DishCard({
         <div className="py-4 px-4 transition-colors hover:bg-gray-50 w-full">
           <div className="flex gap-3 items-start w-full">
             {/* Content - Responsive width based on image presence */}
-            <div className={`min-w-0 h-20 ${hasImage ? 'flex-1' : 'w-full'}`}>
-              {/* Grid container with 2 rows */}
-              <div className="grid grid-rows-2 h-full gap-1">
+            <div className="min-w-0 h-20 flex-1">
+              {/* Grid container with 3 rows */}
+              <div className="grid grid-rows-3 h-full gap-0.5">
                 
-                {/* First Row: Name (left) and Price (right) */}
+                {/* First Row: Special Tags */}
+                <div className="flex items-start">
+                  <div className="flex-1 pr-3 min-w-0">
+                    {specialTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {specialTags.map((tag, index) => (
+                          <Badge 
+                            key={`${tag.type}-${index}`}
+                            variant="outline"
+                            className={`text-xs px-2 py-0.5 h-4 ${tag.style}`}
+                          >
+                            {tag.text}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Second Row: Name (left) and Price (right) */}
                 <div className="flex items-start justify-between">
                   <div className="flex-1 pr-3 min-w-0">
                     <h3 className="font-semibold text-base md:text-lg text-foreground line-clamp-1">
@@ -129,23 +150,10 @@ export default function DishCard({
                   </div>
                 </div>
 
-                {/* Second Row: Priority Tags (left) and Buttons (right) */}
+                {/* Third Row: Dietary Icons (left) and Buttons (right) */}
                 <div className="flex items-end justify-between">
                   <div className="flex-1 pr-3">
-                    {/* Priority Tags - Show up to 3 tags */}
-                    {priorityTags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {priorityTags.map((tag, index) => (
-                          <Badge 
-                            key={`${tag.type}-${index}`}
-                            variant="outline"
-                            className={`text-xs px-2 py-0.5 h-5 ${tag.style}`}
-                          >
-                            {tag.text}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                    <DietaryIcons icons={dietaryIcons} size="md" />
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <DishFavoriteButton
@@ -171,23 +179,21 @@ export default function DishCard({
               </div>
             </div>
 
-            {/* Image - Only show if exists */}
-            {hasImage && (
-              <div className="flex-shrink-0">
-                <div className="w-20 h-20 rounded-lg overflow-hidden relative">
-                  <img
-                    src={dish.image_url}
-                    alt={dish.image_alt || dish.name}
-                    className="w-full h-full object-cover"
-                  />
-                  {dish.is_featured && (
-                    <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 py-0">
-                      ★
-                    </Badge>
-                  )}
-                </div>
+            {/* Image - Always show, use placeholder if no image */}
+            <div className="flex-shrink-0">
+              <div className="w-20 h-20 rounded-lg overflow-hidden relative">
+                <img
+                  src={dish.image_url || '/placeholder.svg'}
+                  alt={dish.image_alt || dish.name}
+                  className="w-full h-full object-cover"
+                />
+                {dish.is_featured && (
+                  <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 py-0">
+                    ★
+                  </Badge>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>

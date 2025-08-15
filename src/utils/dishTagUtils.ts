@@ -1,13 +1,17 @@
-
 import type { Dish } from '@/hooks/useRestaurantMenu';
 
 export interface PriorityTag {
   text: string;
   style: string;
-  type: 'spice' | 'diet' | 'special';
+  type: 'spice' | 'special';
 }
 
-export const generatePriorityTags = (dish: Dish): PriorityTag[] => {
+export interface DietaryIcon {
+  type: 'vegetarian' | 'vegan' | 'gluten-free';
+  style: string;
+}
+
+export const generateSpecialTags = (dish: Dish): PriorityTag[] => {
   const tags: PriorityTag[] = [];
 
   // 1. Spice level tag (if > 0) - RED
@@ -41,40 +45,7 @@ export const generatePriorityTags = (dish: Dish): PriorityTag[] => {
     });
   }
 
-  // 2. Diet tag (priority order: vegan > vegetarian > gluten_free > lactose_free > healthy) - GREEN
-  if (dish.is_vegan) {
-    tags.push({
-      text: 'Vegano',
-      style: 'bg-green-100 text-green-800 border-green-200',
-      type: 'diet'
-    });
-  } else if (dish.is_vegetarian) {
-    tags.push({
-      text: 'Vegetariano',
-      style: 'bg-green-200 text-green-900 border-green-300',
-      type: 'diet'
-    });
-  } else if (dish.is_gluten_free) {
-    tags.push({
-      text: 'Sin Gluten',
-      style: 'bg-green-100 text-green-800 border-green-200',
-      type: 'diet'
-    });
-  } else if (dish.is_lactose_free) {
-    tags.push({
-      text: 'Sin Lactosa',
-      style: 'bg-green-100 text-green-800 border-green-200',
-      type: 'diet'
-    });
-  } else if (dish.is_healthy) {
-    tags.push({
-      text: 'Saludable',
-      style: 'bg-green-100 text-green-800 border-green-200',
-      type: 'diet'
-    });
-  }
-
-  // 3. Special tag (first custom_tag if exists) - BLUE
+  // 2. Special tag (first custom_tag if exists) - BLUE
   const customTags = Array.isArray(dish.custom_tags) ? dish.custom_tags : [];
   if (customTags.length > 0) {
     const specialTag = customTags[0];
@@ -85,6 +56,37 @@ export const generatePriorityTags = (dish: Dish): PriorityTag[] => {
     });
   }
 
-  // Return maximum 3 tags
-  return tags.slice(0, 3);
+  // Return maximum 2 special tags
+  return tags.slice(0, 2);
+};
+
+export const generateDietaryIcons = (dish: Dish): DietaryIcon[] => {
+  const icons: DietaryIcon[] = [];
+
+  // Priority order: vegan > vegetarian > gluten_free
+  if (dish.is_vegan) {
+    icons.push({
+      type: 'vegan',
+      style: 'text-green-600'
+    });
+  } else if (dish.is_vegetarian) {
+    icons.push({
+      type: 'vegetarian',
+      style: 'text-green-500'
+    });
+  }
+
+  if (dish.is_gluten_free) {
+    icons.push({
+      type: 'gluten-free',
+      style: 'text-blue-600'
+    });
+  }
+
+  return icons;
+};
+
+// Keep backward compatibility
+export const generatePriorityTags = (dish: Dish): PriorityTag[] => {
+  return generateSpecialTags(dish);
 };
