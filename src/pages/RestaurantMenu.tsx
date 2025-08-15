@@ -34,7 +34,7 @@ function RestaurantMenuContent() {
 
   // Refs for navigation elements
   const originalNavRef = useRef<HTMLDivElement>(null);
-  const headerHeight = 74; // Adjusted to match exact header height including border
+  const headerHeight = 74; // Header height including border
 
   const handleGoBack = () => {
     navigate(`/restaurant/${slug}`);
@@ -45,7 +45,7 @@ function RestaurantMenuContent() {
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
       // Calculate offset to account for sticky header + sticky nav when active
-      const headerOffset = showStickyNav ? 133 : 160; // 73px header + 60px nav OR 160px original
+      const headerOffset = showStickyNav ? 133 : 160; // 74px header + 59px nav OR 160px original
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -56,14 +56,14 @@ function RestaurantMenuContent() {
     }
   };
 
-  // Simple scroll detection to show/hide sticky nav
+  // Improved scroll detection to show/hide sticky nav precisely at header bottom
   useEffect(() => {
     const handleScroll = () => {
       if (!originalNavRef.current) return;
       
       const rect = originalNavRef.current.getBoundingClientRect();
-      // Show sticky nav when original nav goes above the header
-      const shouldShowSticky = rect.top <= headerHeight;
+      // Show sticky nav when the bottom of original nav reaches the bottom of header
+      const shouldShowSticky = rect.bottom <= headerHeight;
       
       if (shouldShowSticky !== showStickyNav) {
         setShowStickyNav(shouldShowSticky);
@@ -190,9 +190,9 @@ function RestaurantMenuContent() {
           </div>
         </div>
 
-        {/* Sticky Section Navigation - positioned right below header when needed */}
+        {/* Sticky Section Navigation - positioned seamlessly below header */}
         {showStickyNav && (
-          <div className="fixed top-[74px] left-0 right-0 z-30 bg-background shadow-sm">
+          <div className="fixed top-[74px] left-0 right-0 z-30 bg-background">
             <MenuSectionTabs 
               sections={filteredSections} 
               activeSection={activeSection} 
