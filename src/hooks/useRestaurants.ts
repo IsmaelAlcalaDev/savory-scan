@@ -27,7 +27,7 @@ interface UseRestaurantsProps {
   userLng?: number;
   maxDistance?: number;
   cuisineTypeIds?: number[];
-  priceRanges?: PriceRange[];
+  priceRanges?: string[];
   minRating?: number;
   selectedDistanceRangeIds?: number[];
 }
@@ -93,6 +93,24 @@ export const useRestaurants = ({
           }
         }
 
+        // Convert price range values to display_text for filtering
+        let priceDisplayTexts: string[] | undefined;
+        if (priceRanges && priceRanges.length > 0) {
+          console.log('Converting price range values to display texts:', priceRanges);
+          
+          const { data: priceRangeData, error: priceError } = await supabase
+            .from('price_ranges')
+            .select('value, display_text')
+            .in('value', priceRanges);
+
+          if (priceError) {
+            console.error('Error fetching price ranges:', priceError);
+          } else if (priceRangeData && priceRangeData.length > 0) {
+            priceDisplayTexts = priceRangeData.map(range => range.display_text);
+            console.log('Mapped price display texts:', priceDisplayTexts);
+          }
+        }
+
         let query = supabase
           .from('restaurants')
           .select(`
@@ -128,9 +146,9 @@ export const useRestaurants = ({
           query = query.gte('google_rating', minRating);
         }
 
-        if (priceRanges && priceRanges.length > 0) {
-          console.log('Applying price range filter:', priceRanges);
-          query = query.in('price_range', priceRanges);
+        if (priceDisplayTexts && priceDisplayTexts.length > 0) {
+          console.log('Applying price range filter with display texts:', priceDisplayTexts);
+          query = query.in('price_range', priceDisplayTexts);
         }
 
         // Apply cuisine type filtering
@@ -189,7 +207,7 @@ export const useRestaurants = ({
         if (cuisineTypeIds && cuisineTypeIds.length > 0) {
           console.log('Filtered restaurants by cuisine types:', sortedData.map(r => ({ name: r.name, cuisines: r.cuisine_types })));
         }
-        if (priceRanges && priceRanges.length > 0) {
+        if (priceDisplayTexts && priceDisplayTexts.length > 0) {
           console.log('Filtered restaurants by price ranges:', sortedData.map(r => ({ name: r.name, price: r.price_range })));
         }
         
