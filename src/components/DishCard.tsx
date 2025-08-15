@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
@@ -8,6 +7,7 @@ import DishInfoModal from './DishInfoModal';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import { useState } from 'react';
+import { generatePriorityTags } from '@/utils/dishTagUtils';
 
 interface DishCardProps {
   dish: Dish;
@@ -47,26 +47,6 @@ export default function DishCard({
       return `desde ${formatPrice(minPrice)}`;
     }
     return formatPrice(dish.base_price);
-  };
-
-  const getTagStyle = (tag: string) => {
-    const tagLower = tag.toLowerCase();
-    if (tagLower.includes('chef') || tagLower.includes('recomendado')) {
-      return 'bg-amber-100 text-amber-800 border-amber-200';
-    }
-    if (tagLower.includes('premiado') || tagLower.includes('premio')) {
-      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    }
-    if (tagLower.includes('especialidad') || tagLower.includes('casa')) {
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    }
-    if (tagLower.includes('nuevo') || tagLower.includes('novedad')) {
-      return 'bg-red-100 text-red-800 border-red-200';
-    }
-    if (tagLower.includes('popular') || tagLower.includes('favorito')) {
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    }
-    return 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   const handleAddVariantToOrder = (variantId: number, dinerId: string) => {
@@ -116,8 +96,10 @@ export default function DishCard({
   };
 
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
-  const customTags = Array.isArray(dish.custom_tags) ? dish.custom_tags : [];
   const hasImage = Boolean(dish.image_url);
+  
+  // Generate priority tags using the new utility
+  const priorityTags = generatePriorityTags(dish);
 
   return (
     <div className="w-full">
@@ -149,19 +131,19 @@ export default function DishCard({
                   </div>
                 </div>
 
-                {/* Second Row: Custom Tags (left) and Buttons (right) */}
+                {/* Second Row: Priority Tags (left) and Buttons (right) */}
                 <div className="flex items-end justify-between">
                   <div className="flex-1 pr-3">
-                    {/* Custom Tags */}
-                    {customTags.length > 0 && (
+                    {/* Priority Tags - Show up to 3 tags */}
+                    {priorityTags.length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {customTags.slice(0, 2).map((tag, index) => (
+                        {priorityTags.map((tag, index) => (
                           <Badge 
-                            key={index}
+                            key={`${tag.type}-${index}`}
                             variant="outline"
-                            className={`text-xs px-2 py-0.5 h-5 ${getTagStyle(tag)}`}
+                            className={`text-xs px-2 py-0.5 h-5 ${tag.style}`}
                           >
-                            {tag}
+                            {tag.text}
                           </Badge>
                         ))}
                       </div>
