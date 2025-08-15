@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
@@ -97,46 +98,11 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
         className="border rounded-lg bg-background transition-colors cursor-pointer"
         onClick={handleCardClick}
       >
-        <div className="flex gap-2 items-start p-2">
-          {/* Content - takes available space */}
-          <div className="flex-1 min-w-0 flex flex-col justify-between h-12">
-            {/* Name - takes full width up to image */}
-            <h3 className="font-semibold text-sm text-foreground line-clamp-2 pr-2">
-              {dish.name}
-            </h3>
-            
-            {/* Bottom row with price on left, buttons on right */}
-            <div className="flex items-center justify-between mt-auto">
-              <div className="font-bold text-sm text-primary">
-                {getDisplayPrice()}
-              </div>
-              
-              <div className="flex items-center gap-1">
-                <DishFavoriteButton
-                  dishId={dish.id}
-                  restaurantId={restaurantId}
-                  favoritesCount={dish.favorites_count}
-                  size="sm"
-                  className="border-0 bg-transparent hover:bg-transparent text-foreground w-6 h-6"
-                  savedFrom="menu_list"
-                />
-                
-                <button
-                  onClick={handlePlusClick}
-                  className="w-6 h-6 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
-                  aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
-                  title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
-              </div>
-            </div>
-          </div>
-
+        <div className="flex gap-2.5 items-start p-2.5">
           {/* Image */}
-          {dish.image_url && (
-            <div className="flex-shrink-0">
-              <div className="w-12 h-12 rounded-lg overflow-hidden relative">
+          <div className="flex-shrink-0">
+            {dish.image_url ? (
+              <div className="w-16 h-16 rounded-lg overflow-hidden relative">
                 <img
                   src={dish.image_url}
                   alt={dish.image_alt || dish.name}
@@ -148,8 +114,50 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
                   </Badge>
                 )}
               </div>
+            ) : (
+              <div className="w-16 h-16 bg-muted/50 rounded-lg flex items-center justify-center">
+                <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
+              </div>
+            )}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0 flex flex-col justify-between h-16">
+            {/* Top Row - Name and Price */}
+            <div className="flex items-start justify-between mb-1">
+              <div className="flex items-center gap-2 pr-3">
+                <h3 className="font-semibold text-sm text-foreground line-clamp-2">
+                  {dish.name}
+                </h3>
+              </div>
+              <div className="font-bold text-sm text-primary text-right flex-shrink-0">
+                {getDisplayPrice()}
+              </div>
             </div>
-          )}
+
+            {/* Bottom Row - Buttons */}
+            <div className="flex items-end justify-end mt-auto">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <DishFavoriteButton
+                  dishId={dish.id}
+                  restaurantId={restaurantId}
+                  favoritesCount={dish.favorites_count}
+                  size="md"
+                  className="border-0 bg-transparent hover:bg-transparent text-foreground w-7 h-7"
+                  savedFrom="menu_list"
+                />
+                
+                <button
+                  onClick={handlePlusClick}
+                  className="w-7 h-7 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
+                  aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
+                  title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
