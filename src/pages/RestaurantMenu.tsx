@@ -6,8 +6,7 @@ import { ArrowLeft, Utensils } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
-import AllergenFilterButton from '@/components/AllergenFilterButton';
-import DietFilterButton from '@/components/DietFilterButton';
+import UnifiedFiltersModal from '@/components/UnifiedFiltersModal';
 import DishSearchBar from '@/components/DishSearchBar';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import LanguageSelector from '@/components/LanguageSelector';
@@ -201,34 +200,30 @@ function RestaurantMenuContent() {
           </div>
         )}
 
-        {/* Filters Row */}
-        <div className="bg-background" data-filters-section>
+        {/* Search Bar and Language Selector Row */}
+        <div className="bg-background">
           <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <AllergenFilterButton 
-                  selectedAllergens={selectedAllergens} 
-                  onAllergenChange={setSelectedAllergens} 
-                />
-                
-                <DietFilterButton 
-                  selectedDietTypes={selectedDietTypes} 
-                  onDietTypeChange={setSelectedDietTypes} 
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <DishSearchBar 
+                  searchQuery={searchQuery} 
+                  onSearchChange={setSearchQuery} 
+                  placeholder="Buscar platos..." 
                 />
               </div>
-              
               <LanguageSelector />
             </div>
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Filters Button Row */}
         <div className="bg-background">
           <div className="max-w-6xl mx-auto px-4 pb-2">
-            <DishSearchBar 
-              searchQuery={searchQuery} 
-              onSearchChange={setSearchQuery} 
-              placeholder="Buscar platos..." 
+            <UnifiedFiltersModal
+              selectedAllergens={selectedAllergens}
+              selectedDietTypes={selectedDietTypes}
+              onAllergenChange={setSelectedAllergens}
+              onDietTypeChange={setSelectedDietTypes}
             />
           </div>
         </div>
