@@ -29,6 +29,7 @@ export interface Dish {
   category_name?: string;
   allergens?: string[];
   custom_tags?: string[];
+  section_id: number;  // Added this field
   variants: Array<{
     id: number;
     name: string;
@@ -120,6 +121,7 @@ export const useRestaurantMenu = (restaurantId: number) => {
               category_name: dish.dish_categories?.name,
               allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
               custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags as string[] : [],
+              section_id: dish.section_id,  // Make sure to include section_id
               variants: (dish.dish_variants || [])
                 .sort((a: any, b: any) => a.display_order - b.display_order)
                 .map((variant: any) => ({

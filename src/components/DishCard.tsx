@@ -120,6 +120,7 @@ export default function DishCard({
                     originalPrice={displayPrice}
                     dishId={dish.id}
                     restaurantId={restaurantId}
+                    sectionId={dish.section_id}
                     className="font-bold text-sm md:text-lg text-primary text-right flex-shrink-0"
                   />
                 </div>
