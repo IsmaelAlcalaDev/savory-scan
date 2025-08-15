@@ -7,7 +7,6 @@ import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
-import LanguageSelector from '@/components/LanguageSelector';
 import ExpandableSearchBar from '@/components/ExpandableSearchBar';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
@@ -196,7 +195,7 @@ function RestaurantMenuContent() {
                 </h1>
               </div>
 
-              {/* Right side: Search icon and Language Selector */}
+              {/* Right side: Search icon only */}
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleSearchToggle}
@@ -204,7 +203,6 @@ function RestaurantMenuContent() {
                 >
                   <Search className="h-5 w-5" />
                 </button>
-                <LanguageSelector />
               </div>
             </div>
           </div>
