@@ -12,6 +12,7 @@ interface InlineSearchBarProps {
   restaurantName: string;
   restaurantLogo?: string;
   onGoBack: () => void;
+  onSearchToggle: () => void;
 }
 
 export default function InlineSearchBar({
@@ -22,7 +23,8 @@ export default function InlineSearchBar({
   placeholder = "Buscar platos...",
   restaurantName,
   restaurantLogo,
-  onGoBack
+  onGoBack,
+  onSearchToggle
 }: InlineSearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -35,35 +37,26 @@ export default function InlineSearchBar({
   if (isOpen) {
     return (
       <div className="animate-fade-in bg-white shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-2">
+        <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label="Cerrar búsqueda"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <div className="flex-1">
               <Input
                 ref={inputRef}
                 type="text"
                 placeholder={placeholder}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-10 pr-10 bg-gray-50 border-gray-200 rounded-full text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-primary"
+                className="w-full border-0 bg-transparent text-lg placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
               />
-              {searchQuery && (
-                <button
-                  onClick={() => onSearchChange('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
             </div>
+            
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+              aria-label="Cerrar búsqueda"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
         </div>
       </div>
@@ -95,7 +88,7 @@ export default function InlineSearchBar({
           </div>
 
           <button
-            onClick={() => {/* This will be handled by parent */}}
+            onClick={onSearchToggle}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             aria-label="Buscar platos"
           >

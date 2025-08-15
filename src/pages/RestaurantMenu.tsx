@@ -212,17 +212,8 @@ function RestaurantMenuContent() {
             restaurantName={restaurant.name}
             restaurantLogo={restaurant.logo_url}
             onGoBack={handleGoBack}
+            onSearchToggle={handleSearchToggle}
           />
-          
-          {/* Add click handler to search button when not in search mode */}
-          {!isSearchOpen && (
-            <div 
-              className="absolute top-2 right-6 p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-              onClick={handleSearchToggle}
-            >
-              <Search className="h-5 w-5" />
-            </div>
-          )}
 
           {/* Section Navigation - only show when search is not active */}
           {!isSearchOpen && (
