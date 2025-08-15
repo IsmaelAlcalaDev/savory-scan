@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
@@ -134,11 +135,11 @@ export default function DishCard({
                 {/* First Row: Name (left) and Price (right) */}
                 <div className="flex items-start justify-between">
                   <div className="flex-1 pr-3 min-w-0">
-                    <h3 className="font-semibold text-lg text-foreground line-clamp-1">
+                    <h3 className="font-semibold text-base md:text-lg text-foreground line-clamp-1">
                       {dish.name}
                     </h3>
                   </div>
-                  <div className="font-bold text-lg text-primary text-right flex-shrink-0">
+                  <div className="font-bold text-sm md:text-lg text-primary text-right flex-shrink-0">
                     {getDisplayPrice()}
                   </div>
                 </div>
@@ -167,17 +168,17 @@ export default function DishCard({
                       restaurantId={restaurantId}
                       favoritesCount={dish.favorites_count}
                       size="md"
-                      className="border-0 bg-transparent hover:bg-transparent text-foreground w-8 h-8"
+                      className="border-0 bg-transparent hover:bg-transparent text-foreground w-7 h-7 md:w-8 md:h-8"
                       savedFrom="menu_list"
                     />
                     
                     <button
                       onClick={handlePlusClick}
-                      className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
+                      className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
                       aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
                       title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
                     </button>
                   </div>
                 </div>
