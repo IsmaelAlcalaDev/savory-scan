@@ -121,7 +121,7 @@ export default function DishCard({
   return (
     <>
       <div 
-        className="bg-background cursor-pointer"
+        className={`bg-background cursor-pointer ${!isFirstInSection ? 'border-t' : ''} border-b border-border/50`}
         onClick={handleCardClick}
       >
         <div className="py-4 px-0 transition-colors">
@@ -149,10 +149,10 @@ export default function DishCard({
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0">
-              {/* Top Row - Name and Price with Buttons */}
+            <div className="flex-1 min-w-0 flex flex-col justify-between h-20">
+              {/* Top Row - Name and Price */}
               <div className="flex items-start justify-between mb-2">
-                <div className="flex flex-col gap-1.5 pr-3 min-w-0 flex-1">
+                <div className="flex flex-col gap-1.5 pr-3 min-w-0">
                   <h3 className="font-semibold text-lg text-foreground line-clamp-2">
                     {dish.name}
                   </h3>
@@ -171,31 +171,31 @@ export default function DishCard({
                     </div>
                   )}
                 </div>
-                
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="font-bold text-lg text-primary">
-                    {getDisplayPrice()}
-                  </div>
+                <div className="font-bold text-lg text-primary text-right flex-shrink-0">
+                  {getDisplayPrice()}
+                </div>
+              </div>
+
+              {/* Bottom Row - Buttons */}
+              <div className="flex items-end justify-end mt-auto">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <DishFavoriteButton
+                    dishId={dish.id}
+                    restaurantId={restaurantId}
+                    favoritesCount={dish.favorites_count}
+                    size="md"
+                    className="border-0 bg-transparent hover:bg-transparent text-foreground w-8 h-8"
+                    savedFrom="menu_list"
+                  />
                   
-                  <div className="flex items-center gap-1">
-                    <DishFavoriteButton
-                      dishId={dish.id}
-                      restaurantId={restaurantId}
-                      favoritesCount={dish.favorites_count}
-                      size="md"
-                      className="border-0 bg-background hover:bg-accent text-foreground w-9 h-9 shadow-sm"
-                      savedFrom="menu_list"
-                    />
-                    
-                    <button
-                      onClick={handlePlusClick}
-                      className="w-9 h-9 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
-                      aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
-                      title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
-                    >
-                      <Plus className="h-5 w-5" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={handlePlusClick}
+                    className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
+                    aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
+                    title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </div>
