@@ -108,6 +108,12 @@ export const useRestaurants = ({
           query = query.in('price_range', priceRanges);
         }
 
+        // Apply cuisine type filtering
+        if (cuisineTypeIds && cuisineTypeIds.length > 0) {
+          console.log('Applying cuisine type filter for IDs:', cuisineTypeIds);
+          query = query.in('restaurant_cuisines.cuisine_type_id', cuisineTypeIds);
+        }
+
         const { data, error } = await query.limit(50);
 
         if (error) {
@@ -150,7 +156,11 @@ export const useRestaurants = ({
           console.log('Restaurants sorted by distance:', sortedData.slice(0, 5));
         }
 
-        console.log('Final formatted restaurants:', sortedData.length);
+        console.log('Final formatted restaurants after cuisine filter:', sortedData.length);
+        if (cuisineTypeIds && cuisineTypeIds.length > 0) {
+          console.log('Filtered restaurants by cuisine types:', sortedData.map(r => ({ name: r.name, cuisines: r.cuisine_types })));
+        }
+        
         setRestaurants(sortedData);
 
       } catch (err) {
