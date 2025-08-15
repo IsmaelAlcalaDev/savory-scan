@@ -8,7 +8,7 @@ import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import ExpandableSearchBar from '@/components/ExpandableSearchBar';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
 import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
 import OrderSimulatorModal from '@/components/OrderSimulatorModal';
@@ -29,10 +29,35 @@ function RestaurantMenuContent() {
   const [activeSection, setActiveSection] = useState<number | undefined>();
   const [isExpandableSearchOpen, setIsExpandableSearchOpen] = useState(false);
 
-  // Ref for intersection observer
-  const sectionsRefs = useRef<{ [key: number]: HTMLElement | null }>({});
+  const handleGoBack = () => {
+    navigate(`/restaurant/${slug}`);
+  };
 
-  // Filter sections and dishes based on active filters - MOVED BEFORE useEffect
+  const handleSectionClick = (sectionId: number) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(`section-${sectionId}`);
+    if (element) {
+      // Fixed offset for sticky header (74px) + sticky nav (59px)
+      const headerOffset = 133;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleSearchToggle = () => {
+    setIsExpandableSearchOpen(!isExpandableSearchOpen);
+  };
+
+  const handleExpandableSearchClose = () => {
+    setIsExpandableSearchOpen(false);
+  };
+
+  // Filter sections and dishes based on active filters
   const filteredSections = useMemo(() => {
     if (!sections) return [];
     return sections.map(section => {
@@ -80,68 +105,6 @@ function RestaurantMenuContent() {
     }).filter(section => section.dishes.length > 0);
   }, [sections, searchQuery, selectedAllergens, selectedDietTypes]);
 
-  const handleGoBack = () => {
-    navigate(`/restaurant/${slug}`);
-  };
-
-  const handleSectionClick = (sectionId: number) => {
-    setActiveSection(sectionId);
-    const element = document.getElementById(`section-${sectionId}`);
-    if (element) {
-      // Fixed offset for sticky header (74px) + sticky nav (59px)
-      const headerOffset = 133;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const handleSearchToggle = () => {
-    setIsExpandableSearchOpen(!isExpandableSearchOpen);
-  };
-
-  const handleExpandableSearchClose = () => {
-    setIsExpandableSearchOpen(false);
-  };
-
-  // Auto-detect active section on scroll using Intersection Observer
-  useEffect(() => {
-    if (filteredSections.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const sectionId = parseInt(entry.target.id.replace('section-', ''));
-          sectionsRefs.current[sectionId] = entry.target as HTMLElement;
-          
-          if (entry.isIntersecting) {
-            setActiveSection(sectionId);
-          }
-        });
-      },
-      {
-        rootMargin: '-133px 0px -50% 0px', // Account for sticky headers
-        threshold: 0.1
-      }
-    );
-
-    // Observe all section elements
-    filteredSections.forEach((section) => {
-      const element = document.getElementById(`section-${section.id}`);
-      if (element) {
-        observer.observe(element);
-      }
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [filteredSections]);
-
   // Set initial active section
   useEffect(() => {
     if (filteredSections.length > 0 && !activeSection) {
@@ -184,8 +147,8 @@ function RestaurantMenuContent() {
       </Helmet>
 
       <div className="min-h-screen bg-muted/20 pb-20">
-        {/* Sticky Header Navigation with Search - removed border-b */}
-        <div className="bg-background sticky top-0 z-40 backdrop-blur-sm">
+        {/* Sticky Header Navigation with Search */}
+        <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -226,8 +189,8 @@ function RestaurantMenuContent() {
           />
         </div>
 
-        {/* Sticky Section Navigation - always positioned below header with border-b */}
-        <div className="sticky top-[74px] z-30 bg-background border-b">
+        {/* Sticky Section Navigation - always positioned below header */}
+        <div className="sticky top-[74px] z-30 bg-background">
           <MenuSectionTabs 
             sections={filteredSections} 
             activeSection={activeSection} 
