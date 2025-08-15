@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -200,12 +199,12 @@ function RestaurantMenuContent() {
           </div>
         </div>
 
-        {/* Sticky Section Navigation - positioned right below header */}
-        <div className={`fixed top-[73px] left-0 right-0 z-30 bg-background border-b transition-transform duration-200 ${
-          showStickyNav ? 'translate-y-0' : '-translate-y-full'
-        }`}>
-          <MenuSectionTabs sections={filteredSections} activeSection={activeSection} onSectionClick={handleSectionClick} />
-        </div>
+        {/* Sticky Section Navigation - only show when needed */}
+        {showStickyNav && (
+          <div className="fixed top-[73px] left-0 right-0 z-30 bg-background border-b shadow-sm">
+            <MenuSectionTabs sections={filteredSections} activeSection={activeSection} onSectionClick={handleSectionClick} />
+          </div>
+        )}
 
         {/* Filters Row */}
         <div className="bg-background" data-filters-section>
