@@ -15,9 +15,9 @@ export default function MenuSectionTabs({ sections, activeSection, onSectionClic
   }
 
   return (
-    <div className="bg-white">
+    <div className="bg-background border-b">
       <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex space-x-2 p-4">
+        <div className="flex space-x-2 px-4 py-3">
           {sections.map((section) => (
             <Button
               key={section.id}

@@ -34,7 +34,7 @@ function RestaurantMenuContent() {
 
   // Refs for navigation elements
   const originalNavRef = useRef<HTMLDivElement>(null);
-  const headerHeight = 73; // Fixed header height
+  const headerHeight = 74; // Adjusted to match exact header height including border
 
   const handleGoBack = () => {
     navigate(`/restaurant/${slug}`);
@@ -62,7 +62,7 @@ function RestaurantMenuContent() {
       if (!originalNavRef.current) return;
       
       const rect = originalNavRef.current.getBoundingClientRect();
-      // Show sticky nav when original nav goes above the header (73px)
+      // Show sticky nav when original nav goes above the header
       const shouldShowSticky = rect.top <= headerHeight;
       
       if (shouldShowSticky !== showStickyNav) {
@@ -192,7 +192,7 @@ function RestaurantMenuContent() {
 
         {/* Sticky Section Navigation - positioned right below header when needed */}
         {showStickyNav && (
-          <div className="fixed top-[73px] left-0 right-0 z-30 bg-background border-b shadow-sm">
+          <div className="fixed top-[74px] left-0 right-0 z-30 bg-background shadow-sm">
             <MenuSectionTabs 
               sections={filteredSections} 
               activeSection={activeSection} 
