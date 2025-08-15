@@ -108,34 +108,73 @@ function RestaurantMenuContent() {
     setSearchQuery(''); // Clear search when closing
   };
 
-  // Simplified scroll handler to detect active section
+  // Enhanced scroll handler with improved section detection
   const handleScroll = useCallback(() => {
     if (filteredSections.length === 0) return;
 
     let activeId = null;
     let closestDistance = Infinity;
+    let bestCandidate = null;
+    
+    // Check if we're near the bottom of the page
+    const isNearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+    
+    // If near bottom, activate last section
+    if (isNearBottom && filteredSections.length > 0) {
+      const lastSectionId = filteredSections[filteredSections.length - 1].id;
+      if (activeSection !== lastSectionId) {
+        console.log('Near bottom - activating last section:', lastSectionId);
+        setActiveSection(lastSectionId);
+      }
+      return;
+    }
     
     filteredSections.forEach(section => {
       const element = document.getElementById(`section-${section.id}`);
       if (element) {
         const rect = element.getBoundingClientRect();
-        const distanceFromReference = REFERENCE_POINT - rect.top;
+        const sectionTop = rect.top;
+        const sectionBottom = rect.bottom;
         
-        // If the section has passed the reference point and is closer than previous ones
-        if (distanceFromReference >= 0 && distanceFromReference < closestDistance) {
-          closestDistance = distanceFromReference;
+        // Priority 1: Section that contains the reference point (perfect match)
+        if (sectionTop <= REFERENCE_POINT && sectionBottom > REFERENCE_POINT) {
           activeId = section.id;
+          console.log('Perfect match - section contains reference point:', section.id);
+          return;
+        }
+        
+        // Priority 2: Section that has passed the reference point and is closest
+        if (sectionTop <= REFERENCE_POINT) {
+          const distanceFromReference = REFERENCE_POINT - sectionTop;
+          if (distanceFromReference < closestDistance) {
+            closestDistance = distanceFromReference;
+            bestCandidate = section.id;
+          }
+        }
+        
+        // Priority 3: If no section has passed, find the closest one approaching
+        if (bestCandidate === null) {
+          const distanceToReference = Math.abs(REFERENCE_POINT - sectionTop);
+          if (distanceToReference < closestDistance) {
+            closestDistance = distanceToReference;
+            bestCandidate = section.id;
+          }
         }
       }
     });
     
-    // If no section has passed the reference point, use the first one
+    // Use the best candidate if no perfect match
+    if (activeId === null) {
+      activeId = bestCandidate;
+    }
+    
+    // Fallback to first section if nothing else works
     if (activeId === null && filteredSections.length > 0) {
       activeId = filteredSections[0].id;
     }
     
     if (activeId !== activeSection) {
-      console.log('Active section changed to:', activeId);
+      console.log('Active section changed to:', activeId, 'from:', activeSection);
       setActiveSection(activeId);
     }
   }, [filteredSections, activeSection, REFERENCE_POINT]);
@@ -169,7 +208,7 @@ function RestaurantMenuContent() {
   useEffect(() => {
     if (filteredSections.length === 0) return;
 
-    console.log('Setting up scroll listener for sections:', filteredSections.map(s => s.id));
+    console.log('Setting up enhanced scroll listener for sections:', filteredSections.map(s => s.id));
     
     const scrollHandler = throttledHandleScroll();
     window.addEventListener('scroll', scrollHandler, { passive: true });

@@ -29,42 +29,51 @@ export default function MenuSectionTabs({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const activeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Auto-scroll to active section button when activeSection changes
+  // Enhanced auto-scroll to active section button when activeSection changes
   useEffect(() => {
     if (activeSection !== undefined && activeButtonRef.current && scrollAreaRef.current) {
-      console.log('Auto-scrolling to active section button:', activeSection);
+      console.log('Enhanced auto-scrolling to active section button:', activeSection);
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollContainer) {
         const activeButton = activeButtonRef.current;
         const containerRect = scrollContainer.getBoundingClientRect();
         const buttonRect = activeButton.getBoundingClientRect();
         
-        // Calculate the relative position of the button within the scroll container
+        // Calculate positions relative to the scroll container
         const buttonLeft = buttonRect.left - containerRect.left + scrollContainer.scrollLeft;
         const buttonRight = buttonLeft + buttonRect.width;
         const containerWidth = containerRect.width;
         const scrollLeft = scrollContainer.scrollLeft;
         
-        // Check if button is outside visible area or partially hidden (both directions)
-        const isOutsideLeft = buttonLeft < scrollLeft + 20; // 20px margin from left
-        const isOutsideRight = buttonRight > scrollLeft + containerWidth - 20; // 20px margin from right
+        // Enhanced margins for better UX
+        const leftMargin = 60; // More space on the left
+        const rightMargin = 60; // More space on the right
         
-        if (isOutsideLeft || isOutsideRight) {
-          let optimalScrollLeft;
+        // Check if button needs scrolling (more generous boundaries)
+        const needsScrollLeft = buttonLeft < scrollLeft + leftMargin;
+        const needsScrollRight = buttonRight > scrollLeft + containerWidth - rightMargin;
+        
+        if (needsScrollLeft || needsScrollRight) {
+          let targetScrollLeft;
           
-          if (isOutsideLeft) {
-            // If button is hidden on the left, scroll to show it with some margin
-            optimalScrollLeft = buttonLeft - 40; // 40px margin from left edge
+          if (needsScrollLeft) {
+            // Scroll to show button with left margin, but also show some context
+            targetScrollLeft = Math.max(0, buttonLeft - leftMargin);
+            console.log('Scrolling left to show button with context');
           } else {
-            // If button is hidden on the right, scroll to show it with some margin
-            optimalScrollLeft = buttonRight - containerWidth + 40; // 40px margin from right edge
+            // Scroll to show button with right margin, centering if possible
+            const idealCenterPosition = buttonLeft - (containerWidth / 2) + (buttonRect.width / 2);
+            targetScrollLeft = Math.max(0, Math.min(idealCenterPosition, buttonRight - containerWidth + rightMargin));
+            console.log('Scrolling right to center button or show with margin');
           }
           
-          console.log('Scrolling to optimal position:', optimalScrollLeft);
+          console.log('Enhanced scroll - target position:', targetScrollLeft);
           scrollContainer.scrollTo({
-            left: Math.max(0, optimalScrollLeft),
+            left: targetScrollLeft,
             behavior: 'smooth'
           });
+        } else {
+          console.log('Button already visible with good margins, no scroll needed');
         }
       }
     }
