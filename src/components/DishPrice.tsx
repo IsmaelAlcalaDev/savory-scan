@@ -26,11 +26,12 @@ export default function DishPrice({
     }).format(price);
   };
 
-  console.log('DishPrice - checking promotion for dish:', dishId, 'section:', sectionId);
+  console.log('DishPrice - checking promotion for dish:', dishId, 'section:', sectionId, 'restaurant:', restaurantId);
   const promotion = getPromotionForDish(dishId, sectionId);
   console.log('DishPrice - found promotion:', promotion);
 
   if (!promotion) {
+    console.log('DishPrice - no promotion found, showing original price:', originalPrice);
     return (
       <div className={className}>
         {formatPrice(originalPrice)}
@@ -39,7 +40,7 @@ export default function DishPrice({
   }
 
   const discountedPrice = calculateDiscountedPrice(originalPrice, promotion);
-  console.log('DishPrice - original:', originalPrice, 'discounted:', discountedPrice);
+  console.log('DishPrice - original:', originalPrice, 'discounted:', discountedPrice, 'promotion:', promotion);
 
   return (
     <div className={className}>
