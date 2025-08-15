@@ -237,7 +237,8 @@ export default function FoodieSpotLayout({
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
     isHighRated: isHighRated,
-    selectedDistanceRangeIds: selectedDistance.length > 0 ? selectedDistance : undefined
+    selectedDistanceRangeIds: selectedDistance.length > 0 ? selectedDistance : undefined,
+    selectedEstablishmentTypes: selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined
   });
   
   const {
