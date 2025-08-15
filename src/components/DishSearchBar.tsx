@@ -21,7 +21,7 @@ export default function DishSearchBar({
         placeholder={placeholder}
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
-        className="pl-10 bg-gray-50 border-0 rounded-full text-gray-900 placeholder:text-gray-600 focus:bg-gray-50 focus:border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="pl-10 bg-gray-100 border-0 rounded-full text-gray-900 placeholder:text-gray-600 focus:bg-gray-100 focus:border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
       />
     </div>
   );
