@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
@@ -98,16 +97,16 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
         className="border rounded-lg bg-background transition-colors cursor-pointer"
         onClick={handleCardClick}
       >
-        <div className="flex gap-2 items-center p-2">
+        <div className="flex gap-2 items-start p-2">
           {/* Content - takes available space */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 flex flex-col justify-between h-12">
             {/* Name - takes full width up to image */}
-            <h3 className="font-semibold text-sm text-foreground line-clamp-2 mb-1 pr-2">
+            <h3 className="font-semibold text-sm text-foreground line-clamp-2 pr-2">
               {dish.name}
             </h3>
             
-            {/* Bottom row with price and buttons */}
-            <div className="flex items-center justify-between">
+            {/* Bottom row with price on left, buttons on right */}
+            <div className="flex items-center justify-between mt-auto">
               <div className="font-bold text-sm text-primary">
                 {getDisplayPrice()}
               </div>
