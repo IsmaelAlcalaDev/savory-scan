@@ -88,14 +88,10 @@ function RestaurantMenuContent() {
     setActiveSection(sectionId);
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
-      // Fixed offset for sticky header (74px) + sticky nav (59px)
-      const headerOffset = 133;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
+      // Simple scroll without offset since no sticky elements
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
       });
     }
   };
@@ -108,7 +104,7 @@ function RestaurantMenuContent() {
     setIsExpandableSearchOpen(false);
   };
 
-  // Auto-detect active section on scroll using Intersection Observer
+  // Auto-detect active section on scroll using Intersection Observer - REMOVED since no sticky navigation
   useEffect(() => {
     if (filteredSections.length === 0) return;
 
@@ -124,7 +120,7 @@ function RestaurantMenuContent() {
         });
       },
       {
-        rootMargin: '-133px 0px -50% 0px', // Account for sticky headers
+        rootMargin: '0px 0px -50% 0px', // Removed sticky header offset
         threshold: 0.1
       }
     );
@@ -184,8 +180,8 @@ function RestaurantMenuContent() {
       </Helmet>
 
       <div className="min-h-screen bg-muted/20 pb-20">
-        {/* Sticky Header Navigation with Search - removed border-b */}
-        <div className="bg-background sticky top-0 z-40 backdrop-blur-sm">
+        {/* Header Navigation with Search - REMOVED sticky positioning */}
+        <div className="bg-background">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -226,8 +222,8 @@ function RestaurantMenuContent() {
           />
         </div>
 
-        {/* Sticky Section Navigation - always positioned below header with border-b */}
-        <div className="sticky top-[74px] z-30 bg-background border-b">
+        {/* Section Navigation - REMOVED sticky positioning */}
+        <div className="bg-background border-b">
           <MenuSectionTabs 
             sections={filteredSections} 
             activeSection={activeSection} 
