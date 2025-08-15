@@ -28,14 +28,15 @@ export const useDietTypes = () => {
         console.log('Raw diet types data:', data);
         
         // Transform the data to match our DietType interface
-        const transformedData: DietType[] = (data || []).map(item => ({
+        // Cast the data properly since TypeScript types might not be updated yet
+        const transformedData: DietType[] = (data || []).map((item: any) => ({
           id: item.id,
           name: item.name,
           slug: item.slug,
           icon: item.icon,
           category: item.category as 'vegetarian' | 'vegan' | 'gluten_free' | 'healthy',
-          min_percentage: item.min_percentage,
-          max_percentage: item.max_percentage
+          min_percentage: item.min_percentage || 0,
+          max_percentage: item.max_percentage || 100
         }));
         
         setDietTypes(transformedData);
