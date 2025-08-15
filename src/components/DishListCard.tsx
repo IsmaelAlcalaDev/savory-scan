@@ -1,13 +1,14 @@
 
-import { Badge } from '@/components/ui/badge';
-import { Plus } from 'lucide-react';
-import DishFavoriteButton from './DishFavoriteButton';
-import DinerSelector from './DinerSelector';
-import DishVariantsModal from './DishVariantsModal';
-import DishInfoModal from './DishInfoModal';
-import type { Dish } from '@/hooks/useRestaurantMenu';
-import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Star, Clock, Flame, Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import DishFavoriteButton from './DishFavoriteButton';
+import VariantSelector from './VariantSelector';
+import DishImageModal from './DishImageModal';
+import type { Dish } from '@/hooks/useRestaurantMenu';
 
 interface DishListCardProps {
   dish: Dish;
@@ -16,11 +17,17 @@ interface DishListCardProps {
   onExpandedChange: (dishId: number | null) => void;
 }
 
-export default function DishListCard({ dish, restaurantId }: DishListCardProps) {
-  const { addDishToOrder, diners, openDinersModal } = useOrderSimulator();
-  const [isVariantsModalOpen, setIsVariantsModalOpen] = useState(false);
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-
+export default function DishListCard({ 
+  dish, 
+  restaurantId, 
+  expandedDishId, 
+  onExpandedChange
+}: DishListCardProps) {
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  
+  const isExpanded = expandedDishId === dish.id;
+  
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -29,153 +36,194 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
   };
 
   const getDisplayPrice = () => {
-    if (dish.variants && dish.variants.length > 0) {
-      const defaultVariant = dish.variants.find(v => v.is_default);
-      if (defaultVariant) {
-        return formatPrice(defaultVariant.price);
-      }
-      const minPrice = Math.min(...dish.variants.map(v => v.price));
-      const maxPrice = Math.max(...dish.variants.map(v => v.price));
-      if (minPrice === maxPrice) {
-        return formatPrice(minPrice);
-      }
-      return `desde ${formatPrice(minPrice)}`;
+    if (selectedVariantId) {
+      const variant = dish.variants.find(v => v.id === selectedVariantId);
+      return variant ? formatPrice(variant.price) : formatPrice(dish.base_price);
     }
     return formatPrice(dish.base_price);
   };
 
-  const handlePlusClick = (e: React.MouseEvent) => {
+  const hasVariants = dish.variants && dish.variants.length > 1;
+  const hasDescription = dish.description && dish.description.trim().length > 0;
+  const shouldShowExpandButton = hasDescription || hasVariants;
+
+  const toggleExpanded = () => {
+    onExpandedChange(isExpanded ? null : dish.id);
+  };
+
+  const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    const hasMultipleVariants = dish.variants && dish.variants.length > 1;
-    
-    if (hasMultipleVariants) {
-      setIsVariantsModalOpen(true);
-    } else {
-      if (diners.length === 1) {
-        addDishToOrder(dish, diners[0].id);
-      } else {
-        addDishToOrder(dish, diners[0].id);
-      }
+    if (dish.image_url) {
+      setImageModalOpen(true);
     }
   };
 
-  const handleCardClick = () => {
-    const hasMultipleVariants = dish.variants && dish.variants.length > 1;
-    
-    if (hasMultipleVariants) {
-      setIsVariantsModalOpen(true);
-    } else {
-      setIsInfoModalOpen(true);
-    }
-  };
+  const spiceLevelIcons = Array.from({ length: dish.spice_level }, (_, i) => (
+    <Flame key={i} className="h-3 w-3 fill-red-500 text-red-500" />
+  ));
 
-  const handleAddVariantToOrder = (variantId: number, dinerId: string) => {
-    if (dish.variants) {
-      const variant = dish.variants.find(v => v.id === variantId);
-      if (variant) {
-        const modifiedDish = {
-          ...dish,
-          variants: dish.variants.map(v => ({
-            ...v,
-            is_default: v.id === variantId
-          }))
-        };
-        addDishToOrder(modifiedDish, dinerId);
-      }
-    }
-  };
-
-  const handleDishAdd = (dinerId: string) => {
-    addDishToOrder(dish, dinerId);
-  };
-
-  const hasMultipleVariants = dish.variants && dish.variants.length > 1;
+  const dietBadges = [];
+  if (dish.is_vegetarian) dietBadges.push({ label: 'Vegetariano', color: 'bg-green-100 text-green-700' });
+  if (dish.is_vegan) dietBadges.push({ label: 'Vegano', color: 'bg-green-100 text-green-700' });
+  if (dish.is_gluten_free) dietBadges.push({ label: 'Sin Gluten', color: 'bg-blue-100 text-blue-700' });
+  if (dish.is_lactose_free) dietBadges.push({ label: 'Sin Lactosa', color: 'bg-purple-100 text-purple-700' });
+  if (dish.is_healthy) dietBadges.push({ label: 'Saludable', color: 'bg-emerald-100 text-emerald-700' });
 
   return (
-    <>
-      <div 
-        className="border rounded-lg bg-background transition-colors cursor-pointer"
-        onClick={handleCardClick}
-      >
-        <div className="flex gap-2.5 items-start p-2.5">
-          {/* Image */}
-          <div className="flex-shrink-0">
-            {dish.image_url ? (
-              <div className="w-16 h-16 rounded-lg overflow-hidden relative">
-                <img
-                  src={dish.image_url}
-                  alt={dish.image_alt || dish.name}
-                  className="w-full h-full object-cover"
-                />
-                {dish.is_featured && (
-                  <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 py-0">
-                    ★
-                  </Badge>
-                )}
-              </div>
-            ) : (
-              <div className="w-16 h-16 bg-muted/50 rounded-lg flex items-center justify-center">
-                <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
-              </div>
-            )}
-          </div>
+    <Card className="bg-gradient-card border-glass shadow-card transition-all duration-300 hover:shadow-float group relative overflow-hidden">
+      <CardContent className="p-4">
+        <div className="flex gap-3">
+          {/* Image Section */}
+          {dish.image_url && (
+            <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden flex-shrink-0">
+              <img 
+                src={dish.image_url} 
+                alt={dish.image_alt || dish.name}
+                className="w-full h-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
+                onClick={handleImageClick}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-all duration-300" />
+            </div>
+          )}
 
-          {/* Content */}
-          <div className="flex-1 min-w-0 flex flex-col justify-between h-16">
-            {/* Top Row - Name and Price */}
-            <div className="flex items-start justify-between mb-1">
-              <div className="flex items-center gap-2 pr-3">
-                <h3 className="font-semibold text-sm text-foreground line-clamp-2">
+          {/* Content Section */}
+          <div className="flex-1 min-w-0 space-y-2">
+            {/* Header with name, price and favorite */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-base md:text-lg text-foreground leading-tight line-clamp-2 md:text-base text-base">
                   {dish.name}
                 </h3>
+                {dish.category_name && (
+                  <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                    {dish.category_name}
+                  </p>
+                )}
               </div>
-              <div className="font-bold text-sm text-primary text-right flex-shrink-0">
-                {getDisplayPrice()}
-              </div>
-            </div>
-
-            {/* Bottom Row - Buttons */}
-            <div className="flex items-end justify-end mt-auto">
-              <div className="flex items-center gap-1.5 flex-shrink-0">
+              
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="font-bold text-sm md:text-base text-primary">
+                  {getDisplayPrice()}
+                </span>
                 <DishFavoriteButton
                   dishId={dish.id}
                   restaurantId={restaurantId}
                   favoritesCount={dish.favorites_count}
-                  size="md"
-                  className="border-0 bg-transparent hover:bg-transparent text-foreground w-7 h-7"
-                  savedFrom="menu_list"
+                  size="sm"
+                  savedFrom="list_card"
                 />
-                
-                <button
-                  onClick={handlePlusClick}
-                  className="w-7 h-7 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
-                  aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
-                  title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                </button>
               </div>
             </div>
+
+            {/* Short description - only show if not expanded */}
+            {!isExpanded && hasDescription && (
+              <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
+                {dish.description}
+              </p>
+            )}
+
+            {/* Metadata row */}
+            <div className="flex items-center gap-3 text-xs md:text-sm text-muted-foreground flex-wrap">
+              {dish.preparation_time_minutes && (
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  <span>{dish.preparation_time_minutes} min</span>
+                </div>
+              )}
+              
+              {dish.spice_level > 0 && (
+                <div className="flex items-center gap-1">
+                  {spiceLevelIcons}
+                </div>
+              )}
+
+              {dish.favorites_count > 0 && (
+                <div className="flex items-center gap-1">
+                  <Heart className="h-3 w-3 fill-red-500 text-red-500" />
+                  <span>{dish.favorites_count}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Diet badges - always show a few */}
+            {dietBadges.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {dietBadges.slice(0, isExpanded ? dietBadges.length : 2).map((badge, index) => (
+                  <Badge key={index} variant="secondary" className={cn("text-xs px-2 py-0.5", badge.color)}>
+                    {badge.label}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Expanded content */}
+            {isExpanded && (
+              <div className="space-y-3 pt-2 border-t border-border/50">
+                {hasDescription && (
+                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                    {dish.description}
+                  </p>
+                )}
+
+                {hasVariants && (
+                  <div className="space-y-2">
+                    <VariantSelector 
+                      dish={dish} 
+                      onVariantSelect={setSelectedVariantId}
+                    />
+                  </div>
+                )}
+
+                {/* Custom tags */}
+                {dish.custom_tags && dish.custom_tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {dish.custom_tags.map((tag, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Expand/Collapse button */}
+            {shouldShowExpandButton && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleExpanded}
+                className="w-full h-7 text-xs md:text-sm text-muted-foreground hover:text-foreground transition-colors mt-2"
+              >
+                {isExpanded ? (
+                  <>
+                    Mostrar menos
+                    <ChevronUp className="h-3 w-3 ml-1" />
+                  </>
+                ) : (
+                  <>
+                    Ver más detalles
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
-      </div>
+      </CardContent>
 
-      {/* Variants Modal */}
-      <DishVariantsModal
-        isOpen={isVariantsModalOpen}
-        onClose={() => setIsVariantsModalOpen(false)}
-        dish={dish}
-        onVariantAdd={handleAddVariantToOrder}
+      {/* Image Modal */}
+      <DishImageModal
+        isOpen={imageModalOpen}
+        onClose={() => setImageModalOpen(false)}
+        imageUrl={dish.image_url}
+        imageAlt={dish.image_alt || dish.name}
+        dishName={dish.name}
       />
-
-      {/* Info Modal for dishes without variants */}
-      <DishInfoModal
-        isOpen={isInfoModalOpen}
-        onClose={() => setIsInfoModalOpen(false)}
-        dish={dish}
-        onDishAdd={handleDishAdd}
-      />
-    </>
+    </Card>
   );
 }
