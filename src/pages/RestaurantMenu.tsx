@@ -8,7 +8,7 @@ import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import InlineSearchBar from '@/components/InlineSearchBar';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
 import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
 import OrderSimulatorModal from '@/components/OrderSimulatorModal';
@@ -29,8 +29,8 @@ function RestaurantMenuContent() {
   const [activeSection, setActiveSection] = useState<number | undefined>();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // Ref for intersection observer
-  const sectionsRefs = useRef<{ [key: number]: HTMLElement | null }>({});
+  // Reference point for active section detection (150px from top)
+  const REFERENCE_POINT = 150;
 
   // Filter sections and dishes based on active filters
   const filteredSections = useMemo(() => {
@@ -108,6 +108,55 @@ function RestaurantMenuContent() {
     setSearchQuery(''); // Clear search when closing
   };
 
+  // Simplified scroll handler to detect active section
+  const handleScroll = useCallback(() => {
+    if (filteredSections.length === 0) return;
+
+    let activeId = null;
+    let closestDistance = Infinity;
+    
+    filteredSections.forEach(section => {
+      const element = document.getElementById(`section-${section.id}`);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        const distanceFromReference = REFERENCE_POINT - rect.top;
+        
+        // If the section has passed the reference point and is closer than previous ones
+        if (distanceFromReference >= 0 && distanceFromReference < closestDistance) {
+          closestDistance = distanceFromReference;
+          activeId = section.id;
+        }
+      }
+    });
+    
+    // If no section has passed the reference point, use the first one
+    if (activeId === null && filteredSections.length > 0) {
+      activeId = filteredSections[0].id;
+    }
+    
+    if (activeId !== activeSection) {
+      console.log('Active section changed to:', activeId);
+      setActiveSection(activeId);
+    }
+  }, [filteredSections, activeSection, REFERENCE_POINT]);
+
+  // Throttle scroll events for better performance
+  const throttledHandleScroll = useCallback(() => {
+    let ticking = false;
+    
+    const update = () => {
+      handleScroll();
+      ticking = false;
+    };
+    
+    return () => {
+      if (!ticking) {
+        requestAnimationFrame(update);
+        ticking = true;
+      }
+    };
+  }, [handleScroll]);
+
   // Set initial active section when filteredSections are loaded
   useEffect(() => {
     if (filteredSections.length > 0 && activeSection === undefined) {
@@ -116,72 +165,23 @@ function RestaurantMenuContent() {
     }
   }, [filteredSections, activeSection]);
 
-  // Auto-detect active section on scroll using Intersection Observer
+  // Set up scroll listener for active section detection
   useEffect(() => {
     if (filteredSections.length === 0) return;
 
-    console.log('Setting up intersection observer for sections:', filteredSections.map(s => s.id));
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Create array of visible sections with detailed info
-        const visibleSections = entries
-          .filter(entry => entry.isIntersecting)
-          .map(entry => ({
-            id: parseInt(entry.target.id.replace('section-', '')),
-            top: entry.boundingClientRect.top,
-            intersectionRatio: entry.intersectionRatio,
-            element: entry.target
-          }));
-
-        console.log('Intersection Observer - Visible sections:', visibleSections.map(s => ({
-          id: s.id,
-          top: Math.round(s.top),
-          ratio: Math.round(s.intersectionRatio * 100) / 100
-        })));
-
-        if (visibleSections.length > 0) {
-          // Find the best section to mark as active
-          let bestSection = visibleSections[0];
-          
-          // Priority 1: Section with highest intersection ratio
-          const maxRatio = Math.max(...visibleSections.map(s => s.intersectionRatio));
-          const sectionsWithMaxRatio = visibleSections.filter(s => s.intersectionRatio === maxRatio);
-          
-          if (sectionsWithMaxRatio.length === 1) {
-            bestSection = sectionsWithMaxRatio[0];
-          } else {
-            // Priority 2: Among sections with same ratio, pick the one closest to top
-            bestSection = sectionsWithMaxRatio.reduce((prev, current) => {
-              return Math.abs(current.top) < Math.abs(prev.top) ? current : prev;
-            });
-          }
-
-          console.log('Selected active section:', bestSection.id, 'with ratio:', bestSection.intersectionRatio, 'and top:', Math.round(bestSection.top));
-          setActiveSection(bestSection.id);
-        }
-      },
-      {
-        rootMargin: '-110px 0px -70% 0px', // Account for sticky header, less aggressive bottom margin
-        threshold: [0, 0.1, 0.25] // Better thresholds for detection
-      }
-    );
-
-    // Observe all section elements
-    filteredSections.forEach((section) => {
-      const element = document.getElementById(`section-${section.id}`);
-      if (element) {
-        observer.observe(element);
-        sectionsRefs.current[section.id] = element;
-        console.log('Observing section:', section.id, section.name);
-      }
-    });
+    console.log('Setting up scroll listener for sections:', filteredSections.map(s => s.id));
+    
+    const scrollHandler = throttledHandleScroll();
+    window.addEventListener('scroll', scrollHandler, { passive: true });
+    
+    // Initial check
+    handleScroll();
 
     return () => {
-      console.log('Cleaning up intersection observer');
-      observer.disconnect();
+      console.log('Cleaning up scroll listener');
+      window.removeEventListener('scroll', scrollHandler);
     };
-  }, [filteredSections]);
+  }, [filteredSections, throttledHandleScroll, handleScroll]);
 
   if (restaurantLoading || sectionsLoading) {
     return <div className="min-h-screen bg-gray-100">
