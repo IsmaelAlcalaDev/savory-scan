@@ -20,9 +20,12 @@ export default function DistanceFilter({ selectedDistances, onDistanceChange }: 
 
   if (loading) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-5 w-full" />
+          <div key={i} className="flex items-center space-x-3">
+            <Skeleton className="h-5 w-5 rounded" />
+            <Skeleton className="h-4 w-24" />
+          </div>
         ))}
       </div>
     );
@@ -36,7 +39,7 @@ export default function DistanceFilter({ selectedDistances, onDistanceChange }: 
   return (
     <div className="space-y-3">
       {distanceRanges.map((range) => (
-        <div key={range.id} className="flex items-center space-x-2">
+        <div key={range.id} className="flex items-center space-x-3">
           <Checkbox 
             id={`distance-${range.id}`}
             checked={selectedDistances.includes(range.id)}
