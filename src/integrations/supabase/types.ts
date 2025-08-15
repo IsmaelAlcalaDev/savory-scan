@@ -346,23 +346,32 @@ export type Database = {
       }
       diet_types: {
         Row: {
+          category: string
           created_at: string | null
           icon: string | null
           id: number
+          max_percentage: number
+          min_percentage: number
           name: string
           slug: string
         }
         Insert: {
+          category?: string
           created_at?: string | null
           icon?: string | null
           id?: number
+          max_percentage?: number
+          min_percentage?: number
           name: string
           slug: string
         }
         Update: {
+          category?: string
           created_at?: string | null
           icon?: string | null
           id?: number
+          max_percentage?: number
+          min_percentage?: number
           name?: string
           slug?: string
         }
