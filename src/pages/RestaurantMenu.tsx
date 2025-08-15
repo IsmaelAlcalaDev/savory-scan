@@ -47,19 +47,49 @@ function RestaurantMenuContent() {
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<number | undefined>();
+  const [showStickyNav, setShowStickyNav] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
   const handleGoBack = () => {
     navigate(`/restaurant/${slug}`);
   };
+
   const handleSectionClick = (sectionId: number) => {
     setActiveSection(sectionId);
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
+      // Calculate offset to account for sticky header (80px) + some padding (20px)
+      const headerOffset = 100;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
       });
     }
   };
+
+  // Scroll detection for sticky navigation
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const filtersSection = document.querySelector('[data-filters-section]');
+      const filtersSectionBottom = filtersSection ? filtersSection.getBoundingClientRect().bottom : 0;
+      
+      // Show sticky nav when scrolling up and past the filters section
+      if (currentScrollY < lastScrollY && filtersSectionBottom < 0) {
+        setShowStickyNav(true);
+      } else if (currentScrollY > lastScrollY || filtersSectionBottom > 0) {
+        setShowStickyNav(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   // Filter sections and dishes based on active filters
   const filteredSections = useMemo(() => {
@@ -115,6 +145,7 @@ function RestaurantMenuContent() {
       setActiveSection(filteredSections[0].id);
     }
   }, [filteredSections, activeSection]);
+
   if (restaurantLoading || sectionsLoading) {
     return <div className="min-h-screen bg-muted/20">
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -127,6 +158,7 @@ function RestaurantMenuContent() {
         </div>
       </div>;
   }
+
   if (restaurantError || sectionsError || !restaurant) {
     return <div className="min-h-screen bg-muted/20">
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
@@ -140,6 +172,7 @@ function RestaurantMenuContent() {
         </div>
       </div>;
   }
+
   return <>
       <Helmet>
         <title>Carta de {restaurant.name} | SavorySearch</title>
@@ -166,8 +199,15 @@ function RestaurantMenuContent() {
           </div>
         </div>
 
+        {/* Sticky Section Navigation */}
+        <div className={`fixed top-20 left-0 right-0 z-30 bg-background border-b transition-transform duration-200 ${
+          showStickyNav ? 'translate-y-0' : '-translate-y-full'
+        }`}>
+          <MenuSectionTabs sections={filteredSections} activeSection={activeSection} onSectionClick={handleSectionClick} />
+        </div>
+
         {/* Filters Row */}
-        <div className="bg-background">
+        <div className="bg-background" data-filters-section>
           <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -183,7 +223,7 @@ function RestaurantMenuContent() {
 
         {/* Search Bar */}
         <div className="bg-background">
-          <div className="max-w-6xl mx-auto px-4 pb-0">
+          <div className="max-w-6xl mx-auto px-4 pb-2">
             <DishSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} placeholder="Buscar platos..." />
           </div>
         </div>
