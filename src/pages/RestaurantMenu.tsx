@@ -30,7 +30,6 @@ function RestaurantMenuContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<number | undefined>();
   const [showStickyNav, setShowStickyNav] = useState(false);
-  const [showFiltersModal, setShowFiltersModal] = useState(false);
 
   // Refs for navigation elements
   const originalNavRef = useRef<HTMLDivElement>(null);
@@ -134,8 +133,6 @@ function RestaurantMenuContent() {
     }
   }, [filteredSections, activeSection]);
 
-  const activeFiltersCount = selectedAllergens.length + selectedDietTypes.length;
-
   if (restaurantLoading || sectionsLoading) {
     return <div className="min-h-screen bg-muted/20">
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -213,13 +210,21 @@ function RestaurantMenuContent() {
         {/* Search Bar with integrated Filters Button */}
         <div className="bg-background">
           <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
-            <DishSearchBar 
-              searchQuery={searchQuery} 
-              onSearchChange={setSearchQuery} 
-              placeholder="Buscar platos..."
-              onFiltersClick={() => setShowFiltersModal(true)}
-              activeFiltersCount={activeFiltersCount}
-            />
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <DishSearchBar 
+                  searchQuery={searchQuery} 
+                  onSearchChange={setSearchQuery} 
+                  placeholder="Buscar platos..." 
+                />
+              </div>
+              <UnifiedFiltersModal
+                selectedAllergens={selectedAllergens}
+                selectedDietTypes={selectedDietTypes}
+                onAllergenChange={setSelectedAllergens}
+                onDietTypeChange={setSelectedDietTypes}
+              />
+            </div>
           </div>
         </div>
 
@@ -261,16 +266,6 @@ function RestaurantMenuContent() {
         <OrderSimulatorModal isOpen={isSimulatorOpen} onClose={closeSimulator} />
         
         <AddDinersModal isOpen={isDinersModalOpen} onClose={closeDinersModal} />
-
-        {/* Filters Modal */}
-        <UnifiedFiltersModal
-          selectedAllergens={selectedAllergens}
-          selectedDietTypes={selectedDietTypes}
-          onAllergenChange={setSelectedAllergens}
-          onDietTypeChange={setSelectedDietTypes}
-          isOpen={showFiltersModal}
-          onClose={() => setShowFiltersModal(false)}
-        />
       </div>
     </>
   );
