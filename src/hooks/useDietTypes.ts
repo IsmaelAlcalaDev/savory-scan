@@ -28,7 +28,6 @@ export const useDietTypes = () => {
         console.log('Raw diet types data:', data);
         
         // Transform the data to match our DietType interface
-        // Cast the data properly since TypeScript types might not be updated yet
         const transformedData: DietType[] = (data || []).map((item: any) => ({
           id: item.id,
           name: item.name,
@@ -39,6 +38,7 @@ export const useDietTypes = () => {
           max_percentage: item.max_percentage || 100
         }));
         
+        console.log('Transformed diet types:', transformedData);
         setDietTypes(transformedData);
 
         // Group diet types by category
@@ -56,6 +56,7 @@ export const useDietTypes = () => {
           options
         }));
 
+        console.log('Diet categories grouped:', categories);
         setDietCategories(categories);
       } catch (err) {
         console.error('Error fetching diet types:', err);
