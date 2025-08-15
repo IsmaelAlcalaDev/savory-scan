@@ -8,7 +8,7 @@ import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import ExpandableSearchBar from '@/components/ExpandableSearchBar';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
 import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
 import OrderSimulatorModal from '@/components/OrderSimulatorModal';
@@ -27,12 +27,7 @@ function RestaurantMenuContent() {
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<number | undefined>();
-  const [showStickyNav, setShowStickyNav] = useState(false);
   const [isExpandableSearchOpen, setIsExpandableSearchOpen] = useState(false);
-
-  // Refs for navigation elements
-  const originalNavRef = useRef<HTMLDivElement>(null);
-  const headerHeight = 74; // Header height including border
 
   const handleGoBack = () => {
     navigate(`/restaurant/${slug}`);
@@ -42,8 +37,8 @@ function RestaurantMenuContent() {
     setActiveSection(sectionId);
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
-      // Calculate offset to account for sticky header + sticky nav when active
-      const headerOffset = showStickyNav ? 133 : 160; // 74px header + 59px nav OR 160px original
+      // Fixed offset for sticky header (74px) + sticky nav (59px)
+      const headerOffset = 133;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -61,29 +56,6 @@ function RestaurantMenuContent() {
   const handleExpandableSearchClose = () => {
     setIsExpandableSearchOpen(false);
   };
-
-  // Improved scroll detection to show/hide sticky nav precisely at header bottom
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!originalNavRef.current) return;
-      
-      const rect = originalNavRef.current.getBoundingClientRect();
-      // Show sticky nav when the bottom of original nav reaches the bottom of header
-      const shouldShowSticky = rect.bottom <= headerHeight;
-      
-      if (shouldShowSticky !== showStickyNav) {
-        setShowStickyNav(shouldShowSticky);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    // Check initial position
-    handleScroll();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [showStickyNav, headerHeight]);
 
   // Filter sections and dishes based on active filters
   const filteredSections = useMemo(() => {
@@ -175,8 +147,8 @@ function RestaurantMenuContent() {
       </Helmet>
 
       <div className="min-h-screen bg-muted/20 pb-20">
-        {/* Simple Header Navigation with Search */}
-        <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm relative">
+        {/* Sticky Header Navigation with Search */}
+        <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -217,23 +189,8 @@ function RestaurantMenuContent() {
           />
         </div>
 
-        {/* Sticky Section Navigation - positioned seamlessly below header */}
-        {showStickyNav && (
-          <div className="fixed top-[74px] left-0 right-0 z-30 bg-background">
-            <MenuSectionTabs 
-              sections={filteredSections} 
-              activeSection={activeSection} 
-              onSectionClick={handleSectionClick}
-              selectedAllergens={selectedAllergens}
-              selectedDietTypes={selectedDietTypes}
-              onAllergenChange={setSelectedAllergens}
-              onDietTypeChange={setSelectedDietTypes}
-            />
-          </div>
-        )}
-
-        {/* Original Section Navigation - with ref for scroll detection */}
-        <div ref={originalNavRef} className="bg-background">
+        {/* Sticky Section Navigation - always positioned below header */}
+        <div className="sticky top-[74px] z-30 bg-background">
           <MenuSectionTabs 
             sections={filteredSections} 
             activeSection={activeSection} 
