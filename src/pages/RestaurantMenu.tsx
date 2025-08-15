@@ -1,17 +1,13 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Utensils } from 'lucide-react';
+import { ArrowLeft, Utensils, Search } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
-import AllergenFilterButton from '@/components/AllergenFilterButton';
-import DietFilterButton from '@/components/DietFilterButton';
-import DishSearchBar from '@/components/DishSearchBar';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
-import LanguageSelector from '@/components/LanguageSelector';
+import ExpandableSearchBar from '@/components/ExpandableSearchBar';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
 import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
@@ -31,29 +27,12 @@ function RestaurantMenuContent() {
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<number | undefined>();
-  const [showStickyNav, setShowStickyNav] = useState(false);
+  const [isExpandableSearchOpen, setIsExpandableSearchOpen] = useState(false);
 
-  // Refs for navigation elements
-  const originalNavRef = useRef<HTMLDivElement>(null);
-  const headerHeight = 74; // Header height including border
+  // Ref for intersection observer
+  const sectionsRefs = useRef<{ [key: number]: HTMLElement | null }>({});
 
-  const handleGoBack = () => {
-    navigate(`/restaurant/${slug}`);
-  };
-
-  const handleSectionClick = (sectionId: number) => {
-    setActiveSection(sectionId);
-    const element = document.getElementById(`section-${sectionId}`);
-    if (element) {
-      const offsetTop = element.offsetTop - headerHeight - 60; // Account for header + sticky nav
-      window.scrollTo({
-        top: offsetTop,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  // Filter sections and dishes based on active filters
+  // Filter sections and dishes based on active filters - MOVED BEFORE useEffect
   const filteredSections = useMemo(() => {
     if (!sections) return [];
     return sections.map(section => {
@@ -101,6 +80,68 @@ function RestaurantMenuContent() {
     }).filter(section => section.dishes.length > 0);
   }, [sections, searchQuery, selectedAllergens, selectedDietTypes]);
 
+  const handleGoBack = () => {
+    navigate(`/restaurant/${slug}`);
+  };
+
+  const handleSectionClick = (sectionId: number) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(`section-${sectionId}`);
+    if (element) {
+      // Fixed offset for sticky header (74px) + sticky nav (59px)
+      const headerOffset = 133;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleSearchToggle = () => {
+    setIsExpandableSearchOpen(!isExpandableSearchOpen);
+  };
+
+  const handleExpandableSearchClose = () => {
+    setIsExpandableSearchOpen(false);
+  };
+
+  // Auto-detect active section on scroll using Intersection Observer
+  useEffect(() => {
+    if (filteredSections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const sectionId = parseInt(entry.target.id.replace('section-', ''));
+          sectionsRefs.current[sectionId] = entry.target as HTMLElement;
+          
+          if (entry.isIntersecting) {
+            setActiveSection(sectionId);
+          }
+        });
+      },
+      {
+        rootMargin: '-133px 0px -50% 0px', // Account for sticky headers
+        threshold: 0.1
+      }
+    );
+
+    // Observe all section elements
+    filteredSections.forEach((section) => {
+      const element = document.getElementById(`section-${section.id}`);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [filteredSections]);
+
   // Set initial active section
   useEffect(() => {
     if (filteredSections.length > 0 && !activeSection) {
@@ -143,76 +184,50 @@ function RestaurantMenuContent() {
       </Helmet>
 
       <div className="min-h-screen bg-muted/20 pb-20">
-        {/* Simple Header Navigation */}
-        <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm">
+        {/* Sticky Header Navigation with Search - removed border-b */}
+        <div className="bg-background sticky top-0 z-40 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-4">
-            <div className="flex items-center gap-4">
-              <Button onClick={handleGoBack} variant="ghost" size="sm" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-
-              {restaurant.logo_url && (
-                <div className="w-8 h-8 rounded-full overflow-hidden border border-border flex-shrink-0">
-                  <img src={restaurant.logo_url} alt={`${restaurant.name} logo`} className="w-full h-full object-cover" />
-                </div>
-              )}
-              
-              <h1 className="text-lg font-bold">
-                {restaurant.name}
-              </h1>
-            </div>
-          </div>
-        </div>
-
-        {/* Sticky Section Navigation - positioned seamlessly below header */}
-        {showStickyNav && (
-          <div className="fixed top-[74px] left-0 right-0 z-30 bg-background">
-            <MenuSectionTabs 
-              sections={filteredSections} 
-              activeSection={activeSection} 
-              onSectionClick={handleSectionClick}
-              selectedAllergens={selectedAllergens}
-              selectedDietTypes={selectedDietTypes}
-              onAllergenChange={setSelectedAllergens}
-              onDietTypeChange={setSelectedDietTypes}
-            />
-          </div>
-        )}
-
-        {/* Filters Row */}
-        <div className="bg-background" data-filters-section>
-          <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <AllergenFilterButton 
-                  selectedAllergens={selectedAllergens} 
-                  onAllergenChange={setSelectedAllergens} 
-                />
+                <Button onClick={handleGoBack} variant="ghost" size="sm" className="flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+
+                {restaurant.logo_url && (
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-border flex-shrink-0">
+                    <img src={restaurant.logo_url} alt={`${restaurant.name} logo`} className="w-full h-full object-cover" />
+                  </div>
+                )}
                 
-                <DietFilterButton 
-                  selectedDietTypes={selectedDietTypes} 
-                  onDietTypeChange={setSelectedDietTypes} 
-                />
+                <h1 className="text-lg font-bold">
+                  {restaurant.name}
+                </h1>
               </div>
-              
-              <LanguageSelector />
+
+              {/* Right side: Search icon only */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleSearchToggle}
+                  className="p-2 border-0 bg-transparent hover:bg-gray-100 focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors rounded-full"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Expandable Search Bar */}
+          <ExpandableSearchBar
+            isOpen={isExpandableSearchOpen}
+            onClose={handleExpandableSearchClose}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            placeholder="Buscar platos..."
+          />
         </div>
 
-        {/* Search Bar */}
-        <div className="bg-background">
-          <div className="max-w-6xl mx-auto px-4 pb-2">
-            <DishSearchBar 
-              searchQuery={searchQuery} 
-              onSearchChange={setSearchQuery} 
-              placeholder="Buscar platos..." 
-            />
-          </div>
-        </div>
-
-        {/* Original Section Navigation - with ref for scroll detection */}
-        <div ref={originalNavRef} className="bg-background">
+        {/* Sticky Section Navigation - always positioned below header with border-b */}
+        <div className="sticky top-[74px] z-30 bg-background border-b">
           <MenuSectionTabs 
             sections={filteredSections} 
             activeSection={activeSection} 
