@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -108,7 +107,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
           is_vegetarian,
           is_vegan,
           is_gluten_free,
-          is_lactose_free,
           is_healthy,
           spice_level,
           preparation_time_minutes,
@@ -203,20 +201,27 @@ export const useDishes = (params: UseDishesParams = {}) => {
         );
       }
 
-      // Diet type filters - Updated to use numeric IDs
+      // Diet type filters - Updated to work with new percentage-based system
       if (selectedDietTypes.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => {
-          return selectedDietTypes.some(dietTypeId => {
-            switch (dietTypeId) {
-              case 1: return dish.is_vegetarian; // Assuming ID 1 is vegetarian
-              case 2: return dish.is_vegan; // Assuming ID 2 is vegan
-              case 3: return dish.is_gluten_free; // Assuming ID 3 is gluten-free
-              case 4: return dish.is_lactose_free; // Assuming ID 4 is lactose-free
-              case 5: return dish.is_healthy; // Assuming ID 5 is healthy
-              default: return false;
-            }
+        // Get diet types with their categories
+        const { data: dietTypesData, error: dietTypesError } = await supabase
+          .from('diet_types')
+          .select('id, category')
+          .in('id', selectedDietTypes);
+
+        if (!dietTypesError && dietTypesData) {
+          filteredDishes = filteredDishes.filter(dish => {
+            return dietTypesData.some(dietType => {
+              switch (dietType.category) {
+                case 'vegetarian': return dish.is_vegetarian;
+                case 'vegan': return dish.is_vegan;
+                case 'gluten_free': return dish.is_gluten_free;
+                case 'healthy': return dish.is_healthy;
+                default: return false;
+              }
+            });
           });
-        });
+        }
       }
 
       // Price range filters

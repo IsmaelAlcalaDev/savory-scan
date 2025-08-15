@@ -1,16 +1,11 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-interface DietType {
-  id: number;
-  name: string;
-  slug: string;
-  icon?: string;
-}
+import { DietType, DietCategory } from '@/types/dietType';
 
 export const useDietTypes = () => {
   const [dietTypes, setDietTypes] = useState<DietType[]>([]);
+  const [dietCategories, setDietCategories] = useState<DietCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,8 +17,8 @@ export const useDietTypes = () => {
         
         const { data, error } = await supabase
           .from('diet_types')
-          .select('id, name, slug, icon')
-          .order('name');
+          .select('id, name, slug, icon, category, min_percentage, max_percentage')
+          .order('category, min_percentage');
 
         if (error) {
           console.error('Supabase error fetching diet types:', error);
@@ -32,6 +27,23 @@ export const useDietTypes = () => {
         
         console.log('Raw diet types data:', data);
         setDietTypes(data || []);
+
+        // Group diet types by category
+        const groupedCategories: Record<string, DietType[]> = {};
+        (data || []).forEach(dietType => {
+          if (!groupedCategories[dietType.category]) {
+            groupedCategories[dietType.category] = [];
+          }
+          groupedCategories[dietType.category].push(dietType);
+        });
+
+        const categories: DietCategory[] = Object.entries(groupedCategories).map(([category, options]) => ({
+          category,
+          displayName: getCategoryDisplayName(category),
+          options
+        }));
+
+        setDietCategories(categories);
       } catch (err) {
         console.error('Error fetching diet types:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar tipos de dieta');
@@ -43,5 +55,15 @@ export const useDietTypes = () => {
     fetchDietTypes();
   }, []);
 
-  return { dietTypes, loading, error };
+  return { dietTypes, dietCategories, loading, error };
+};
+
+const getCategoryDisplayName = (category: string): string => {
+  const displayNames: Record<string, string> = {
+    vegetarian: 'Vegetariano',
+    vegan: 'Vegano',
+    gluten_free: 'Sin Gluten',
+    healthy: 'Saludable'
+  };
+  return displayNames[category] || category;
 };
