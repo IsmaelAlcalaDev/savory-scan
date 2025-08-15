@@ -5,7 +5,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Utensils, Search } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
-import { usePromotions } from '@/hooks/usePromotions';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import InlineSearchBar from '@/components/InlineSearchBar';
@@ -21,10 +20,6 @@ function RestaurantMenuContent() {
   const navigate = useNavigate();
   const { restaurant, loading: restaurantLoading, error: restaurantError } = useRestaurantProfile(slug || '');
   const { sections, loading: sectionsLoading, error: sectionsError } = useRestaurantMenuFallback(restaurant?.id || 0);
-  
-  // Move promotions hook to this level to avoid multiple calls
-  const { promotions, loading: promotionsLoading, error: promotionsError, getPromotionForDish, calculateDiscountedPrice } = usePromotions(restaurant?.id || 0);
-  
   const { isSimulatorOpen, closeSimulator, isDinersModalOpen, closeDinersModal } = useOrderSimulator();
 
   // Filter states
@@ -227,7 +222,7 @@ function RestaurantMenuContent() {
     };
   }, [filteredSections, throttledHandleScroll, handleScroll]);
 
-  if (restaurantLoading || sectionsLoading || promotionsLoading) {
+  if (restaurantLoading || sectionsLoading) {
     return <div className="min-h-screen bg-gray-100">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <Skeleton className="h-12 w-64 mb-8" />
@@ -240,12 +235,12 @@ function RestaurantMenuContent() {
       </div>;
   }
 
-  if (restaurantError || sectionsError || promotionsError || !restaurant) {
+  if (restaurantError || sectionsError || !restaurant) {
     return <div className="min-h-screen bg-gray-100">
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Restaurante no encontrado</h1>
-            <p className="text-muted-foreground mb-4">Error: {restaurantError || sectionsError || promotionsError}</p>
+            <p className="text-muted-foreground mb-4">Error: {restaurantError || sectionsError}</p>
             <Button onClick={() => navigate('/restaurantes')}>
               Volver a restaurantes
             </Button>
@@ -254,7 +249,7 @@ function RestaurantMenuContent() {
       </div>;
   }
 
-  console.log('RestaurantMenuContent - promotions loaded:', promotions.length, promotions);
+  console.log('Rendering with activeSection:', activeSection, 'filteredSections:', filteredSections.length);
 
   return (
     <>
@@ -303,7 +298,7 @@ function RestaurantMenuContent() {
                 <h3 className="text-lg font-semibold mb-2">No se encontraron platos</h3>
                 <p className="text-muted-foreground">
                   {searchQuery || selectedAllergens.length > 0 || selectedDietTypes.length > 0 
-                    ? 'Intenta ajustar los filtros ou la búsqueda' 
+                    ? 'Intenta ajustar los filtros o la búsqueda' 
                     : 'Este restaurante aún no tiene platos disponibles'}
                 </p>
               </div>
@@ -311,14 +306,7 @@ function RestaurantMenuContent() {
           ) : (
             <div className="w-full">
               {filteredSections.map(section => (
-                <RestaurantMenuSection 
-                  key={section.id} 
-                  section={section} 
-                  restaurantId={restaurant.id}
-                  promotions={promotions}
-                  getPromotionForDish={getPromotionForDish}
-                  calculateDiscountedPrice={calculateDiscountedPrice}
-                />
+                <RestaurantMenuSection key={section.id} section={section} restaurantId={restaurant.id} />
               ))}
             </div>
           )}

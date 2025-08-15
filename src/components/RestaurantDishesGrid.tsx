@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Utensils } from 'lucide-react';
@@ -5,23 +6,16 @@ import { useState } from 'react';
 import DishCard from './DishCard';
 import DishListCard from './DishListCard';
 import type { Dish } from '@/hooks/useRestaurantMenu';
-import type { Promotion } from '@/hooks/usePromotions';
 import { useRestaurantDishes } from '@/hooks/useRestaurantDishes';
 
 interface RestaurantDishesGridProps {
   restaurantId: number;
   viewMode?: 'grid' | 'list';
-  promotions?: Promotion[];
-  getPromotionForDish?: (dishId: number, sectionId?: number) => Promotion | undefined;
-  calculateDiscountedPrice?: (originalPrice: number, promotion: Promotion) => number;
 }
 
 export default function RestaurantDishesGrid({ 
   restaurantId, 
-  viewMode = 'grid',
-  promotions = [],
-  getPromotionForDish = () => undefined,
-  calculateDiscountedPrice = (price) => price
+  viewMode = 'grid'
 }: RestaurantDishesGridProps) {
   console.log('RestaurantDishesGrid: Rendering with restaurantId:', restaurantId, 'viewMode:', viewMode);
   
@@ -113,9 +107,6 @@ export default function RestaurantDishesGrid({
               restaurantId={restaurantId}
               expandedDishId={expandedDishId}
               onExpandedChange={setExpandedDishId}
-              promotions={promotions}
-              getPromotionForDish={getPromotionForDish}
-              calculateDiscountedPrice={calculateDiscountedPrice}
             />
           );
         })}
@@ -134,9 +125,6 @@ export default function RestaurantDishesGrid({
             restaurantId={restaurantId}
             expandedDishId={expandedDishId}
             onExpandedChange={setExpandedDishId}
-            promotions={promotions}
-            getPromotionForDish={getPromotionForDish}
-            calculateDiscountedPrice={calculateDiscountedPrice}
           />
         );
       })}

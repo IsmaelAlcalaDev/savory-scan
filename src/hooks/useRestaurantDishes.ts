@@ -49,7 +49,6 @@ export const useRestaurantDishes = (restaurantId: number) => {
             allergens,
             custom_tags,
             category_id,
-            section_id,
             dish_categories!dishes_category_id_fkey(name),
             dish_variants(id, name, price, is_default, display_order)
           `)
@@ -90,7 +89,6 @@ export const useRestaurantDishes = (restaurantId: number) => {
             category_name: dish.dish_categories?.name,
             allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
             custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags as string[] : [],
-            section_id: dish.section_id,
             variants: (dish.dish_variants || [])
               .sort((a: any, b: any) => a.display_order - b.display_order)
               .map((variant: any) => ({

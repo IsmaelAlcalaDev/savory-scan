@@ -2,22 +2,15 @@
 import { useState } from 'react';
 import DishCard from './DishCard';
 import type { MenuSection } from '@/hooks/useRestaurantMenu';
-import type { Promotion } from '@/hooks/usePromotions';
 
 interface RestaurantMenuSectionProps {
   section: MenuSection;
   restaurantId: number;
-  promotions: Promotion[];
-  getPromotionForDish: (dishId: number, sectionId?: number) => Promotion | undefined;
-  calculateDiscountedPrice: (originalPrice: number, promotion: Promotion) => number;
 }
 
 export default function RestaurantMenuSection({ 
   section, 
-  restaurantId,
-  promotions,
-  getPromotionForDish,
-  calculateDiscountedPrice
+  restaurantId
 }: RestaurantMenuSectionProps) {
   const [expandedDishId, setExpandedDishId] = useState<number | null>(null);
 
@@ -52,9 +45,6 @@ export default function RestaurantMenuSection({
             expandedDishId={expandedDishId}
             onExpandedChange={setExpandedDishId}
             isFirstInSection={index === 0}
-            promotions={promotions}
-            getPromotionForDish={getPromotionForDish}
-            calculateDiscountedPrice={calculateDiscountedPrice}
           />
         ))}
       </div>
