@@ -12,7 +12,6 @@ interface DishData {
   is_vegetarian: boolean;
   is_vegan: boolean;
   is_gluten_free: boolean;
-  is_lactose_free: boolean;
   is_healthy: boolean;
   spice_level: number;
   preparation_time_minutes?: number;
@@ -170,7 +169,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
             is_vegetarian: dish.is_vegetarian,
             is_vegan: dish.is_vegan,
             is_gluten_free: dish.is_gluten_free,
-            is_lactose_free: dish.is_lactose_free,
             is_healthy: dish.is_healthy,
             spice_level: dish.spice_level,
             preparation_time_minutes: dish.preparation_time_minutes,
