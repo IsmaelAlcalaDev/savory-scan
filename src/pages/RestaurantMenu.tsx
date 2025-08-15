@@ -240,22 +240,24 @@ function RestaurantMenuContent() {
           )}
         </div>
 
-        {/* Menu Content */}
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Menu Content - Full width container */}
+        <div className="w-full">
           {filteredSections.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg">
-              <Utensils className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">No se encontraron platos</h3>
-              <p className="text-muted-foreground">
-                {searchQuery || selectedAllergens.length > 0 || selectedDietTypes.length > 0 
-                  ? 'Intenta ajustar los filtros o la búsqueda' 
-                  : 'Este restaurante aún no tiene platos disponibles'}
-              </p>
+            <div className="max-w-6xl mx-auto px-4 py-8">
+              <div className="text-center py-12 bg-white rounded-lg">
+                <Utensils className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <h3 className="text-lg font-semibold mb-2">No se encontraron platos</h3>
+                <p className="text-muted-foreground">
+                  {searchQuery || selectedAllergens.length > 0 || selectedDietTypes.length > 0 
+                    ? 'Intenta ajustar los filtros o la búsqueda' 
+                    : 'Este restaurante aún no tiene platos disponibles'}
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="w-full">
               {filteredSections.map(section => (
-                <div key={section.id} id={`section-${section.id}`} className="rounded-lg overflow-hidden shadow-sm">
+                <div key={section.id} id={`section-${section.id}`} className="w-full">
                   <RestaurantMenuSection section={section} restaurantId={restaurant.id} />
                 </div>
               ))}

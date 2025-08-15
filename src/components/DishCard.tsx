@@ -120,17 +120,17 @@ export default function DishCard({
   const hasImage = Boolean(dish.image_url);
 
   return (
-    <>
+    <div className="w-full">
       {/* Full-width divider above each dish (except first in section) */}
       {!isFirstInSection && (
-        <div className="w-full h-px bg-gray-200 -mx-4"></div>
+        <div className="w-full h-px bg-gray-200"></div>
       )}
       
       <div 
-        className="bg-white cursor-pointer"
+        className="bg-white cursor-pointer w-full"
         onClick={handleCardClick}
       >
-        <div className="py-4 px-4 transition-colors hover:bg-gray-50">
+        <div className="py-4 px-4 transition-colors hover:bg-gray-50 w-full">
           <div className="flex gap-3 items-start w-full">
             {/* Content - Responsive width based on image presence */}
             <div className={`min-w-0 h-20 ${hasImage ? 'flex-1' : 'w-full'}`}>
@@ -227,6 +227,6 @@ export default function DishCard({
         dish={dish}
         onDishAdd={handleDishAdd}
       />
-    </>
+    </div>
   );
 }

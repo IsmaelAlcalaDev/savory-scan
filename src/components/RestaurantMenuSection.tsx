@@ -19,9 +19,9 @@ export default function RestaurantMenuSection({
   }
 
   return (
-    <div className="space-y-0">
-      {/* Section header with gray background */}
-      <div className="bg-gray-100 px-4 py-4 -mx-4">
+    <div className="w-full">
+      {/* Section header with gray background - full width */}
+      <div className="bg-gray-100 px-4 py-4">
         <h2 className="text-xl font-bold text-foreground mb-1">
           {section.name}
         </h2>
@@ -32,8 +32,8 @@ export default function RestaurantMenuSection({
         )}
       </div>
       
-      {/* Dishes container with white background */}
-      <div className="bg-white">
+      {/* Dishes container with white background - full width */}
+      <div className="bg-white w-full">
         {section.dishes.map((dish, index) => (
           <DishCard
             key={dish.id}
