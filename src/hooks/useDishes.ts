@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { validateFilters, type FilterState } from '@/utils/filterValidation';
 
 interface DishData {
   id: number;
@@ -31,9 +30,14 @@ interface DishData {
   formatted_price: string;
 }
 
-interface UseDishesParams extends Partial<FilterState> {
+interface UseDishesParams {
   searchQuery?: string;
+  userLat?: number;
+  userLng?: number;
   maxDistance?: number;
+  selectedDietTypes?: string[];
+  selectedPriceRanges?: string[];
+  selectedFoodTypes?: number[];
   spiceLevels?: number[];
   prepTimeRanges?: number[];
 }
@@ -57,7 +61,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
   const [dishes, setDishes] = useState<DishData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterWarnings, setFilterWarnings] = useState<string[]>([]);
   
   // Refs to prevent infinite loops
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -72,10 +75,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedDietTypes = [],
     selectedPriceRanges = [],
     selectedFoodTypes = [],
-    selectedCuisines = [],
-    selectedDistance = [],
-    selectedRating,
-    selectedSort,
     spiceLevels = [],
     prepTimeRanges = []
   } = params;
@@ -88,10 +87,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedDietTypes,
     selectedPriceRanges,
     selectedFoodTypes,
-    selectedCuisines,
-    selectedDistance,
-    selectedRating,
-    selectedSort,
     spiceLevels,
     prepTimeRanges
   });
@@ -100,26 +95,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     try {
       console.log('useDishes: Starting fetch with key:', fetchKey);
       
-      // Validate filters
-      const filterState: FilterState = {
-        selectedCuisines,
-        selectedFoodTypes,
-        selectedDistance,
-        selectedPriceRanges: selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[],
-        selectedRating,
-        selectedEstablishmentTypes: [],
-        selectedDietTypes,
-        selectedSort,
-        selectedTimeRanges: [],
-        isOpenNow: false,
-        userLat,
-        userLng
-      };
-
-      const validation = validateFilters(filterState);
-      setFilterWarnings(validation.warnings);
-
-      let query = supabase
+      const { data, error: fetchError } = await supabase
         .from('dishes')
         .select(`
           id,
@@ -153,30 +129,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
         `)
         .eq('is_active', true)
         .eq('restaurants.is_active', true)
-        .eq('restaurants.is_published', true)
-        .is('restaurants.deleted_at', null);
-
-      // Apply search filter
-      if (searchQuery.trim()) {
-        query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,restaurants.name.ilike.%${searchQuery}%`);
-      }
-
-      // Apply restaurant rating filter
-      if (selectedRating && selectedRating > 0) {
-        query = query.gte('restaurants.google_rating', selectedRating);
-      }
-
-      // Apply restaurant price range filter
-      if (selectedPriceRanges.length > 0) {
-        query = query.in('restaurants.price_range', selectedPriceRanges as readonly ('€' | '€€' | '€€€' | '€€€€')[]);
-      }
-
-      // Apply spice level filter
-      if (spiceLevels.length > 0) {
-        query = query.in('spice_level', spiceLevels);
-      }
-
-      const { data, error: fetchError } = await query
         .limit(100)
         .abortSignal(signal);
 
@@ -241,52 +193,51 @@ export const useDishes = (params: UseDishesParams = {}) => {
       // Apply filters
       let filteredDishes = processedDishes;
 
+      // Search filter
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        filteredDishes = filteredDishes.filter(dish =>
+          dish.name.toLowerCase().includes(query) ||
+          dish.description?.toLowerCase().includes(query) ||
+          dish.restaurant_name.toLowerCase().includes(query)
+        );
+      }
+
       // Diet type filters
       if (selectedDietTypes.length > 0) {
         filteredDishes = filteredDishes.filter(dish => {
           return selectedDietTypes.some(dietType => {
             switch (dietType) {
-              case 1: return dish.is_vegetarian; // Assuming diet type IDs
-              case 2: return dish.is_vegan;
-              case 3: return dish.is_gluten_free;
-              case 4: return dish.is_lactose_free;
-              case 5: return dish.is_healthy;
+              case 'vegetarian': return dish.is_vegetarian;
+              case 'vegan': return dish.is_vegan;
+              case 'gluten-free': return dish.is_gluten_free;
+              case 'lactose-free': return dish.is_lactose_free;
+              case 'healthy': return dish.is_healthy;
               default: return false;
             }
           });
         });
       }
 
-      // Distance filter
-      if (selectedDistance.length > 0 && userLat && userLng) {
-        const maxDistanceFromFilters = Math.max(...selectedDistance.map(id => {
-          switch(id) {
-            case 1: return 2;
-            case 2: return 5;
-            case 3: return 10;
-            case 4: return 20;
-            default: return 50;
-          }
-        }));
-        
-        filteredDishes = filteredDishes.filter(dish =>
-          dish.distance_km !== undefined && dish.distance_km <= maxDistanceFromFilters
-        );
-      }
-
-      // Dish price range filters (based on dish price, not restaurant)
+      // Price range filters
       if (selectedPriceRanges.length > 0) {
         filteredDishes = filteredDishes.filter(dish => {
           return selectedPriceRanges.some(range => {
             switch (range) {
-              case '€': return dish.base_price <= 10;
-              case '€€': return dish.base_price > 10 && dish.base_price <= 25;
-              case '€€€': return dish.base_price > 25 && dish.base_price <= 50;
-              case '€€€€': return dish.base_price > 50;
+              case 'budget': return dish.base_price <= 10;
+              case 'mid': return dish.base_price > 10 && dish.base_price <= 25;
+              case 'premium': return dish.base_price > 25;
               default: return true;
             }
           });
         });
+      }
+
+      // Spice level filters
+      if (spiceLevels.length > 0) {
+        filteredDishes = filteredDishes.filter(dish =>
+          spiceLevels.includes(dish.spice_level)
+        );
       }
 
       // Preparation time filters
@@ -304,40 +255,15 @@ export const useDishes = (params: UseDishesParams = {}) => {
         });
       }
 
-      // Apply sorting
-      if (selectedSort) {
-        switch (selectedSort) {
-          case 'distance_asc':
-            if (userLat && userLng) {
-              filteredDishes = filteredDishes
-                .filter(d => d.distance_km !== undefined)
-                .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
-            }
-            break;
-          case 'rating_desc':
-            filteredDishes = filteredDishes.sort((a, b) => (b.restaurant_google_rating || 0) - (a.restaurant_google_rating || 0));
-            break;
-          case 'popularity_desc':
-            filteredDishes = filteredDishes.sort((a, b) => b.favorites_count - a.favorites_count);
-            break;
-          case 'price_asc':
-            filteredDishes = filteredDishes.sort((a, b) => a.base_price - b.base_price);
-            break;
-          case 'price_desc':
-            filteredDishes = filteredDishes.sort((a, b) => b.base_price - a.base_price);
-            break;
+      // Sort by featured first, then by distance if available
+      filteredDishes.sort((a, b) => {
+        if (a.is_featured && !b.is_featured) return -1;
+        if (!a.is_featured && b.is_featured) return 1;
+        if (a.distance_km !== undefined && b.distance_km !== undefined) {
+          return a.distance_km - b.distance_km;
         }
-      } else {
-        // Default sort: featured first, then by distance if available
-        filteredDishes.sort((a, b) => {
-          if (a.is_featured && !b.is_featured) return -1;
-          if (!a.is_featured && b.is_featured) return 1;
-          if (a.distance_km !== undefined && b.distance_km !== undefined) {
-            return a.distance_km - b.distance_km;
-          }
-          return 0;
-        });
-      }
+        return 0;
+      });
 
       console.log('useDishes: Final dishes to display:', filteredDishes.length);
 
@@ -356,7 +282,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       setDishes([]);
       setLoading(false);
     }
-  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCuisines, selectedDistance, selectedRating, selectedSort, spiceLevels, prepTimeRanges]);
+  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, spiceLevels, prepTimeRanges]);
 
   useEffect(() => {
     // Skip if the fetch key hasn't changed (prevents infinite loops)
@@ -415,5 +341,5 @@ export const useDishes = (params: UseDishesParams = {}) => {
     };
   }, []);
 
-  return { dishes, loading, error, filterWarnings };
+  return { dishes, loading, error };
 };
