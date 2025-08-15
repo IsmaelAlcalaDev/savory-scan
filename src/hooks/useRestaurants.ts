@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -148,7 +147,8 @@ export const useRestaurants = ({
 
         if (priceDisplayTexts && priceDisplayTexts.length > 0) {
           console.log('Applying price range filter with display texts:', priceDisplayTexts);
-          query = query.in('price_range', priceDisplayTexts);
+          // Cast to any to avoid TypeScript strict type checking for the .in() method
+          query = query.in('price_range', priceDisplayTexts as any);
         }
 
         // Apply cuisine type filtering
