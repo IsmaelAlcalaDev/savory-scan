@@ -1,8 +1,9 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Utensils } from 'lucide-react';
+import { ArrowLeft, Utensils, Search } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
@@ -10,6 +11,7 @@ import UnifiedFiltersModal from '@/components/UnifiedFiltersModal';
 import DishSearchBar from '@/components/DishSearchBar';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import LanguageSelector from '@/components/LanguageSelector';
+import ExpandableSearchBar from '@/components/ExpandableSearchBar';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
 import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
@@ -30,6 +32,7 @@ function RestaurantMenuContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<number | undefined>();
   const [showStickyNav, setShowStickyNav] = useState(false);
+  const [isExpandableSearchOpen, setIsExpandableSearchOpen] = useState(false);
 
   // Refs for navigation elements
   const originalNavRef = useRef<HTMLDivElement>(null);
@@ -53,6 +56,14 @@ function RestaurantMenuContent() {
         behavior: 'smooth'
       });
     }
+  };
+
+  const handleSearchToggle = () => {
+    setIsExpandableSearchOpen(!isExpandableSearchOpen);
+  };
+
+  const handleExpandableSearchClose = () => {
+    setIsExpandableSearchOpen(false);
   };
 
   // Improved scroll detection to show/hide sticky nav precisely at header bottom
@@ -168,8 +179,8 @@ function RestaurantMenuContent() {
       </Helmet>
 
       <div className="min-h-screen bg-muted/20 pb-20">
-        {/* Simple Header Navigation */}
-        <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm">
+        {/* Simple Header Navigation with Search */}
+        <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm relative">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -188,12 +199,27 @@ function RestaurantMenuContent() {
                 </h1>
               </div>
 
-              {/* Language Selector moved to header */}
-              <div className="flex items-center">
+              {/* Right side: Search icon and Language Selector */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleSearchToggle}
+                  className="p-2 border-0 bg-transparent hover:bg-gray-100 focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors rounded-full"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
                 <LanguageSelector />
               </div>
             </div>
           </div>
+
+          {/* Expandable Search Bar */}
+          <ExpandableSearchBar
+            isOpen={isExpandableSearchOpen}
+            onClose={handleExpandableSearchClose}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            placeholder="Buscar platos..."
+          />
         </div>
 
         {/* Sticky Section Navigation - positioned seamlessly below header */}
