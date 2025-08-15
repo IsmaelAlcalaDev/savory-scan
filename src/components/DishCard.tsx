@@ -42,6 +42,26 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
     return formatPrice(dish.base_price);
   };
 
+  const getTagStyle = (tag: string) => {
+    const tagLower = tag.toLowerCase();
+    if (tagLower.includes('chef') || tagLower.includes('recomendado')) {
+      return 'bg-amber-100 text-amber-800 border-amber-200';
+    }
+    if (tagLower.includes('premiado') || tagLower.includes('premio')) {
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    }
+    if (tagLower.includes('especialidad') || tagLower.includes('casa')) {
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    }
+    if (tagLower.includes('nuevo') || tagLower.includes('novedad')) {
+      return 'bg-red-100 text-red-800 border-red-200';
+    }
+    if (tagLower.includes('popular') || tagLower.includes('favorito')) {
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    }
+    return 'bg-gray-100 text-gray-800 border-gray-200';
+  };
+
   const handleAddVariantToOrder = (variantId: number, dinerId: string) => {
     if (dish.variants) {
       const variant = dish.variants.find(v => v.id === variantId);
@@ -77,6 +97,7 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
   };
 
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
+  const customTags = Array.isArray(dish.custom_tags) ? dish.custom_tags : [];
 
   return (
     <>
@@ -108,10 +129,24 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
           <div className="flex-1 min-w-0 flex flex-col justify-between h-16">
             {/* Top Row - Name and Price */}
             <div className="flex items-start justify-between mb-1">
-              <div className="flex items-center gap-2 pr-3">
+              <div className="flex flex-col gap-1 pr-3 min-w-0">
                 <h3 className="font-semibold text-sm text-foreground line-clamp-2">
                   {dish.name}
                 </h3>
+                {/* Custom Tags */}
+                {customTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {customTags.slice(0, 2).map((tag, index) => (
+                      <Badge 
+                        key={index}
+                        variant="outline"
+                        className={`text-xs px-1.5 py-0 h-4 ${getTagStyle(tag)}`}
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="font-bold text-sm text-primary text-right flex-shrink-0">
                 {getDisplayPrice()}
