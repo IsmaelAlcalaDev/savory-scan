@@ -40,18 +40,21 @@ export default function OrderSimulatorModal({ isOpen, onClose }: OrderSimulatorM
 
   return (
     <ModalWrapper open={isOpen} onOpenChange={onClose}>
-      <ModalContent className="max-w-none w-full h-full max-h-none m-0 rounded-none p-0 flex flex-col">
-        <ModalHeader className="p-6 pb-4 border-b flex-shrink-0">
-          <div className="flex items-center justify-between w-full">
-            <ModalTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Simulador de Pedido
-            </ModalTitle>
+      <ModalContent className="fixed inset-0 max-w-none w-screen h-screen max-h-none m-0 rounded-none p-0 flex flex-col bg-background">
+        {/* Custom Header */}
+        <div className="flex-shrink-0 bg-background border-b px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Users className="h-6 w-6 text-primary" />
+              <h1 className="text-xl sm:text-2xl font-bold">Simulador de Pedido</h1>
+            </div>
+            
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={openDinersModal}
+                className="hidden sm:flex"
               >
                 Gestionar Comensales
               </Button>
@@ -60,106 +63,150 @@ export default function OrderSimulatorModal({ isOpen, onClose }: OrderSimulatorM
                   variant="outline"
                   size="sm"
                   onClick={clearSimulator}
-                  className="text-destructive hover:text-destructive"
+                  className="text-destructive hover:text-destructive hidden sm:flex"
                 >
                   Limpiar
                 </Button>
               )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
           </div>
-        </ModalHeader>
 
-        <div className="flex-1 overflow-y-auto p-6">
+          {/* Mobile action buttons */}
+          <div className="flex sm:hidden gap-2 mt-3">
+            <Button
+              variant="outline"  
+              size="sm"
+              onClick={openDinersModal}
+              className="flex-1"
+            >
+              Gestionar Comensales
+            </Button>
+            {orderItems.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearSimulator}
+                className="text-destructive hover:text-destructive"
+              >
+                Limpiar
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto">
           {orderItems.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">No hay platos en el simulador</h3>
-              <p className="text-muted-foreground">
-                Añade platos desde la carta para simular tu pedido
-              </p>
+            <div className="flex items-center justify-center h-full px-4">
+              <div className="text-center max-w-md">
+                <Users className="h-20 w-20 mx-auto mb-6 text-muted-foreground opacity-50" />
+                <h3 className="text-2xl font-semibold mb-3">No hay platos en el simulador</h3>
+                <p className="text-muted-foreground text-lg">
+                  Añade platos desde la carta para simular tu pedido
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto">
               {diners.map((diner) => {
                 const dinerItems = getDinerItems(diner.id);
                 const dinerTotal = getTotalByDiner(diner.id);
 
                 return (
-                  <div key={diner.id} className="bg-accent/20 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-lg">{diner.name}</h3>
-                      <div className="font-bold text-primary">
+                  <div key={diner.id} className="bg-accent/20 rounded-xl p-4 sm:p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-bold text-xl sm:text-2xl">{diner.name}</h3>
+                      <div className="font-bold text-xl sm:text-2xl text-primary">
                         {formatPrice(dinerTotal)}
                       </div>
                     </div>
 
                     {dinerItems.length === 0 ? (
-                      <p className="text-muted-foreground text-sm italic">
+                      <p className="text-muted-foreground italic text-center py-8">
                         No ha añadido platos aún
                       </p>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="grid gap-4">
                         {dinerItems.map((item) => {
                           const price = item.selectedVariant?.price || item.dish.base_price;
                           const itemTotal = price * item.quantity;
 
                           return (
-                            <div key={item.id} className="flex items-center gap-4 bg-background rounded-lg p-3">
-                              {/* Dish Image */}
-                              {item.dish.image_url ? (
-                                <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
-                                  <img
-                                    src={item.dish.image_url}
-                                    alt={item.dish.name}
-                                    className="w-full h-full object-cover"
-                                  />
+                            <div key={item.id} className="bg-background rounded-xl p-4 shadow-sm">
+                              <div className="flex items-start gap-4">
+                                {/* Dish Image */}
+                                <div className="flex-shrink-0">
+                                  {item.dish.image_url ? (
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden">
+                                      <img
+                                        src={item.dish.image_url}
+                                        alt={item.dish.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted/50 rounded-lg" />
+                                  )}
                                 </div>
-                              ) : (
-                                <div className="w-12 h-12 bg-muted/50 rounded-md flex-shrink-0" />
-                              )}
 
-                              {/* Dish Info */}
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-sm">{item.dish.name}</h4>
-                                {item.selectedVariant && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {item.selectedVariant.name}
-                                  </p>
-                                )}
-                                <p className="text-sm font-medium text-primary">
-                                  {formatPrice(price)} × {item.quantity} = {formatPrice(itemTotal)}
-                                </p>
-                              </div>
+                                {/* Dish Info */}
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold text-lg sm:text-xl mb-1">{item.dish.name}</h4>
+                                  {item.selectedVariant && (
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      {item.selectedVariant.name}
+                                    </p>
+                                  )}
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                    <p className="text-base font-medium text-primary">
+                                      {formatPrice(price)} × {item.quantity}
+                                    </p>
+                                    <p className="text-lg font-bold text-primary">
+                                      = {formatPrice(itemTotal)}
+                                    </p>
+                                  </div>
+                                </div>
 
-                              {/* Quantity Controls */}
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
-                                  className="h-7 w-7 p-0"
-                                >
-                                  <Minus className="h-3 w-3" />
-                                </Button>
-                                <span className="w-8 text-center text-sm font-medium">
-                                  {item.quantity}
-                                </span>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
-                                  className="h-7 w-7 p-0"
-                                >
-                                  <Plus className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeDishFromOrder(item.id)}
-                                  className="h-7 w-7 p-0 text-destructive hover:text-destructive ml-2"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
+                                {/* Quantity Controls */}
+                                <div className="flex-shrink-0">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                    <span className="w-10 text-center font-semibold text-lg">
+                                      {item.quantity}
+                                    </span>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeDishFromOrder(item.id)}
+                                    className="h-8 w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           );
@@ -169,19 +216,25 @@ export default function OrderSimulatorModal({ isOpen, onClose }: OrderSimulatorM
                   </div>
                 );
               })}
+            </div>
+          )}
+        </div>
 
-              {/* Grand Total */}
-              <div className="bg-primary/10 rounded-lg p-4 border-2 border-primary/20">
+        {/* Fixed Footer with Grand Total */}
+        {orderItems.length > 0 && (
+          <div className="flex-shrink-0 bg-background border-t px-4 sm:px-6 py-4">
+            <div className="max-w-6xl mx-auto">
+              <div className="bg-primary/10 rounded-xl p-4 sm:p-6 border-2 border-primary/20">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-lg">Total General</h3>
-                  <div className="font-bold text-xl text-primary">
+                  <h3 className="font-bold text-xl sm:text-2xl">Total General</h3>
+                  <div className="font-bold text-2xl sm:text-3xl text-primary">
                     {formatPrice(getGrandTotal())}
                   </div>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </ModalContent>
     </ModalWrapper>
   );
