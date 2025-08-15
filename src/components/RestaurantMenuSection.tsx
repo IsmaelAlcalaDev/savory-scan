@@ -20,8 +20,11 @@ export default function RestaurantMenuSection({
 
   return (
     <div id={`section-${section.id}`} className="w-full">
-      {/* Section header with gray background - full width */}
-      <div className="bg-gray-100 px-4 py-4">
+      {/* Top border line */}
+      <div className="border-t border-border"></div>
+      
+      {/* Section header with custom gray background - full width */}
+      <div style={{ backgroundColor: '#fafafa' }} className="px-4 py-4">
         <h2 className="text-xl font-bold text-foreground mb-1">
           {section.name}
         </h2>
@@ -45,6 +48,9 @@ export default function RestaurantMenuSection({
           />
         ))}
       </div>
+      
+      {/* Bottom border line */}
+      <div className="border-b border-border"></div>
     </div>
   );
 }
