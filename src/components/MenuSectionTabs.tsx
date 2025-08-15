@@ -38,15 +38,23 @@ export default function MenuSectionTabs({
         const containerRect = scrollContainer.getBoundingClientRect();
         const buttonRect = activeButton.getBoundingClientRect();
         
-        // Check if button is outside visible area
-        const isOutsideLeft = buttonRect.left < containerRect.left;
-        const isOutsideRight = buttonRect.right > containerRect.right;
+        // Calculate the relative position of the button within the scroll container
+        const buttonLeft = buttonRect.left - containerRect.left + scrollContainer.scrollLeft;
+        const buttonRight = buttonLeft + buttonRect.width;
+        const containerWidth = containerRect.width;
+        const scrollLeft = scrollContainer.scrollLeft;
+        
+        // Check if button is outside visible area or partially hidden
+        const isOutsideLeft = buttonLeft < scrollLeft + 20; // 20px margin
+        const isOutsideRight = buttonRight > scrollLeft + containerWidth - 20; // 20px margin
         
         if (isOutsideLeft || isOutsideRight) {
-          activeButton.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-            inline: 'center'
+          // Calculate the optimal scroll position to center the active button
+          const optimalScrollLeft = buttonLeft - (containerWidth / 2) + (buttonRect.width / 2);
+          
+          scrollContainer.scrollTo({
+            left: Math.max(0, optimalScrollLeft),
+            behavior: 'smooth'
           });
         }
       }
