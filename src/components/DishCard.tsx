@@ -148,55 +148,62 @@ export default function DishCard({
               )}
             </div>
 
-            {/* Content */}
-            <div className="flex-1 min-w-0 flex flex-col justify-between h-20">
-              {/* Top Row - Name and Price */}
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex flex-col gap-1.5 pr-3 min-w-0">
-                  <h3 className="font-semibold text-lg text-foreground line-clamp-2">
-                    {dish.name}
-                  </h3>
-                  {/* Custom Tags */}
-                  {customTags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {customTags.slice(0, 2).map((tag, index) => (
-                        <Badge 
-                          key={index}
-                          variant="outline"
-                          className={`text-xs px-2 py-0.5 h-5 ${getTagStyle(tag)}`}
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
+            {/* Content - 2x2 Grid Layout */}
+            <div className="flex-1 min-w-0 h-20">
+              {/* Grid container with 2 rows */}
+              <div className="grid grid-rows-2 h-full gap-1">
+                
+                {/* First Row: Name (left) and Price (right) */}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 pr-3 min-w-0">
+                    <h3 className="font-semibold text-lg text-foreground line-clamp-1">
+                      {dish.name}
+                    </h3>
+                  </div>
+                  <div className="font-bold text-lg text-primary text-right flex-shrink-0">
+                    {getDisplayPrice()}
+                  </div>
                 </div>
-                <div className="font-bold text-lg text-primary text-right flex-shrink-0">
-                  {getDisplayPrice()}
-                </div>
-              </div>
 
-              {/* Bottom Row - Buttons */}
-              <div className="flex items-end justify-end mt-auto">
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <DishFavoriteButton
-                    dishId={dish.id}
-                    restaurantId={restaurantId}
-                    favoritesCount={dish.favorites_count}
-                    size="md"
-                    className="border-0 bg-transparent hover:bg-transparent text-foreground w-8 h-8"
-                    savedFrom="menu_list"
-                  />
-                  
-                  <button
-                    onClick={handlePlusClick}
-                    className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
-                    aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
-                    title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
+                {/* Second Row: Custom Tags (left) and Buttons (right) */}
+                <div className="flex items-end justify-between">
+                  <div className="flex-1 pr-3">
+                    {/* Custom Tags */}
+                    {customTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {customTags.slice(0, 2).map((tag, index) => (
+                          <Badge 
+                            key={index}
+                            variant="outline"
+                            className={`text-xs px-2 py-0.5 h-5 ${getTagStyle(tag)}`}
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <DishFavoriteButton
+                      dishId={dish.id}
+                      restaurantId={restaurantId}
+                      favoritesCount={dish.favorites_count}
+                      size="md"
+                      className="border-0 bg-transparent hover:bg-transparent text-foreground w-8 h-8"
+                      savedFrom="menu_list"
+                    />
+                    
+                    <button
+                      onClick={handlePlusClick}
+                      className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
+                      aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
+                      title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>
