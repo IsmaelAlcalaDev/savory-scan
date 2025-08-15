@@ -81,7 +81,7 @@ export const useRestaurantMenuFallback = (restaurantId: number) => {
           category_name: dish.dish_categories?.name,
           allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
           custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags as string[] : [],
-          section_id: dish.section_id, // Added this property
+          section_id: dish.section_id,
           variants: (dish.dish_variants || [])
             .sort((a: any, b: any) => a.display_order - b.display_order)
             .map((variant: any) => ({
@@ -100,23 +100,26 @@ export const useRestaurantMenuFallback = (restaurantId: number) => {
           }));
           setSections(sectionsWithDishes);
         } else {
-          // Fallback: group dishes by category
+          // Fallback: group dishes by category and get unique section IDs from dishes
           const dishesGroupedByCategory = dishes.reduce((acc, dish) => {
             const categoryName = dish.category_name || 'Sin categoría';
             if (!acc[categoryName]) {
-              acc[categoryName] = [];
+              acc[categoryName] = {
+                dishes: [],
+                sectionId: dish.section_id || null
+              };
             }
-            acc[categoryName].push(dish);
+            acc[categoryName].dishes.push(dish);
             return acc;
-          }, {} as Record<string, Dish[]>);
+          }, {} as Record<string, { dishes: Dish[], sectionId: number | null }>);
 
-          // Convert to sections format
-          const fallbackSections = Object.entries(dishesGroupedByCategory).map(([categoryName, categoryDishes], index) => ({
-            id: index + 1, // Temporary ID for fallback sections
+          // Convert to sections format using real section IDs or generate consistent ones
+          const fallbackSections = Object.entries(dishesGroupedByCategory).map(([categoryName, categoryData], index) => ({
+            id: categoryData.sectionId || (1000 + index), // Use real section ID or generate consistent fallback
             name: categoryName,
             description: undefined,
             display_order: index + 1,
-            dishes: categoryDishes
+            dishes: categoryData.dishes
           }));
 
           setSections(fallbackSections);
