@@ -24,7 +24,6 @@ export default function DietaryIcons({ icons, size = 'md' }: DietaryIconsProps) 
                 key={key}
                 className={`${iconSize} ${icon.style}`}
                 aria-label="Vegano"
-                title="Vegano"
               />
             );
           case 'vegetarian':
@@ -33,7 +32,6 @@ export default function DietaryIcons({ icons, size = 'md' }: DietaryIconsProps) 
                 key={key}
                 className={`${iconSize} ${icon.style}`}
                 aria-label="Vegetariano"
-                title="Vegetariano"
               />
             );
           case 'gluten-free':
@@ -42,7 +40,6 @@ export default function DietaryIcons({ icons, size = 'md' }: DietaryIconsProps) 
                 key={key}
                 className={`${iconSize} ${icon.style}`}
                 aria-label="Sin Gluten"
-                title="Sin Gluten"
               />
             );
           default:
