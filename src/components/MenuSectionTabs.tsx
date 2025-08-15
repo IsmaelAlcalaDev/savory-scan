@@ -30,7 +30,7 @@ export default function MenuSectionTabs({ sections, activeSection, onSectionClic
             </Button>
           ))}
         </div>
-        <ScrollBar orientation="horizontal" />
+        <ScrollBar orientation="horizontal" className="invisible" />
       </ScrollArea>
     </div>
   );
