@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -20,28 +19,11 @@ import AddDinersModal from '@/components/AddDinersModal';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 
 function RestaurantMenuContent() {
-  const {
-    slug
-  } = useParams<{
-    slug: string;
-  }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const {
-    restaurant,
-    loading: restaurantLoading,
-    error: restaurantError
-  } = useRestaurantProfile(slug || '');
-  const {
-    sections,
-    loading: sectionsLoading,
-    error: sectionsError
-  } = useRestaurantMenuFallback(restaurant?.id || 0);
-  const {
-    isSimulatorOpen,
-    closeSimulator,
-    isDinersModalOpen,
-    closeDinersModal
-  } = useOrderSimulator();
+  const { restaurant, loading: restaurantLoading, error: restaurantError } = useRestaurantProfile(slug || '');
+  const { sections, loading: sectionsLoading, error: sectionsError } = useRestaurantMenuFallback(restaurant?.id || 0);
+  const { isSimulatorOpen, closeSimulator, isDinersModalOpen, closeDinersModal } = useOrderSimulator();
 
   // Filter states
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
@@ -74,52 +56,28 @@ function RestaurantMenuContent() {
     }
   };
 
-  // Improved scroll detection using IntersectionObserver
+  // Simple scroll detection to show/hide sticky nav
   useEffect(() => {
-    console.log('Setting up IntersectionObserver...');
-    
-    if (!originalNavRef.current) {
-      console.log('originalNavRef.current is null, returning early');
-      return;
-    }
-
-    console.log('Creating IntersectionObserver with headerHeight:', headerHeight);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        console.log('IntersectionObserver callback triggered:', {
-          isIntersecting: entry.isIntersecting,
-          intersectionRatio: entry.intersectionRatio,
-          boundingClientRect: entry.boundingClientRect,
-          rootBounds: entry.rootBounds
-        });
-        
-        // When the original nav is not visible at the top, show sticky nav
-        const shouldShowSticky = !entry.isIntersecting;
-        console.log('Should show sticky nav:', shouldShowSticky);
+    const handleScroll = () => {
+      if (!originalNavRef.current) return;
+      
+      const rect = originalNavRef.current.getBoundingClientRect();
+      // Show sticky nav when original nav goes above the header (73px)
+      const shouldShowSticky = rect.top <= headerHeight;
+      
+      if (shouldShowSticky !== showStickyNav) {
         setShowStickyNav(shouldShowSticky);
-      },
-      {
-        root: null,
-        rootMargin: `-${headerHeight}px 0px 0px 0px`, // Account for header height
-        threshold: 0
       }
-    );
+    };
 
-    console.log('Starting to observe originalNavRef.current');
-    observer.observe(originalNavRef.current);
+    window.addEventListener('scroll', handleScroll);
+    // Check initial position
+    handleScroll();
 
     return () => {
-      console.log('Cleaning up IntersectionObserver');
-      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
     };
-  }, [headerHeight]);
-
-  // Log when showStickyNav changes
-  useEffect(() => {
-    console.log('showStickyNav state changed to:', showStickyNav);
-  }, [showStickyNav]);
+  }, [showStickyNav, headerHeight]);
 
   // Filter sections and dishes based on active filters
   const filteredSections = useMemo(() => {
@@ -203,7 +161,8 @@ function RestaurantMenuContent() {
       </div>;
   }
 
-  return <>
+  return (
+    <>
       <Helmet>
         <title>Carta de {restaurant.name} | SavorySearch</title>
         <meta name="description" content={`Explora la carta completa de ${restaurant.name}. Descubre todos nuestros platos y encuentra tu favorito.`} />
@@ -218,9 +177,11 @@ function RestaurantMenuContent() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
 
-              {restaurant.logo_url && <div className="w-8 h-8 rounded-full overflow-hidden border border-border flex-shrink-0">
+              {restaurant.logo_url && (
+                <div className="w-8 h-8 rounded-full overflow-hidden border border-border flex-shrink-0">
                   <img src={restaurant.logo_url} alt={`${restaurant.name} logo`} className="w-full h-full object-cover" />
-                </div>}
+                </div>
+              )}
               
               <h1 className="text-lg font-bold">
                 {restaurant.name}
@@ -232,7 +193,11 @@ function RestaurantMenuContent() {
         {/* Sticky Section Navigation - positioned right below header when needed */}
         {showStickyNav && (
           <div className="fixed top-[73px] left-0 right-0 z-30 bg-background border-b shadow-sm transition-all duration-200">
-            <MenuSectionTabs sections={filteredSections} activeSection={activeSection} onSectionClick={handleSectionClick} />
+            <MenuSectionTabs 
+              sections={filteredSections} 
+              activeSection={activeSection} 
+              onSectionClick={handleSectionClick} 
+            />
           </div>
         )}
 
@@ -241,9 +206,15 @@ function RestaurantMenuContent() {
           <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <AllergenFilterButton selectedAllergens={selectedAllergens} onAllergenChange={setSelectedAllergens} />
+                <AllergenFilterButton 
+                  selectedAllergens={selectedAllergens} 
+                  onAllergenChange={setSelectedAllergens} 
+                />
                 
-                <DietFilterButton selectedDietTypes={selectedDietTypes} onDietTypeChange={setSelectedDietTypes} />
+                <DietFilterButton 
+                  selectedDietTypes={selectedDietTypes} 
+                  onDietTypeChange={setSelectedDietTypes} 
+                />
               </div>
               
               <LanguageSelector />
@@ -254,28 +225,44 @@ function RestaurantMenuContent() {
         {/* Search Bar */}
         <div className="bg-background">
           <div className="max-w-6xl mx-auto px-4 pb-2">
-            <DishSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} placeholder="Buscar platos..." />
+            <DishSearchBar 
+              searchQuery={searchQuery} 
+              onSearchChange={setSearchQuery} 
+              placeholder="Buscar platos..." 
+            />
           </div>
         </div>
 
-        {/* Original Section Navigation - with ref for intersection detection */}
+        {/* Original Section Navigation - with ref for scroll detection */}
         <div ref={originalNavRef}>
-          <MenuSectionTabs sections={filteredSections} activeSection={activeSection} onSectionClick={handleSectionClick} />
+          <MenuSectionTabs 
+            sections={filteredSections} 
+            activeSection={activeSection} 
+            onSectionClick={handleSectionClick} 
+          />
         </div>
 
         {/* Menu Content */}
         <div className="max-w-6xl mx-auto px-4 py-8">
-          {filteredSections.length === 0 ? <div className="text-center py-12">
+          {filteredSections.length === 0 ? (
+            <div className="text-center py-12">
               <Utensils className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
               <h3 className="text-lg font-semibold mb-2">No se encontraron platos</h3>
               <p className="text-muted-foreground">
-                {searchQuery || selectedAllergens.length > 0 || selectedDietTypes.length > 0 ? 'Intenta ajustar los filtros o la búsqueda' : 'Este restaurante aún no tiene platos disponibles'}
+                {searchQuery || selectedAllergens.length > 0 || selectedDietTypes.length > 0 
+                  ? 'Intenta ajustar los filtros o la búsqueda' 
+                  : 'Este restaurante aún no tiene platos disponibles'}
               </p>
-            </div> : <div className="space-y-8">
-              {filteredSections.map(section => <div key={section.id} id={`section-${section.id}`}>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {filteredSections.map(section => (
+                <div key={section.id} id={`section-${section.id}`}>
                   <RestaurantMenuSection section={section} restaurantId={restaurant.id} />
-                </div>)}
-            </div>}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Order Simulator Components */}
@@ -285,11 +272,14 @@ function RestaurantMenuContent() {
         
         <AddDinersModal isOpen={isDinersModalOpen} onClose={closeDinersModal} />
       </div>
-    </>;
+    </>
+  );
 }
 
 export default function RestaurantMenu() {
-  return <OrderSimulatorProvider>
+  return (
+    <OrderSimulatorProvider>
       <RestaurantMenuContent />
-    </OrderSimulatorProvider>;
+    </OrderSimulatorProvider>
+  );
 }
