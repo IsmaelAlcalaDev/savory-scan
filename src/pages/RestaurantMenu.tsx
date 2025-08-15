@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -29,35 +30,7 @@ function RestaurantMenuContent() {
   const [activeSection, setActiveSection] = useState<number | undefined>();
   const [isExpandableSearchOpen, setIsExpandableSearchOpen] = useState(false);
 
-  const handleGoBack = () => {
-    navigate(`/restaurant/${slug}`);
-  };
-
-  const handleSectionClick = (sectionId: number) => {
-    setActiveSection(sectionId);
-    const element = document.getElementById(`section-${sectionId}`);
-    if (element) {
-      // Fixed offset for sticky header (74px) + sticky nav (59px)
-      const headerOffset = 133;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const handleSearchToggle = () => {
-    setIsExpandableSearchOpen(!isExpandableSearchOpen);
-  };
-
-  const handleExpandableSearchClose = () => {
-    setIsExpandableSearchOpen(false);
-  };
-
-  // Filter sections and dishes based on active filters
+  // Filter sections and dishes based on active filters - moved before useEffect that depends on it
   const filteredSections = useMemo(() => {
     if (!sections) return [];
     return sections.map(section => {
@@ -105,6 +78,34 @@ function RestaurantMenuContent() {
     }).filter(section => section.dishes.length > 0);
   }, [sections, searchQuery, selectedAllergens, selectedDietTypes]);
 
+  const handleGoBack = () => {
+    navigate(`/restaurant/${slug}`);
+  };
+
+  const handleSectionClick = (sectionId: number) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(`section-${sectionId}`);
+    if (element) {
+      // Fixed offset for sticky header (74px) + sticky nav (59px)
+      const headerOffset = 133;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleSearchToggle = () => {
+    setIsExpandableSearchOpen(!isExpandableSearchOpen);
+  };
+
+  const handleExpandableSearchClose = () => {
+    setIsExpandableSearchOpen(false);
+  };
+
   // Set initial active section
   useEffect(() => {
     if (filteredSections.length > 0 && !activeSection) {
@@ -148,7 +149,7 @@ function RestaurantMenuContent() {
 
       <div className="min-h-screen bg-muted/20 pb-20">
         {/* Sticky Header Navigation with Search */}
-        <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm">
+        <div className="bg-background sticky top-0 z-40 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
