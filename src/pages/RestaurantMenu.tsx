@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -89,8 +88,8 @@ function RestaurantMenuContent() {
     setActiveSection(sectionId);
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
-      // Calculate offset for sticky header + navigation (approximately 120px)
-      const stickyOffset = 120;
+      // Calculate offset for sticky header + navigation (approximately 110px)
+      const stickyOffset = 110;
       const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - stickyOffset;
       window.scrollTo({
         top: elementPosition,
@@ -123,7 +122,7 @@ function RestaurantMenuContent() {
         });
       },
       {
-        rootMargin: '-120px 0px -50% 0px', // Account for sticky header + navigation height
+        rootMargin: '-110px 0px -50% 0px', // Account for sticky header + navigation height
         threshold: 0.1
       }
     );
@@ -186,7 +185,7 @@ function RestaurantMenuContent() {
         {/* Sticky Header Navigation with Search */}
         <div className="sticky top-0 z-50 bg-background shadow-sm">
           <div className="bg-background">
-            <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="max-w-6xl mx-auto px-4 py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <Button onClick={handleGoBack} variant="ghost" size="sm" className="flex items-center gap-2">
