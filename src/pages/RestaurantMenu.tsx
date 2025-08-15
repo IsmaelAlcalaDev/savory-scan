@@ -32,6 +32,54 @@ function RestaurantMenuContent() {
   // Ref for intersection observer
   const sectionsRefs = useRef<{ [key: number]: HTMLElement | null }>({});
 
+  // Filter sections and dishes based on active filters - MOVED BEFORE useEffect
+  const filteredSections = useMemo(() => {
+    if (!sections) return [];
+    return sections.map(section => {
+      let filteredDishes = section.dishes;
+
+      // Apply search filter
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        filteredDishes = filteredDishes.filter(dish => dish.name.toLowerCase().includes(query) || dish.description?.toLowerCase().includes(query));
+      }
+
+      // Apply allergen filter (exclude dishes that contain selected allergens)
+      if (selectedAllergens.length > 0) {
+        filteredDishes = filteredDishes.filter(dish => {
+          const dishAllergens = dish.allergens || [];
+          return !selectedAllergens.some(allergen => dishAllergens.includes(allergen));
+        });
+      }
+
+      // Apply diet type filter
+      if (selectedDietTypes.length > 0) {
+        filteredDishes = filteredDishes.filter(dish => {
+          return selectedDietTypes.some(dietTypeId => {
+            switch (dietTypeId) {
+              case 1:
+                return dish.is_vegetarian;
+              case 2:
+                return dish.is_vegan;
+              case 3:
+                return dish.is_gluten_free;
+              case 4:
+                return dish.is_lactose_free;
+              case 5:
+                return dish.is_healthy;
+              default:
+                return false;
+            }
+          });
+        });
+      }
+      return {
+        ...section,
+        dishes: filteredDishes
+      };
+    }).filter(section => section.dishes.length > 0);
+  }, [sections, searchQuery, selectedAllergens, selectedDietTypes]);
+
   const handleGoBack = () => {
     navigate(`/restaurant/${slug}`);
   };
@@ -94,54 +142,6 @@ function RestaurantMenuContent() {
     };
   }, [filteredSections]);
 
-  // Filter sections and dishes based on active filters
-  const filteredSections = useMemo(() => {
-    if (!sections) return [];
-    return sections.map(section => {
-      let filteredDishes = section.dishes;
-
-      // Apply search filter
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase().trim();
-        filteredDishes = filteredDishes.filter(dish => dish.name.toLowerCase().includes(query) || dish.description?.toLowerCase().includes(query));
-      }
-
-      // Apply allergen filter (exclude dishes that contain selected allergens)
-      if (selectedAllergens.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => {
-          const dishAllergens = dish.allergens || [];
-          return !selectedAllergens.some(allergen => dishAllergens.includes(allergen));
-        });
-      }
-
-      // Apply diet type filter
-      if (selectedDietTypes.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => {
-          return selectedDietTypes.some(dietTypeId => {
-            switch (dietTypeId) {
-              case 1:
-                return dish.is_vegetarian;
-              case 2:
-                return dish.is_vegan;
-              case 3:
-                return dish.is_gluten_free;
-              case 4:
-                return dish.is_lactose_free;
-              case 5:
-                return dish.is_healthy;
-              default:
-                return false;
-            }
-          });
-        });
-      }
-      return {
-        ...section,
-        dishes: filteredDishes
-      };
-    }).filter(section => section.dishes.length > 0);
-  }, [sections, searchQuery, selectedAllergens, selectedDietTypes]);
-
   // Set initial active section
   useEffect(() => {
     if (filteredSections.length > 0 && !activeSection) {
@@ -184,7 +184,7 @@ function RestaurantMenuContent() {
       </Helmet>
 
       <div className="min-h-screen bg-muted/20 pb-20">
-        {/* Sticky Header Navigation with Search - sin border-b */}
+        {/* Sticky Header Navigation with Search - removed border-b */}
         <div className="bg-background sticky top-0 z-40 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
