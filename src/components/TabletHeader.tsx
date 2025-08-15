@@ -37,13 +37,13 @@ export default function TabletHeader({
 }: TabletHeaderProps) {
   return (
     <div className="flex items-center justify-between py-3 px-4 gap-4">
-      {/* Logo */}
+      {/* Logo - Increased size */}
       <div className="flex items-center flex-shrink-0">
         <button onClick={onLogoClick} className="flex items-center">
           <img 
             src={appLogoUrl}
             alt={`${appName} Logo`} 
-            className="w-20 h-20 bg-transparent object-contain cursor-pointer"
+            className="w-24 h-24 bg-transparent object-contain cursor-pointer"
           />
         </button>
       </div>

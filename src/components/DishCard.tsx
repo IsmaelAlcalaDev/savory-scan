@@ -116,6 +116,7 @@ export default function DishCard({
 
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
   const customTags = Array.isArray(dish.custom_tags) ? dish.custom_tags : [];
+  const hasImage = Boolean(dish.image_url);
 
   return (
     <>
@@ -125,8 +126,8 @@ export default function DishCard({
       >
         <div className="py-4 px-0 transition-colors">
           <div className="flex gap-3 items-start w-full">
-            {/* Content - 2x2 Grid Layout */}
-            <div className="flex-1 min-w-0 h-20">
+            {/* Content - Responsive width based on image presence */}
+            <div className={`min-w-0 h-20 ${hasImage ? 'flex-1' : 'w-full'}`}>
               {/* Grid container with 2 rows */}
               <div className="grid grid-rows-2 h-full gap-1">
                 
@@ -184,9 +185,9 @@ export default function DishCard({
               </div>
             </div>
 
-            {/* Image - Now on the right */}
-            <div className="flex-shrink-0">
-              {dish.image_url ? (
+            {/* Image - Only show if exists */}
+            {hasImage && (
+              <div className="flex-shrink-0">
                 <div className="w-20 h-20 rounded-lg overflow-hidden relative">
                   <img
                     src={dish.image_url}
@@ -199,12 +200,8 @@ export default function DishCard({
                     </Badge>
                   )}
                 </div>
-              ) : (
-                <div className="w-20 h-20 bg-muted/50 rounded-lg flex items-center justify-center">
-                  <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

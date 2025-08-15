@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { MapPin, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
 interface MobileHeaderProps {
   appName: string;
   appLogoUrl: string;
@@ -10,6 +12,7 @@ interface MobileHeaderProps {
   onLocationClick: () => void;
   onMenuClick: () => void;
 }
+
 export default function MobileHeader({
   appName,
   appLogoUrl,
@@ -19,11 +22,16 @@ export default function MobileHeader({
   onLocationClick,
   onMenuClick
 }: MobileHeaderProps) {
-  return <div className="flex items-center justify-between p-0">
-      {/* Logo */}
+  return (
+    <div className="flex items-center justify-between p-0">
+      {/* Logo - Increased size */}
       <div className="flex items-center flex-shrink-0">
         <button onClick={onLogoClick} className="flex items-center">
-          <img src={appLogoUrl} alt={`${appName} Logo`} className="w-16 h-16 bg-transparent object-contain cursor-pointer" />
+          <img 
+            src={appLogoUrl} 
+            alt={`${appName} Logo`} 
+            className="w-20 h-20 bg-transparent object-contain cursor-pointer" 
+          />
         </button>
       </div>
 
@@ -43,5 +51,6 @@ export default function MobileHeader({
           <Menu className="h-6 w-6" strokeWidth={2} />
         </button>
       </div>
-    </div>;
+    </div>
+  );
 }

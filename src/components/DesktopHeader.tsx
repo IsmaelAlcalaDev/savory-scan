@@ -37,17 +37,17 @@ export default function DesktopHeader({
 }: DesktopHeaderProps) {
   return (
     <div className="flex items-center justify-between py-3 px-4">
-      {/* Left Section: Logo */}
+      {/* Left Section: Logo - Increased size */}
       <div className="flex items-center flex-shrink-0 relative">
         <button onClick={onLogoClick} className="flex items-center">
           <img 
             src={appLogoUrl}
             alt={`${appName} Logo`} 
-            className="w-24 h-24 bg-transparent object-contain absolute top-1/2 left-0 transform -translate-y-1/2 z-10 cursor-pointer"
+            className="w-28 h-28 bg-transparent object-contain absolute top-1/2 left-0 transform -translate-y-1/2 z-10 cursor-pointer"
           />
         </button>
         {/* Spacer to maintain layout */}
-        <div className="w-24 h-8" />
+        <div className="w-28 h-8" />
       </div>
 
       {/* Center Section: Location and Search */}
