@@ -1,10 +1,10 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useGeolocated } from 'react-geolocated';
-import { RestaurantCard } from '@/components/RestaurantCard';
-import { DishesGrid } from '@/components/DishesGrid';
-import { SecureSearchBar } from '@/components/SecureSearchBar';
-import { BottomNavigation, BottomNavigationTab } from '@/components/BottomNavigation';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import RestaurantCard from '@/components/RestaurantCard';
+import DishesGrid from '@/components/DishesGrid';
+import SecureSearchBar from '@/components/SecureSearchBar';
+import BottomNavigation from '@/components/BottomNavigation';
 import { Home, Utensils, Heart, User } from 'lucide-react';
 import CuisineFilter from '@/components/CuisineFilter';
 import FoodTypeFilter from '@/components/FoodTypeFilter';
@@ -14,34 +14,38 @@ import { useDishes } from '@/hooks/useDishes';
 import { getFilterSuggestions } from '@/utils/filterValidation';
 
 interface FoodieSpotLayoutProps {
-  initialTab?: 'restaurants' | 'dishes' | 'favorites' | 'profile';
+  initialTab?: 'restaurants' | 'dishes';
 }
 
 export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Active bottom tab state
-  const [activeBottomTab, setActiveBottomTab] = useState<FoodieSpotLayoutProps['initialTab']>(initialTab);
+  const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes'>(initialTab);
 
   // Search query state
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('q') || '');
 
-  // Location state
-  const { coords: userLocation, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({
-    positionOptions: {
-      enableHighAccuracy: false,
-    },
-    watchPosition: true,
-  });
+  // Mock geolocation (since react-geolocated is not available)
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
-    if (!isGeolocationAvailable) {
-      console.warn("Your browser doesn't support Geolocation");
-    } else if (!isGeolocationEnabled) {
-      console.warn("Geolocation is not enabled");
+    // Get user location using browser API
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.warn("Geolocation error:", error);
+        }
+      );
     }
-  }, [isGeolocationAvailable, isGeolocationEnabled]);
+  }, []);
 
   useEffect(() => {
     const q = searchParams.get('q') || '';
@@ -55,14 +59,14 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     } else {
       params.delete('q');
     }
-    router.push(`/?${params.toString()}`, { scroll: false });
-  }, [searchQuery, router, searchParams]);
+    navigate(`/?${params.toString()}`, { replace: true });
+  }, [searchQuery, navigate, searchParams]);
 
   // Filter states - separate for restaurants and dishes where needed
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
   const [selectedDistance, setSelectedDistance] = useState<number[]>([]);
-  const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<('€' | '€€' | '€€€' | '€€€€')[]>([]);
   const [selectedRating, setSelectedRating] = useState<number | undefined>();
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
@@ -304,7 +308,23 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {restaurants.map((restaurant) => (
-                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                  <RestaurantCard 
+                    key={restaurant.id} 
+                    id={restaurant.id}
+                    name={restaurant.name}
+                    slug={restaurant.slug}
+                    description={restaurant.description}
+                    priceRange={restaurant.price_range}
+                    googleRating={restaurant.google_rating}
+                    googleRatingCount={restaurant.google_rating_count}
+                    distance={restaurant.distance_km}
+                    cuisineTypes={restaurant.cuisine_types}
+                    establishmentType={restaurant.establishment_type}
+                    services={restaurant.services}
+                    favoritesCount={restaurant.favorites_count}
+                    coverImageUrl={restaurant.cover_image_url}
+                    logoUrl={restaurant.logo_url}
+                  />
                 ))}
               </div>
             )}
@@ -321,46 +341,12 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             />
           </div>
         )}
-
-        {activeBottomTab === 'favorites' && (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Próximamente: Lista de favoritos</p>
-          </div>
-        )}
-
-        {activeBottomTab === 'profile' && (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Próximamente: Perfil de usuario</p>
-          </div>
-        )}
       </div>
 
-      <BottomNavigation>
-        <BottomNavigationTab
-          label="Restaurantes"
-          icon={Home}
-          active={activeBottomTab === 'restaurants'}
-          onClick={() => setActiveBottomTab('restaurants')}
-        />
-        <BottomNavigationTab
-          label="Platos"
-          icon={Utensils}
-          active={activeBottomTab === 'dishes'}
-          onClick={() => setActiveBottomTab('dishes')}
-        />
-        <BottomNavigationTab
-          label="Favoritos"
-          icon={Heart}
-          active={activeBottomTab === 'favorites'}
-          onClick={() => setActiveBottomTab('favorites')}
-        />
-        <BottomNavigationTab
-          label="Perfil"
-          icon={User}
-          active={activeBottomTab === 'profile'}
-          onClick={() => setActiveBottomTab('profile')}
-        />
-      </BottomNavigation>
+      <BottomNavigation
+        activeTab={activeBottomTab}
+        onTabChange={setActiveBottomTab}
+      />
     </div>
   );
 }

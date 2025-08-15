@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { validateFilters, type FilterState } from '@/utils/filterValidation';
@@ -104,7 +105,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
         selectedCuisines,
         selectedFoodTypes,
         selectedDistance,
-        selectedPriceRanges,
+        selectedPriceRanges: selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[],
         selectedRating,
         selectedEstablishmentTypes: [],
         selectedDietTypes,
@@ -167,7 +168,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
 
       // Apply restaurant price range filter
       if (selectedPriceRanges.length > 0) {
-        query = query.in('restaurants.price_range', selectedPriceRanges);
+        query = query.in('restaurants.price_range', selectedPriceRanges as readonly ('€' | '€€' | '€€€' | '€€€€')[]);
       }
 
       // Apply spice level filter

@@ -78,7 +78,7 @@ export const useRestaurants = ({
           selectedCuisines,
           selectedFoodTypes: [],
           selectedDistance,
-          selectedPriceRanges,
+          selectedPriceRanges: selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[],
           selectedRating,
           selectedEstablishmentTypes,
           selectedDietTypes,
@@ -147,7 +147,7 @@ export const useRestaurants = ({
 
         // Apply price range filter
         if (selectedPriceRanges && selectedPriceRanges.length > 0) {
-          query = query.in('price_range', selectedPriceRanges);
+          query = query.in('price_range', selectedPriceRanges as readonly ('€' | '€€' | '€€€' | '€€€€')[]);
         }
 
         // Apply cuisine type filter
