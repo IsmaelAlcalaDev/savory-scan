@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
@@ -126,28 +125,6 @@ export default function DishCard({
       >
         <div className="py-4 px-0 transition-colors">
           <div className="flex gap-3 items-start w-full">
-            {/* Image */}
-            <div className="flex-shrink-0">
-              {dish.image_url ? (
-                <div className="w-20 h-20 rounded-lg overflow-hidden relative">
-                  <img
-                    src={dish.image_url}
-                    alt={dish.image_alt || dish.name}
-                    className="w-full h-full object-cover"
-                  />
-                  {dish.is_featured && (
-                    <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 py-0">
-                      ★
-                    </Badge>
-                  )}
-                </div>
-              ) : (
-                <div className="w-20 h-20 bg-muted/50 rounded-lg flex items-center justify-center">
-                  <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
-                </div>
-              )}
-            </div>
-
             {/* Content - 2x2 Grid Layout */}
             <div className="flex-1 min-w-0 h-20">
               {/* Grid container with 2 rows */}
@@ -205,6 +182,28 @@ export default function DishCard({
                 </div>
 
               </div>
+            </div>
+
+            {/* Image - Now on the right */}
+            <div className="flex-shrink-0">
+              {dish.image_url ? (
+                <div className="w-20 h-20 rounded-lg overflow-hidden relative">
+                  <img
+                    src={dish.image_url}
+                    alt={dish.image_alt || dish.name}
+                    className="w-full h-full object-cover"
+                  />
+                  {dish.is_featured && (
+                    <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 py-0">
+                      ★
+                    </Badge>
+                  )}
+                </div>
+              ) : (
+                <div className="w-20 h-20 bg-muted/50 rounded-lg flex items-center justify-center">
+                  <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
