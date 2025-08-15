@@ -34,80 +34,90 @@ export const usePromotions = (restaurantId: number) => {
         const now = new Date().toISOString();
         console.log('usePromotions - current time:', now);
 
+        // Fixed date comparison logic:
+        // - valid_from <= now (promotion has started)
+        // - valid_until > now (promotion hasn't expired)
         const { data, error } = await supabase
           .from('promotions')
           .select('*')
           .eq('restaurant_id', restaurantId)
           .eq('is_active', true)
           .lte('valid_from', now)
-          .gte('valid_until', now)
+          .gt('valid_until', now)
           .is('deleted_at', null);
 
-        console.log('usePromotions - query result:', { data, error });
+        console.log('usePromotions - query executed with filters:');
+        console.log('  - restaurant_id:', restaurantId);
+        console.log('  - is_active: true');
+        console.log('  - valid_from <= ', now);
+        console.log('  - valid_until > ', now);
+        console.log('  - deleted_at IS NULL');
+        console.log('usePromotions - raw query result:', { data, error });
 
         if (error) {
+          console.error('usePromotions - Supabase query error:', error);
           throw error;
         }
 
+        console.log('usePromotions - found', data?.length || 0, 'promotions');
+
         // Transform the data to match our interface
-        const transformedData: Promotion[] = (data || []).map(promo => {
-          console.log('usePromotions - processing promotion:', promo);
-          console.log('usePromotions - applicable_dishes type:', typeof promo.applicable_dishes, 'value:', promo.applicable_dishes);
-          console.log('usePromotions - applicable_sections type:', typeof promo.applicable_sections, 'value:', promo.applicable_sections);
+        const transformedData: Promotion[] = (data || []).map((promo, index) => {
+          console.log(`usePromotions - processing promotion ${index + 1}:`, promo);
+          console.log(`usePromotions - promotion ${promo.id} details:`);
+          console.log('  - title:', promo.title);
+          console.log('  - valid_from:', promo.valid_from);
+          console.log('  - valid_until:', promo.valid_until);
+          console.log('  - applicable_dishes (raw):', promo.applicable_dishes, 'type:', typeof promo.applicable_dishes);
+          console.log('  - applicable_sections (raw):', promo.applicable_sections, 'type:', typeof promo.applicable_sections);
           
-          // Parse applicable_dishes - improved handling
+          // Handle applicable_dishes - improved logic
           let applicableDishes: number[] = [];
           if (promo.applicable_dishes) {
-            // If it's already an array, use it directly
             if (Array.isArray(promo.applicable_dishes)) {
+              // Already an array - use directly
               applicableDishes = promo.applicable_dishes.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
-              console.log('usePromotions - applicable_dishes is array:', applicableDishes);
-            } 
-            // If it's a string, try to parse it as JSON
-            else if (typeof promo.applicable_dishes === 'string') {
+              console.log('  - applicable_dishes is array, converted to:', applicableDishes);
+            } else if (typeof promo.applicable_dishes === 'string') {
+              // String - try to parse as JSON
               try {
                 const parsed = JSON.parse(promo.applicable_dishes);
                 if (Array.isArray(parsed)) {
                   applicableDishes = parsed.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
-                  console.log('usePromotions - parsed applicable_dishes string to array:', applicableDishes);
+                  console.log('  - applicable_dishes parsed from string to:', applicableDishes);
+                } else {
+                  console.warn('  - applicable_dishes string parsed but not an array:', parsed);
                 }
               } catch (e) {
-                console.error('usePromotions - Error parsing applicable_dishes string:', e);
-                applicableDishes = [];
+                console.error('  - Error parsing applicable_dishes string:', e);
               }
-            }
-            // If it's some other type, try to handle it
-            else {
-              console.warn('usePromotions - unexpected applicable_dishes type:', typeof promo.applicable_dishes);
-              applicableDishes = [];
+            } else {
+              console.warn('  - unexpected applicable_dishes type:', typeof promo.applicable_dishes, promo.applicable_dishes);
             }
           }
 
-          // Parse applicable_sections - improved handling
+          // Handle applicable_sections - improved logic
           let applicableSections: number[] = [];
           if (promo.applicable_sections) {
-            // If it's already an array, use it directly
             if (Array.isArray(promo.applicable_sections)) {
+              // Already an array - use directly
               applicableSections = promo.applicable_sections.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
-              console.log('usePromotions - applicable_sections is array:', applicableSections);
-            } 
-            // If it's a string, try to parse it as JSON
-            else if (typeof promo.applicable_sections === 'string') {
+              console.log('  - applicable_sections is array, converted to:', applicableSections);
+            } else if (typeof promo.applicable_sections === 'string') {
+              // String - try to parse as JSON
               try {
                 const parsed = JSON.parse(promo.applicable_sections);
                 if (Array.isArray(parsed)) {
                   applicableSections = parsed.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
-                  console.log('usePromotions - parsed applicable_sections string to array:', applicableSections);
+                  console.log('  - applicable_sections parsed from string to:', applicableSections);
+                } else {
+                  console.warn('  - applicable_sections string parsed but not an array:', parsed);
                 }
               } catch (e) {
-                console.error('usePromotions - Error parsing applicable_sections string:', e);
-                applicableSections = [];
+                console.error('  - Error parsing applicable_sections string:', e);
               }
-            }
-            // If it's some other type, try to handle it
-            else {
-              console.warn('usePromotions - unexpected applicable_sections type:', typeof promo.applicable_sections);
-              applicableSections = [];
+            } else {
+              console.warn('  - unexpected applicable_sections type:', typeof promo.applicable_sections, promo.applicable_sections);
             }
           }
 
@@ -126,14 +136,14 @@ export const usePromotions = (restaurantId: number) => {
             is_active: promo.is_active
           };
 
-          console.log('usePromotions - transformed promotion:', transformedPromo);
+          console.log(`usePromotions - promotion ${promo.id} transformed:`, transformedPromo);
           return transformedPromo;
         });
 
         console.log('usePromotions - final transformed promotions:', transformedData);
         setPromotions(transformedData);
       } catch (err) {
-        console.error('Error fetching promotions:', err);
+        console.error('usePromotions - Error in fetchPromotions:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar promociones');
       } finally {
         setLoading(false);
@@ -144,44 +154,56 @@ export const usePromotions = (restaurantId: number) => {
   }, [restaurantId]);
 
   const getPromotionForDish = (dishId: number, sectionId?: number) => {
-    console.log('getPromotionForDish - checking dish:', dishId, 'section:', sectionId);
-    console.log('getPromotionForDish - available promotions:', promotions);
+    console.log('getPromotionForDish - checking for dish:', dishId, 'section:', sectionId);
+    console.log('getPromotionForDish - available promotions count:', promotions.length);
     
-    const promotion = promotions.find(promo => {
-      console.log('getPromotionForDish - checking promotion:', promo);
-      console.log('getPromotionForDish - promotion applicable_dishes:', promo.applicable_dishes);
-      console.log('getPromotionForDish - promotion applicable_sections:', promo.applicable_sections);
-      console.log('getPromotionForDish - promotion applies_to_entire_menu:', promo.applies_to_entire_menu);
+    const promotion = promotions.find((promo, index) => {
+      console.log(`getPromotionForDish - checking promotion ${index + 1} (ID: ${promo.id}):`);
+      console.log('  - title:', promo.title);
+      console.log('  - applies_to_entire_menu:', promo.applies_to_entire_menu);
+      console.log('  - applicable_dishes:', promo.applicable_dishes);
+      console.log('  - applicable_sections:', promo.applicable_sections);
       
       if (promo.applies_to_entire_menu) {
-        console.log('getPromotionForDish - applies to entire menu');
+        console.log('  - ✅ applies to entire menu - MATCH');
         return true;
       }
+      
       if (promo.applicable_dishes.includes(dishId)) {
-        console.log('getPromotionForDish - found in applicable dishes');
+        console.log('  - ✅ dish', dishId, 'found in applicable_dishes - MATCH');
         return true;
       }
+      
       if (sectionId && promo.applicable_sections.includes(sectionId)) {
-        console.log('getPromotionForDish - found in applicable sections');
+        console.log('  - ✅ section', sectionId, 'found in applicable_sections - MATCH');
         return true;
       }
+      
+      console.log('  - ❌ no match');
       return false;
     });
     
-    console.log('getPromotionForDish - result:', promotion);
+    console.log('getPromotionForDish - final result:', promotion ? `Found promotion: ${promotion.title}` : 'No promotion found');
     return promotion;
   };
 
   const calculateDiscountedPrice = (originalPrice: number, promotion: Promotion) => {
+    console.log('calculateDiscountedPrice - calculating for price:', originalPrice, 'promotion:', promotion.title);
+    
+    let discountedPrice = originalPrice;
+    
     if (promotion.discount_type === 'percentage') {
-      return originalPrice * (1 - promotion.discount_value / 100);
+      discountedPrice = originalPrice * (1 - promotion.discount_value / 100);
+      console.log('  - percentage discount:', promotion.discount_value + '%', 'result:', discountedPrice);
     } else if (promotion.discount_type === 'fixed') {
-      return Math.max(0, originalPrice - promotion.discount_value);
+      discountedPrice = Math.max(0, originalPrice - promotion.discount_value);
+      console.log('  - fixed discount:', promotion.discount_value, 'result:', discountedPrice);
     } else if (promotion.discount_type === 'two_for_one') {
-      // For two_for_one, we could show half price or handle it differently
-      return originalPrice * 0.5;
+      discountedPrice = originalPrice * 0.5;
+      console.log('  - two for one discount, result:', discountedPrice);
     }
-    return originalPrice;
+    
+    return discountedPrice;
   };
 
   return { 
