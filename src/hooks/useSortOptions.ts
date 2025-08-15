@@ -15,15 +15,8 @@ export const useSortOptions = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Static sort options for now
+    // Static sort options - removed redundant options
     const staticSortOptions: SortOption[] = [
-      {
-        id: 'distance',
-        name: 'Distancia',
-        display_text: 'Más cerca',
-        value: 'distance_asc',
-        icon: '📍'
-      },
       {
         id: 'rating',
         name: 'Valoración',
@@ -37,20 +30,6 @@ export const useSortOptions = () => {
         display_text: 'Más populares',
         value: 'popularity_desc',
         icon: '🔥'
-      },
-      {
-        id: 'price_asc',
-        name: 'Precio',
-        display_text: 'Más económico',
-        value: 'price_asc',
-        icon: '💰'
-      },
-      {
-        id: 'price_desc',
-        name: 'Precio',
-        display_text: 'Más caro',
-        value: 'price_desc',
-        icon: '💎'
       }
     ];
 
