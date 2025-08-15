@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -106,24 +107,41 @@ function RestaurantMenuContent() {
     setIsExpandableSearchOpen(false);
   };
 
+  // Set initial active section when filteredSections are loaded
+  useEffect(() => {
+    if (filteredSections.length > 0 && activeSection === undefined) {
+      console.log('Setting initial active section:', filteredSections[0].id);
+      setActiveSection(filteredSections[0].id);
+    }
+  }, [filteredSections, activeSection]);
+
   // Auto-detect active section on scroll using Intersection Observer with sticky offset
   useEffect(() => {
     if (filteredSections.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
+        // Find the entry that is most visible
+        let mostVisibleEntry = null;
+        let maxIntersectionRatio = 0;
+
         entries.forEach((entry) => {
-          const sectionId = parseInt(entry.target.id.replace('section-', ''));
-          sectionsRefs.current[sectionId] = entry.target as HTMLElement;
-          
-          if (entry.isIntersecting) {
-            setActiveSection(sectionId);
+          if (entry.isIntersecting && entry.intersectionRatio > maxIntersectionRatio) {
+            maxIntersectionRatio = entry.intersectionRatio;
+            mostVisibleEntry = entry;
           }
         });
+
+        // Update active section to the most visible one
+        if (mostVisibleEntry) {
+          const sectionId = parseInt(mostVisibleEntry.target.id.replace('section-', ''));
+          console.log('Setting active section from scroll:', sectionId);
+          setActiveSection(sectionId);
+        }
       },
       {
-        rootMargin: '-110px 0px -50% 0px', // Account for sticky header + navigation height
-        threshold: 0.1
+        rootMargin: '-110px 0px -60% 0px', // Account for sticky header + navigation height
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5] // Multiple thresholds for better detection
       }
     );
 
@@ -132,6 +150,7 @@ function RestaurantMenuContent() {
       const element = document.getElementById(`section-${section.id}`);
       if (element) {
         observer.observe(element);
+        sectionsRefs.current[section.id] = element;
       }
     });
 
@@ -139,13 +158,6 @@ function RestaurantMenuContent() {
       observer.disconnect();
     };
   }, [filteredSections]);
-
-  // Set initial active section
-  useEffect(() => {
-    if (filteredSections.length > 0 && !activeSection) {
-      setActiveSection(filteredSections[0].id);
-    }
-  }, [filteredSections, activeSection]);
 
   if (restaurantLoading || sectionsLoading) {
     return <div className="min-h-screen bg-muted/20">
