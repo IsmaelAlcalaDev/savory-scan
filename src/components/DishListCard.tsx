@@ -43,7 +43,7 @@ export default function DishListCard({
       if (minPrice === maxPrice) {
         return minPrice;
       }
-      return minPrice; // Para promociones, usamos el precio mínimo
+      return minPrice;
     }
     return dish.base_price;
   };
@@ -103,11 +103,11 @@ export default function DishListCard({
         className="border rounded-lg bg-background transition-colors cursor-pointer"
         onClick={handleCardClick}
       >
-        <div className="flex gap-2.5 items-center p-2.5">
-          {/* Image */}
+        <div className="flex gap-2 items-center p-2">
+          {/* Image - más pequeña */}
           <div className="flex-shrink-0">
             {dish.image_url ? (
-              <div className="w-12 h-12 rounded-lg overflow-hidden relative">
+              <div className="w-8 h-8 rounded-md overflow-hidden relative">
                 <img
                   src={dish.image_url}
                   alt={dish.image_alt || dish.name}
@@ -120,23 +120,23 @@ export default function DishListCard({
                 )}
               </div>
             ) : (
-              <div className="w-12 h-12 bg-muted/50 rounded-lg flex items-center justify-center">
-                <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
+              <div className="w-8 h-8 bg-muted/50 rounded-md flex items-center justify-center">
+                <div className="text-muted-foreground text-xs">?</div>
               </div>
             )}
           </div>
 
-          {/* Content */}
+          {/* Content - sin descripción */}
           <div className="flex-1 min-w-0 flex items-center justify-between">
             {/* Name */}
-            <div className="flex items-center gap-2 pr-3">
-              <h3 className="font-semibold text-sm text-foreground line-clamp-1">
+            <div className="flex items-center gap-2 pr-2">
+              <h3 className="font-medium text-sm text-foreground line-clamp-1">
                 {dish.name}
               </h3>
             </div>
 
             {/* Price and Actions */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <DishPrice 
                 originalPrice={displayPrice}
                 dishId={dish.id}
@@ -145,7 +145,7 @@ export default function DishListCard({
                 promotions={promotions}
                 getPromotionForDish={getPromotionForDish}
                 calculateDiscountedPrice={calculateDiscountedPrice}
-                className="font-bold text-sm text-primary text-right"
+                className="font-semibold text-sm text-primary text-right"
               />
               
               <DishFavoriteButton
@@ -153,13 +153,13 @@ export default function DishListCard({
                 restaurantId={restaurantId}
                 favoritesCount={dish.favorites_count}
                 size="md"
-                className="border-0 bg-transparent hover:bg-transparent text-foreground w-6 h-6"
+                className="border-0 bg-transparent hover:bg-transparent text-foreground w-5 h-5"
                 savedFrom="menu_list"
               />
               
               <button
                 onClick={handlePlusClick}
-                className="w-6 h-6 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
+                className="w-5 h-5 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
                 aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
                 title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
               >
