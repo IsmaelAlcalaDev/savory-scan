@@ -7,8 +7,6 @@ import { ArrowLeft, Utensils, Search } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
 import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
-import UnifiedFiltersModal from '@/components/UnifiedFiltersModal';
-import DishSearchBar from '@/components/DishSearchBar';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import LanguageSelector from '@/components/LanguageSelector';
 import ExpandableSearchBar from '@/components/ExpandableSearchBar';
@@ -232,27 +230,6 @@ function RestaurantMenuContent() {
             />
           </div>
         )}
-
-        {/* Search Bar with integrated Filters Button */}
-        <div className="bg-background">
-          <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <DishSearchBar 
-                  searchQuery={searchQuery} 
-                  onSearchChange={setSearchQuery} 
-                  placeholder="Buscar platos..." 
-                />
-              </div>
-              <UnifiedFiltersModal
-                selectedAllergens={selectedAllergens}
-                selectedDietTypes={selectedDietTypes}
-                onAllergenChange={setSelectedAllergens}
-                onDietTypeChange={setSelectedDietTypes}
-              />
-            </div>
-          </div>
-        </div>
 
         {/* Original Section Navigation - with ref for scroll detection */}
         <div ref={originalNavRef} className="bg-background">
