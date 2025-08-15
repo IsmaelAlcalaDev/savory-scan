@@ -124,27 +124,46 @@ function RestaurantMenuContent() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find the topmost visible section (prioritize sections that are higher up)
+        // Create array of visible sections with detailed info
         const visibleSections = entries
           .filter(entry => entry.isIntersecting)
           .map(entry => ({
             id: parseInt(entry.target.id.replace('section-', '')),
             top: entry.boundingClientRect.top,
-            intersectionRatio: entry.intersectionRatio
-          }))
-          .sort((a, b) => a.top - b.top); // Sort by position from top
+            intersectionRatio: entry.intersectionRatio,
+            element: entry.target
+          }));
 
-        console.log('Visible sections from observer:', visibleSections);
+        console.log('Intersection Observer - Visible sections:', visibleSections.map(s => ({
+          id: s.id,
+          top: Math.round(s.top),
+          ratio: Math.round(s.intersectionRatio * 100) / 100
+        })));
 
         if (visibleSections.length > 0) {
-          const newActiveSection = visibleSections[0].id;
-          console.log('Setting active section from scroll:', newActiveSection);
-          setActiveSection(newActiveSection);
+          // Find the best section to mark as active
+          let bestSection = visibleSections[0];
+          
+          // Priority 1: Section with highest intersection ratio
+          const maxRatio = Math.max(...visibleSections.map(s => s.intersectionRatio));
+          const sectionsWithMaxRatio = visibleSections.filter(s => s.intersectionRatio === maxRatio);
+          
+          if (sectionsWithMaxRatio.length === 1) {
+            bestSection = sectionsWithMaxRatio[0];
+          } else {
+            // Priority 2: Among sections with same ratio, pick the one closest to top
+            bestSection = sectionsWithMaxRatio.reduce((prev, current) => {
+              return Math.abs(current.top) < Math.abs(prev.top) ? current : prev;
+            });
+          }
+
+          console.log('Selected active section:', bestSection.id, 'with ratio:', bestSection.intersectionRatio, 'and top:', Math.round(bestSection.top));
+          setActiveSection(bestSection.id);
         }
       },
       {
-        rootMargin: '-110px 0px -50% 0px', // Account for sticky header
-        threshold: [0.1, 0.3, 0.5] // Better thresholds for detection
+        rootMargin: '-110px 0px -70% 0px', // Account for sticky header, less aggressive bottom margin
+        threshold: [0, 0.1, 0.25] // Better thresholds for detection
       }
     );
 
@@ -248,9 +267,7 @@ function RestaurantMenuContent() {
           ) : (
             <div className="w-full">
               {filteredSections.map(section => (
-                <div key={section.id} id={`section-${section.id}`} className="w-full">
-                  <RestaurantMenuSection section={section} restaurantId={restaurant.id} />
-                </div>
+                <RestaurantMenuSection key={section.id} section={section} restaurantId={restaurant.id} />
               ))}
             </div>
           )}

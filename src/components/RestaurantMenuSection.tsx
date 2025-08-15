@@ -19,7 +19,7 @@ export default function RestaurantMenuSection({
   }
 
   return (
-    <div className="w-full">
+    <div id={`section-${section.id}`} className="w-full">
       {/* Section header with gray background - full width */}
       <div className="bg-gray-100 px-4 py-4">
         <h2 className="text-xl font-bold text-foreground mb-1">
