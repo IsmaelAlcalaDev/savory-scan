@@ -17,6 +17,7 @@ import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
 import OrderSimulatorModal from '@/components/OrderSimulatorModal';
 import AddDinersModal from '@/components/AddDinersModal';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
+
 function RestaurantMenuContent() {
   const {
     slug
@@ -167,11 +168,13 @@ function RestaurantMenuContent() {
 
         {/* Filters Row */}
         <div className="bg-background">
-          <div className="max-w-6xl mx-auto px-4 pt-4 pb-4">
-            <div className="flex items-center gap-4">
-              <AllergenFilterButton selectedAllergens={selectedAllergens} onAllergenChange={setSelectedAllergens} />
-              
-              <DietFilterButton selectedDietTypes={selectedDietTypes} onDietTypeChange={setSelectedDietTypes} />
+          <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <AllergenFilterButton selectedAllergens={selectedAllergens} onAllergenChange={setSelectedAllergens} />
+                
+                <DietFilterButton selectedDietTypes={selectedDietTypes} onDietTypeChange={setSelectedDietTypes} />
+              </div>
               
               <LanguageSelector />
             </div>
@@ -212,6 +215,7 @@ function RestaurantMenuContent() {
       </div>
     </>;
 }
+
 export default function RestaurantMenu() {
   return <OrderSimulatorProvider>
       <RestaurantMenuContent />
