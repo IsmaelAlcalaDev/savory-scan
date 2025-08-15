@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -210,7 +211,7 @@ export const useRestaurants = ({
             // Query dishes that match the diet types for these restaurants
             const { data: dishesData, error: dishesError } = await supabase
               .from('dishes')
-              .select('restaurant_id')
+              .select('restaurant_id, is_vegetarian, is_vegan, is_gluten_free, is_lactose_free, is_healthy')
               .in('restaurant_id', restaurantIds)
               .eq('is_active', true)
               .is('deleted_at', null);
