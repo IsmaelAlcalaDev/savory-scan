@@ -17,11 +17,15 @@ export default function AllergenFilterButton({ selectedAllergens, onAllergenChan
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="relative gap-2">
-          <AlertTriangle className="h-4 w-4" />
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="relative gap-2 rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border-0 text-xs px-3 py-1 h-7"
+        >
+          <AlertTriangle className="h-3 w-3" />
           Alérgenos
           {selectedAllergens.length > 0 && (
-            <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 text-xs">
+            <Badge variant="secondary" className="ml-1 h-4 w-4 rounded-full p-0 text-xs">
               {selectedAllergens.length}
             </Badge>
           )}
