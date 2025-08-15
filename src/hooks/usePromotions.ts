@@ -52,38 +52,66 @@ export const usePromotions = (restaurantId: number) => {
         // Transform the data to match our interface
         const transformedData: Promotion[] = (data || []).map(promo => {
           console.log('usePromotions - processing promotion:', promo);
+          console.log('usePromotions - applicable_dishes type:', typeof promo.applicable_dishes, 'value:', promo.applicable_dishes);
+          console.log('usePromotions - applicable_sections type:', typeof promo.applicable_sections, 'value:', promo.applicable_sections);
           
-          // Parse applicable_dishes - handle both string and array formats
+          // Parse applicable_dishes - improved handling
           let applicableDishes: number[] = [];
           if (promo.applicable_dishes) {
-            if (typeof promo.applicable_dishes === 'string') {
+            // If it's already an array, use it directly
+            if (Array.isArray(promo.applicable_dishes)) {
+              applicableDishes = promo.applicable_dishes.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+              console.log('usePromotions - applicable_dishes is array:', applicableDishes);
+            } 
+            // If it's a string, try to parse it as JSON
+            else if (typeof promo.applicable_dishes === 'string') {
               try {
-                applicableDishes = JSON.parse(promo.applicable_dishes).map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+                const parsed = JSON.parse(promo.applicable_dishes);
+                if (Array.isArray(parsed)) {
+                  applicableDishes = parsed.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+                  console.log('usePromotions - parsed applicable_dishes string to array:', applicableDishes);
+                }
               } catch (e) {
-                console.error('Error parsing applicable_dishes string:', e);
+                console.error('usePromotions - Error parsing applicable_dishes string:', e);
                 applicableDishes = [];
               }
-            } else if (Array.isArray(promo.applicable_dishes)) {
-              applicableDishes = promo.applicable_dishes.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+            }
+            // If it's some other type, try to handle it
+            else {
+              console.warn('usePromotions - unexpected applicable_dishes type:', typeof promo.applicable_dishes);
+              applicableDishes = [];
             }
           }
 
-          // Parse applicable_sections - handle both string and array formats
+          // Parse applicable_sections - improved handling
           let applicableSections: number[] = [];
           if (promo.applicable_sections) {
-            if (typeof promo.applicable_sections === 'string') {
+            // If it's already an array, use it directly
+            if (Array.isArray(promo.applicable_sections)) {
+              applicableSections = promo.applicable_sections.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+              console.log('usePromotions - applicable_sections is array:', applicableSections);
+            } 
+            // If it's a string, try to parse it as JSON
+            else if (typeof promo.applicable_sections === 'string') {
               try {
-                applicableSections = JSON.parse(promo.applicable_sections).map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+                const parsed = JSON.parse(promo.applicable_sections);
+                if (Array.isArray(parsed)) {
+                  applicableSections = parsed.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+                  console.log('usePromotions - parsed applicable_sections string to array:', applicableSections);
+                }
               } catch (e) {
-                console.error('Error parsing applicable_sections string:', e);
+                console.error('usePromotions - Error parsing applicable_sections string:', e);
                 applicableSections = [];
               }
-            } else if (Array.isArray(promo.applicable_sections)) {
-              applicableSections = promo.applicable_sections.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+            }
+            // If it's some other type, try to handle it
+            else {
+              console.warn('usePromotions - unexpected applicable_sections type:', typeof promo.applicable_sections);
+              applicableSections = [];
             }
           }
 
-          return {
+          const transformedPromo = {
             id: promo.id,
             title: promo.title,
             description: promo.description,
@@ -97,9 +125,12 @@ export const usePromotions = (restaurantId: number) => {
             applies_to_entire_menu: promo.applies_to_entire_menu || false,
             is_active: promo.is_active
           };
+
+          console.log('usePromotions - transformed promotion:', transformedPromo);
+          return transformedPromo;
         });
 
-        console.log('usePromotions - transformed promotions:', transformedData);
+        console.log('usePromotions - final transformed promotions:', transformedData);
         setPromotions(transformedData);
       } catch (err) {
         console.error('Error fetching promotions:', err);
@@ -118,6 +149,10 @@ export const usePromotions = (restaurantId: number) => {
     
     const promotion = promotions.find(promo => {
       console.log('getPromotionForDish - checking promotion:', promo);
+      console.log('getPromotionForDish - promotion applicable_dishes:', promo.applicable_dishes);
+      console.log('getPromotionForDish - promotion applicable_sections:', promo.applicable_sections);
+      console.log('getPromotionForDish - promotion applies_to_entire_menu:', promo.applies_to_entire_menu);
+      
       if (promo.applies_to_entire_menu) {
         console.log('getPromotionForDish - applies to entire menu');
         return true;
