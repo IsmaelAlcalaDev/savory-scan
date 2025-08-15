@@ -44,10 +44,23 @@ export const usePromotions = (restaurantId: number) => {
         }
 
         // Transform the data to match our interface
-        const transformedData = (data || []).map(promo => ({
-          ...promo,
-          applicable_dishes: Array.isArray(promo.applicable_dishes) ? promo.applicable_dishes : [],
-          applicable_sections: Array.isArray(promo.applicable_sections) ? promo.applicable_sections : []
+        const transformedData: Promotion[] = (data || []).map(promo => ({
+          id: promo.id,
+          title: promo.title,
+          description: promo.description,
+          discount_type: promo.discount_type as 'percentage' | 'fixed' | 'two_for_one',
+          discount_value: promo.discount_value,
+          discount_label: promo.discount_label,
+          valid_from: promo.valid_from,
+          valid_until: promo.valid_until,
+          applicable_dishes: Array.isArray(promo.applicable_dishes) 
+            ? (promo.applicable_dishes as any[]).map(id => Number(id)).filter(id => !isNaN(id))
+            : [],
+          applicable_sections: Array.isArray(promo.applicable_sections) 
+            ? (promo.applicable_sections as any[]).map(id => Number(id)).filter(id => !isNaN(id))
+            : [],
+          applies_to_entire_menu: promo.applies_to_entire_menu || false,
+          is_active: promo.is_active
         }));
 
         setPromotions(transformedData);
