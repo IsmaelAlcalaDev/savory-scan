@@ -15,7 +15,7 @@ export default function MenuSectionTabs({ sections, activeSection, onSectionClic
   }
 
   return (
-    <div className="border-b bg-muted/30">
+    <div className="bg-white">
       <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex space-x-2 p-4">
           {sections.map((section) => (
@@ -24,7 +24,7 @@ export default function MenuSectionTabs({ sections, activeSection, onSectionClic
               variant={activeSection === section.id ? "secondary" : "ghost"}
               size="sm"
               onClick={() => onSectionClick(section.id)}
-              className="flex-shrink-0 rounded-full text-xs px-3 py-1 h-7 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border-0"
+              className="flex-shrink-0 rounded-full text-sm px-4 py-2 h-8 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border-0"
             >
               {section.name}
             </Button>
