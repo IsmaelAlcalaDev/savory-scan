@@ -192,7 +192,7 @@ function RestaurantMenuContent() {
 
         {/* Sticky Section Navigation - positioned right below header when needed */}
         {showStickyNav && (
-          <div className="fixed top-[73px] left-0 right-0 z-30 bg-background border-b shadow-sm transition-all duration-200">
+          <div className="fixed top-[73px] left-0 right-0 z-30 bg-background border-b shadow-sm">
             <MenuSectionTabs 
               sections={filteredSections} 
               activeSection={activeSection} 
@@ -234,7 +234,7 @@ function RestaurantMenuContent() {
         </div>
 
         {/* Original Section Navigation - with ref for scroll detection */}
-        <div ref={originalNavRef}>
+        <div ref={originalNavRef} className="bg-background">
           <MenuSectionTabs 
             sections={filteredSections} 
             activeSection={activeSection} 
