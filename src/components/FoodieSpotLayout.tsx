@@ -17,11 +17,13 @@ interface FoodieSpotLayoutProps {
   initialTab?: 'restaurants' | 'dishes';
 }
 
+type PriceRange = '€' | '€€' | '€€€' | '€€€€';
+
 export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Active bottom tab state
+  // Active bottom tab state - only restaurants and dishes
   const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes'>(initialTab);
 
   // Search query state
@@ -66,7 +68,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
   const [selectedDistance, setSelectedDistance] = useState<number[]>([]);
-  const [selectedPriceRanges, setSelectedPriceRanges] = useState<('€' | '€€' | '€€€' | '€€€€')[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<PriceRange[]>([]);
   const [selectedRating, setSelectedRating] = useState<number | undefined>();
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
@@ -140,6 +142,27 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     },
     currentResults.length
   );
+
+  // Handler for search
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  // Handler for price range changes with proper type conversion
+  const handlePriceRangeChange = useCallback((ranges: string[]) => {
+    const validRanges = ranges.filter((range): range is PriceRange => 
+      ['€', '€€', '€€€', '€€€€'].includes(range)
+    );
+    setSelectedPriceRanges(validRanges);
+  }, []);
+
+  // Handler for bottom navigation with proper tab filtering
+  const handleTabChange = useCallback((tab: 'restaurants' | 'dishes' | 'account') => {
+    // Only handle restaurants and dishes tabs
+    if (tab === 'restaurants' || tab === 'dishes') {
+      setActiveBottomTab(tab);
+    }
+  }, []);
 
   // Filter handlers
   const handleClearFilter = useCallback((type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'sort' | 'timeRange' | 'all', id?: number) => {
@@ -233,8 +256,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         {/* Search and Filters */}
         <div className="space-y-4 mb-6">
           <SecureSearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
+            onSearch={handleSearch}
             placeholder={activeBottomTab === 'restaurants' ? "Buscar restaurantes..." : "Buscar platos..."}
           />
 
@@ -267,7 +289,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             onClearFilter={handleClearFilter}
             onSortChange={setSelectedSort}
             onDistanceChange={setSelectedDistance}
-            onPriceRangeChange={setSelectedPriceRanges}
+            onPriceRangeChange={handlePriceRangeChange}
             onRatingChange={setSelectedRating}
             onEstablishmentTypeChange={setSelectedEstablishmentTypes}
             onDietTypeChange={setSelectedDietTypes}
@@ -337,15 +359,25 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
               dishes={dishes}
               loading={dishesLoading}
               error={dishesError}
-              onClearFilters={handleClearAllFilters}
             />
+            {!dishesLoading && !dishesError && dishes.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-gray-600">No se encontraron platos con los filtros seleccionados</p>
+                <button
+                  onClick={handleClearAllFilters}
+                  className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       <BottomNavigation
-        activeTab={activeBottomTab}
-        onTabChange={setActiveBottomTab}
+        activeTab={activeBottomTab === 'restaurants' ? 'restaurants' : activeBottomTab === 'dishes' ? 'dishes' : 'restaurants'}
+        onTabChange={handleTabChange}
       />
     </div>
   );
