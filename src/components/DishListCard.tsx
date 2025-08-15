@@ -181,7 +181,7 @@ export default function DishListCard({
       {/* Info Modal for dishes without variants */}
       <DishInfoModal
         isOpen={isInfoModalOpen}
-        onClose={() => setIsInfoModal
+        onClose={() => setIsInfoModalOpen(false)}
         dish={dish}
         onDishAdd={handleDishAdd}
       />
