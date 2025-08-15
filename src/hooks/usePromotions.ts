@@ -31,14 +31,16 @@ export const usePromotions = (restaurantId: number) => {
         setError(null);
 
         console.log('usePromotions - fetching for restaurant:', restaurantId);
+        const now = new Date().toISOString();
+        console.log('usePromotions - current time:', now);
 
         const { data, error } = await supabase
           .from('promotions')
           .select('*')
           .eq('restaurant_id', restaurantId)
           .eq('is_active', true)
-          .lte('valid_from', new Date().toISOString())
-          .gte('valid_until', new Date().toISOString())
+          .lte('valid_from', now)  // valid_from debe ser menor o igual que ahora
+          .gte('valid_until', now) // valid_until debe ser mayor o igual que ahora
           .is('deleted_at', null);
 
         console.log('usePromotions - query result:', { data, error });
