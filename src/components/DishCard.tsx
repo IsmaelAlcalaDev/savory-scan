@@ -13,9 +13,14 @@ interface DishCardProps {
   restaurantId: number;
   expandedDishId: number | null;
   onExpandedChange: (dishId: number | null) => void;
+  isFirstInSection?: boolean;
 }
 
-export default function DishCard({ dish, restaurantId }: DishCardProps) {
+export default function DishCard({ 
+  dish, 
+  restaurantId, 
+  isFirstInSection = false 
+}: DishCardProps) {
   const { addDishToOrder, diners, openDinersModal } = useOrderSimulator();
   const [isVariantsModalOpen, setIsVariantsModalOpen] = useState(false);
 
@@ -99,7 +104,7 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
 
   return (
     <>
-      <div className="border-t border-b border-border/50">
+      <div className={`bg-background ${!isFirstInSection ? 'border-t' : ''} border-b border-border/50`}>
         <div className="py-4 px-0 transition-colors">
           <div className="flex gap-3 items-start w-full">
             {/* Image */}
@@ -129,7 +134,7 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
               {/* Top Row - Name and Price */}
               <div className="flex items-start justify-between mb-2">
                 <div className="flex flex-col gap-1.5 pr-3 min-w-0">
-                  <h3 className="font-semibold text-base text-foreground line-clamp-2">
+                  <h3 className="font-semibold text-lg text-foreground line-clamp-2">
                     {dish.name}
                   </h3>
                   {/* Custom Tags */}
@@ -147,7 +152,7 @@ export default function DishCard({ dish, restaurantId }: DishCardProps) {
                     </div>
                   )}
                 </div>
-                <div className="font-bold text-base text-primary text-right flex-shrink-0">
+                <div className="font-bold text-lg text-primary text-right flex-shrink-0">
                   {getDisplayPrice()}
                 </div>
               </div>

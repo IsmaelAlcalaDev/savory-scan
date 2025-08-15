@@ -32,13 +32,14 @@ export default function RestaurantMenuSection({
       </div>
       
       <div>
-        {section.dishes.map((dish) => (
+        {section.dishes.map((dish, index) => (
           <DishCard
             key={dish.id}
             dish={dish}
             restaurantId={restaurantId}
             expandedDishId={expandedDishId}
             onExpandedChange={setExpandedDishId}
+            isFirstInSection={index === 0}
           />
         ))}
       </div>

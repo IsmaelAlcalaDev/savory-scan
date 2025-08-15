@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -101,7 +102,7 @@ function RestaurantMenuContent() {
 
   if (restaurantLoading || sectionsLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-muted/20">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <Skeleton className="h-12 w-64 mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -116,7 +117,7 @@ function RestaurantMenuContent() {
 
   if (restaurantError || sectionsError || !restaurant) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-muted/20">
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Restaurante no encontrado</h1>
@@ -137,7 +138,7 @@ function RestaurantMenuContent() {
         <meta name="description" content={`Explora la carta completa de ${restaurant.name}. Descubre todos nuestros platos y encuentra tu favorito.`} />
       </Helmet>
 
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-muted/20 pb-20">
         {/* Simple Header Navigation */}
         <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-4">
