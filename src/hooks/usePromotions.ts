@@ -39,8 +39,8 @@ export const usePromotions = (restaurantId: number) => {
           .select('*')
           .eq('restaurant_id', restaurantId)
           .eq('is_active', true)
-          .lte('valid_from', now)  // valid_from debe ser menor o igual que ahora
-          .gte('valid_until', now) // valid_until debe ser mayor o igual que ahora
+          .lte('valid_from', now)
+          .gte('valid_until', now)
           .is('deleted_at', null);
 
         console.log('usePromotions - query result:', { data, error });
@@ -52,6 +52,37 @@ export const usePromotions = (restaurantId: number) => {
         // Transform the data to match our interface
         const transformedData: Promotion[] = (data || []).map(promo => {
           console.log('usePromotions - processing promotion:', promo);
+          
+          // Parse applicable_dishes - handle both string and array formats
+          let applicableDishes: number[] = [];
+          if (promo.applicable_dishes) {
+            if (typeof promo.applicable_dishes === 'string') {
+              try {
+                applicableDishes = JSON.parse(promo.applicable_dishes).map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+              } catch (e) {
+                console.error('Error parsing applicable_dishes string:', e);
+                applicableDishes = [];
+              }
+            } else if (Array.isArray(promo.applicable_dishes)) {
+              applicableDishes = promo.applicable_dishes.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+            }
+          }
+
+          // Parse applicable_sections - handle both string and array formats
+          let applicableSections: number[] = [];
+          if (promo.applicable_sections) {
+            if (typeof promo.applicable_sections === 'string') {
+              try {
+                applicableSections = JSON.parse(promo.applicable_sections).map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+              } catch (e) {
+                console.error('Error parsing applicable_sections string:', e);
+                applicableSections = [];
+              }
+            } else if (Array.isArray(promo.applicable_sections)) {
+              applicableSections = promo.applicable_sections.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+            }
+          }
+
           return {
             id: promo.id,
             title: promo.title,
@@ -61,12 +92,8 @@ export const usePromotions = (restaurantId: number) => {
             discount_label: promo.discount_label,
             valid_from: promo.valid_from,
             valid_until: promo.valid_until,
-            applicable_dishes: Array.isArray(promo.applicable_dishes) 
-              ? (promo.applicable_dishes as any[]).map(id => Number(id)).filter(id => !isNaN(id))
-              : [],
-            applicable_sections: Array.isArray(promo.applicable_sections) 
-              ? (promo.applicable_sections as any[]).map(id => Number(id)).filter(id => !isNaN(id))
-              : [],
+            applicable_dishes: applicableDishes,
+            applicable_sections: applicableSections,
             applies_to_entire_menu: promo.applies_to_entire_menu || false,
             is_active: promo.is_active
           };
