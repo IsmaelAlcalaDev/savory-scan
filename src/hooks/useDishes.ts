@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -204,12 +205,12 @@ export const useDishes = (params: UseDishesParams = {}) => {
         // Get diet types with their categories
         const { data: dietTypesData, error: dietTypesError } = await supabase
           .from('diet_types')
-          .select('id, category')
+          .select('*')
           .in('id', selectedDietTypes);
 
         if (!dietTypesError && dietTypesData) {
           filteredDishes = filteredDishes.filter(dish => {
-            return dietTypesData.some(dietType => {
+            return dietTypesData.some((dietType: any) => {
               switch (dietType.category) {
                 case 'vegetarian': return dish.is_vegetarian;
                 case 'vegan': return dish.is_vegan;

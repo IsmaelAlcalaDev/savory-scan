@@ -17,7 +17,7 @@ export const useDietTypes = () => {
         
         const { data, error } = await supabase
           .from('diet_types')
-          .select('id, name, slug, icon, category, min_percentage, max_percentage')
+          .select('*')
           .order('category, min_percentage');
 
         if (error) {
@@ -26,11 +26,23 @@ export const useDietTypes = () => {
         }
         
         console.log('Raw diet types data:', data);
-        setDietTypes(data || []);
+        
+        // Transform the data to match our DietType interface
+        const transformedData: DietType[] = (data || []).map(item => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          icon: item.icon,
+          category: item.category as 'vegetarian' | 'vegan' | 'gluten_free' | 'healthy',
+          min_percentage: item.min_percentage,
+          max_percentage: item.max_percentage
+        }));
+        
+        setDietTypes(transformedData);
 
         // Group diet types by category
         const groupedCategories: Record<string, DietType[]> = {};
-        (data || []).forEach(dietType => {
+        transformedData.forEach(dietType => {
           if (!groupedCategories[dietType.category]) {
             groupedCategories[dietType.category] = [];
           }

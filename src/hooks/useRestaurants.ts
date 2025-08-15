@@ -220,7 +220,7 @@ export const useRestaurants = ({
           // First, get the diet types with their categories and percentages
           const { data: dietTypesData, error: dietTypesError } = await supabase
             .from('diet_types')
-            .select('id, category, min_percentage, max_percentage')
+            .select('*')
             .in('id', selectedDietTypes);
 
           if (dietTypesError) {
@@ -252,7 +252,7 @@ export const useRestaurants = ({
                 // Filter restaurants based on diet type percentages
                 const filteredRestaurantIds = new Set<number>();
 
-                dietTypesData.forEach(dietType => {
+                dietTypesData.forEach((dietType: any) => {
                   Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
                     const restaurantId = parseInt(restaurantIdStr);
                     const percentage = calculateDietPercentage(dishes, dietType.category);
