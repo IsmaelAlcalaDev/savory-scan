@@ -40,8 +40,8 @@ export default function OrderSimulatorModal({ isOpen, onClose }: OrderSimulatorM
 
   return (
     <ModalWrapper open={isOpen} onOpenChange={onClose}>
-      <ModalContent className="max-w-4xl max-h-[90vh] p-0">
-        <ModalHeader className="p-6 pb-4 border-b">
+      <ModalContent className="max-w-none w-full h-full max-h-none m-0 rounded-none p-0 flex flex-col">
+        <ModalHeader className="p-6 pb-4 border-b flex-shrink-0">
           <div className="flex items-center justify-between w-full">
             <ModalTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
