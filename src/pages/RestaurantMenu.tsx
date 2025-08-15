@@ -11,7 +11,7 @@ import DietFilterButton from '@/components/DietFilterButton';
 import DishSearchBar from '@/components/DishSearchBar';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import LanguageSelector from '@/components/LanguageSelector';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
 import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
 import OrderSimulatorModal from '@/components/OrderSimulatorModal';
@@ -48,7 +48,10 @@ function RestaurantMenuContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<number | undefined>();
   const [showStickyNav, setShowStickyNav] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
+
+  // Refs for navigation elements
+  const originalNavRef = useRef<HTMLDivElement>(null);
+  const headerHeight = 73; // Fixed header height
 
   const handleGoBack = () => {
     navigate(`/restaurant/${slug}`);
@@ -58,8 +61,8 @@ function RestaurantMenuContent() {
     setActiveSection(sectionId);
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
-      // Calculate offset to account for sticky header (80px) + sticky nav (60px) + some padding (20px)
-      const headerOffset = 160;
+      // Calculate offset to account for sticky header + sticky nav when active
+      const headerOffset = showStickyNav ? 133 : 160; // 73px header + 60px nav OR 160px original
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -70,26 +73,27 @@ function RestaurantMenuContent() {
     }
   };
 
-  // Scroll detection for sticky navigation
+  // Improved scroll detection using IntersectionObserver
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const filtersSection = document.querySelector('[data-filters-section]');
-      const filtersSectionBottom = filtersSection ? filtersSection.getBoundingClientRect().bottom : 0;
-      
-      // Show sticky nav when scrolling up and past the filters section
-      if (currentScrollY < lastScrollY && filtersSectionBottom < 0) {
-        setShowStickyNav(true);
-      } else if (currentScrollY > lastScrollY || filtersSectionBottom > 0) {
-        setShowStickyNav(false);
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
+    if (!originalNavRef.current) return;
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        // When the original nav is not visible at the top, show sticky nav
+        setShowStickyNav(!entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: `-${headerHeight}px 0px 0px 0px`, // Account for header height
+        threshold: 0
+      }
+    );
+
+    observer.observe(originalNavRef.current);
+
+    return () => observer.disconnect();
+  }, [headerHeight]);
 
   // Filter sections and dishes based on active filters
   const filteredSections = useMemo(() => {
@@ -199,9 +203,9 @@ function RestaurantMenuContent() {
           </div>
         </div>
 
-        {/* Sticky Section Navigation - only show when needed */}
+        {/* Sticky Section Navigation - positioned right below header when needed */}
         {showStickyNav && (
-          <div className="fixed top-[73px] left-0 right-0 z-30 bg-background border-b shadow-sm">
+          <div className="fixed top-[73px] left-0 right-0 z-30 bg-background border-b shadow-sm transition-all duration-200">
             <MenuSectionTabs sections={filteredSections} activeSection={activeSection} onSectionClick={handleSectionClick} />
           </div>
         )}
@@ -228,8 +232,10 @@ function RestaurantMenuContent() {
           </div>
         </div>
 
-        {/* Section Navigation */}
-        <MenuSectionTabs sections={filteredSections} activeSection={activeSection} onSectionClick={handleSectionClick} />
+        {/* Original Section Navigation - with ref for intersection detection */}
+        <div ref={originalNavRef}>
+          <MenuSectionTabs sections={filteredSections} activeSection={activeSection} onSectionClick={handleSectionClick} />
+        </div>
 
         {/* Menu Content */}
         <div className="max-w-6xl mx-auto px-4 py-8">
