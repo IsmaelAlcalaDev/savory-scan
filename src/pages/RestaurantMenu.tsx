@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -86,6 +85,7 @@ function RestaurantMenuContent() {
   };
 
   const handleSectionClick = (sectionId: number) => {
+    console.log('Section clicked:', sectionId);
     setActiveSection(sectionId);
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
@@ -115,33 +115,35 @@ function RestaurantMenuContent() {
     }
   }, [filteredSections, activeSection]);
 
-  // Auto-detect active section on scroll using Intersection Observer with sticky offset
+  // Auto-detect active section on scroll using Intersection Observer
   useEffect(() => {
     if (filteredSections.length === 0) return;
 
+    console.log('Setting up intersection observer for sections:', filteredSections.map(s => s.id));
+
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find the entry that is most visible
-        let mostVisibleEntry = null;
-        let maxIntersectionRatio = 0;
+        // Find the topmost visible section (prioritize sections that are higher up)
+        const visibleSections = entries
+          .filter(entry => entry.isIntersecting)
+          .map(entry => ({
+            id: parseInt(entry.target.id.replace('section-', '')),
+            top: entry.boundingClientRect.top,
+            intersectionRatio: entry.intersectionRatio
+          }))
+          .sort((a, b) => a.top - b.top); // Sort by position from top
 
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > maxIntersectionRatio) {
-            maxIntersectionRatio = entry.intersectionRatio;
-            mostVisibleEntry = entry;
-          }
-        });
+        console.log('Visible sections from observer:', visibleSections);
 
-        // Update active section to the most visible one
-        if (mostVisibleEntry) {
-          const sectionId = parseInt(mostVisibleEntry.target.id.replace('section-', ''));
-          console.log('Setting active section from scroll:', sectionId);
-          setActiveSection(sectionId);
+        if (visibleSections.length > 0) {
+          const newActiveSection = visibleSections[0].id;
+          console.log('Setting active section from scroll:', newActiveSection);
+          setActiveSection(newActiveSection);
         }
       },
       {
-        rootMargin: '-110px 0px -60% 0px', // Account for sticky header + navigation height
-        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5] // Multiple thresholds for better detection
+        rootMargin: '-110px 0px -50% 0px', // Account for sticky header
+        threshold: [0.1, 0.3, 0.5] // Better thresholds for detection
       }
     );
 
@@ -151,10 +153,12 @@ function RestaurantMenuContent() {
       if (element) {
         observer.observe(element);
         sectionsRefs.current[section.id] = element;
+        console.log('Observing section:', section.id, section.name);
       }
     });
 
     return () => {
+      console.log('Cleaning up intersection observer');
       observer.disconnect();
     };
   }, [filteredSections]);
@@ -185,6 +189,8 @@ function RestaurantMenuContent() {
         </div>
       </div>;
   }
+
+  console.log('Rendering with activeSection:', activeSection, 'filteredSections:', filteredSections.length);
 
   return (
     <>

@@ -31,7 +31,8 @@ export default function MenuSectionTabs({
 
   // Auto-scroll to active section button when activeSection changes
   useEffect(() => {
-    if (activeSection && activeButtonRef.current && scrollAreaRef.current) {
+    if (activeSection !== undefined && activeButtonRef.current && scrollAreaRef.current) {
+      console.log('Auto-scrolling to active section button:', activeSection);
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollContainer) {
         const activeButton = activeButtonRef.current;
@@ -59,6 +60,7 @@ export default function MenuSectionTabs({
             optimalScrollLeft = buttonRight - containerWidth + 40; // 40px margin from right edge
           }
           
+          console.log('Scrolling to optimal position:', optimalScrollLeft);
           scrollContainer.scrollTo({
             left: Math.max(0, optimalScrollLeft),
             behavior: 'smooth'
@@ -73,6 +75,8 @@ export default function MenuSectionTabs({
   }
 
   const activeFiltersCount = selectedAllergens.length + selectedDietTypes.length;
+
+  console.log('MenuSectionTabs render - activeSection:', activeSection, 'sections:', sections.map(s => ({ id: s.id, name: s.name })));
 
   return (
     <div className="bg-background">
@@ -106,22 +110,27 @@ export default function MenuSectionTabs({
           />
           
           {/* Section Buttons */}
-          {sections.map((section) => (
-            <Button
-              key={section.id}
-              ref={activeSection === section.id ? activeButtonRef : null}
-              variant={activeSection === section.id ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => onSectionClick(section.id)}
-              className={`flex-shrink-0 rounded-full text-sm px-4 py-2 h-8 border-0 transition-colors ${
-                activeSection === section.id 
-                  ? 'bg-red-500 hover:bg-red-600 text-white' 
-                  : 'bg-gray-100 hover:bg-red-500 hover:text-white text-gray-700'
-              }`}
-            >
-              {section.name}
-            </Button>
-          ))}
+          {sections.map((section) => {
+            const isActive = activeSection === section.id;
+            console.log('Rendering section button:', section.id, section.name, 'isActive:', isActive);
+            
+            return (
+              <Button
+                key={section.id}
+                ref={isActive ? activeButtonRef : null}
+                variant={isActive ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => onSectionClick(section.id)}
+                className={`flex-shrink-0 rounded-full text-sm px-4 py-2 h-8 border-0 transition-colors ${
+                  isActive 
+                    ? 'bg-red-500 hover:bg-red-600 text-white' 
+                    : 'bg-gray-100 hover:bg-red-500 hover:text-white text-gray-700'
+                }`}
+              >
+                {section.name}
+              </Button>
+            );
+          })}
         </div>
         <ScrollBar orientation="horizontal" className="invisible" />
       </ScrollArea>
