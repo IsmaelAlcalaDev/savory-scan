@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
@@ -52,21 +51,21 @@ export default function DishCard({
   const getTagStyle = (tag: string) => {
     const tagLower = tag.toLowerCase();
     if (tagLower.includes('chef') || tagLower.includes('recomendado')) {
-      return 'bg-amber-50 text-amber-700 border-amber-200 shadow-sm';
+      return 'bg-amber-100 text-amber-800 border-amber-200';
     }
     if (tagLower.includes('premiado') || tagLower.includes('premio')) {
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm';
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
     }
     if (tagLower.includes('especialidad') || tagLower.includes('casa')) {
-      return 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm';
+      return 'bg-blue-100 text-blue-800 border-blue-200';
     }
     if (tagLower.includes('nuevo') || tagLower.includes('novedad')) {
-      return 'bg-red-50 text-red-700 border-red-200 shadow-sm';
+      return 'bg-red-100 text-red-800 border-red-200';
     }
     if (tagLower.includes('popular') || tagLower.includes('favorito')) {
-      return 'bg-purple-50 text-purple-700 border-purple-200 shadow-sm';
+      return 'bg-purple-100 text-purple-800 border-purple-200';
     }
-    return 'bg-muted/60 text-muted-foreground border-muted shadow-sm';
+    return 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   const handleAddVariantToOrder = (variantId: number, dinerId: string) => {
@@ -121,41 +120,39 @@ export default function DishCard({
   return (
     <>
       <div 
-        className={`bg-background cursor-pointer group transition-all duration-300 hover:bg-muted/30 ${
-          !isFirstInSection ? 'border-t' : ''
-        } border-b border-border/30 hover:border-border/50`}
+        className={`bg-background cursor-pointer ${!isFirstInSection ? 'border-t' : ''} border-b border-border/50`}
         onClick={handleCardClick}
       >
-        <div className="py-5 px-4 transition-all duration-300">
-          <div className="flex gap-4 items-start w-full">
-            
-            {/* Content - Enhanced 2x2 Grid Layout */}
-            <div className="flex-1 min-w-0 h-22">
-              <div className="grid grid-rows-2 h-full gap-2">
+        <div className="py-4 px-0 transition-colors">
+          <div className="flex gap-3 items-start w-full">
+            {/* Content - 2x2 Grid Layout */}
+            <div className="flex-1 min-w-0 h-20">
+              {/* Grid container with 2 rows */}
+              <div className="grid grid-rows-2 h-full gap-1">
                 
                 {/* First Row: Name (left) and Price (right) */}
                 <div className="flex items-start justify-between">
-                  <div className="flex-1 pr-4 min-w-0">
-                    <h3 className="font-semibold text-lg text-foreground line-clamp-1 group-hover:text-primary transition-colors duration-200">
+                  <div className="flex-1 pr-3 min-w-0">
+                    <h3 className="font-semibold text-lg text-foreground line-clamp-1">
                       {dish.name}
                     </h3>
                   </div>
-                  <div className="font-bold text-lg text-primary text-right flex-shrink-0 transition-all duration-200 group-hover:scale-105">
+                  <div className="font-bold text-lg text-primary text-right flex-shrink-0">
                     {getDisplayPrice()}
                   </div>
                 </div>
 
                 {/* Second Row: Custom Tags (left) and Buttons (right) */}
                 <div className="flex items-end justify-between">
-                  <div className="flex-1 pr-4 min-w-0">
-                    {/* Enhanced Custom Tags */}
+                  <div className="flex-1 pr-3">
+                    {/* Custom Tags */}
                     {customTags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-1">
                         {customTags.slice(0, 2).map((tag, index) => (
                           <Badge 
                             key={index}
                             variant="outline"
-                            className={`text-xs px-2.5 py-1 h-6 font-medium transition-all duration-200 hover:shadow-md ${getTagStyle(tag)}`}
+                            className={`text-xs px-2 py-0.5 h-5 ${getTagStyle(tag)}`}
                           >
                             {tag}
                           </Badge>
@@ -163,25 +160,23 @@ export default function DishCard({
                       </div>
                     )}
                   </div>
-                  
-                  {/* Enhanced Button Container */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <DishFavoriteButton
                       dishId={dish.id}
                       restaurantId={restaurantId}
                       favoritesCount={dish.favorites_count}
                       size="md"
-                      className="border-0 bg-transparent hover:bg-muted/50 text-foreground w-9 h-9 transition-all duration-200 hover:scale-110"
+                      className="border-0 bg-transparent hover:bg-transparent text-foreground w-8 h-8"
                       savedFrom="menu_list"
                     />
                     
                     <button
                       onClick={handlePlusClick}
-                      className="w-9 h-9 rounded-full bg-primary hover:bg-primary/90 text-white transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 group-hover:shadow-primary/25"
+                      className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-white transition-colors flex items-center justify-center shadow-sm"
                       aria-label={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
                       title={hasMultipleVariants ? "Seleccionar variante" : "Añadir al simulador"}
                     >
-                      <Plus className="h-4 w-4 transition-transform duration-200 group-hover:rotate-90" />
+                      <Plus className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -189,25 +184,24 @@ export default function DishCard({
               </div>
             </div>
 
-            {/* Enhanced Image - On the right */}
+            {/* Image - Now on the right */}
             <div className="flex-shrink-0">
               {dish.image_url ? (
-                <div className="w-22 h-22 rounded-xl overflow-hidden relative shadow-md transition-all duration-300 group-hover:shadow-xl group-hover:scale-105">
+                <div className="w-20 h-20 rounded-lg overflow-hidden relative">
                   <img
                     src={dish.image_url}
                     alt={dish.image_alt || dish.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   {dish.is_featured && (
-                    <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 shadow-lg border-2 border-background">
+                    <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 py-0">
                       ★
                     </Badge>
                   )}
                 </div>
               ) : (
-                <div className="w-22 h-22 bg-muted/40 rounded-xl flex items-center justify-center shadow-md transition-all duration-300 group-hover:shadow-lg border border-border/30">
-                  <div className="text-muted-foreground text-xs text-center font-medium">Sin imagen</div>
+                <div className="w-20 h-20 bg-muted/50 rounded-lg flex items-center justify-center">
+                  <div className="text-muted-foreground text-xs text-center">Sin imagen</div>
                 </div>
               )}
             </div>
