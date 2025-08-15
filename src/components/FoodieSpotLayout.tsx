@@ -240,6 +240,7 @@ export default function FoodieSpotLayout({
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
+    priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
     minRating: 0,
     selectedDistanceRangeIds: selectedDistance.length > 0 ? selectedDistance : undefined
   });

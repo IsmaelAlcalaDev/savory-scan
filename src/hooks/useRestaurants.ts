@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -128,6 +129,7 @@ export const useRestaurants = ({
         }
 
         if (priceRanges && priceRanges.length > 0) {
+          console.log('Applying price range filter:', priceRanges);
           query = query.in('price_range', priceRanges);
         }
 
@@ -186,6 +188,9 @@ export const useRestaurants = ({
         console.log('Final formatted restaurants after all filters:', sortedData.length);
         if (cuisineTypeIds && cuisineTypeIds.length > 0) {
           console.log('Filtered restaurants by cuisine types:', sortedData.map(r => ({ name: r.name, cuisines: r.cuisine_types })));
+        }
+        if (priceRanges && priceRanges.length > 0) {
+          console.log('Filtered restaurants by price ranges:', sortedData.map(r => ({ name: r.name, price: r.price_range })));
         }
         
         setRestaurants(sortedData);
