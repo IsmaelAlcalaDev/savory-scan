@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
@@ -7,7 +8,6 @@ import DishInfoModal from './DishInfoModal';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import { useState } from 'react';
-import { generatePriorityTags } from '@/utils/dishTagUtils';
 
 interface DishCardProps {
   dish: Dish;
@@ -97,9 +97,6 @@ export default function DishCard({
 
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
   const hasImage = Boolean(dish.image_url);
-  
-  // Generate priority tags using the new utility
-  const priorityTags = generatePriorityTags(dish);
 
   return (
     <div className="w-full">
@@ -120,7 +117,7 @@ export default function DishCard({
                 {/* First Row: Name (left) and Price (right) */}
                 <div className="flex items-start justify-between">
                   <div className="flex-1 pr-3 min-w-0">
-                    <h3 className="font-semibold text-base md:text-lg text-foreground line-clamp-1">
+                    <h3 className="font-semibold text-base md:text-lg text-foreground break-words leading-tight">
                       {dish.name}
                     </h3>
                   </div>
@@ -129,23 +126,10 @@ export default function DishCard({
                   </div>
                 </div>
 
-                {/* Second Row: Priority Tags (left) and Buttons (right) */}
+                {/* Second Row: Empty space (left) and Buttons (right) */}
                 <div className="flex items-end justify-between">
                   <div className="flex-1 pr-3">
-                    {/* Priority Tags - Show up to 3 tags */}
-                    {priorityTags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {priorityTags.map((tag, index) => (
-                          <Badge 
-                            key={`${tag.type}-${index}`}
-                            variant="outline"
-                            className={`text-xs px-2 py-0.5 h-5 ${tag.style}`}
-                          >
-                            {tag.text}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                    {/* Empty space for future content like tags */}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <DishFavoriteButton
