@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -75,13 +76,29 @@ function RestaurantMenuContent() {
 
   // Improved scroll detection using IntersectionObserver
   useEffect(() => {
-    if (!originalNavRef.current) return;
+    console.log('Setting up IntersectionObserver...');
+    
+    if (!originalNavRef.current) {
+      console.log('originalNavRef.current is null, returning early');
+      return;
+    }
+
+    console.log('Creating IntersectionObserver with headerHeight:', headerHeight);
 
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
+        console.log('IntersectionObserver callback triggered:', {
+          isIntersecting: entry.isIntersecting,
+          intersectionRatio: entry.intersectionRatio,
+          boundingClientRect: entry.boundingClientRect,
+          rootBounds: entry.rootBounds
+        });
+        
         // When the original nav is not visible at the top, show sticky nav
-        setShowStickyNav(!entry.isIntersecting);
+        const shouldShowSticky = !entry.isIntersecting;
+        console.log('Should show sticky nav:', shouldShowSticky);
+        setShowStickyNav(shouldShowSticky);
       },
       {
         root: null,
@@ -90,10 +107,19 @@ function RestaurantMenuContent() {
       }
     );
 
+    console.log('Starting to observe originalNavRef.current');
     observer.observe(originalNavRef.current);
 
-    return () => observer.disconnect();
+    return () => {
+      console.log('Cleaning up IntersectionObserver');
+      observer.disconnect();
+    };
   }, [headerHeight]);
+
+  // Log when showStickyNav changes
+  useEffect(() => {
+    console.log('showStickyNav state changed to:', showStickyNav);
+  }, [showStickyNav]);
 
   // Filter sections and dishes based on active filters
   const filteredSections = useMemo(() => {
