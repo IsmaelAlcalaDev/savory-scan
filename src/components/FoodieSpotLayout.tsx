@@ -44,7 +44,7 @@ export default function FoodieSpotLayout({
   // Estados para filtros
   const [selectedDistance, setSelectedDistance] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
-  const [selectedRating, setSelectedRating] = useState<number | undefined>();
+  const [isHighRated, setIsHighRated] = useState(false);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [selectedSort, setSelectedSort] = useState<string | undefined>();
@@ -170,7 +170,7 @@ export default function FoodieSpotLayout({
     }
   }, []);
 
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'rating' | 'establishment' | 'diet' | 'openNow' | 'sort' | 'timeRange' | 'all', id?: number) => {
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'sort' | 'timeRange' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':
         setSelectedCuisines([]);
@@ -184,8 +184,8 @@ export default function FoodieSpotLayout({
       case 'price':
         setSelectedPriceRanges([]);
         break;
-      case 'rating':
-        setSelectedRating(undefined);
+      case 'highRated':
+        setIsHighRated(false);
         break;
       case 'establishment':
         setSelectedEstablishmentTypes([]);
@@ -207,7 +207,7 @@ export default function FoodieSpotLayout({
         setSelectedFoodTypes([]);
         setSelectedDistance([]);
         setSelectedPriceRanges([]);
-        setSelectedRating(undefined);
+        setIsHighRated(false);
         setSelectedEstablishmentTypes([]);
         setSelectedDietTypes([]);
         setSelectedSort(undefined);
@@ -241,7 +241,7 @@ export default function FoodieSpotLayout({
     userLng: userLocation?.lng,
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
-    minRating: 0,
+    isHighRated: isHighRated,
     selectedDistanceRangeIds: selectedDistance.length > 0 ? selectedDistance : undefined
   });
   
@@ -351,7 +351,7 @@ export default function FoodieSpotLayout({
     selectedFoodTypes.length > 0 || 
     selectedDistance.length > 0 || 
     selectedPriceRanges.length > 0 || 
-    !!selectedRating || 
+    isHighRated || 
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
     !!selectedSort ||
@@ -367,7 +367,7 @@ export default function FoodieSpotLayout({
             selectedFoodTypes={selectedFoodTypes} 
             selectedDistance={selectedDistance} 
             selectedPriceRanges={selectedPriceRanges} 
-            selectedRating={selectedRating} 
+            isHighRated={isHighRated} 
             selectedEstablishmentTypes={selectedEstablishmentTypes} 
             selectedDietTypes={selectedDietTypes} 
             selectedSort={selectedSort}
@@ -377,7 +377,7 @@ export default function FoodieSpotLayout({
             onSortChange={setSelectedSort}
             onDistanceChange={setSelectedDistance}
             onPriceRangeChange={setSelectedPriceRanges}
-            onRatingChange={setSelectedRating}
+            onHighRatedChange={setIsHighRated}
             onEstablishmentTypeChange={setSelectedEstablishmentTypes}
             onDietTypeChange={setSelectedDietTypes}
             onTimeRangeChange={setSelectedTimeRanges}
@@ -411,7 +411,7 @@ export default function FoodieSpotLayout({
           selectedFoodTypes={selectedFoodTypes} 
           selectedDistance={selectedDistance} 
           selectedPriceRanges={selectedPriceRanges} 
-          selectedRating={selectedRating} 
+          isHighRated={isHighRated} 
           selectedEstablishmentTypes={selectedEstablishmentTypes} 
           selectedDietTypes={selectedDietTypes} 
           selectedSort={selectedSort}
@@ -421,7 +421,7 @@ export default function FoodieSpotLayout({
           onSortChange={setSelectedSort}
           onDistanceChange={setSelectedDistance}
           onPriceRangeChange={setSelectedPriceRanges}
-          onRatingChange={setSelectedRating}
+          onHighRatedChange={setIsHighRated}
           onEstablishmentTypeChange={setSelectedEstablishmentTypes}
           onDietTypeChange={setSelectedDietTypes}
           onTimeRangeChange={setSelectedTimeRanges}
