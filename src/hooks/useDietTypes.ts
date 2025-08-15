@@ -13,32 +13,44 @@ export const useDietTypes = () => {
     const fetchDietTypes = async () => {
       try {
         setLoading(true);
-        console.log('Fetching diet types...');
+        setError(null);
+        console.log('useDietTypes: Starting to fetch diet types...');
         
-        const { data, error } = await supabase
+        const { data, error: supabaseError } = await supabase
           .from('diet_types')
           .select('*')
           .order('category, min_percentage');
 
-        if (error) {
-          console.error('Supabase error fetching diet types:', error);
-          throw error;
+        if (supabaseError) {
+          console.error('useDietTypes: Supabase error fetching diet types:', supabaseError);
+          throw new Error(`Error de base de datos: ${supabaseError.message}`);
         }
         
-        console.log('Raw diet types data:', data);
+        console.log('useDietTypes: Raw diet types data:', data);
         
+        if (!data || data.length === 0) {
+          console.warn('useDietTypes: No diet types found in database');
+          setDietTypes([]);
+          setDietCategories([]);
+          return;
+        }
+
         // Transform the data to match our DietType interface
-        const transformedData: DietType[] = (data || []).map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          slug: item.slug,
-          icon: item.icon,
-          category: item.category as 'vegetarian' | 'vegan' | 'gluten_free' | 'healthy',
-          min_percentage: item.min_percentage || 0,
-          max_percentage: item.max_percentage || 100
-        }));
+        const transformedData: DietType[] = data.map((item: any) => {
+          const dietType: DietType = {
+            id: item.id,
+            name: item.name || 'Sin nombre',
+            slug: item.slug || 'sin-slug',
+            icon: item.icon,
+            category: item.category as 'vegetarian' | 'vegan' | 'gluten_free' | 'healthy',
+            min_percentage: Number(item.min_percentage) || 0,
+            max_percentage: Number(item.max_percentage) || 100
+          };
+          console.log('useDietTypes: Transformed diet type:', dietType);
+          return dietType;
+        });
         
-        console.log('Transformed diet types:', transformedData);
+        console.log('useDietTypes: All transformed diet types:', transformedData);
         setDietTypes(transformedData);
 
         // Group diet types by category
@@ -50,19 +62,25 @@ export const useDietTypes = () => {
           groupedCategories[dietType.category].push(dietType);
         });
 
+        console.log('useDietTypes: Grouped categories:', groupedCategories);
+
         const categories: DietCategory[] = Object.entries(groupedCategories).map(([category, options]) => ({
           category,
           displayName: getCategoryDisplayName(category),
           options
         }));
 
-        console.log('Diet categories grouped:', categories);
+        console.log('useDietTypes: Final diet categories:', categories);
         setDietCategories(categories);
       } catch (err) {
-        console.error('Error fetching diet types:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar tipos de dieta');
+        console.error('useDietTypes: Error fetching diet types:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Error desconocido al cargar tipos de dieta';
+        setError(errorMessage);
+        setDietTypes([]);
+        setDietCategories([]);
       } finally {
         setLoading(false);
+        console.log('useDietTypes: Finished loading');
       }
     };
 
