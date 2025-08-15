@@ -5,6 +5,7 @@ import DishFavoriteButton from './DishFavoriteButton';
 import DinerSelector from './DinerSelector';
 import DishVariantsModal from './DishVariantsModal';
 import DishInfoModal from './DishInfoModal';
+import DishPrice from './DishPrice';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import { useState } from 'react';
@@ -37,16 +38,16 @@ export default function DishCard({
     if (dish.variants && dish.variants.length > 0) {
       const defaultVariant = dish.variants.find(v => v.is_default);
       if (defaultVariant) {
-        return formatPrice(defaultVariant.price);
+        return defaultVariant.price;
       }
       const minPrice = Math.min(...dish.variants.map(v => v.price));
       const maxPrice = Math.max(...dish.variants.map(v => v.price));
       if (minPrice === maxPrice) {
-        return formatPrice(minPrice);
+        return minPrice;
       }
-      return `desde ${formatPrice(minPrice)}`;
+      return minPrice; // Para promociones, usamos el precio mínimo
     }
-    return formatPrice(dish.base_price);
+    return dish.base_price;
   };
 
   const handleAddVariantToOrder = (variantId: number, dinerId: string) => {
@@ -97,6 +98,9 @@ export default function DishCard({
 
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
   const hasImage = Boolean(dish.image_url);
+  const displayPrice = getDisplayPrice();
+  const hasVariantRange = dish.variants && dish.variants.length > 0 && 
+    Math.min(...dish.variants.map(v => v.price)) !== Math.max(...dish.variants.map(v => v.price));
 
   return (
     <div className="w-full">
@@ -121,9 +125,18 @@ export default function DishCard({
                       {dish.name}
                     </h3>
                   </div>
-                  <div className="font-bold text-sm md:text-lg text-primary text-right flex-shrink-0">
-                    {getDisplayPrice()}
-                  </div>
+                  {hasVariantRange ? (
+                    <div className="font-bold text-sm md:text-lg text-primary text-right flex-shrink-0">
+                      desde {formatPrice(displayPrice)}
+                    </div>
+                  ) : (
+                    <DishPrice 
+                      originalPrice={displayPrice}
+                      dishId={dish.id}
+                      restaurantId={restaurantId}
+                      className="font-bold text-sm md:text-lg text-primary text-right flex-shrink-0"
+                    />
+                  )}
                 </div>
 
                 {/* Second Row: Empty space (left) and Buttons (right) */}
