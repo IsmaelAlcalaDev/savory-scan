@@ -22,13 +22,6 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
   const [isVariantsModalOpen, setIsVariantsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price);
-  };
-
   const getDisplayPrice = () => {
     if (dish.variants && dish.variants.length > 0) {
       const defaultVariant = dish.variants.find(v => v.is_default);
@@ -93,8 +86,6 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
 
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
   const displayPrice = getDisplayPrice();
-  const hasVariantRange = dish.variants && dish.variants.length > 0 && 
-    Math.min(...dish.variants.map(v => v.price)) !== Math.max(...dish.variants.map(v => v.price));
 
   return (
     <>
@@ -134,18 +125,12 @@ export default function DishListCard({ dish, restaurantId }: DishListCardProps) 
                   {dish.name}
                 </h3>
               </div>
-              {hasVariantRange ? (
-                <div className="font-bold text-sm text-primary text-right flex-shrink-0">
-                  desde {formatPrice(displayPrice)}
-                </div>
-              ) : (
-                <DishPrice 
-                  originalPrice={displayPrice}
-                  dishId={dish.id}
-                  restaurantId={restaurantId}
-                  className="font-bold text-sm text-primary text-right flex-shrink-0"
-                />
-              )}
+              <DishPrice 
+                originalPrice={displayPrice}
+                dishId={dish.id}
+                restaurantId={restaurantId}
+                className="font-bold text-sm text-primary text-right flex-shrink-0"
+              />
             </div>
 
             {/* Bottom Row - Buttons */}

@@ -27,13 +27,6 @@ export default function DishCard({
   const [isVariantsModalOpen, setIsVariantsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price);
-  };
-
   const getDisplayPrice = () => {
     if (dish.variants && dish.variants.length > 0) {
       const defaultVariant = dish.variants.find(v => v.is_default);
@@ -99,8 +92,6 @@ export default function DishCard({
   const hasMultipleVariants = dish.variants && dish.variants.length > 1;
   const hasImage = Boolean(dish.image_url);
   const displayPrice = getDisplayPrice();
-  const hasVariantRange = dish.variants && dish.variants.length > 0 && 
-    Math.min(...dish.variants.map(v => v.price)) !== Math.max(...dish.variants.map(v => v.price));
 
   return (
     <div className="w-full">
@@ -125,18 +116,12 @@ export default function DishCard({
                       {dish.name}
                     </h3>
                   </div>
-                  {hasVariantRange ? (
-                    <div className="font-bold text-sm md:text-lg text-primary text-right flex-shrink-0">
-                      desde {formatPrice(displayPrice)}
-                    </div>
-                  ) : (
-                    <DishPrice 
-                      originalPrice={displayPrice}
-                      dishId={dish.id}
-                      restaurantId={restaurantId}
-                      className="font-bold text-sm md:text-lg text-primary text-right flex-shrink-0"
-                    />
-                  )}
+                  <DishPrice 
+                    originalPrice={displayPrice}
+                    dishId={dish.id}
+                    restaurantId={restaurantId}
+                    className="font-bold text-sm md:text-lg text-primary text-right flex-shrink-0"
+                  />
                 </div>
 
                 {/* Second Row: Empty space (left) and Buttons (right) */}
