@@ -1,3 +1,4 @@
+
 import { X, ChevronDown, MapPin, Euro, Star, ArrowUpDown, Store, Utensils, Clock, RotateCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -61,7 +62,6 @@ export default function FilterTags({
   onOpenNowChange = () => {}
 }: FilterTagsProps) {
   const isMobile = useIsMobile();
-  const isTablet = !isMobile && window.innerWidth < 1024;
   const [activeFilterModal, setActiveFilterModal] = useState<string | null>(null);
   
   const hasActiveFilters = selectedCuisines.length > 0 || 
@@ -101,7 +101,6 @@ export default function FilterTags({
     }
   };
 
-  // Function to get the count of active filters for each filter type
   const getFilterCount = (filterKey: string) => {
     switch (filterKey) {
       case 'sort': return selectedSort ? 1 : 0;
@@ -115,7 +114,6 @@ export default function FilterTags({
     }
   };
 
-  // Function to check if a specific filter is active
   const isFilterActive = (filterKey: string) => {
     return getFilterCount(filterKey) > 0;
   };
@@ -197,29 +195,31 @@ export default function FilterTags({
   };
 
   const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
-    <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
+    <div className="flex flex-col h-full">
       {/* Title */}
-      <div className="text-center py-4">
+      <div className="text-center py-4 border-b border-gray-100 flex-shrink-0">
         <h3 className="text-lg font-semibold">{getFilterTitle(filterKey)}</h3>
       </div>
       
-      {/* Filter content with dividing lines */}
-      <div className={`px-6 [&>div>div:not(:last-child)]:border-b [&>div>div:not(:last-child)]:border-gray-100 [&>div>div:not(:last-child)]:pb-4 [&>div>div:not(:first-child)]:pt-4 ${isMobile ? 'flex-1 overflow-y-auto' : ''}`}>
-        {getFilterContent(filterKey)}
+      {/* Filter content - scrollable area */}
+      <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+        <div className="[&>div>div:not(:last-child)]:border-b [&>div>div:not(:last-child)]:border-gray-100 [&>div>div:not(:last-child)]:pb-4 [&>div>div:not(:first-child)]:pt-4">
+          {getFilterContent(filterKey)}
+        </div>
       </div>
       
-      {/* Bottom buttons - Apply and Reset */}
-      <div className={`p-4 space-y-3 ${isMobile ? 'mt-auto' : ''}`}>
+      {/* Bottom buttons - fixed at bottom */}
+      <div className="flex-shrink-0 p-4 space-y-3 border-t border-gray-100 bg-background">
         <Button 
           onClick={onApply}
-          className="w-full"
+          className="w-full h-12 text-base"
         >
           Aplicar filtros
         </Button>
         <Button 
           onClick={onReset}
           variant="ghost"
-          className="w-full bg-transparent border-0"
+          className="w-full h-12 text-base bg-transparent border-0"
         >
           Restablecer
         </Button>
@@ -229,13 +229,13 @@ export default function FilterTags({
 
   // Reordered filter tags based on UX psychology principles
   const filterTags = [
-    { key: 'distance', label: 'Distancia' },      // 1. Proximidad física - criterio primario
-    { key: 'price', label: 'Precio' },            // 2. Consideración económica - criterio secundario
-    { key: 'rating', label: 'Valoración' },       // 3. Validación social y calidad
-    { key: 'sort', label: 'Ordenar' },            // 4. Herramienta de organización
-    ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []), // 5. Categorización específica
-    { key: 'diet', label: 'Dieta' },              // 6. Necesidades específicas
-    { key: 'schedule', label: 'Horarios' },       // 7. Disponibilidad temporal
+    { key: 'distance', label: 'Distancia' },
+    { key: 'price', label: 'Precio' },
+    { key: 'rating', label: 'Valoración' },
+    { key: 'sort', label: 'Ordenar' },
+    ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
+    { key: 'diet', label: 'Dieta' },
+    { key: 'schedule', label: 'Horarios' },
   ];
 
   const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
@@ -275,8 +275,8 @@ export default function FilterTags({
           side="bottom" 
           className={`p-0 ${
             isMobile 
-              ? 'h-[100vh] rounded-none' 
-              : 'rounded-t-[20px] rounded-b-none h-auto'
+              ? 'h-[100dvh] rounded-none max-h-[100dvh]' 
+              : 'rounded-t-[20px] rounded-b-none h-[80vh] max-h-[80vh]'
           }`}
         >
           <FilterContent 
@@ -289,28 +289,10 @@ export default function FilterTags({
     );
   };
 
-  // Component to render the reset button next to results
-  const ResetFiltersButton = () => {
-    if (!hasActiveFilters) return null;
-    
-    return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="flex items-center gap-1 text-xs text-muted-foreground h-auto p-1"
-        onClick={() => onClearFilter('all')}
-      >
-        <RotateCcw className="h-3 w-3" />
-        Restablecer
-      </Button>
-    );
-  };
-
   return (
     <>
       <div className="w-full py-0">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-          {/* Filter Tags */}
           {filterTags.map((filter) => (
             <FilterTrigger key={filter.key} filterKey={filter.key}>
               {filter.label}
@@ -350,12 +332,24 @@ export default function FilterTags({
             background-color: #ef4444 !important;
             color: white !important;
           }
+
+          /* Improve touch targets for mobile */
+          @media (max-width: 768px) {
+            .peer {
+              width: 24px !important;
+              height: 24px !important;
+            }
+            
+            [data-radix-collection-item] input[type="checkbox"] {
+              width: 24px;
+              height: 24px;
+            }
+            
+            .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+              margin-left: 16px;
+            }
+          }
         `}</style>
-      </div>
-      
-      {/* Export the ResetFiltersButton component for use in results header */}
-      <div style={{ display: 'none' }}>
-        <ResetFiltersButton />
       </div>
     </>
   );

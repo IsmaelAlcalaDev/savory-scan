@@ -1,0 +1,81 @@
+
+/* Mobile-specific modal optimizations */
+
+/* Use dvh for better mobile support */
+@supports (height: 100dvh) {
+  [data-mobile-scroll-locked] {
+    height: 100dvh;
+  }
+}
+
+/* Safe area handling for devices with notches */
+.mobile-modal-content {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 768px) {
+  /* Minimum 44px touch targets */
+  button, 
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"],
+  .checkbox-wrapper {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better spacing for form elements */
+  .form-item {
+    margin-bottom: 1rem;
+  }
+
+  /* Larger text for better readability */
+  .modal-text {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* Prevent zoom on input focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  /* Better modal sheet animations */
+  [data-radix-dialog-content][data-side="bottom"] {
+    animation-duration: 300ms;
+    animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  /* Improve scrolling performance */
+  .modal-scroll-area {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-modal-content {
+    max-height: 90vh;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .mobile-modal-content {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

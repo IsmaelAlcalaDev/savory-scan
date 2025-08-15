@@ -3,6 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Allergen {
   id: number;
@@ -20,6 +21,7 @@ export default function AllergenFilter({ selectedAllergens, onAllergenChange }: 
   const [allergens, setAllergens] = useState<Allergen[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchAllergens = async () => {
@@ -52,9 +54,9 @@ export default function AllergenFilter({ selectedAllergens, onAllergenChange }: 
 
   if (loading) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-5 w-full" />
+          <Skeleton key={i} className={`w-full ${isMobile ? 'h-12' : 'h-5'}`} />
         ))}
       </div>
     );
@@ -66,19 +68,22 @@ export default function AllergenFilter({ selectedAllergens, onAllergenChange }: 
   }
 
   return (
-    <div className="space-y-3">
+    <div className={`space-y-${isMobile ? '4' : '3'}`}>
       {allergens.map((allergen) => (
-        <div key={allergen.id} className="flex items-center space-x-2">
+        <div key={allergen.id} className={`flex items-center ${isMobile ? 'space-x-4 py-2' : 'space-x-2'}`}>
           <Checkbox 
             id={`allergen-${allergen.id}`}
             checked={selectedAllergens.includes(allergen.slug)}
             onCheckedChange={() => handleAllergenToggle(allergen.slug)}
+            className={isMobile ? 'w-6 h-6' : ''}
           />
           <label 
             htmlFor={`allergen-${allergen.id}`}
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
+            className={`font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2 ${
+              isMobile ? 'text-base min-h-[44px] flex-1' : 'text-sm'
+            }`}
           >
-            {allergen.icon && <span>{allergen.icon}</span>}
+            {allergen.icon && <span className={isMobile ? 'text-lg' : ''}>{allergen.icon}</span>}
             {allergen.name}
           </label>
         </div>
