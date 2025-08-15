@@ -23,7 +23,11 @@ export const usePromotions = (restaurantId: number) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!restaurantId) return;
+    if (!restaurantId) {
+      console.log('usePromotions - no restaurantId provided, skipping');
+      setLoading(false);
+      return;
+    }
 
     const fetchPromotions = async () => {
       try {
@@ -34,10 +38,14 @@ export const usePromotions = (restaurantId: number) => {
         const now = new Date().toISOString();
         console.log('usePromotions - current time:', now);
 
-        // Fixed date comparison logic:
-        // - valid_from <= now (promotion has started)
-        // - valid_until > now (promotion hasn't expired)
-        const { data, error } = await supabase
+        console.log('usePromotions - building query with filters:');
+        console.log('  - restaurant_id =', restaurantId);
+        console.log('  - is_active = true');
+        console.log('  - valid_from <=', now);
+        console.log('  - valid_until >', now);
+        console.log('  - deleted_at IS NULL');
+
+        const { data, error: queryError } = await supabase
           .from('promotions')
           .select('*')
           .eq('restaurant_id', restaurantId)
@@ -46,23 +54,25 @@ export const usePromotions = (restaurantId: number) => {
           .gt('valid_until', now)
           .is('deleted_at', null);
 
-        console.log('usePromotions - query executed with filters:');
-        console.log('  - restaurant_id:', restaurantId);
-        console.log('  - is_active: true');
-        console.log('  - valid_from <= ', now);
-        console.log('  - valid_until > ', now);
-        console.log('  - deleted_at IS NULL');
-        console.log('usePromotions - raw query result:', { data, error });
+        console.log('usePromotions - Supabase query completed');
+        console.log('usePromotions - query error:', queryError);
+        console.log('usePromotions - raw data:', data);
 
-        if (error) {
-          console.error('usePromotions - Supabase query error:', error);
-          throw error;
+        if (queryError) {
+          console.error('usePromotions - Supabase query error details:', queryError);
+          throw new Error(`Database query failed: ${queryError.message}`);
         }
 
-        console.log('usePromotions - found', data?.length || 0, 'promotions');
+        if (!data) {
+          console.log('usePromotions - no data returned from query');
+          setPromotions([]);
+          return;
+        }
+
+        console.log('usePromotions - found', data.length, 'promotions in database');
 
         // Transform the data to match our interface
-        const transformedData: Promotion[] = (data || []).map((promo, index) => {
+        const transformedData: Promotion[] = data.map((promo, index) => {
           console.log(`usePromotions - processing promotion ${index + 1}:`, promo);
           console.log(`usePromotions - promotion ${promo.id} details:`);
           console.log('  - title:', promo.title);
@@ -144,9 +154,12 @@ export const usePromotions = (restaurantId: number) => {
         setPromotions(transformedData);
       } catch (err) {
         console.error('usePromotions - Error in fetchPromotions:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar promociones');
+        const errorMessage = err instanceof Error ? err.message : 'Error al cargar promociones';
+        setError(errorMessage);
+        console.error('usePromotions - Setting error state:', errorMessage);
       } finally {
         setLoading(false);
+        console.log('usePromotions - fetchPromotions completed, loading set to false');
       }
     };
 

@@ -1,6 +1,6 @@
 
 import { Badge } from '@/components/ui/badge';
-import { usePromotions } from '@/hooks/usePromotions';
+import type { Promotion } from '@/hooks/usePromotions';
 
 interface DishPriceProps {
   originalPrice: number;
@@ -8,6 +8,9 @@ interface DishPriceProps {
   restaurantId: number;
   sectionId?: number;
   className?: string;
+  promotions: Promotion[];
+  getPromotionForDish: (dishId: number, sectionId?: number) => Promotion | undefined;
+  calculateDiscountedPrice: (originalPrice: number, promotion: Promotion) => number;
 }
 
 export default function DishPrice({ 
@@ -15,9 +18,11 @@ export default function DishPrice({
   dishId, 
   restaurantId, 
   sectionId,
-  className = "font-bold text-sm md:text-lg text-primary text-right flex-shrink-0"
+  className = "font-bold text-sm md:text-lg text-primary text-right flex-shrink-0",
+  promotions,
+  getPromotionForDish,
+  calculateDiscountedPrice
 }: DishPriceProps) {
-  const { getPromotionForDish, calculateDiscountedPrice } = usePromotions(restaurantId);
   
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
@@ -27,6 +32,8 @@ export default function DishPrice({
   };
 
   console.log('DishPrice - checking promotion for dish:', dishId, 'section:', sectionId, 'restaurant:', restaurantId);
+  console.log('DishPrice - available promotions:', promotions.length, promotions);
+  
   const promotion = getPromotionForDish(dishId, sectionId);
   console.log('DishPrice - found promotion:', promotion);
 
