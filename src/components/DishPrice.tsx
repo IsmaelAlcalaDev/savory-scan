@@ -26,7 +26,9 @@ export default function DishPrice({
     }).format(price);
   };
 
+  console.log('DishPrice - checking promotion for dish:', dishId, 'section:', sectionId);
   const promotion = getPromotionForDish(dishId, sectionId);
+  console.log('DishPrice - found promotion:', promotion);
 
   if (!promotion) {
     return (
@@ -37,6 +39,7 @@ export default function DishPrice({
   }
 
   const discountedPrice = calculateDiscountedPrice(originalPrice, promotion);
+  console.log('DishPrice - original:', originalPrice, 'discounted:', discountedPrice);
 
   return (
     <div className={className}>

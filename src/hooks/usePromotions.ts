@@ -30,6 +30,8 @@ export const usePromotions = (restaurantId: number) => {
         setLoading(true);
         setError(null);
 
+        console.log('usePromotions - fetching for restaurant:', restaurantId);
+
         const { data, error } = await supabase
           .from('promotions')
           .select('*')
@@ -39,30 +41,36 @@ export const usePromotions = (restaurantId: number) => {
           .gte('valid_until', new Date().toISOString())
           .is('deleted_at', null);
 
+        console.log('usePromotions - query result:', { data, error });
+
         if (error) {
           throw error;
         }
 
         // Transform the data to match our interface
-        const transformedData: Promotion[] = (data || []).map(promo => ({
-          id: promo.id,
-          title: promo.title,
-          description: promo.description,
-          discount_type: promo.discount_type as 'percentage' | 'fixed' | 'two_for_one',
-          discount_value: promo.discount_value,
-          discount_label: promo.discount_label,
-          valid_from: promo.valid_from,
-          valid_until: promo.valid_until,
-          applicable_dishes: Array.isArray(promo.applicable_dishes) 
-            ? (promo.applicable_dishes as any[]).map(id => Number(id)).filter(id => !isNaN(id))
-            : [],
-          applicable_sections: Array.isArray(promo.applicable_sections) 
-            ? (promo.applicable_sections as any[]).map(id => Number(id)).filter(id => !isNaN(id))
-            : [],
-          applies_to_entire_menu: promo.applies_to_entire_menu || false,
-          is_active: promo.is_active
-        }));
+        const transformedData: Promotion[] = (data || []).map(promo => {
+          console.log('usePromotions - processing promotion:', promo);
+          return {
+            id: promo.id,
+            title: promo.title,
+            description: promo.description,
+            discount_type: promo.discount_type as 'percentage' | 'fixed' | 'two_for_one',
+            discount_value: promo.discount_value,
+            discount_label: promo.discount_label,
+            valid_from: promo.valid_from,
+            valid_until: promo.valid_until,
+            applicable_dishes: Array.isArray(promo.applicable_dishes) 
+              ? (promo.applicable_dishes as any[]).map(id => Number(id)).filter(id => !isNaN(id))
+              : [],
+            applicable_sections: Array.isArray(promo.applicable_sections) 
+              ? (promo.applicable_sections as any[]).map(id => Number(id)).filter(id => !isNaN(id))
+              : [],
+            applies_to_entire_menu: promo.applies_to_entire_menu || false,
+            is_active: promo.is_active
+          };
+        });
 
+        console.log('usePromotions - transformed promotions:', transformedData);
         setPromotions(transformedData);
       } catch (err) {
         console.error('Error fetching promotions:', err);
@@ -76,12 +84,28 @@ export const usePromotions = (restaurantId: number) => {
   }, [restaurantId]);
 
   const getPromotionForDish = (dishId: number, sectionId?: number) => {
-    return promotions.find(promo => {
-      if (promo.applies_to_entire_menu) return true;
-      if (promo.applicable_dishes.includes(dishId)) return true;
-      if (sectionId && promo.applicable_sections.includes(sectionId)) return true;
+    console.log('getPromotionForDish - checking dish:', dishId, 'section:', sectionId);
+    console.log('getPromotionForDish - available promotions:', promotions);
+    
+    const promotion = promotions.find(promo => {
+      console.log('getPromotionForDish - checking promotion:', promo);
+      if (promo.applies_to_entire_menu) {
+        console.log('getPromotionForDish - applies to entire menu');
+        return true;
+      }
+      if (promo.applicable_dishes.includes(dishId)) {
+        console.log('getPromotionForDish - found in applicable dishes');
+        return true;
+      }
+      if (sectionId && promo.applicable_sections.includes(sectionId)) {
+        console.log('getPromotionForDish - found in applicable sections');
+        return true;
+      }
       return false;
     });
+    
+    console.log('getPromotionForDish - result:', promotion);
+    return promotion;
   };
 
   const calculateDiscountedPrice = (originalPrice: number, promotion: Promotion) => {
