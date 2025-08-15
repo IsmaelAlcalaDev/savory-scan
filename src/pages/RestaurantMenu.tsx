@@ -171,20 +171,27 @@ function RestaurantMenuContent() {
         {/* Simple Header Navigation */}
         <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-4">
-            <div className="flex items-center gap-4">
-              <Button onClick={handleGoBack} variant="ghost" size="sm" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button onClick={handleGoBack} variant="ghost" size="sm" className="flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
 
-              {restaurant.logo_url && (
-                <div className="w-8 h-8 rounded-full overflow-hidden border border-border flex-shrink-0">
-                  <img src={restaurant.logo_url} alt={`${restaurant.name} logo`} className="w-full h-full object-cover" />
-                </div>
-              )}
-              
-              <h1 className="text-lg font-bold">
-                {restaurant.name}
-              </h1>
+                {restaurant.logo_url && (
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-border flex-shrink-0">
+                    <img src={restaurant.logo_url} alt={`${restaurant.name} logo`} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                
+                <h1 className="text-lg font-bold">
+                  {restaurant.name}
+                </h1>
+              </div>
+
+              {/* Language Selector moved to header */}
+              <div className="flex items-center">
+                <LanguageSelector />
+              </div>
             </div>
           </div>
         </div>
@@ -200,10 +207,10 @@ function RestaurantMenuContent() {
           </div>
         )}
 
-        {/* Search Bar and Language Selector Row */}
+        {/* Search Bar with integrated Filters Button */}
         <div className="bg-background">
           <div className="max-w-6xl mx-auto px-4 pt-6 pb-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="flex-1">
                 <DishSearchBar 
                   searchQuery={searchQuery} 
@@ -211,20 +218,13 @@ function RestaurantMenuContent() {
                   placeholder="Buscar platos..." 
                 />
               </div>
-              <LanguageSelector />
+              <UnifiedFiltersModal
+                selectedAllergens={selectedAllergens}
+                selectedDietTypes={selectedDietTypes}
+                onAllergenChange={setSelectedAllergens}
+                onDietTypeChange={setSelectedDietTypes}
+              />
             </div>
-          </div>
-        </div>
-
-        {/* Filters Button Row */}
-        <div className="bg-background">
-          <div className="max-w-6xl mx-auto px-4 pb-2">
-            <UnifiedFiltersModal
-              selectedAllergens={selectedAllergens}
-              selectedDietTypes={selectedDietTypes}
-              onAllergenChange={setSelectedAllergens}
-              onDietTypeChange={setSelectedDietTypes}
-            />
           </div>
         </div>
 
