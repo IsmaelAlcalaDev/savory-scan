@@ -95,11 +95,11 @@ export default function DishListCard({
             {/* Header with name, price and favorite */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-base md:text-lg text-foreground leading-tight line-clamp-2 md:text-base text-base">
+                <h3 className="font-semibold text-base md:text-lg text-foreground leading-tight line-clamp-2">
                   {dish.name}
                 </h3>
                 {dish.category_name && (
-                  <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                  <p className="text-sm md:text-sm text-muted-foreground mt-1">
                     {dish.category_name}
                   </p>
                 )}
@@ -121,13 +121,13 @@ export default function DishListCard({
 
             {/* Short description - only show if not expanded */}
             {!isExpanded && hasDescription && (
-              <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
+              <p className="text-sm md:text-sm text-muted-foreground line-clamp-2">
                 {dish.description}
               </p>
             )}
 
             {/* Metadata row */}
-            <div className="flex items-center gap-3 text-xs md:text-sm text-muted-foreground flex-wrap">
+            <div className="flex items-center gap-3 text-sm md:text-sm text-muted-foreground flex-wrap">
               {dish.preparation_time_minutes && (
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
@@ -197,7 +197,7 @@ export default function DishListCard({
                 variant="ghost"
                 size="sm"
                 onClick={toggleExpanded}
-                className="w-full h-7 text-xs md:text-sm text-muted-foreground hover:text-foreground transition-colors mt-2"
+                className="w-full h-7 text-sm md:text-sm text-muted-foreground hover:text-foreground transition-colors mt-2"
               >
                 {isExpanded ? (
                   <>
@@ -220,9 +220,7 @@ export default function DishListCard({
       <DishImageModal
         isOpen={imageModalOpen}
         onClose={() => setImageModalOpen(false)}
-        imageUrl={dish.image_url}
-        imageAlt={dish.image_alt || dish.name}
-        dishName={dish.name}
+        dish={dish}
       />
     </Card>
   );
