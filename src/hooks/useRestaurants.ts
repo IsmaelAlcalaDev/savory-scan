@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { validateFilters, type FilterState } from '@/utils/filterValidation';
 
 interface Restaurant {
   id: number;
@@ -20,18 +21,13 @@ interface Restaurant {
 
 type PriceRange = '€' | '€€' | '€€€' | '€€€€';
 
-interface UseRestaurantsProps {
+interface UseRestaurantsProps extends Partial<FilterState> {
   searchQuery?: string;
-  userLat?: number;
-  userLng?: number;
   maxDistance?: number;
-  cuisineTypeIds?: number[];
-  priceRanges?: PriceRange[];
-  minRating?: number;
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371; // Radio de la Tierra en km
+  const R = 6371; // Earth radius in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lng2 - lng1) * Math.PI / 180;
   const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -41,32 +37,75 @@ const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * c;
 };
 
+const getCurrentTime = () => {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes(); // Convert to minutes
+};
+
+const getCurrentDay = () => {
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  return days[new Date().getDay()];
+};
+
 export const useRestaurants = ({
   searchQuery = '',
   userLat,
   userLng,
   maxDistance = 50,
-  cuisineTypeIds,
-  priceRanges,
-  minRating = 0
+  selectedCuisines = [],
+  selectedDistance = [],
+  selectedPriceRanges = [],
+  selectedRating,
+  selectedEstablishmentTypes = [],
+  selectedDietTypes = [],
+  selectedSort,
+  selectedTimeRanges = [],
+  isOpenNow = false
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filterWarnings, setFilterWarnings] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
         setLoading(true);
         setError(null);
+
+        // Validate filters
+        const filterState: FilterState = {
+          selectedCuisines,
+          selectedFoodTypes: [],
+          selectedDistance,
+          selectedPriceRanges,
+          selectedRating,
+          selectedEstablishmentTypes,
+          selectedDietTypes,
+          selectedSort,
+          selectedTimeRanges,
+          isOpenNow,
+          userLat,
+          userLng
+        };
+
+        const validation = validateFilters(filterState);
+        setFilterWarnings(validation.warnings);
+
         console.log('Fetching restaurants with params:', {
           searchQuery,
           userLat,
           userLng,
           maxDistance,
-          cuisineTypeIds,
-          priceRanges,
-          minRating
+          selectedCuisines,
+          selectedDistance,
+          selectedPriceRanges,
+          selectedRating,
+          selectedEstablishmentTypes,
+          selectedDietTypes,
+          selectedSort,
+          selectedTimeRanges,
+          isOpenNow
         });
 
         let query = supabase
@@ -96,19 +135,32 @@ export const useRestaurants = ({
           .eq('is_published', true)
           .is('deleted_at', null);
 
+        // Apply search filter
         if (searchQuery) {
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         }
 
-        if (minRating > 0) {
-          query = query.gte('google_rating', minRating);
+        // Apply rating filter
+        if (selectedRating && selectedRating > 0) {
+          query = query.gte('google_rating', selectedRating);
         }
 
-        if (priceRanges && priceRanges.length > 0) {
-          query = query.in('price_range', priceRanges);
+        // Apply price range filter
+        if (selectedPriceRanges && selectedPriceRanges.length > 0) {
+          query = query.in('price_range', selectedPriceRanges);
         }
 
-        const { data, error } = await query.limit(50);
+        // Apply cuisine type filter
+        if (selectedCuisines && selectedCuisines.length > 0) {
+          query = query.in('restaurant_cuisines.cuisine_types.id', selectedCuisines);
+        }
+
+        // Apply establishment type filter
+        if (selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0) {
+          query = query.in('establishment_types.id', selectedEstablishmentTypes);
+        }
+
+        const { data, error } = await query.limit(100);
 
         if (error) {
           console.error('Supabase error:', error);
@@ -117,7 +169,7 @@ export const useRestaurants = ({
 
         console.log('Raw data from restaurants table:', data);
 
-        const formattedData = data?.map((restaurant: any) => {
+        let formattedData = data?.map((restaurant: any) => {
           let distance_km = null;
           if (userLat && userLng && restaurant.latitude && restaurant.longitude) {
             distance_km = haversineDistance(userLat, userLng, restaurant.latitude, restaurant.longitude);
@@ -141,13 +193,89 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        let sortedData = formattedData;
-        if (userLat && userLng) {
-          sortedData = formattedData
-            .filter(restaurant => restaurant.distance_km !== null)
-            .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
+        // Apply distance filter after calculation
+        if (selectedDistance.length > 0 && userLat && userLng) {
+          // Get distance ranges from the selected IDs (for now, using simple km values)
+          // In a real implementation, you'd fetch the actual distance_ranges from the database
+          const maxDistanceFromFilters = Math.max(...selectedDistance.map(id => {
+            // Simple mapping - in real app, fetch from distance_ranges table
+            switch(id) {
+              case 1: return 2;
+              case 2: return 5;
+              case 3: return 10;
+              case 4: return 20;
+              default: return 50;
+            }
+          }));
           
-          console.log('Restaurants sorted by distance:', sortedData.slice(0, 5));
+          formattedData = formattedData.filter(restaurant => 
+            restaurant.distance_km !== null && restaurant.distance_km <= maxDistanceFromFilters
+          );
+        }
+
+        // Apply diet type filters (check if restaurant has dishes with those diet characteristics)
+        if (selectedDietTypes.length > 0) {
+          // This would require a more complex query joining with dishes
+          // For now, we'll implement a basic filter based on cuisine types
+          // In a real implementation, you'd query the dishes table for diet information
+        }
+
+        // Apply time range and "open now" filters
+        if (isOpenNow || selectedTimeRanges.length > 0) {
+          const currentTime = getCurrentTime();
+          const currentDay = getCurrentDay();
+          
+          // For now, we'll just log this - in a real implementation,
+          // you'd need a restaurant_hours table to filter by
+          console.log('Time filters would be applied here:', { currentTime, currentDay, isOpenNow, selectedTimeRanges });
+        }
+
+        // Apply sorting
+        let sortedData = [...formattedData];
+        if (selectedSort) {
+          switch (selectedSort) {
+            case 'distance_asc':
+              if (userLat && userLng) {
+                sortedData = sortedData
+                  .filter(r => r.distance_km !== null)
+                  .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
+              }
+              break;
+            case 'rating_desc':
+              sortedData = sortedData.sort((a, b) => (b.google_rating || 0) - (a.google_rating || 0));
+              break;
+            case 'popularity_desc':
+              sortedData = sortedData.sort((a, b) => b.favorites_count - a.favorites_count);
+              break;
+            case 'price_asc':
+              sortedData = sortedData.sort((a, b) => {
+                const priceOrder = { '€': 1, '€€': 2, '€€€': 3, '€€€€': 4 };
+                return (priceOrder[a.price_range as keyof typeof priceOrder] || 0) - 
+                       (priceOrder[b.price_range as keyof typeof priceOrder] || 0);
+              });
+              break;
+            case 'price_desc':
+              sortedData = sortedData.sort((a, b) => {
+                const priceOrder = { '€': 1, '€€': 2, '€€€': 3, '€€€€': 4 };
+                return (priceOrder[b.price_range as keyof typeof priceOrder] || 0) - 
+                       (priceOrder[a.price_range as keyof typeof priceOrder] || 0);
+              });
+              break;
+            default:
+              // Default sorting by distance if available, then by rating
+              if (userLat && userLng) {
+                sortedData = sortedData
+                  .filter(r => r.distance_km !== null)
+                  .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
+              } else {
+                sortedData = sortedData.sort((a, b) => (b.google_rating || 0) - (a.google_rating || 0));
+              }
+          }
+        } else if (userLat && userLng) {
+          // Default: sort by distance
+          sortedData = sortedData
+            .filter(r => r.distance_km !== null)
+            .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
         }
 
         console.log('Final formatted restaurants:', sortedData.length);
@@ -208,7 +336,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, minRating]);
+  }, [searchQuery, userLat, userLng, maxDistance, selectedCuisines, selectedDistance, selectedPriceRanges, selectedRating, selectedEstablishmentTypes, selectedDietTypes, selectedSort, selectedTimeRanges, isOpenNow]);
 
-  return { restaurants, loading, error };
+  return { restaurants, loading, error, filterWarnings };
 };
