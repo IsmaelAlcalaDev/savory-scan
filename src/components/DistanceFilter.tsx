@@ -1,5 +1,5 @@
 
-import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useDistanceRanges } from '@/hooks/useDistanceRanges';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -11,11 +11,9 @@ interface DistanceFilterProps {
 export default function DistanceFilter({ selectedDistances, onDistanceChange }: DistanceFilterProps) {
   const { distanceRanges, loading, error } = useDistanceRanges();
 
-  const handleDistanceToggle = (distanceId: number) => {
-    const newSelected = selectedDistances.includes(distanceId)
-      ? selectedDistances.filter(id => id !== distanceId)
-      : [...selectedDistances, distanceId];
-    onDistanceChange(newSelected);
+  const handleDistanceChange = (value: string) => {
+    const distanceId = parseInt(value);
+    onDistanceChange([distanceId]);
   };
 
   if (loading) {
@@ -23,7 +21,7 @@ export default function DistanceFilter({ selectedDistances, onDistanceChange }: 
       <div className="space-y-3">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex items-center space-x-3">
-            <Skeleton className="h-5 w-5 rounded" />
+            <Skeleton className="h-5 w-5 rounded-full" />
             <Skeleton className="h-4 w-24" />
           </div>
         ))}
@@ -36,14 +34,15 @@ export default function DistanceFilter({ selectedDistances, onDistanceChange }: 
     return null;
   }
 
+  const selectedValue = selectedDistances.length > 0 ? selectedDistances[0].toString() : '';
+
   return (
-    <div className="space-y-3">
+    <RadioGroup value={selectedValue} onValueChange={handleDistanceChange} className="space-y-3">
       {distanceRanges.map((range) => (
         <div key={range.id} className="flex items-center space-x-3">
-          <Checkbox 
+          <RadioGroupItem 
+            value={range.id.toString()}
             id={`distance-${range.id}`}
-            checked={selectedDistances.includes(range.id)}
-            onCheckedChange={() => handleDistanceToggle(range.id)}
           />
           <label 
             htmlFor={`distance-${range.id}`}
@@ -53,6 +52,6 @@ export default function DistanceFilter({ selectedDistances, onDistanceChange }: 
           </label>
         </div>
       ))}
-    </div>
+    </RadioGroup>
   );
 }
