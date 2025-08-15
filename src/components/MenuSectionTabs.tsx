@@ -24,7 +24,11 @@ export default function MenuSectionTabs({ sections, activeSection, onSectionClic
               variant={activeSection === section.id ? "secondary" : "ghost"}
               size="sm"
               onClick={() => onSectionClick(section.id)}
-              className="flex-shrink-0 rounded-full text-sm px-4 py-2 h-8 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border-0"
+              className={`flex-shrink-0 rounded-full text-sm px-4 py-2 h-8 border-0 ${
+                activeSection === section.id 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-gray-100 hover:bg-red-500 hover:text-white text-gray-900'
+              }`}
             >
               {section.name}
             </Button>

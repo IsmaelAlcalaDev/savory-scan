@@ -169,7 +169,7 @@ function RestaurantMenuContent() {
         </div>
 
         {/* Filters Row */}
-        <div className="bg-background border-b">
+        <div className="bg-background">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center gap-4">
               <AllergenFilterButton
@@ -188,7 +188,7 @@ function RestaurantMenuContent() {
         </div>
 
         {/* Search Bar */}
-        <div className="bg-background border-b">
+        <div className="bg-background">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <DishSearchBar
               searchQuery={searchQuery}
