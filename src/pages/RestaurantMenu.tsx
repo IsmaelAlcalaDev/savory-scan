@@ -8,7 +8,7 @@ import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import ExpandableSearchBar from '@/components/ExpandableSearchBar';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
 import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
 import OrderSimulatorModal from '@/components/OrderSimulatorModal';
@@ -28,6 +28,9 @@ function RestaurantMenuContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<number | undefined>();
   const [isExpandableSearchOpen, setIsExpandableSearchOpen] = useState(false);
+
+  // Ref for intersection observer
+  const sectionsRefs = useRef<{ [key: number]: HTMLElement | null }>({});
 
   const handleGoBack = () => {
     navigate(`/restaurant/${slug}`);
@@ -56,6 +59,40 @@ function RestaurantMenuContent() {
   const handleExpandableSearchClose = () => {
     setIsExpandableSearchOpen(false);
   };
+
+  // Auto-detect active section on scroll using Intersection Observer
+  useEffect(() => {
+    if (filteredSections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const sectionId = parseInt(entry.target.id.replace('section-', ''));
+          sectionsRefs.current[sectionId] = entry.target as HTMLElement;
+          
+          if (entry.isIntersecting) {
+            setActiveSection(sectionId);
+          }
+        });
+      },
+      {
+        rootMargin: '-133px 0px -50% 0px', // Account for sticky headers
+        threshold: 0.1
+      }
+    );
+
+    // Observe all section elements
+    filteredSections.forEach((section) => {
+      const element = document.getElementById(`section-${section.id}`);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [filteredSections]);
 
   // Filter sections and dishes based on active filters
   const filteredSections = useMemo(() => {
@@ -147,8 +184,8 @@ function RestaurantMenuContent() {
       </Helmet>
 
       <div className="min-h-screen bg-muted/20 pb-20">
-        {/* Sticky Header Navigation with Search */}
-        <div className="bg-background border-b sticky top-0 z-40 backdrop-blur-sm">
+        {/* Sticky Header Navigation with Search - sin border-b */}
+        <div className="bg-background sticky top-0 z-40 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -189,8 +226,8 @@ function RestaurantMenuContent() {
           />
         </div>
 
-        {/* Sticky Section Navigation - always positioned below header */}
-        <div className="sticky top-[74px] z-30 bg-background">
+        {/* Sticky Section Navigation - always positioned below header with border-b */}
+        <div className="sticky top-[74px] z-30 bg-background border-b">
           <MenuSectionTabs 
             sections={filteredSections} 
             activeSection={activeSection} 
