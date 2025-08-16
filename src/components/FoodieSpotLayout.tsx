@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useRestaurants } from '@/hooks/useEnhancedRestaurants';
+import { useEnhancedRestaurants } from '@/hooks/useEnhancedRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { useCuisineTypes } from '@/hooks/useCuisineTypes';
@@ -10,7 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import InlineSearchBar from '@/components/InlineSearchBar';
+import SimpleSearchBar from '@/components/SimpleSearchBar';
 import FilterTags from '@/components/FilterTags';
 import RestaurantGrid from '@/components/RestaurantGrid';
 import DishesGrid from '@/components/DishesGrid';
@@ -258,18 +258,16 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   }, [searchParams]);
 
   // Fetch data
-  const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useRestaurants({
+  const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useEnhancedRestaurants({
     searchQuery: debouncedSearchQuery,
     userLat: location?.latitude,
     userLng: location?.longitude,
-    selectedCuisines,
-    selectedFoodTypes,
-    selectedPriceRanges,
+    cuisineTypeIds: selectedCuisines,
+    priceRanges: selectedPriceRanges,
     selectedEstablishmentTypes,
     selectedDietTypes,
     isOpenNow,
-    isHighRated,
-    isBudgetFriendly
+    isHighRated
   });
 
   const { dishes, loading: dishesLoading, error: dishesError } = useDishes({
@@ -278,8 +276,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     userLng: location?.longitude,
     selectedDishDietTypes,
     selectedPriceRanges,
-    selectedCustomTags,
-    selectedSpiceLevels
+    selectedCustomTags
   });
 
   const handleLocationChange = useCallback((newLat: number, newLng: number) => {
@@ -426,7 +423,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             </TabsList>
 
             <div className="space-y-4">
-              <InlineSearchBar
+              <SimpleSearchBar
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 placeholder={activeTab === 'restaurants' ? 'Buscar restaurantes...' : 'Buscar platos...'}
