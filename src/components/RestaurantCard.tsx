@@ -126,12 +126,13 @@ export default function RestaurantCard({
             <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth">
               {name}
             </h3>
+            
             {googleRating && (
               <div className="flex items-center gap-1 flex-shrink-0">
                 <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                 <span className="font-medium text-foreground text-sm">{googleRating}</span>
                 {googleRatingCount && (
-                  <span className="text-muted-foreground text-sm">({googleRatingCount})</span>
+                  <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
                 )}
               </div>
             )}
@@ -213,18 +214,22 @@ export default function RestaurantCard({
             </div>
           )}
           
-          <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-smooth">
-            {name}
-          </h3>
-          {googleRating && (
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              <span className="font-medium text-foreground text-sm">{googleRating}</span>
-              {googleRatingCount && (
-                <span className="text-muted-foreground text-sm">({googleRatingCount})</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-smooth">
+                {name}
+              </h3>
+              {googleRating && (
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  <span className="font-medium text-foreground text-sm">{googleRating}</span>
+                  {googleRatingCount && (
+                    <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
+                  )}
+                </div>
               )}
             </div>
-          )}
+          </div>
         </div>
         
         <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
