@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,19 +8,25 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
 import { DishFavoritesProvider } from "./contexts/DishFavoritesContext";
+import { OrderSimulatorProvider } from "./contexts/OrderSimulatorContext";
+import { useRoutePreload } from "./hooks/useRoutePreload";
 import ProtectedRoute from "./components/ProtectedRoute";
-import RestaurantProfile from "./pages/RestaurantProfile";
-import RestaurantMenu from "./pages/RestaurantMenu";
-import SecureAdminPanel from "./pages/SecureAdminPanel";
-import SuperAdminPanel from "./pages/SuperAdminPanel";
-import SecurityDashboard from "./pages/SecurityDashboard";
-import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
+import ErrorBoundary from "./components/ErrorBoundary";
+import LazyPageWrapper from "./components/LazyPageWrapper";
+
+// Lazy imports
+import { LazyRestaurantProfile } from "./components/lazy/LazyRestaurantProfile";
+import { LazyRestaurantMenu } from "./components/lazy/LazyRestaurantMenu";
+import { LazySecureAdminPanel } from "./components/lazy/LazySecureAdminPanel";
+import { LazySuperAdminPanel } from "./components/lazy/LazySuperAdminPanel";
+import { LazySecurityDashboard } from "./components/lazy/LazySecurityDashboard";
+
+// Immediate imports for critical routes
 import LocationEntry from "./pages/LocationEntry";
 import Restaurants from "./pages/Restaurants";
 import Dishes from "./pages/Dishes";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { OrderSimulatorProvider } from "./contexts/OrderSimulatorContext";
+import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,8 +38,62 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppRoutes = () => {
+  useRoutePreload();
+
+  return (
+    <Routes>
+      <Route path="/" element={<LocationEntry />} />
+      <Route path="/restaurantes" element={<Restaurants />} />
+      <Route path="/platos" element={<Dishes />} />
+      <Route path="/restaurant/:slug" element={
+        <LazyPageWrapper>
+          <LazyRestaurantProfile />
+        </LazyPageWrapper>
+      } />
+      <Route path="/carta/:slug" element={
+        <LazyPageWrapper>
+          <LazyRestaurantMenu />
+        </LazyPageWrapper>
+      } />
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <LazyPageWrapper>
+              <LazySecureAdminPanel />
+            </LazyPageWrapper>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/superadmin" 
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <LazyPageWrapper>
+              <LazySuperAdminPanel />
+            </LazyPageWrapper>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/security" 
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <LazyPageWrapper>
+              <LazySecurityDashboard />
+            </LazyPageWrapper>
+          </ProtectedRoute>
+        } 
+      />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
 const App = () => {
-  console.log('App: Starting application with enhanced security');
+  console.log('App: Starting application with enhanced performance and lazy loading');
 
   return (
     <ErrorBoundary>
@@ -46,39 +107,7 @@ const App = () => {
                     <Toaster />
                     <Sonner />
                     <BrowserRouter>
-                      <Routes>
-                        <Route path="/" element={<LocationEntry />} />
-                        <Route path="/restaurantes" element={<Restaurants />} />
-                        <Route path="/platos" element={<Dishes />} />
-                        <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
-                        <Route path="/carta/:slug" element={<RestaurantMenu />} />
-                        <Route 
-                          path="/admin" 
-                          element={
-                            <ProtectedRoute requiredRole="admin">
-                              <SecureAdminPanel />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/superadmin" 
-                          element={
-                            <ProtectedRoute requiredRole="admin">
-                              <SuperAdminPanel />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/security" 
-                          element={
-                            <ProtectedRoute requiredRole="admin">
-                              <SecurityDashboard />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        <Route path="/auth" element={<Auth />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
+                      <AppRoutes />
                     </BrowserRouter>
                   </TooltipProvider>
                 </OrderSimulatorProvider>
