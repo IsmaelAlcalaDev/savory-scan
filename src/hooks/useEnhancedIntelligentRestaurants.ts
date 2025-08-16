@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useEnhancedIntelligentRestaurants } from './useEnhancedIntelligentRestaurants';
 
 interface Restaurant {
   id: number;
@@ -21,7 +20,7 @@ interface Restaurant {
   diet_percentages?: Record<string, number>;
 }
 
-interface UseEnhancedRestaurantsProps {
+interface UseEnhancedIntelligentRestaurantsProps {
   searchQuery?: string;
   userLat?: number;
   userLng?: number;
@@ -61,28 +60,21 @@ const calculateDietPercentage = (dishes: any[], category: string): number => {
   return Math.round((matchingDishes.length / dishes.length) * 100);
 };
 
-export const useEnhancedRestaurants = (props: UseEnhancedRestaurantsProps) => {
-  // Si hay searchQuery, usar búsqueda inteligente
-  if (props.searchQuery && props.searchQuery.trim().length > 0) {
-    return useEnhancedIntelligentRestaurants(props);
-  }
-
+export const useEnhancedIntelligentRestaurants = ({
+  searchQuery = '',
+  userLat,
+  userLng,
+  maxDistance = 50,
+  cuisineTypeIds,
+  priceRanges,
+  isHighRated = false,
+  selectedEstablishmentTypes,
+  selectedDietTypes,
+  isOpenNow = false
+}: UseEnhancedIntelligentRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const {
-    searchQuery = '',
-    userLat,
-    userLng,
-    maxDistance = 50,
-    cuisineTypeIds,
-    priceRanges,
-    isHighRated = false,
-    selectedEstablishmentTypes,
-    selectedDietTypes,
-    isOpenNow = false
-  } = props;
 
   useEffect(() => {
     const fetchRestaurants = async () => {
@@ -90,19 +82,27 @@ export const useEnhancedRestaurants = (props: UseEnhancedRestaurantsProps) => {
         setLoading(true);
         setError(null);
 
-        // Convert price range values to display_text for filtering
-        let priceDisplayTexts: string[] | undefined;
-        if (priceRanges && priceRanges.length > 0) {
-          const { data: priceRangeData } = await supabase
-            .from('price_ranges')
-            .select('value, display_text')
-            .in('value', priceRanges);
+        let restaurantIds: number[] = [];
 
-          if (priceRangeData && priceRangeData.length > 0) {
-            priceDisplayTexts = priceRangeData.map(range => range.display_text);
+        // Si hay búsqueda de texto, usar búsqueda inteligente
+        if (searchQuery && searchQuery.trim().length > 0) {
+          console.log('Using intelligent search for restaurants');
+          
+          const { data: intelligentResults, error: intelligentError } = await supabase
+            .rpc('intelligent_restaurant_search' as any, {
+              search_query: searchQuery.trim(),
+              search_limit: 50
+            });
+
+          if (intelligentError) {
+            console.error('Intelligent search failed, falling back to regular search:', intelligentError);
+          } else if (intelligentResults && Array.isArray(intelligentResults)) {
+            restaurantIds = intelligentResults.map((r: any) => r.id);
+            console.log('Intelligent search found restaurant IDs:', restaurantIds);
           }
         }
 
+        // Construir query base
         let query = supabase
           .from('restaurants')
           .select(`
@@ -140,13 +140,18 @@ export const useEnhancedRestaurants = (props: UseEnhancedRestaurantsProps) => {
           .eq('is_published', true)
           .is('deleted_at', null);
 
-        // Filtro "Abierto ahora" - optimizado con SQL
+        // Aplicar filtro de búsqueda inteligente si hay resultados
+        if (restaurantIds.length > 0) {
+          query = query.in('id', restaurantIds);
+        } else if (searchQuery && searchQuery.trim().length > 0) {
+          // Fallback a búsqueda tradicional si no hay resultados inteligentes
+          query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        }
+
+        // Aplicar otros filtros...
         if (isOpenNow) {
-          console.log('Applying "open now" filter with SQL optimization');
-          
-          // Obtener día de la semana actual (0=domingo, 1=lunes, etc.)
           const currentDay = new Date().getDay();
-          const currentTime = new Date().toTimeString().slice(0, 8); // HH:MM:SS format
+          const currentTime = new Date().toTimeString().slice(0, 8);
           
           query = query
             .eq('restaurant_schedules.day_of_week', currentDay)
@@ -155,16 +160,20 @@ export const useEnhancedRestaurants = (props: UseEnhancedRestaurantsProps) => {
             .gte('restaurant_schedules.closing_time', currentTime);
         }
 
-        if (searchQuery) {
-          query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-        }
-
         if (isHighRated) {
           query = query.gte('google_rating', 4.5);
         }
 
-        if (priceDisplayTexts && priceDisplayTexts.length > 0) {
-          query = query.in('price_range', priceDisplayTexts as any);
+        if (priceRanges && priceRanges.length > 0) {
+          const { data: priceRangeData } = await supabase
+            .from('price_ranges')
+            .select('value, display_text')
+            .in('value', priceRanges);
+
+          if (priceRangeData && priceRangeData.length > 0) {
+            const priceDisplayTexts = priceRangeData.map(range => range.display_text);
+            query = query.in('price_range', priceDisplayTexts as any);
+          }
         }
 
         if (cuisineTypeIds && cuisineTypeIds.length > 0) {
@@ -208,7 +217,7 @@ export const useEnhancedRestaurants = (props: UseEnhancedRestaurantsProps) => {
           };
         }).filter(Boolean) || [];
 
-        // Enhanced diet type filtering with specializations and calculated percentages
+        // Aplicar filtros de dieta si es necesario...
         if (selectedDietTypes && selectedDietTypes.length > 0) {
           const { data: dietTypesData } = await supabase
             .from('diet_types')
@@ -276,8 +285,17 @@ export const useEnhancedRestaurants = (props: UseEnhancedRestaurantsProps) => {
           }
         }
 
+        // Ordenar resultados
         let sortedData = formattedData;
-        if (userLat && userLng) {
+        if (restaurantIds.length > 0) {
+          // Si usamos búsqueda inteligente, mantener el orden de relevancia
+          sortedData = formattedData.sort((a, b) => {
+            const aIndex = restaurantIds.indexOf(a.id);
+            const bIndex = restaurantIds.indexOf(b.id);
+            return aIndex - bIndex;
+          });
+        } else if (userLat && userLng) {
+          // Ordenar por distancia
           sortedData = formattedData
             .filter(restaurant => {
               if (restaurant.distance_km === null) return false;

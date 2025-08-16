@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useIntelligentDishes } from './useIntelligentDishes';
 
 interface DishData {
   id: number;
@@ -30,7 +29,7 @@ interface DishData {
   custom_tags: string[];
 }
 
-interface UseDishesParams {
+interface UseIntelligentDishesParams {
   searchQuery?: string;
   userLat?: number;
   userLng?: number;
@@ -58,17 +57,11 @@ const formatPrice = (basePrice: number): string => {
   return `€${basePrice.toFixed(2)}`;
 };
 
-export const useDishes = (params: UseDishesParams = {}) => {
-  // Si hay searchQuery, usar búsqueda inteligente
-  if (params.searchQuery && params.searchQuery.trim().length > 0) {
-    return useIntelligentDishes(params);
-  }
-
+export const useIntelligentDishes = (params: UseIntelligentDishesParams = {}) => {
   const [dishes, setDishes] = useState<DishData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Refs to prevent infinite loops
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastFetchRef = useRef<string>('');
   const isInitialMount = useRef(true);
@@ -86,7 +79,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     spiceLevels = []
   } = params;
 
-  // Create a stable key for the current fetch parameters
   const fetchKey = JSON.stringify({
     searchQuery,
     userLat,
@@ -101,9 +93,30 @@ export const useDishes = (params: UseDishesParams = {}) => {
 
   const fetchDishes = useCallback(async (signal: AbortSignal) => {
     try {
-      console.log('useDishes: Starting fetch with key:', fetchKey);
+      console.log('useIntelligentDishes: Starting fetch with key:', fetchKey);
       
-      const { data, error: fetchError } = await supabase
+      let dishIds: number[] = [];
+
+      // Si hay búsqueda de texto, usar búsqueda inteligente
+      if (searchQuery && searchQuery.trim().length > 0) {
+        console.log('Using intelligent search for dishes');
+        
+        const { data: intelligentResults, error: intelligentError } = await supabase
+          .rpc('intelligent_dish_search' as any, {
+            search_query: searchQuery.trim(),
+            search_limit: 100
+          });
+
+        if (intelligentError) {
+          console.error('Intelligent dish search failed:', intelligentError);
+        } else if (intelligentResults && Array.isArray(intelligentResults)) {
+          dishIds = intelligentResults.map((d: any) => d.id);
+          console.log('Intelligent search found dish IDs:', dishIds);
+        }
+      }
+
+      // Construir query base
+      let query = supabase
         .from('dishes')
         .select(`
           id,
@@ -137,25 +150,36 @@ export const useDishes = (params: UseDishesParams = {}) => {
         `)
         .eq('is_active', true)
         .eq('restaurants.is_active', true)
-        .limit(100)
         .abortSignal(signal);
+
+      // Aplicar filtro de búsqueda inteligente si hay resultados
+      if (dishIds.length > 0) {
+        query = query.in('id', dishIds);
+      } else if (searchQuery && searchQuery.trim().length > 0) {
+        // Fallback a búsqueda tradicional si no hay resultados inteligentes
+        query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      }
+
+      query = query.limit(100);
+
+      const { data, error: fetchError } = await query;
 
       if (signal.aborted) return;
 
       if (fetchError) {
-        console.error('useDishes: Supabase error:', fetchError);
+        console.error('useIntelligentDishes: Supabase error:', fetchError);
         throw fetchError;
       }
 
       if (!data) {
-        console.log('useDishes: No data returned');
+        console.log('useIntelligentDishes: No data returned');
         setDishes([]);
         setError(null);
         setLoading(false);
         return;
       }
 
-      console.log('useDishes: Raw data received:', data.length, 'dishes');
+      console.log('useIntelligentDishes: Raw data received:', data.length, 'dishes');
 
       // Transform data
       const processedDishes: DishData[] = data
@@ -169,7 +193,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
             distance_km = haversineDistance(userLat, userLng, restaurant.latitude, restaurant.longitude);
           }
 
-          // Process custom_tags to ensure it's a string array
           let customTags: string[] = [];
           if (dish.custom_tags && Array.isArray(dish.custom_tags)) {
             customTags = dish.custom_tags
@@ -206,19 +229,10 @@ export const useDishes = (params: UseDishesParams = {}) => {
           };
         });
 
-      // Apply filters
       let filteredDishes = processedDishes;
 
-      // Search filter
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase().trim();
-        filteredDishes = filteredDishes.filter(dish =>
-          dish.name.toLowerCase().includes(query) ||
-          dish.description?.toLowerCase().includes(query) ||
-          dish.restaurant_name.toLowerCase().includes(query) ||
-          dish.custom_tags.some(tag => tag.toLowerCase().includes(query))
-        );
-      }
+      // Apply filters
+      // Search filter is already applied via intelligent search or fallback
 
       // Diet type filters - Use direct boolean checks for dishes
       if (selectedDishDietTypes.length > 0) {
@@ -289,17 +303,35 @@ export const useDishes = (params: UseDishesParams = {}) => {
         );
       }
 
-      // Sort by featured first, then by distance if available
-      filteredDishes.sort((a, b) => {
-        if (a.is_featured && !b.is_featured) return -1;
-        if (!a.is_featured && b.is_featured) return 1;
-        if (a.distance_km !== undefined && b.distance_km !== undefined) {
-          return a.distance_km - b.distance_km;
-        }
-        return 0;
-      });
+      // Ordenar resultados
+      if (dishIds.length > 0) {
+        // Si usamos búsqueda inteligente, mantener el orden de relevancia
+        filteredDishes.sort((a, b) => {
+          const aIndex = dishIds.indexOf(a.id);
+          const bIndex = dishIds.indexOf(b.id);
+          if (aIndex !== bIndex) return aIndex - bIndex;
+          
+          // Criterios secundarios
+          if (a.is_featured && !b.is_featured) return -1;
+          if (!a.is_featured && b.is_featured) return 1;
+          if (a.distance_km !== undefined && b.distance_km !== undefined) {
+            return a.distance_km - b.distance_km;
+          }
+          return 0;
+        });
+      } else {
+        // Ordenar por featured y distancia
+        filteredDishes.sort((a, b) => {
+          if (a.is_featured && !b.is_featured) return -1;
+          if (!a.is_featured && b.is_featured) return 1;
+          if (a.distance_km !== undefined && b.distance_km !== undefined) {
+            return a.distance_km - b.distance_km;
+          }
+          return 0;
+        });
+      }
 
-      console.log('useDishes: Final dishes to display:', filteredDishes.length);
+      console.log('useIntelligentDishes: Final dishes to display:', filteredDishes.length);
 
       if (!signal.aborted) {
         setDishes(filteredDishes);
@@ -311,7 +343,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     } catch (err) {
       if (signal.aborted) return;
       
-      console.error('useDishes: Error fetching dishes:', err);
+      console.error('useIntelligentDishes: Error fetching dishes:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
       setDishes([]);
       setLoading(false);
@@ -319,40 +351,33 @@ export const useDishes = (params: UseDishesParams = {}) => {
   }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels]);
 
   useEffect(() => {
-    // Skip if the fetch key hasn't changed (prevents infinite loops)
     if (lastFetchRef.current === fetchKey && !isInitialMount.current) {
-      console.log('useDishes: Skipping fetch, same parameters');
+      console.log('useIntelligentDishes: Skipping fetch, same parameters');
       return;
     }
 
-    // Clear any existing timeout
     if (fetchTimeoutRef.current) {
       clearTimeout(fetchTimeoutRef.current);
     }
 
-    // Cancel previous request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
-    // Set loading state
     setLoading(true);
     setError(null);
 
-    // Create new abort controller
     abortControllerRef.current = new AbortController();
     const currentController = abortControllerRef.current;
 
-    // Debounce the fetch operation
     fetchTimeoutRef.current = setTimeout(() => {
       if (!currentController.signal.aborted) {
         fetchDishes(currentController.signal);
       }
-    }, isInitialMount.current ? 0 : 300); // No delay on initial mount, 300ms delay on subsequent calls
+    }, isInitialMount.current ? 0 : 300);
 
     isInitialMount.current = false;
 
-    // Cleanup function
     return () => {
       if (fetchTimeoutRef.current) {
         clearTimeout(fetchTimeoutRef.current);
@@ -363,7 +388,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     };
   }, [fetchKey, fetchDishes]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
