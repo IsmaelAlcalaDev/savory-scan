@@ -109,13 +109,13 @@ export default function RestaurantCard({
 
         <div className="flex-1 space-y-2">
           {/* Logo and name row */}
-          <div className="flex items-start gap-2">
+          <div className="flex items-center gap-3">
             {logoUrl && (
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 flex items-center">
                 <img 
                   src={logoUrl} 
                   alt={`${name} logo`}
-                  className="w-8 h-8 rounded object-cover"
+                  className="w-12 h-12 rounded object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -125,7 +125,7 @@ export default function RestaurantCard({
             )}
             
             {/* Name and rating container - aligned with content below */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth">
                   {name}
@@ -143,7 +143,7 @@ export default function RestaurantCard({
               </div>
               
               {/* Second line - aligned with name, not logo */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap mt-1">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
                 <span className="line-clamp-1">
                   {cuisineTypes.slice(0, 2).join(', ')}
                 </span>
@@ -206,13 +206,13 @@ export default function RestaurantCard({
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-start gap-2">
+        <div className="flex items-center gap-3">
           {logoUrl && (
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 flex items-center">
               <img 
                 src={logoUrl} 
                 alt={`${name} logo`}
-                className="w-10 h-10 rounded object-cover"
+                className="w-12 h-12 rounded object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
@@ -222,8 +222,8 @@ export default function RestaurantCard({
           )}
           
           {/* Name and rating container - aligned with content below */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth">
                 {name}
               </h3>
