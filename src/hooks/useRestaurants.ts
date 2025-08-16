@@ -106,8 +106,6 @@ export const useRestaurants = ({
           console.log('Budget-friendly filter active, filtering by € only');
         }
 
-        // For budget-friendly filter, we'll filter directly by price_range = '€'
-        // No need to convert to display_text since we're filtering by the stored value
         let query = supabase
           .from('restaurants')
           .select(`
@@ -231,20 +229,22 @@ export const useRestaurants = ({
         // Handle vegetarian/vegan quick filter by using diet types logic
         let effectiveDietTypes = selectedDietTypes || [];
         if (isVegetarianVegan) {
-          console.log('Vegetarian/vegan quick filter active, fetching diet types');
+          console.log('Vegetarian/vegan quick filter active, fetching lowest percentage diet types');
           
-          // Fetch vegetarian and vegan diet types
+          // Fetch only the diet types with the lowest minimum percentage for each category
           const { data: vegDietTypes, error: vegDietError } = await supabase
             .from('diet_types')
-            .select('id')
-            .in('category', ['vegetarian', 'vegan']);
+            .select('id, category, min_percentage')
+            .in('category', ['vegetarian', 'vegan'])
+            .or('category.eq.vegetarian.and.min_percentage.eq.15,category.eq.vegan.and.min_percentage.eq.10');
 
           if (vegDietError) {
             console.error('Error fetching vegetarian/vegan diet types:', vegDietError);
           } else if (vegDietTypes && vegDietTypes.length > 0) {
             const vegDietTypeIds = vegDietTypes.map(dt => dt.id);
             effectiveDietTypes = [...effectiveDietTypes, ...vegDietTypeIds];
-            console.log('Added vegetarian/vegan diet type IDs:', vegDietTypeIds);
+            console.log('Added basic vegetarian/vegan diet type IDs:', vegDietTypeIds);
+            console.log('Diet types details:', vegDietTypes);
           }
         }
 
