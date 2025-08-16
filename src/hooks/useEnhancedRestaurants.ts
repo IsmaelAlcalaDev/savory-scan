@@ -31,6 +31,7 @@ interface UseEnhancedRestaurantsProps {
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
   isOpenNow?: boolean;
+  isBudgetFriendly?: boolean;
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -70,7 +71,8 @@ export const useEnhancedRestaurants = ({
   isHighRated = false,
   selectedEstablishmentTypes,
   selectedDietTypes,
-  isOpenNow = false
+  isOpenNow = false,
+  isBudgetFriendly = false
 }: UseEnhancedRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,13 +84,20 @@ export const useEnhancedRestaurants = ({
         setLoading(true);
         setError(null);
 
+        // Handle budget-friendly filter - override price ranges when active
+        let effectivePriceRanges = priceRanges;
+        if (isBudgetFriendly) {
+          effectivePriceRanges = ['budget']; // This will be converted to '€' below
+          console.log('Budget-friendly filter active, forcing price range to budget');
+        }
+
         // Convert price range values to display_text for filtering
         let priceDisplayTexts: string[] | undefined;
-        if (priceRanges && priceRanges.length > 0) {
+        if (effectivePriceRanges && effectivePriceRanges.length > 0) {
           const { data: priceRangeData } = await supabase
             .from('price_ranges')
             .select('value, display_text')
-            .in('value', priceRanges);
+            .in('value', effectivePriceRanges);
 
           if (priceRangeData && priceRangeData.length > 0) {
             priceDisplayTexts = priceRangeData.map(range => range.display_text);
@@ -335,7 +344,7 @@ export const useEnhancedRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly]);
 
   return { restaurants, loading, error };
 };
