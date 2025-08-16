@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import SearchBar from '@/components/SearchBar';
@@ -180,9 +179,7 @@ const Restaurants = () => {
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
         <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          onFiltersClick={() => setIsFiltersOpen(true)}
+          onSearch={(query) => setSearchQuery(query)}
           placeholder="Buscar restaurantes..."
         />
         
@@ -196,14 +193,26 @@ const Restaurants = () => {
         />
 
         <FilterTags
-          filters={{
-            cuisineTypeIds: filters.cuisineTypeIds,
-            priceRanges: filters.priceRanges,
-            establishmentTypeIds: filters.establishmentTypeIds,
-            dietTypeIds: filters.dietTypeIds,
-            maxDistance: filters.maxDistance,
+          activeTab="restaurants"
+          selectedCuisines={filters.cuisineTypeIds}
+          selectedFoodTypes={[]}
+          selectedPriceRanges={filters.priceRanges}
+          selectedEstablishmentTypes={filters.establishmentTypeIds}
+          selectedDietTypes={filters.dietTypeIds}
+          isOpenNow={filters.isOpenNow}
+          isHighRated={filters.isHighRated}
+          isBudgetFriendly={filters.isBudgetFriendly}
+          onClearFilter={(type, id) => {
+            if (type === 'all') {
+              clearAllFilters();
+            }
           }}
-          onClearAll={clearAllFilters}
+          onPriceRangeChange={(ranges) => setFilters(prev => ({ ...prev, priceRanges: ranges }))}
+          onEstablishmentTypeChange={(types) => setFilters(prev => ({ ...prev, establishmentTypeIds: types }))}
+          onDietTypeChange={(types) => setFilters(prev => ({ ...prev, dietTypeIds: types }))}
+          onOpenNowChange={(isOpen) => setFilters(prev => ({ ...prev, isOpenNow: isOpen }))}
+          onHighRatedChange={(isHighRated) => setFilters(prev => ({ ...prev, isHighRated }))}
+          onBudgetFriendlyChange={(isBudgetFriendly) => setFilters(prev => ({ ...prev, isBudgetFriendly }))}
         />
       </div>
 
@@ -226,8 +235,21 @@ const Restaurants = () => {
           {restaurants.map((restaurant) => (
             <RestaurantCard
               key={restaurant.id}
-              restaurant={restaurant}
-              viewMode={viewMode}
+              id={restaurant.id}
+              name={restaurant.name}
+              slug={restaurant.slug}
+              description={restaurant.description}
+              priceRange={restaurant.price_range}
+              googleRating={restaurant.google_rating}
+              googleRatingCount={restaurant.google_rating_count}
+              distance={restaurant.distance}
+              cuisineTypes={restaurant.cuisine_types || []}
+              establishmentType={restaurant.establishment_type}
+              services={restaurant.services || []}
+              favoritesCount={restaurant.favorites_count}
+              coverImageUrl={restaurant.cover_image_url}
+              logoUrl={restaurant.logo_url}
+              layout={viewMode}
             />
           ))}
         </div>
@@ -243,16 +265,10 @@ const Restaurants = () => {
       )}
 
       <UnifiedFiltersModal
-        isOpen={isFiltersOpen}
-        onClose={() => setIsFiltersOpen(false)}
-        onApply={handleFiltersApply}
-        initialFilters={{
-          cuisineTypeIds: filters.cuisineTypeIds,
-          priceRanges: filters.priceRanges,
-          establishmentTypeIds: filters.establishmentTypeIds,
-          dietTypeIds: filters.dietTypeIds,
-          maxDistance: filters.maxDistance,
-        }}
+        selectedAllergens={[]}
+        selectedDietTypes={filters.dietTypeIds}
+        onAllergenChange={() => {}}
+        onDietTypeChange={(types) => setFilters(prev => ({ ...prev, dietTypeIds: types }))}
       />
     </div>
   );
