@@ -186,7 +186,7 @@ export default function FilterTags({
           className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
               ? 'bg-black text-white hover:bg-black hover:text-white' 
-              : 'text-black hover:bg-gray-300 hover:text-black'
+              : 'text-black hover:text-black'
           }`}
           style={isActive ? { 
             backgroundColor: '#000000',
@@ -200,6 +200,16 @@ export default function FilterTags({
             fontWeight: '600'
           }}
           onClick={() => handleOpenChange(true)}
+          onMouseEnter={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = 'rgb(187, 187, 187)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = '#F3F3F3';
+            }
+          }}
         >
           {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />}
           {children}
@@ -235,7 +245,7 @@ export default function FilterTags({
             className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isHighRated 
                 ? 'bg-black text-white hover:bg-black hover:text-white' 
-                : 'text-black hover:bg-gray-300 hover:text-black'
+                : 'text-black hover:text-black'
             }`}
             style={isHighRated ? { 
               backgroundColor: '#000000',
@@ -249,6 +259,16 @@ export default function FilterTags({
               fontWeight: '600'
             }}
             onClick={() => onHighRatedChange(!isHighRated)}
+            onMouseEnter={(e) => {
+              if (!isHighRated) {
+                e.currentTarget.style.backgroundColor = 'rgb(187, 187, 187)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isHighRated) {
+                e.currentTarget.style.backgroundColor = '#F3F3F3';
+              }
+            }}
           >
             <Star className={`h-3 w-3 ${isHighRated ? 'text-white fill-white' : 'text-black'}`} />
             +4.5
@@ -261,7 +281,7 @@ export default function FilterTags({
             className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isOpenNow 
                 ? 'bg-black text-white hover:bg-black hover:text-white' 
-                : 'text-black hover:bg-gray-300 hover:text-black'
+                : 'text-black hover:text-black'
             }`}
             style={isOpenNow ? { 
               backgroundColor: '#000000',
@@ -275,6 +295,16 @@ export default function FilterTags({
               fontWeight: '600'
             }}
             onClick={() => onOpenNowChange(!isOpenNow)}
+            onMouseEnter={(e) => {
+              if (!isOpenNow) {
+                e.currentTarget.style.backgroundColor = 'rgb(187, 187, 187)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isOpenNow) {
+                e.currentTarget.style.backgroundColor = '#F3F3F3';
+              }
+            }}
           >
             <Clock className={`h-3 w-3 ${isOpenNow ? 'text-white' : 'text-black'}`} />
             Abierto ahora
@@ -287,7 +317,7 @@ export default function FilterTags({
             className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isBudgetFriendly 
                 ? 'bg-black text-white hover:bg-black hover:text-white' 
-                : 'text-black hover:bg-gray-300 hover:text-black'
+                : 'text-black hover:text-black'
             }`}
             style={isBudgetFriendly ? { 
               backgroundColor: '#000000',
@@ -301,6 +331,16 @@ export default function FilterTags({
               fontWeight: '600'
             }}
             onClick={() => onBudgetFriendlyChange(!isBudgetFriendly)}
+            onMouseEnter={(e) => {
+              if (!isBudgetFriendly) {
+                e.currentTarget.style.backgroundColor = 'rgb(187, 187, 187)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isBudgetFriendly) {
+                e.currentTarget.style.backgroundColor = '#F3F3F3';
+              }
+            }}
           >
             <CircleDollarSign className={`h-3 w-3 ${isBudgetFriendly ? 'text-white' : 'text-black'}`} />
             Económico
@@ -344,12 +384,6 @@ export default function FilterTags({
           .bg-black:hover {
             background-color: #000000 !important;
             color: white !important;
-          }
-
-          /* Slightly darker gray hover for inactive buttons */
-          .hover\\:bg-gray-300:hover {
-            background-color: #d1d5db !important;
-            color: black !important;
           }
 
           /* Improve touch targets for mobile */
