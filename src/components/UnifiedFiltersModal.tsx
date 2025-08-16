@@ -1,5 +1,5 @@
 
-import { useState, ReactNode } from 'react';
+import { useState, ReactNode, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -7,6 +7,7 @@ import { Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useModalScrollLock } from '@/hooks/useModalScrollLock';
 import AllergenFilter from './AllergenFilter';
 import DietFilter from './DietFilter';
 
@@ -28,12 +29,31 @@ export default function UnifiedFiltersModal({
   const [isOpen, setIsOpen] = useState(false);
   const isMobile = useIsMobile();
   
-  const activeFiltersCount = selectedAllergens.length + selectedDietTypes.length;
+  // Lock scroll when modal is open
+  useModalScrollLock(isOpen);
+  
+  // Memoize activeFiltersCount to prevent unnecessary re-renders
+  const activeFiltersCount = useMemo(() => {
+    return selectedAllergens.length + selectedDietTypes.length;
+  }, [selectedAllergens.length, selectedDietTypes.length]);
 
-  const clearAllFilters = () => {
+  // Stabilize callback functions
+  const handleAllergenChange = useCallback((allergens: string[]) => {
+    onAllergenChange(allergens);
+  }, [onAllergenChange]);
+
+  const handleDietTypeChange = useCallback((types: number[]) => {
+    onDietTypeChange(types);
+  }, [onDietTypeChange]);
+
+  const clearAllFilters = useCallback(() => {
     onAllergenChange([]);
     onDietTypeChange([]);
-  };
+  }, [onAllergenChange, onDietTypeChange]);
+
+  const handleModalOpenChange = useCallback((open: boolean) => {
+    setIsOpen(open);
+  }, []);
 
   const defaultTrigger = (
     <Button 
@@ -52,7 +72,7 @@ export default function UnifiedFiltersModal({
   );
 
   const ModalContent = () => (
-    <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
+    <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`} onClick={(e) => e.stopPropagation()}>
       {/* Header */}
       <div className={`flex-shrink-0 ${isMobile ? 'border-b border-gray-100 pb-4' : ''}`}>
         {isMobile ? (
@@ -91,7 +111,7 @@ export default function UnifiedFiltersModal({
               </p>
               <AllergenFilter
                 selectedAllergens={selectedAllergens}
-                onAllergenChange={onAllergenChange}
+                onAllergenChange={handleAllergenChange}
               />
             </div>
           </TabsContent>
@@ -103,7 +123,7 @@ export default function UnifiedFiltersModal({
               </p>
               <DietFilter
                 selectedDietTypes={selectedDietTypes}
-                onDietTypeChange={onDietTypeChange}
+                onDietTypeChange={handleDietTypeChange}
               />
             </div>
           </TabsContent>
@@ -128,7 +148,7 @@ export default function UnifiedFiltersModal({
 
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <Sheet open={isOpen} onOpenChange={handleModalOpenChange}>
         <SheetTrigger asChild>
           {trigger || defaultTrigger}
         </SheetTrigger>
@@ -144,7 +164,7 @@ export default function UnifiedFiltersModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleModalOpenChange}>
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
