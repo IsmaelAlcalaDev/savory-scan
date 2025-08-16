@@ -27,6 +27,8 @@ interface WebhookPayload {
       first_name?: string;
       last_name?: string;
       full_name?: string;
+      city?: string;
+      phone?: string;
     };
   };
   email_data: EmailData;
@@ -34,6 +36,7 @@ interface WebhookPayload {
 
 const generateConfirmationEmailHTML = (
   firstName: string,
+  city: string,
   confirmationUrl: string
 ): string => {
   return `
@@ -42,7 +45,7 @@ const generateConfirmationEmailHTML = (
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Confirma tu cuenta</title>
+      <title>Confirma tu cuenta en SavorySearch</title>
       <style>
         body { 
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -55,80 +58,150 @@ const generateConfirmationEmailHTML = (
         }
         .container {
           background: white;
-          border-radius: 12px;
+          border-radius: 16px;
           padding: 40px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e5e7eb;
         }
         .header {
           text-align: center;
           margin-bottom: 30px;
         }
         .logo {
-          font-size: 24px;
+          font-size: 28px;
           font-weight: bold;
           color: #2563eb;
-          margin-bottom: 10px;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        .tagline {
+          color: #6b7280;
+          font-size: 14px;
+          margin-bottom: 20px;
         }
         .title {
           font-size: 24px;
           font-weight: 600;
           color: #1f2937;
-          margin-bottom: 16px;
+          margin-bottom: 8px;
         }
         .subtitle {
           font-size: 16px;
           color: #6b7280;
           margin-bottom: 30px;
         }
+        .welcome-card {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 20px;
+          border-radius: 12px;
+          margin-bottom: 30px;
+          text-align: center;
+        }
+        .welcome-card h2 {
+          margin: 0 0 8px 0;
+          font-size: 20px;
+        }
+        .welcome-card p {
+          margin: 0;
+          opacity: 0.9;
+        }
         .confirm-button {
           display: inline-block;
-          background-color: #2563eb;
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
           color: white;
-          padding: 14px 28px;
+          padding: 16px 32px;
           text-decoration: none;
-          border-radius: 8px;
+          border-radius: 12px;
           font-weight: 600;
           font-size: 16px;
           margin: 20px 0;
-          transition: background-color 0.2s;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
         .confirm-button:hover {
-          background-color: #1d4ed8;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+        }
+        .features {
+          background: #f8fafc;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 30px 0;
+        }
+        .features h3 {
+          color: #1f2937;
+          margin-bottom: 15px;
+          font-size: 18px;
+        }
+        .feature-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .feature-list li {
+          padding: 8px 0;
+          display: flex;
+          align-items: center;
+          color: #4b5563;
+        }
+        .feature-list li::before {
+          content: "✨";
+          margin-right: 10px;
         }
         .alternative-text {
           font-size: 14px;
           color: #6b7280;
-          margin-top: 20px;
-          padding-top: 20px;
-          border-top: 1px solid #e5e7eb;
+          margin-top: 30px;
+          padding: 20px;
+          background: #f9fafb;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+        }
+        .security-note {
+          background: linear-gradient(135deg, #fef3c7, #fde68a);
+          border: 1px solid #f59e0b;
+          border-radius: 8px;
+          padding: 16px;
+          margin-top: 30px;
+          font-size: 14px;
+          color: #92400e;
         }
         .footer {
           text-align: center;
-          margin-top: 30px;
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #e5e7eb;
           font-size: 12px;
           color: #9ca3af;
         }
-        .security-note {
-          background-color: #fef3c7;
-          border: 1px solid #f59e0b;
-          border-radius: 6px;
-          padding: 12px;
-          margin-top: 20px;
-          font-size: 14px;
-          color: #92400e;
+        .footer a {
+          color: #2563eb;
+          text-decoration: none;
         }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <div class="logo">🍽️ SavorySearch</div>
+          <div class="logo">
+            🍽️ SavorySearch
+          </div>
+          <div class="tagline">Descubre los mejores sabores cerca de ti</div>
         </div>
         
-        <h1 class="title">¡Hola ${firstName}!</h1>
+        <div class="welcome-card">
+          <h2>¡Bienvenido/a a SavorySearch!</h2>
+          <p>Tu aventura culinaria está a punto de comenzar ${city ? `en ${city}` : ''}</p>
+        </div>
+        
+        <h1 class="title">¡Hola ${firstName}! 👋</h1>
         <p class="subtitle">
-          Gracias por registrarte en SavorySearch. Para completar tu registro y activar tu cuenta, 
-          necesitas confirmar tu dirección de correo electrónico.
+          Gracias por unirte a nuestra comunidad gastronómica. Para completar tu registro y 
+          comenzar a descubrir increíbles restaurantes ${city ? `en ${city}` : ''}, solo necesitas confirmar tu cuenta.
         </p>
         
         <div style="text-align: center;">
@@ -137,8 +210,19 @@ const generateConfirmationEmailHTML = (
           </a>
         </div>
         
+        <div class="features">
+          <h3>¿Qué puedes hacer con SavorySearch?</h3>
+          <ul class="feature-list">
+            <li>Descubrir restaurantes únicos ${city ? `en ${city}` : 'en tu zona'}</li>
+            <li>Explorar menús detallados con información nutricional</li>
+            <li>Guardar tus platos y restaurantes favoritos</li>
+            <li>Filtrar por tipo de comida, dietas especiales y más</li>
+            <li>Acceder a promociones y eventos exclusivos</li>
+          </ul>
+        </div>
+        
         <div class="alternative-text">
-          <strong>¿No puedes hacer clic en el botón?</strong><br>
+          <strong>¿Problemas con el botón?</strong><br>
           Copia y pega este enlace en tu navegador:<br>
           <a href="${confirmationUrl}" style="color: #2563eb; word-break: break-all;">
             ${confirmationUrl}
@@ -146,14 +230,17 @@ const generateConfirmationEmailHTML = (
         </div>
         
         <div class="security-note">
-          <strong>⚠️ Nota de seguridad:</strong> Este enlace expirará en 24 horas por tu seguridad. 
-          Si no solicitaste esta cuenta, puedes ignorar este correo.
+          <strong>🔒 Seguridad:</strong> Este enlace es único y expirará en 24 horas. 
+          Si no solicitaste esta cuenta, puedes ignorar este correo de forma segura.
         </div>
         
         <div class="footer">
           <p>
-            Este correo fue enviado desde SavorySearch<br>
-            Si tienes problemas, contáctanos respondiendo a este correo.
+            <strong>SavorySearch</strong> - Tu guía gastronómica personalizada<br>
+            ¿Necesitas ayuda? Responde a este correo y te ayudaremos encantados.
+          </p>
+          <p style="margin-top: 15px;">
+            <a href="${Deno.env.get('SUPABASE_URL') || 'https://savorysearch.com'}">Visitar SavorySearch</a>
           </p>
         </div>
       </div>
@@ -172,6 +259,8 @@ const handler = async (req: Request): Promise<Response> => {
     const payload = await req.text();
     const headers = Object.fromEntries(req.headers);
     
+    console.log("Received webhook payload:", payload.substring(0, 200) + "...");
+    
     // Verify webhook signature
     const wh = new Webhook(hookSecret);
     const {
@@ -179,28 +268,38 @@ const handler = async (req: Request): Promise<Response> => {
       email_data: { token_hash, redirect_to, email_action_type }
     } = wh.verify(payload, headers) as WebhookPayload;
 
+    console.log("Webhook verified successfully for user:", user.email);
+    console.log("Email action type:", email_action_type);
+
     // Only handle signup confirmations
     if (email_action_type !== 'signup') {
+      console.log("Not a signup confirmation, skipping");
       return new Response('Not a signup confirmation', { status: 200 });
     }
 
     const firstName = user.user_metadata?.first_name || 'Usuario';
+    const city = user.user_metadata?.city || '';
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     
     // Build confirmation URL
     const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
 
-    // Send confirmation email
+    console.log("Sending confirmation email to:", user.email);
+
+    // Send confirmation email with custom domain
     const emailResponse = await resend.emails.send({
-      from: "SavorySearch <noreply@resend.dev>",
+      from: "SavorySearch <noreply@resend.dev>", // Change this to your verified domain
       to: [user.email],
-      subject: "🍽️ Confirma tu cuenta en SavorySearch",
-      html: generateConfirmationEmailHTML(firstName, confirmationUrl),
+      subject: "🍽️ ¡Confirma tu cuenta en SavorySearch!",
+      html: generateConfirmationEmailHTML(firstName, city, confirmationUrl),
     });
 
     console.log("Confirmation email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      messageId: emailResponse.data?.id 
+    }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -209,7 +308,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
   } catch (error: any) {
-    console.error("Error sending confirmation email:", error);
+    console.error("Error in send-confirmation-email function:", error);
     
     return new Response(
       JSON.stringify({ 

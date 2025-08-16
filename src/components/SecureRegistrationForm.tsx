@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import {
   Lock, 
   User, 
   Phone,
+  MapPin,
   CheckCircle, 
   XCircle,
   AlertTriangle
@@ -36,6 +38,7 @@ export default function SecureRegistrationForm({
     confirmPassword: '',
     firstName: '',
     lastName: '',
+    city: '',
     phone: ''
   });
   
@@ -70,6 +73,10 @@ export default function SecureRegistrationForm({
 
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Apellido es obligatorio';
+    }
+
+    if (!formData.city.trim()) {
+      newErrors.city = 'Ciudad es obligatoria';
     }
 
     if (!passwordValidation.isValid) {
@@ -107,6 +114,7 @@ export default function SecureRegistrationForm({
         confirmPassword: '',
         firstName: '',
         lastName: '',
+        city: '',
         phone: ''
       });
     }
@@ -233,6 +241,26 @@ export default function SecureRegistrationForm({
               )}
             </div>
 
+            {/* Ciudad */}
+            <div className="space-y-2">
+              <Label htmlFor="city">Ciudad *</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="city"
+                  type="text"
+                  value={formData.city}
+                  onChange={(e) => handleInputChange('city', e.target.value)}
+                  placeholder="Tu ciudad"
+                  className="pl-10"
+                  disabled={isLoading}
+                />
+              </div>
+              {errors.city && (
+                <p className="text-sm text-red-600">{errors.city}</p>
+              )}
+            </div>
+
             {/* Teléfono */}
             <div className="space-y-2">
               <Label htmlFor="phone">Teléfono (opcional)</Label>
@@ -319,7 +347,7 @@ export default function SecureRegistrationForm({
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Te enviaremos un email de confirmación. Debes hacer clic en el enlace para activar tu cuenta.
+                Te enviaremos un email personalizado de confirmación. Debes hacer clic en el enlace para activar tu cuenta.
               </AlertDescription>
             </Alert>
 

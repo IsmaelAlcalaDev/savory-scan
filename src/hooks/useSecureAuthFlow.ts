@@ -10,6 +10,7 @@ interface RegistrationData {
   confirmPassword: string;
   firstName: string;
   lastName: string;
+  city: string;
   phone?: string;
 }
 
@@ -123,6 +124,10 @@ export const useSecureAuthFlow = () => {
         throw new Error('Nombre y apellido son obligatorios');
       }
 
+      if (!data.city.trim()) {
+        throw new Error('Ciudad es obligatoria');
+      }
+
       // Register with email confirmation
       const redirectUrl = `${window.location.origin}/`;
       
@@ -134,6 +139,7 @@ export const useSecureAuthFlow = () => {
           data: {
             first_name: data.firstName.trim(),
             last_name: data.lastName.trim(),
+            city: data.city.trim(),
             phone: data.phone?.trim() || null,
             full_name: `${data.firstName.trim()} ${data.lastName.trim()}`
           }
