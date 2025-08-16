@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -34,6 +33,7 @@ interface UseInfiniteRestaurantsProps {
   isOpenNow?: boolean;
   isBudgetFriendly?: boolean;
   itemsPerPage?: number;
+  enabled?: boolean;
 }
 
 export const useInfiniteRestaurants = ({
@@ -48,7 +48,8 @@ export const useInfiniteRestaurants = ({
   selectedDietTypes,
   isOpenNow = false,
   isBudgetFriendly = false,
-  itemsPerPage = 20
+  itemsPerPage = 20,
+  enabled = true
 }: UseInfiniteRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +62,7 @@ export const useInfiniteRestaurants = ({
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastFetchRef = useRef<string>('');
 
-  // Create stable key for fetch parameters
+  // Create stable key for fetch parameters including enabled flag
   const fetchKey = JSON.stringify({
     searchQuery,
     userLat,
@@ -73,7 +74,8 @@ export const useInfiniteRestaurants = ({
     selectedEstablishmentTypes,
     selectedDietTypes,
     isOpenNow,
-    isBudgetFriendly
+    isBudgetFriendly,
+    enabled
   });
 
   const fetchRestaurants = useCallback(async (
@@ -225,8 +227,14 @@ export const useInfiniteRestaurants = ({
     }
   }, [fetchKey, searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly, itemsPerPage]);
 
-  // Initial fetch or when filters change
+  // Initial fetch or when filters change - now respects enabled flag
   useEffect(() => {
+    // Don't fetch if disabled
+    if (!enabled) {
+      console.log('useInfiniteRestaurants: Fetch disabled, waiting for location...');
+      return;
+    }
+
     // Skip if parameters haven't changed
     if (lastFetchRef.current === fetchKey && restaurants.length > 0) {
       return;
@@ -265,7 +273,7 @@ export const useInfiniteRestaurants = ({
         currentController.abort();
       }
     };
-  }, [fetchKey, fetchRestaurants]);
+  }, [fetchKey, fetchRestaurants, enabled]);
 
   // Load more function
   const loadMore = useCallback(() => {
@@ -345,10 +353,10 @@ export const useInfiniteRestaurants = ({
 
   return { 
     restaurants, 
-    loading, 
+    loading: enabled ? loading : false, 
     loadingMore,
     error, 
-    hasMore,
+    hasMore: enabled ? hasMore : false,
     loadMore,
     totalLoaded: restaurants.length
   };

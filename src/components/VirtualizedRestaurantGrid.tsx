@@ -18,6 +18,7 @@ interface VirtualizedRestaurantGridProps {
   selectedDietTypes?: number[];
   isOpenNow?: boolean;
   isBudgetFriendly?: boolean;
+  locationReady?: boolean;
   onLoginRequired?: () => void;
 }
 
@@ -33,6 +34,7 @@ export default function VirtualizedRestaurantGrid({
   selectedDietTypes,
   isOpenNow = false,
   isBudgetFriendly = false,
+  locationReady = true,
   onLoginRequired = () => {}
 }: VirtualizedRestaurantGridProps) {
   const {
@@ -54,7 +56,8 @@ export default function VirtualizedRestaurantGrid({
     selectedEstablishmentTypes,
     selectedDietTypes,
     isOpenNow,
-    isBudgetFriendly
+    isBudgetFriendly,
+    enabled: locationReady // Only fetch when location is ready
   });
 
   const { preloadImages } = useImageCache({ enabled: true, preloadNextBatch: true });
@@ -64,16 +67,16 @@ export default function VirtualizedRestaurantGrid({
   const { lastElementRef, shouldLoadMore } = useInfiniteScroll({
     threshold: 0.5,
     rootMargin: '200px',
-    enabled: hasMore && !loading && !loadingMore
+    enabled: hasMore && !loading && !loadingMore && locationReady
   });
 
   // Load more when intersection is detected
   useEffect(() => {
-    if (shouldLoadMore && hasMore && !loading && !loadingMore) {
+    if (shouldLoadMore && hasMore && !loading && !loadingMore && locationReady) {
       console.log('VirtualizedRestaurantGrid: Loading more restaurants...');
       loadMore();
     }
-  }, [shouldLoadMore, hasMore, loading, loadingMore, loadMore]);
+  }, [shouldLoadMore, hasMore, loading, loadingMore, loadMore, locationReady]);
 
   // Preload images for next batch
   useEffect(() => {
@@ -94,6 +97,24 @@ export default function VirtualizedRestaurantGrid({
       }
     }
   }, [restaurants, preloadImages]);
+
+  // Don't render anything if location is not ready
+  if (!locationReady) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="space-y-3">
+            <Skeleton className="h-48 w-full rounded-lg" />
+            <div className="p-4 space-y-3">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   // Calculate the trigger point (50% through the list)
   const triggerIndex = Math.max(0, Math.floor(restaurants.length * 0.5));
@@ -132,9 +153,9 @@ export default function VirtualizedRestaurantGrid({
   if (restaurants.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">No se encontraron restaurantes</p>
+        <p className="text-muted-foreground">No se encontraron restaurantes en tu área</p>
         <p className="text-sm text-muted-foreground mt-2">
-          Intenta cambiar los filtros de búsqueda
+          Intenta cambiar los filtros de búsqueda o ampliar el área de búsqueda
         </p>
       </div>
     );
@@ -144,7 +165,7 @@ export default function VirtualizedRestaurantGrid({
     <div className="space-y-6">
       {/* Results counter */}
       <div className="text-sm text-muted-foreground">
-        Mostrando {totalLoaded} restaurantes
+        Mostrando {totalLoaded} restaurantes cerca de ti
         {hasMore && <span> (cargando más automáticamente...)</span>}
       </div>
 
@@ -196,7 +217,7 @@ export default function VirtualizedRestaurantGrid({
       {!hasMore && restaurants.length > 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <div className="w-16 h-px bg-border mx-auto mb-4" />
-          <p>Has visto todos los restaurantes disponibles</p>
+          <p>Has visto todos los restaurantes disponibles en tu área</p>
           <p className="text-sm mt-1">Total: {totalLoaded} restaurantes</p>
         </div>
       )}
