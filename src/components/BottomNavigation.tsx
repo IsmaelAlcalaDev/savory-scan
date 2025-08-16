@@ -22,6 +22,7 @@ const navigationItems = [
     id: 'account' as const,
     label: 'Mi Cuenta',
     icon: User,
+    hideOnDesktop: true, // Hide this item on desktop
   },
 ];
 
@@ -32,6 +33,30 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
         {navigationItems.map((item) => {
           const isActive = activeTab === item.id;
           const Icon = item.icon;
+          
+          // Hide account tab on desktop (xl and above)
+          if (item.hideOnDesktop) {
+            return (
+              <button
+                key={item.id}
+                onClick={() => onTabChange(item.id)}
+                className={cn(
+                  "flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-all duration-200 xl:hidden",
+                  isActive 
+                    ? "text-primary bg-primary/10" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
+                <span className={cn(
+                  "text-xs font-medium",
+                  isActive ? "text-primary" : "text-muted-foreground"
+                )}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          }
           
           return (
             <button
