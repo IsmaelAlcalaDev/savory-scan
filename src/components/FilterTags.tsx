@@ -202,7 +202,7 @@ export default function FilterTags({
           onClick={() => handleOpenChange(true)}
           onMouseEnter={(e) => {
             if (!isActive) {
-              e.currentTarget.style.backgroundColor = 'rgb(187, 187, 187)';
+              e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
             }
           }}
           onMouseLeave={(e) => {
@@ -261,7 +261,7 @@ export default function FilterTags({
             onClick={() => onHighRatedChange(!isHighRated)}
             onMouseEnter={(e) => {
               if (!isHighRated) {
-                e.currentTarget.style.backgroundColor = 'rgb(187, 187, 187)';
+                e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
               }
             }}
             onMouseLeave={(e) => {
@@ -297,7 +297,7 @@ export default function FilterTags({
             onClick={() => onOpenNowChange(!isOpenNow)}
             onMouseEnter={(e) => {
               if (!isOpenNow) {
-                e.currentTarget.style.backgroundColor = 'rgb(187, 187, 187)';
+                e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
               }
             }}
             onMouseLeave={(e) => {
@@ -333,7 +333,7 @@ export default function FilterTags({
             onClick={() => onBudgetFriendlyChange(!isBudgetFriendly)}
             onMouseEnter={(e) => {
               if (!isBudgetFriendly) {
-                e.currentTarget.style.backgroundColor = 'rgb(187, 187, 187)';
+                e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
               }
             }}
             onMouseLeave={(e) => {

@@ -73,7 +73,7 @@ export default function TabletHeader({
               onChange={(e) => onSearchChange(e.target.value)}
               onFocus={onSearchFocus}
               onBlur={onSearchBlur}
-              className="pl-10 pr-4 h-10 text-base rounded-full border-0 text-black placeholder:text-black"
+              className="pl-10 pr-4 h-10 text-base rounded-full border-0 text-black placeholder:text-black focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
               style={{ 
                 backgroundColor: 'rgb(243, 243, 243)'
               }}
