@@ -12,7 +12,7 @@ interface SavedTicketsSectionProps {
 
 export default function SavedTicketsSection({ restaurantId }: SavedTicketsSectionProps) {
   const { user } = useAuth();
-  const { savedTickets, loading, getTicketDetail, deleteTicket } = useSavedTickets(restaurantId);
+  const { savedTickets, loading, error, getTicketDetail, deleteTicket } = useSavedTickets(restaurantId);
   const { loadTicket, openSimulator } = useOrderSimulator();
 
   const formatPrice = (price: number) => {
@@ -46,9 +46,56 @@ export default function SavedTicketsSection({ restaurantId }: SavedTicketsSectio
     }
   };
 
-  // Don't show section if user is not authenticated or no tickets
-  if (!user || loading || savedTickets.length === 0) {
+  // Don't show section if user is not authenticated
+  if (!user) {
     return null;
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="bg-background border-b">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3 mb-4">
+            <Clock className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold text-lg">Tus Tickets Guardados</h3>
+          </div>
+          <p className="text-muted-foreground">Cargando tickets...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="bg-background border-b">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3 mb-4">
+            <Clock className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold text-lg">Tus Tickets Guardados</h3>
+          </div>
+          <p className="text-destructive text-sm">Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no tickets
+  if (savedTickets.length === 0) {
+    return (
+      <div className="bg-background border-b">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3 mb-4">
+            <Clock className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold text-lg">Tus Tickets Guardados</h3>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            No tienes tickets guardados aún. Simula un pedido y guárdalo para verlo aquí.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -57,6 +104,7 @@ export default function SavedTicketsSection({ restaurantId }: SavedTicketsSectio
         <div className="flex items-center gap-3 mb-4">
           <Clock className="h-5 w-5 text-primary" />
           <h3 className="font-semibold text-lg">Tus Tickets Guardados</h3>
+          <span className="text-sm text-muted-foreground">({savedTickets.length})</span>
         </div>
 
         <div className="flex gap-3 overflow-x-auto pb-2">

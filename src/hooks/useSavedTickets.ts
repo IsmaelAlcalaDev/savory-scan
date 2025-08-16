@@ -46,23 +46,40 @@ export const useSavedTickets = (restaurantId: number) => {
 
       const { data, error: fetchError } = await supabase
         .from('ticket_simulations')
-        .select('id, code, total, diners_count, created_at')
+        .select('id, saved_name, total, diners_count, created_at')
         .eq('restaurant_id', restaurantId)
         .eq('created_by', user.id)
+        .eq('is_saved', true)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
 
-      const formattedTickets: SavedTicket[] = (data || []).map(ticket => ({
-        id: ticket.id,
-        code: ticket.code,
-        total_amount: ticket.total || 0,
-        total_items: 0, // We'll calculate this from ticket items if needed
-        diner_count: ticket.diners_count || 0,
-        created_at: ticket.created_at
-      }));
+      // For each ticket, get the item count
+      const ticketsWithItemCount = await Promise.all(
+        (data || []).map(async (ticket) => {
+          const { data: itemsData, error: itemsError } = await supabase
+            .from('ticket_items')
+            .select('quantity')
+            .eq('ticket_id', ticket.id);
 
-      setSavedTickets(formattedTickets);
+          if (itemsError) {
+            console.error('Error fetching ticket items:', itemsError);
+          }
+
+          const totalItems = (itemsData || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
+
+          return {
+            id: ticket.id,
+            code: ticket.saved_name || 'Ticket sin nombre',
+            total_amount: ticket.total || 0,
+            total_items: totalItems,
+            diner_count: ticket.diners_count || 0,
+            created_at: ticket.created_at
+          };
+        })
+      );
+
+      setSavedTickets(ticketsWithItemCount);
     } catch (err) {
       console.error('Error fetching saved tickets:', err);
       setError(err instanceof Error ? err.message : 'Error al cargar tickets guardados');
@@ -83,23 +100,24 @@ export const useSavedTickets = (restaurantId: number) => {
       setLoading(true);
       setError(null);
 
-      // Create ticket simulation with the correct column names
+      // Create ticket simulation with the saved flag
       const { data: ticketData, error: ticketError } = await supabase
         .from('ticket_simulations')
         .insert({
-          code: name,
+          saved_name: name,
           restaurant_id: restaurantId,
           created_by: user.id,
           total: totalAmount,
           diners_count: diners.length,
-          diner_names: diners.map(d => ({ name: d.name }))
+          diner_names: diners.map(d => ({ name: d.name })),
+          is_saved: true
         })
         .select('id')
         .single();
 
       if (ticketError) throw ticketError;
 
-      // Create ticket items with the correct column names
+      // Create ticket items
       const ticketItems = orderItems.map(item => {
         const price = item.selectedVariant?.price || item.dish.base_price;
         
@@ -170,11 +188,13 @@ export const useSavedTickets = (restaurantId: number) => {
         diner_name: 'Comensal'
       }));
 
+      const totalItems = formattedItems.reduce((sum, item) => sum + item.quantity, 0);
+
       return {
         id: ticketData.id,
-        code: ticketData.code,
+        code: ticketData.saved_name || 'Ticket sin nombre',
         total_amount: ticketData.total || 0,
-        total_items: formattedItems.reduce((sum, item) => sum + item.quantity, 0),
+        total_items: totalItems,
         diner_count: ticketData.diners_count || 0,
         created_at: ticketData.created_at,
         items: formattedItems,
