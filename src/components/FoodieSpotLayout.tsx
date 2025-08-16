@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
@@ -28,8 +29,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { Menu } from '@headlessui/react'
-import { ChevronDown } from "lucide-react";
 
 import RestaurantCard from '@/components/RestaurantCard';
 import DishCard from '@/components/DishCard';
@@ -38,16 +37,14 @@ import { useDishes } from '@/hooks/useDishes';
 import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { useEstablishmentTypes } from '@/hooks/useEstablishmentTypes';
 import { useDietTypes } from '@/hooks/useDietTypes';
-import { useLocation } from '@/hooks/useLocation';
 import { Restaurant } from '@/types/restaurant';
-import { Dish } from '@/types/dish';
 
 interface FoodieSpotLayoutProps {
   initialTab?: "restaurants" | "dishes";
 }
 
 export default function FoodieSpotLayout({ initialTab = "restaurants" }: FoodieSpotLayoutProps) {
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState<"restaurants" | "dishes">(initialTab);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [maxDistance, setMaxDistance] = useState<number | undefined>(undefined);
@@ -58,7 +55,6 @@ export default function FoodieSpotLayout({ initialTab = "restaurants" }: FoodieS
   const [isHighRated, setIsHighRated] = useState(false);
   const [isOpenNow, setIsOpenNow] = useState(false);
   const [isBudgetFriendly, setIsBudgetFriendly] = useState(false);
-  const { location: userLocation } = useLocation();
   const { toast } = useToast();
 
   const { cuisineTypes } = useCuisineTypes();
@@ -67,8 +63,6 @@ export default function FoodieSpotLayout({ initialTab = "restaurants" }: FoodieS
 
   const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useRestaurants({
     searchQuery,
-    userLat: userLocation?.latitude,
-    userLng: userLocation?.longitude,
     maxDistance,
     cuisineTypeIds: selectedCuisineTypes,
     priceRanges,
@@ -78,12 +72,10 @@ export default function FoodieSpotLayout({ initialTab = "restaurants" }: FoodieS
     isOpenNow,
     isBudgetFriendly
   });
+
   const { dishes, loading: dishesLoading, error: dishesError } = useDishes({
     searchQuery,
-    userLat: userLocation?.latitude,
-    userLng: userLocation?.longitude,
     maxDistance,
-    cuisineTypeIds: selectedCuisineTypes,
     priceRanges,
     isHighRated,
     selectedEstablishmentTypes,
@@ -144,19 +136,6 @@ export default function FoodieSpotLayout({ initialTab = "restaurants" }: FoodieS
     setIsBudgetFriendly(false);
   };
 
-  const handleLocationUpdate = useCallback(() => {
-    if (userLocation) {
-      toast({
-        title: "Ubicación actualizada",
-        description: `Tu ubicación actual es: ${userLocation.latitude}, ${userLocation.longitude}.`,
-      })
-    }
-  }, [userLocation, toast]);
-
-  useEffect(() => {
-    handleLocationUpdate();
-  }, [handleLocationUpdate]);
-
   const getResultsText = (count: number) => {
     if (activeTab !== 'restaurants') {
       return `${count} platos encontrados`;
@@ -164,7 +143,7 @@ export default function FoodieSpotLayout({ initialTab = "restaurants" }: FoodieS
 
     // If no establishment types are selected, default to "restaurantes"
     if (selectedEstablishmentTypes.length === 0) {
-      return userLocation ? `${count} restaurantes cerca de ti` : `${count} restaurantes`;
+      return `${count} restaurantes`;
     }
 
     // If one establishment type is selected, use its name (plural)
@@ -175,13 +154,13 @@ export default function FoodieSpotLayout({ initialTab = "restaurants" }: FoodieS
         const pluralName = selectedType.name.toLowerCase().endsWith('s') 
           ? selectedType.name.toLowerCase() 
           : `${selectedType.name.toLowerCase()}s`;
-        return userLocation ? `${count} ${pluralName} cerca de ti` : `${count} ${pluralName}`;
+        return `${count} ${pluralName}`;
       }
-      return userLocation ? `${count} restaurantes cerca de ti` : `${count} restaurantes`;
+      return `${count} restaurantes`;
     }
 
     // If multiple types are selected, use generic "establecimientos"
-    return userLocation ? `${count} establecimientos cerca de ti` : `${count} establecimientos`;
+    return `${count} establecimientos`;
   };
 
   return (
@@ -197,7 +176,7 @@ export default function FoodieSpotLayout({ initialTab = "restaurants" }: FoodieS
       </div>
 
       <div className="mt-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "restaurants" | "dishes")} className="w-full">
           <TabsList className="flex justify-center bg-secondary rounded-md">
             <TabsTrigger value="restaurants" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Restaurantes</TabsTrigger>
             <TabsTrigger value="dishes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Platos</TabsTrigger>
@@ -211,15 +190,12 @@ export default function FoodieSpotLayout({ initialTab = "restaurants" }: FoodieS
               ) : (
                 <>
                   {/* Results count */}
-                  <div className="px-4 py-2 text-sm text-muted-foreground border-b">
-                    {activeTab === 'restaurants' 
-                      ? getResultsText(restaurants.length)
-                      : getResultsText(dishes.length)
-                    }
+                  <div className="col-span-full px-4 py-2 text-sm text-muted-foreground border-b">
+                    {getResultsText(restaurants.length)}
                   </div>
 
                   {restaurants.map((restaurant: Restaurant) => (
-                    <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                    <RestaurantCard key={restaurant.id} {...restaurant} />
                   ))}
                 </>
               )}
@@ -234,15 +210,18 @@ export default function FoodieSpotLayout({ initialTab = "restaurants" }: FoodieS
               ) : (
                 <>
                   {/* Results count */}
-                  <div className="px-4 py-2 text-sm text-muted-foreground border-b">
-                    {activeTab === 'restaurants' 
-                      ? getResultsText(restaurants.length)
-                      : getResultsText(dishes.length)
-                    }
+                  <div className="col-span-full px-4 py-2 text-sm text-muted-foreground border-b">
+                    {getResultsText(dishes.length)}
                   </div>
 
-                  {dishes.map((dish: Dish) => (
-                    <DishCard key={dish.id} dish={dish} />
+                  {dishes.map((dish: any) => (
+                    <DishCard 
+                      key={dish.id} 
+                      dish={dish} 
+                      restaurantId={dish.restaurant_id}
+                      expandedDishId={null}
+                      onExpandedChange={() => {}}
+                    />
                   ))}
                 </>
               )}
