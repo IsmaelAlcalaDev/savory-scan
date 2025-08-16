@@ -99,13 +99,7 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
 
     setIsLoading(true);
     try {
-      const { error } = await signUp(email, password, {
-        data: {
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          full_name: `${firstName.trim()} ${lastName.trim()}`
-        }
-      });
+      const { error } = await signUp(email, password);
       if (error) {
         console.error('Sign up error:', error);
         if (error.message.includes('already registered')) {
