@@ -119,6 +119,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
           preparation_time_minutes,
           favorites_count,
           custom_tags,
+          allergens,
           restaurants!inner (
             id,
             name,
@@ -201,7 +202,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
             distance_km,
             formatted_price: formatPrice(dish.base_price),
             custom_tags: customTags,
-            allergens: []
+            allergens: dish.allergens
           };
         });
 

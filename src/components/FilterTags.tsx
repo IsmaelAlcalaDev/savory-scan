@@ -1,5 +1,4 @@
-
-import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Tags } from 'lucide-react';
+import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Tags, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -10,6 +9,8 @@ import {
 import PriceFilter from './PriceFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import DietFilter from './DietFilter';
+import DishDietFilter from './DishDietFilter';
+import DishAllergenFilter from './DishAllergenFilter';
 import CustomTagsFilter from './CustomTagsFilter';
 import { useState } from 'react';
 
@@ -19,16 +20,18 @@ interface FilterTagsProps {
   selectedFoodTypes: number[];
   selectedPriceRanges?: string[];
   selectedEstablishmentTypes?: number[];
-  selectedDietTypes?: number[];
+  selectedDietTypes?: number[] | string[];
   selectedCustomTags?: string[];
+  selectedAllergens?: string[];
   isOpenNow?: boolean;
   isHighRated?: boolean;
   isBudgetFriendly?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'establishment' | 'diet' | 'customTags' | 'openNow' | 'highRated' | 'budgetFriendly' | 'all', id?: number) => void;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'establishment' | 'diet' | 'customTags' | 'allergens' | 'openNow' | 'highRated' | 'budgetFriendly' | 'all', id?: number) => void;
   onPriceRangeChange?: (ranges: string[]) => void;
   onEstablishmentTypeChange?: (types: number[]) => void;
-  onDietTypeChange?: (types: number[]) => void;
+  onDietTypeChange?: (types: number[] | string[]) => void;
   onCustomTagsChange?: (tags: string[]) => void;
+  onAllergenChange?: (allergens: string[]) => void;
   onOpenNowChange?: (isOpen: boolean) => void;
   onHighRatedChange?: (isHighRated: boolean) => void;
   onBudgetFriendlyChange?: (isBudgetFriendly: boolean) => void;
@@ -42,6 +45,7 @@ export default function FilterTags({
   selectedEstablishmentTypes = [],
   selectedDietTypes = [],
   selectedCustomTags = [],
+  selectedAllergens = [],
   isOpenNow = false,
   isHighRated = false,
   isBudgetFriendly = false,
@@ -50,6 +54,7 @@ export default function FilterTags({
   onEstablishmentTypeChange = () => {},
   onDietTypeChange = () => {},
   onCustomTagsChange = () => {},
+  onAllergenChange = () => {},
   onOpenNowChange = () => {},
   onHighRatedChange = () => {},
   onBudgetFriendlyChange = () => {}
@@ -63,6 +68,7 @@ export default function FilterTags({
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
     selectedCustomTags.length > 0 ||
+    selectedAllergens.length > 0 ||
     isOpenNow ||
     isHighRated ||
     isBudgetFriendly;
@@ -73,6 +79,7 @@ export default function FilterTags({
       case 'establishment': return Store;
       case 'diet': return Utensils;
       case 'customTags': return Tags;
+      case 'allergens': return AlertTriangle;
       default: return null;
     }
   };
@@ -83,6 +90,7 @@ export default function FilterTags({
       case 'establishment': return 'Tipo de Comercio';
       case 'diet': return 'Dieta';
       case 'customTags': return 'Etiquetas';
+      case 'allergens': return 'Alérgenos';
       default: return 'Filtro';
     }
   };
@@ -93,6 +101,7 @@ export default function FilterTags({
       case 'establishment': return selectedEstablishmentTypes.length;
       case 'diet': return selectedDietTypes.length;
       case 'customTags': return selectedCustomTags.length;
+      case 'allergens': return selectedAllergens.length;
       default: return 0;
     }
   };
@@ -124,10 +133,17 @@ export default function FilterTags({
       case 'diet':
         return (
           <div className="[&_label]:text-base space-y-4">
-            <DietFilter
-              selectedDietTypes={selectedDietTypes}
-              onDietTypeChange={onDietTypeChange}
-            />
+            {activeTab === 'dishes' ? (
+              <DishDietFilter
+                selectedDietTypes={selectedDietTypes as string[]}
+                onDietTypeChange={onDietTypeChange as (types: string[]) => void}
+              />
+            ) : (
+              <DietFilter
+                selectedDietTypes={selectedDietTypes as number[]}
+                onDietTypeChange={onDietTypeChange as (types: number[]) => void}
+              />
+            )}
           </div>
         );
       case 'customTags':
@@ -136,6 +152,15 @@ export default function FilterTags({
             <CustomTagsFilter
               selectedCustomTags={selectedCustomTags}
               onCustomTagsChange={onCustomTagsChange}
+            />
+          </div>
+        );
+      case 'allergens':
+        return (
+          <div className="[&_label]:text-base space-y-4">
+            <DishAllergenFilter
+              selectedAllergens={selectedAllergens}
+              onAllergenChange={onAllergenChange}
             />
           </div>
         );
@@ -185,7 +210,10 @@ export default function FilterTags({
     { key: 'price', label: 'Precio' },
     ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
     { key: 'diet', label: 'Dieta' },
-    ...(activeTab === 'dishes' ? [{ key: 'customTags', label: 'Etiquetas' }] : []),
+    ...(activeTab === 'dishes' ? [
+      { key: 'customTags', label: 'Etiquetas' },
+      { key: 'allergens', label: 'Alérgenos' }
+    ] : []),
   ];
 
   const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
