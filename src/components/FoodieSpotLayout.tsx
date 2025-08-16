@@ -1,5 +1,5 @@
+
 import { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
 import { useGeolocated } from 'react-geolocated';
 import { useDebounce } from 'use-debounce';
 import { MapPin, Search } from 'lucide-react';
@@ -27,7 +27,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
-  const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
+  const [selectedDietTypes, setSelectedDietTypes] = useState<string[]>([]);
   const [selectedCustomTags, setSelectedCustomTags] = useState<string[]>([]);
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [isOpenNow, setIsOpenNow] = useState(false);
@@ -37,8 +37,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [userLng, setUserLng] = useState<number | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const isMobile = useIsMobile();
   
   const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({
@@ -57,16 +55,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       setIsLoadingLocation(false);
     }
   }, [coords]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-    if (debouncedSearchQuery) {
-      params.set('q', debouncedSearchQuery);
-    } else {
-      params.delete('q');
-    }
-    router.push(`/?${params.toString()}`, { scroll: false });
-  }, [debouncedSearchQuery, searchParams, router]);
 
   const handleTabChange = (tab: "restaurants" | "dishes") => {
     setActiveTab(tab);
@@ -221,7 +209,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                 searchQuery={searchQuery}
                 userLat={userLat}
                 userLng={userLng}
-                selectedDietTypes={selectedDietTypes as string[]}
+                selectedDietTypes={selectedDietTypes}
                 selectedPriceRanges={selectedPriceRanges}
                 selectedFoodTypes={selectedFoodTypes}
                 selectedCustomTags={selectedCustomTags}

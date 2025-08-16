@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -119,6 +120,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
           preparation_time_minutes,
           favorites_count,
           custom_tags,
+          allergens,
           restaurants!inner (
             id,
             name,
@@ -175,6 +177,26 @@ export const useDishes = (params: UseDishesParams = {}) => {
               .map((tag: any) => tag.trim());
           }
 
+          // Process allergens to ensure it's a string array
+          let allergens: string[] = [];
+          if (dish.allergens) {
+            if (typeof dish.allergens === 'string') {
+              try {
+                const parsed = JSON.parse(dish.allergens);
+                if (Array.isArray(parsed)) {
+                  allergens = parsed.filter((allergen: any) => typeof allergen === 'string');
+                }
+              } catch {
+                // If it's not valid JSON, treat as single string
+                allergens = [dish.allergens];
+              }
+            } else if (Array.isArray(dish.allergens)) {
+              allergens = dish.allergens
+                .filter((allergen: any) => typeof allergen === 'string')
+                .map((allergen: any) => allergen.trim());
+            }
+          }
+
           return {
             id: dish.id,
             name: dish.name,
@@ -201,7 +223,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
             distance_km,
             formatted_price: formatPrice(dish.base_price),
             custom_tags: customTags,
-            allergens: []
+            allergens
           };
         });
 

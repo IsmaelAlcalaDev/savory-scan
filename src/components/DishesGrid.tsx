@@ -1,5 +1,6 @@
+
 import { useDishes } from '@/hooks/useDishes';
-import { DishCard } from './DishCard';
+import DishCard from './DishCard';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DishesGridProps {
