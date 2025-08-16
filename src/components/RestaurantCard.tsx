@@ -47,14 +47,8 @@ export default function RestaurantCard({
   layout = 'grid',
   onFavoriteChange
 }: RestaurantCardProps) {
-  console.log('RestaurantCard props:', { 
-    id, 
-    name, 
-    googleRating, 
-    googleRatingCount, 
-    distance 
-  });
-
+  // Remove the debug console.log since we identified the issue
+  
   const handleClick = () => {
     if (onClick) {
       onClick();
@@ -135,11 +129,11 @@ export default function RestaurantCard({
               {name}
             </h3>
             
-            {googleRating && (
+            {googleRating && typeof googleRating === 'number' && (
               <div className="flex items-center gap-1 flex-shrink-0">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                 <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
-                {googleRatingCount && (
+                {googleRatingCount && typeof googleRatingCount === 'number' && (
                   <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
                 )}
               </div>
@@ -152,7 +146,7 @@ export default function RestaurantCard({
             </span>
             <span>•</span>
             <span className="text-foreground font-medium">{priceRange}</span>
-            {distance && (
+            {distance && typeof distance === 'number' && (
               <>
                 <span>•</span>
                 <span className="flex-shrink-0 text-primary font-medium">{formatDistance(distance)}</span>
@@ -227,11 +221,11 @@ export default function RestaurantCard({
               <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth flex-1">
                 {name}
               </h3>
-              {googleRating && (
+              {googleRating && typeof googleRating === 'number' && (
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                   <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
-                  {googleRatingCount && (
+                  {googleRatingCount && typeof googleRatingCount === 'number' && (
                     <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
                   )}
                 </div>
@@ -246,7 +240,7 @@ export default function RestaurantCard({
           </span>
           <span>•</span>
           <span className="text-foreground font-medium">{priceRange}</span>
-          {distance && (
+          {distance && typeof distance === 'number' && (
             <>
               <span>•</span>
               <span className="flex-shrink-0 text-primary font-medium">{formatDistance(distance)}</span>
