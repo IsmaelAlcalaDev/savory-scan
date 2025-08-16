@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Navigation, Utensils, Heart, Star } from 'lucide-react';
@@ -10,6 +11,7 @@ import { useNearestLocation } from '@/hooks/useNearestLocation';
 
 export default function LocationEntry() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingGPS, setIsLoadingGPS] = useState(false);
   const navigate = useNavigate();
   
@@ -33,6 +35,7 @@ export default function LocationEntry() {
 
   const handleGPSLocation = async () => {
     setIsLoadingGPS(true);
+    setShowSuggestions(false);
     
     try {
       console.log('Requesting geolocation permission...');
@@ -94,6 +97,20 @@ export default function LocationEntry() {
     }
   };
 
+  const handleInputFocus = () => {
+    setShowSuggestions(true);
+  };
+
+  const handleInputBlur = () => {
+    // Delay hiding to allow clicks on suggestions
+    setTimeout(() => setShowSuggestions(false), 200);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setShowSuggestions(true);
+  };
+
   return (
     <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Contenido principal */}
@@ -133,67 +150,83 @@ export default function LocationEntry() {
                 type="text"
                 placeholder="Buscar ubicación..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleInputChange}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
                 className="pl-12 pr-4 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-card text-lg placeholder:text-gray-400 focus:ring-2 focus:ring-white/50"
                 maxLength={50}
               />
             </div>
 
             {/* Sugerencias */}
-            {searchQuery.length >= 2 && (
+            {showSuggestions && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-sm border-0 rounded-lg shadow-float z-50 max-h-64 overflow-hidden">
                 <ScrollArea className="max-h-64">
-                  {loadingSuggestions ? (
-                    <div className="p-3 space-y-2">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <Skeleton key={i} className="h-12 w-full" />
-                      ))}
-                    </div>
-                  ) : suggestions.length > 0 ? (
-                    <div className="p-2">
-                      {suggestions.map((suggestion) => (
-                        <button
-                          key={`${suggestion.type}-${suggestion.id}`}
-                          className="w-full text-left p-3 hover:bg-gray-100 rounded-md transition-colors"
-                          onClick={() => handleLocationSelect(suggestion)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                            <div>
-                              <div className="font-medium text-gray-900">{suggestion.name}</div>
-                              {suggestion.parent && (
-                                <div className="text-sm text-gray-500">
-                                  {suggestion.parent}
-                                </div>
-                              )}
-                            </div>
+                  <div className="p-2">
+                    {/* Opción de ubicación actual - siempre primera */}
+                    <button
+                      className="w-full text-left p-3 hover:bg-blue-50 rounded-md transition-colors border-b border-gray-200"
+                      onClick={handleGPSLocation}
+                      disabled={isLoadingGPS}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="bg-blue-100 p-2 rounded-full">
+                          <Navigation className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-blue-600">
+                            {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
                           </div>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-4 text-center text-gray-500">
-                      No se encontraron ubicaciones
-                    </div>
-                  )}
+                          <div className="text-sm text-gray-500">
+                            Te ayudamos a encontrar restaurantes cerca
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Sugerencias de búsqueda */}
+                    {searchQuery.length >= 2 && (
+                      <>
+                        {loadingSuggestions ? (
+                          <div className="p-3 space-y-2">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                              <Skeleton key={i} className="h-12 w-full" />
+                            ))}
+                          </div>
+                        ) : suggestions.length > 0 ? (
+                          <>
+                            {suggestions.map((suggestion) => (
+                              <button
+                                key={`${suggestion.type}-${suggestion.id}`}
+                                className="w-full text-left p-3 hover:bg-gray-100 rounded-md transition-colors"
+                                onClick={() => handleLocationSelect(suggestion)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <MapPin className="h-4 w-4 text-gray-400" />
+                                  <div>
+                                    <div className="font-medium text-gray-900">{suggestion.name}</div>
+                                    {suggestion.parent && (
+                                      <div className="text-sm text-gray-500">
+                                        {suggestion.parent}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
+                          </>
+                        ) : (
+                          <div className="p-4 text-center text-gray-500">
+                            No se encontraron ubicaciones
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </ScrollArea>
               </div>
             )}
           </div>
-        </div>
-
-        {/* Botón de ubicación actual */}
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            size="lg"
-            className="bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white backdrop-blur-sm shadow-card"
-            onClick={handleGPSLocation}
-            disabled={isLoadingGPS}
-          >
-            <Navigation className="h-5 w-5 mr-2" />
-            {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
-          </Button>
         </div>
 
         {/* Características destacadas */}
