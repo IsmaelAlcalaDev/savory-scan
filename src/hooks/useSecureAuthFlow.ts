@@ -147,12 +147,11 @@ export const useSecureAuthFlow = () => {
         throw error;
       }
 
-      toast({
-        title: "¡Registro exitoso!",
-        description: "Te hemos enviado un email de confirmación. Revisa tu bandeja de entrada y spam.",
-      });
-
-      return { success: true };
+      return { 
+        success: true, 
+        email: data.email,
+        needsConfirmation: true 
+      };
     } catch (error: any) {
       console.error('Registration error:', error);
       toast({
@@ -163,6 +162,37 @@ export const useSecureAuthFlow = () => {
       return { success: false, error: error.message };
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const resendConfirmation = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Correo reenviado",
+        description: "Hemos reenviado el correo de confirmación",
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('Resend confirmation error:', error);
+      toast({
+        title: "Error al reenviar",
+        description: error.message || "No se pudo reenviar el correo",
+        variant: "destructive"
+      });
+      return { success: false, error: error.message };
     }
   };
 
@@ -241,6 +271,7 @@ export const useSecureAuthFlow = () => {
     secureRegister,
     secureLogin,
     googleLogin,
+    resendConfirmation,
     validatePassword,
     validateEmail,
     isLoading,
