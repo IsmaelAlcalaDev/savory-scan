@@ -45,35 +45,12 @@ export default function AllergenFilter({ selectedAllergens, onAllergenChange }: 
     fetchAllergens();
   }, []);
 
-  const handleAllergenToggle = useCallback((allergenSlug: string, event?: React.MouseEvent) => {
-    // Prevent event propagation to avoid modal closing
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    
-    const newSelected = selectedAllergens.includes(allergenSlug)
-      ? selectedAllergens.filter(slug => slug !== allergenSlug)
-      : [...selectedAllergens, allergenSlug];
+  const handleAllergenChange = useCallback((allergenSlug: string, checked: boolean) => {
+    const newSelected = checked
+      ? [...selectedAllergens, allergenSlug]
+      : selectedAllergens.filter(slug => slug !== allergenSlug);
     onAllergenChange(newSelected);
   }, [selectedAllergens, onAllergenChange]);
-
-  const handleCheckboxChange = useCallback((allergenSlug: string) => {
-    return (checked: boolean) => {
-      const newSelected = checked
-        ? [...selectedAllergens, allergenSlug]
-        : selectedAllergens.filter(slug => slug !== allergenSlug);
-      onAllergenChange(newSelected);
-    };
-  }, [selectedAllergens, onAllergenChange]);
-
-  const handleLabelClick = useCallback((allergenSlug: string) => {
-    return (event: React.MouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      handleAllergenToggle(allergenSlug, event);
-    };
-  }, [handleAllergenToggle]);
 
   if (loading) {
     return (
@@ -97,12 +74,11 @@ export default function AllergenFilter({ selectedAllergens, onAllergenChange }: 
           <Checkbox 
             id={`allergen-${allergen.id}`}
             checked={selectedAllergens.includes(allergen.slug)}
-            onCheckedChange={handleCheckboxChange(allergen.slug)}
+            onCheckedChange={(checked) => handleAllergenChange(allergen.slug, checked === true)}
             className={isMobile ? 'w-6 h-6' : ''}
           />
           <label 
             htmlFor={`allergen-${allergen.id}`}
-            onClick={handleLabelClick(allergen.slug)}
             className={`font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2 select-none ${
               isMobile ? 'text-base min-h-[44px] flex-1' : 'text-sm'
             }`}

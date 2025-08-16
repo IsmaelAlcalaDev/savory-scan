@@ -15,35 +15,12 @@ interface DietFilterWithPercentagesProps {
 export default function DietFilterWithPercentages({ selectedDietTypes, onDietTypeChange }: DietFilterWithPercentagesProps) {
   const { dietCategories, loading, error } = useDietTypes();
 
-  const handleDietToggle = useCallback((dietId: number, event?: React.MouseEvent) => {
-    // Prevent event propagation to avoid modal closing
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    
-    const newSelected = selectedDietTypes.includes(dietId)
-      ? selectedDietTypes.filter(id => id !== dietId)
-      : [...selectedDietTypes, dietId];
+  const handleDietChange = useCallback((dietId: number, checked: boolean) => {
+    const newSelected = checked
+      ? [...selectedDietTypes, dietId]
+      : selectedDietTypes.filter(id => id !== dietId);
     onDietTypeChange(newSelected);
   }, [selectedDietTypes, onDietTypeChange]);
-
-  const handleCheckboxChange = useCallback((dietId: number) => {
-    return (checked: boolean) => {
-      const newSelected = checked
-        ? [...selectedDietTypes, dietId]
-        : selectedDietTypes.filter(id => id !== dietId);
-      onDietTypeChange(newSelected);
-    };
-  }, [selectedDietTypes, onDietTypeChange]);
-
-  const handleLabelClick = useCallback((dietId: number) => {
-    return (event: React.MouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      handleDietToggle(dietId, event);
-    };
-  }, [handleDietToggle]);
 
   const getCategoryDescription = (category: string) => {
     const descriptions: Record<string, string> = {
@@ -120,12 +97,11 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
                   <Checkbox 
                     id={`diet-${diet.id}`}
                     checked={selectedDietTypes.includes(diet.id)}
-                    onCheckedChange={handleCheckboxChange(diet.id)}
+                    onCheckedChange={(checked) => handleDietChange(diet.id, checked === true)}
                     className="mt-1"
                   />
                   <label 
                     htmlFor={`diet-${diet.id}`}
-                    onClick={handleLabelClick(diet.id)}
                     className="text-sm font-medium leading-relaxed cursor-pointer flex items-start gap-2 flex-1 select-none"
                   >
                     <span>{diet.min_percentage}%-{diet.max_percentage}%</span>

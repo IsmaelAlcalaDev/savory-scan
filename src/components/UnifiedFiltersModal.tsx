@@ -32,17 +32,18 @@ export default function UnifiedFiltersModal({
   // Lock scroll when modal is open
   useModalScrollLock(isOpen);
   
-  // Memoize activeFiltersCount to prevent unnecessary re-renders
-  const activeFiltersCount = useMemo(() => {
-    return selectedAllergens.length + selectedDietTypes.length;
-  }, [selectedAllergens.length, selectedDietTypes.length]);
+  // Stabilize activeFiltersCount calculation
+  const activeFiltersCount = useMemo(() => 
+    selectedAllergens.length + selectedDietTypes.length,
+    [selectedAllergens.length, selectedDietTypes.length]
+  );
 
-  // Stabilize callback functions
-  const handleAllergenChange = useCallback((allergens: string[]) => {
+  // Memoize handlers to prevent unnecessary re-renders
+  const stableAllergenHandler = useCallback((allergens: string[]) => {
     onAllergenChange(allergens);
   }, [onAllergenChange]);
 
-  const handleDietTypeChange = useCallback((types: number[]) => {
+  const stableDietHandler = useCallback((types: number[]) => {
     onDietTypeChange(types);
   }, [onDietTypeChange]);
 
@@ -51,11 +52,11 @@ export default function UnifiedFiltersModal({
     onDietTypeChange([]);
   }, [onAllergenChange, onDietTypeChange]);
 
-  const handleModalOpenChange = useCallback((open: boolean) => {
+  const handleOpenChange = useCallback((open: boolean) => {
     setIsOpen(open);
   }, []);
 
-  const defaultTrigger = (
+  const defaultTrigger = useMemo(() => (
     <Button 
       variant="outline" 
       size="sm" 
@@ -69,10 +70,10 @@ export default function UnifiedFiltersModal({
         </Badge>
       )}
     </Button>
-  );
+  ), [activeFiltersCount]);
 
-  const ModalContent = () => (
-    <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`} onClick={(e) => e.stopPropagation()}>
+  const ModalContent = useCallback(() => (
+    <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
       {/* Header */}
       <div className={`flex-shrink-0 ${isMobile ? 'border-b border-gray-100 pb-4' : ''}`}>
         {isMobile ? (
@@ -111,7 +112,7 @@ export default function UnifiedFiltersModal({
               </p>
               <AllergenFilter
                 selectedAllergens={selectedAllergens}
-                onAllergenChange={handleAllergenChange}
+                onAllergenChange={stableAllergenHandler}
               />
             </div>
           </TabsContent>
@@ -123,7 +124,7 @@ export default function UnifiedFiltersModal({
               </p>
               <DietFilter
                 selectedDietTypes={selectedDietTypes}
-                onDietTypeChange={handleDietTypeChange}
+                onDietTypeChange={stableDietHandler}
               />
             </div>
           </TabsContent>
@@ -144,11 +145,11 @@ export default function UnifiedFiltersModal({
         </div>
       )}
     </div>
-  );
+  ), [isMobile, activeFiltersCount, selectedAllergens, selectedDietTypes, stableAllergenHandler, stableDietHandler, clearAllFilters]);
 
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={handleModalOpenChange}>
+      <Sheet open={isOpen} onOpenChange={handleOpenChange}>
         <SheetTrigger asChild>
           {trigger || defaultTrigger}
         </SheetTrigger>
@@ -164,7 +165,7 @@ export default function UnifiedFiltersModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleModalOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
