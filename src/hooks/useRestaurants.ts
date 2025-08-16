@@ -30,6 +30,7 @@ interface UseRestaurantsProps {
   selectedDistanceRangeIds?: number[];
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
+  isOpenNow?: boolean;
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -69,7 +70,8 @@ export const useRestaurants = ({
   isHighRated = false,
   selectedDistanceRangeIds,
   selectedEstablishmentTypes,
-  selectedDietTypes
+  selectedDietTypes,
+  isOpenNow = false
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +92,8 @@ export const useRestaurants = ({
           isHighRated,
           selectedDistanceRangeIds,
           selectedEstablishmentTypes,
-          selectedDietTypes
+          selectedDietTypes,
+          isOpenNow
         });
 
         // Get effective max distance from selected distance ranges
@@ -178,6 +181,11 @@ export const useRestaurants = ({
         if (selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0) {
           console.log('Applying establishment type filter for IDs:', selectedEstablishmentTypes);
           query = query.in('establishment_type_id', selectedEstablishmentTypes);
+        }
+
+        // TODO: Add isOpenNow filtering logic when restaurant schedules are available
+        if (isOpenNow) {
+          console.log('Open now filter requested - implementation pending restaurant schedules');
         }
 
         const { data, error } = await query.limit(50);
@@ -345,7 +353,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedDistanceRangeIds, selectedEstablishmentTypes, selectedDietTypes]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedDistanceRangeIds, selectedEstablishmentTypes, selectedDietTypes, isOpenNow]);
 
   return { restaurants, loading, error };
 };
