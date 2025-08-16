@@ -82,7 +82,7 @@ export const useRestaurants = ({
       try {
         setLoading(true);
         setError(null);
-        console.log('🔍 useRestaurants: Fetching restaurants with params:', {
+        console.log('Fetching restaurants with params:', {
           searchQuery,
           userLat,
           userLng,
@@ -100,7 +100,7 @@ export const useRestaurants = ({
         let effectivePriceRanges = priceRanges;
         if (isBudgetFriendly) {
           effectivePriceRanges = ['€'];
-          console.log('💰 Budget-friendly filter active, filtering by € only');
+          console.log('Budget-friendly filter active, filtering by € only');
         }
 
         let query = supabase
@@ -138,7 +138,7 @@ export const useRestaurants = ({
           .is('deleted_at', null);
 
         if (isOpenNow) {
-          console.log('🕒 Applying "open now" filter with SQL optimization');
+          console.log('Applying "open now" filter with SQL optimization');
           
           const currentDay = new Date().getDay();
           const currentTime = new Date().toTimeString().slice(0, 8);
@@ -155,17 +155,16 @@ export const useRestaurants = ({
         }
 
         if (isHighRated) {
-          console.log('⭐ Applying high rated filter (>= 4.5)');
           query = query.gte('google_rating', 4.5);
         }
 
         // Apply budget-friendly filter directly
         if (isBudgetFriendly) {
-          console.log('💰 Applying budget-friendly filter: price_range = €');
+          console.log('Applying budget-friendly filter: price_range = €');
           query = query.eq('price_range', '€');
         } else if (effectivePriceRanges && effectivePriceRanges.length > 0) {
           // Only apply regular price range filter if not budget-friendly
-          console.log('💵 Converting price range values to display texts:', effectivePriceRanges);
+          console.log('Converting price range values to display texts:', effectivePriceRanges);
           
           const { data: priceRangeData, error: priceError } = await supabase
             .from('price_ranges')
@@ -173,32 +172,32 @@ export const useRestaurants = ({
             .in('value', effectivePriceRanges);
 
           if (priceError) {
-            console.error('❌ Error fetching price ranges:', priceError);
+            console.error('Error fetching price ranges:', priceError);
           } else if (priceRangeData && priceRangeData.length > 0) {
             const priceDisplayTexts = priceRangeData.map(range => range.display_text);
-            console.log('💵 Mapped price display texts:', priceDisplayTexts);
+            console.log('Mapped price display texts:', priceDisplayTexts);
             query = query.in('price_range', priceDisplayTexts as any);
           }
         }
 
         if (cuisineTypeIds && cuisineTypeIds.length > 0) {
-          console.log('🍽️ Applying cuisine type filter for IDs:', cuisineTypeIds);
+          console.log('Applying cuisine type filter for IDs:', cuisineTypeIds);
           query = query.in('restaurant_cuisines.cuisine_type_id', cuisineTypeIds);
         }
 
         if (selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0) {
-          console.log('🏪 Applying establishment type filter for IDs:', selectedEstablishmentTypes);
+          console.log('Applying establishment type filter for IDs:', selectedEstablishmentTypes);
           query = query.in('establishment_type_id', selectedEstablishmentTypes);
         }
 
         const { data, error } = await query.limit(50);
 
         if (error) {
-          console.error('❌ Supabase error:', error);
+          console.error('Supabase error:', error);
           throw error;
         }
 
-        console.log('📊 Raw data from restaurants table:', data?.length || 0, 'restaurants found');
+        console.log('Raw data from restaurants table:', data);
 
         let formattedData = data?.map((restaurant: any) => {
           let distance_km = null;
@@ -226,7 +225,7 @@ export const useRestaurants = ({
 
         // Apply diet type filters
         if (selectedDietTypes && selectedDietTypes.length > 0) {
-          console.log('🥗 Applying diet type filter for IDs:', selectedDietTypes);
+          console.log('Applying diet type filter for IDs:', selectedDietTypes);
           
           // Get diet types data to understand the filtering criteria
           const { data: dietTypesData, error: dietTypesError } = await supabase
@@ -235,9 +234,9 @@ export const useRestaurants = ({
             .in('id', selectedDietTypes);
 
           if (dietTypesError) {
-            console.error('❌ Error fetching diet types:', dietTypesError);
+            console.error('Error fetching diet types:', dietTypesError);
           } else if (dietTypesData && dietTypesData.length > 0) {
-            console.log('🥗 Diet types to apply:', dietTypesData.map(d => `${d.name} (${d.category})`));
+            console.log('Diet types to apply:', dietTypesData);
             
             const restaurantIds = formattedData.map(r => r.id);
             
@@ -251,9 +250,9 @@ export const useRestaurants = ({
                 .is('deleted_at', null);
 
               if (dishesError) {
-                console.error('❌ Error fetching dishes for diet filtering:', dishesError);
+                console.error('Error fetching dishes for diet filtering:', dishesError);
               } else if (dishesData) {
-                console.log('🍽️ Dishes data for diet filtering:', dishesData.length, 'dishes found');
+                console.log('Dishes data for diet filtering:', dishesData.length, 'dishes found');
                 
                 // Group dishes by restaurant
                 const dishesByRestaurant: Record<number, any[]> = {};
@@ -264,7 +263,7 @@ export const useRestaurants = ({
                   dishesByRestaurant[dish.restaurant_id].push(dish);
                 });
 
-                console.log('📊 Dishes grouped by restaurant:', Object.keys(dishesByRestaurant).length, 'restaurants have dishes');
+                console.log('Dishes grouped by restaurant:', Object.keys(dishesByRestaurant).length, 'restaurants have dishes');
 
                 // Filter restaurants that meet ALL selected diet type criteria
                 const validRestaurantIds = new Set<number>();
@@ -272,42 +271,33 @@ export const useRestaurants = ({
                 // For each restaurant, check if it meets ALL diet type requirements
                 Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
                   const restaurantId = parseInt(restaurantIdStr);
-                  const restaurantName = formattedData.find(r => r.id === restaurantId)?.name;
                   let meetsAllCriteria = true;
-
-                  console.log(`🏪 Checking restaurant ${restaurantId} (${restaurantName}) with ${dishes.length} dishes:`);
 
                   // Check each selected diet type
                   for (const dietType of dietTypesData) {
                     const percentage = calculateDietPercentage(dishes, dietType.category);
-                    console.log(`  - ${dietType.name} (${dietType.category}): ${percentage}% (need ${dietType.min_percentage}%-${dietType.max_percentage}%)`);
+                    console.log(`Restaurant ${restaurantId} - ${dietType.category}: ${percentage}% (need ${dietType.min_percentage}%-${dietType.max_percentage}%)`);
                     
                     if (percentage < dietType.min_percentage || percentage > dietType.max_percentage) {
                       meetsAllCriteria = false;
-                      console.log(`  ❌ Does not meet ${dietType.name} criteria`);
                       break;
-                    } else {
-                      console.log(`  ✅ Meets ${dietType.name} criteria`);
                     }
                   }
 
                   if (meetsAllCriteria) {
                     validRestaurantIds.add(restaurantId);
-                    console.log(`✅ Restaurant ${restaurantId} (${restaurantName}) meets all diet criteria`);
-                  } else {
-                    console.log(`❌ Restaurant ${restaurantId} (${restaurantName}) does not meet all diet criteria`);
+                    console.log(`Restaurant ${restaurantId} meets all diet criteria`);
                   }
                 });
 
-                console.log('🥗 Diet filter results:', validRestaurantIds.size, 'out of', formattedData.length, 'restaurants passed');
+                console.log('Valid restaurants after diet filtering:', validRestaurantIds.size, 'out of', formattedData.length);
 
                 // Filter the restaurants array
-                const beforeCount = formattedData.length;
                 formattedData = formattedData.filter(restaurant => 
                   validRestaurantIds.has(restaurant.id)
                 );
                 
-                console.log(`🥗 Final restaurants after diet filtering: ${formattedData.length} (filtered out ${beforeCount - formattedData.length})`);
+                console.log('Final restaurants after diet filtering:', formattedData.length);
               }
             }
           }
@@ -324,7 +314,7 @@ export const useRestaurants = ({
             return a.distance_km - b.distance_km;
           });
           
-          console.log('📍 Restaurants sorted by distance:', sortedData.length, 'restaurants');
+          console.log('Restaurants sorted by distance:', sortedData.length, 'restaurants');
         } else {
           // Sort by popularity/rating when no location available
           sortedData = formattedData.sort((a, b) => {
@@ -335,15 +325,15 @@ export const useRestaurants = ({
             return (b.google_rating || 0) - (a.google_rating || 0);
           });
           
-          console.log('⭐ Restaurants sorted by popularity:', sortedData.length, 'restaurants');
+          console.log('Restaurants sorted by popularity:', sortedData.length, 'restaurants');
         }
 
-        console.log('✅ Final formatted restaurants after all filters:', sortedData.length);
+        console.log('Final formatted restaurants after all filters:', sortedData.length);
         
         setRestaurants(sortedData);
 
       } catch (err) {
-        console.error('❌ Error fetching restaurants:', err);
+        console.error('Error fetching restaurants:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar restaurantes');
         setRestaurants([]);
       } finally {
