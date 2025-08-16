@@ -1,60 +1,87 @@
 
-import React from 'react';
-import { MapPin, Star, Euro, Clock } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { 
+  Phone, 
+  Navigation, 
+  Globe, 
+  Mail
+} from 'lucide-react';
 
 interface QuickActionTagsProps {
-  onOpenNowToggle: () => void;
-  onHighRatedToggle: () => void;
-  onBudgetFriendlyToggle: () => void;
-  isOpenNow: boolean;
-  isHighRated: boolean;
-  isBudgetFriendly: boolean;
+  phone?: string;
+  website?: string;
+  email?: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
 }
 
-export const QuickActionTags = ({
-  onOpenNowToggle,
-  onHighRatedToggle,
-  onBudgetFriendlyToggle,
-  isOpenNow,
-  isHighRated,
-  isBudgetFriendly,
-}: QuickActionTagsProps) => {
-  const baseClasses = "cursor-pointer transition-colors text-sm font-medium px-4 py-2 rounded-full border-0 flex items-center gap-2";
-  const normalClasses = "text-black bg-[#F3F3F3] hover:bg-[#D0D0D0]";
-  const activeClasses = "text-white bg-black hover:bg-black";
+export default function QuickActionTags({ 
+  phone, 
+  website, 
+  email, 
+  address,
+  latitude,
+  longitude
+}: QuickActionTagsProps) {
+  const handleNavigationClick = () => {
+    if (latitude && longitude) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`);
+    } else {
+      window.open(`https://www.google.com/maps/search/${encodeURIComponent(address)}`);
+    }
+  };
 
   return (
-    <div className="flex flex-wrap gap-2 mb-4">
-      <Badge
-        variant="outline"
-        className={`${baseClasses} ${isOpenNow ? activeClasses : normalClasses}`}
-        onClick={onOpenNowToggle}
-        style={{ fontSize: '14px' }}
-      >
-        <Clock className="w-3 h-3" />
-        Abierto ahora
-      </Badge>
-      
-      <Badge
-        variant="outline"
-        className={`${baseClasses} ${isHighRated ? activeClasses : normalClasses}`}
-        onClick={onHighRatedToggle}
-        style={{ fontSize: '14px' }}
-      >
-        <Star className="w-3 h-3" />
-        Mejor valorados
-      </Badge>
-      
-      <Badge
-        variant="outline"
-        className={`${baseClasses} ${isBudgetFriendly ? activeClasses : normalClasses}`}
-        onClick={onBudgetFriendlyToggle}
-        style={{ fontSize: '14px' }}
-      >
-        <Euro className="w-3 h-3" />
-        Económico
-      </Badge>
+    <div className="w-full overflow-hidden">
+      <div className="flex gap-3 pb-4 overflow-x-auto scrollbar-hide">
+        {phone && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+            onClick={() => window.open(`tel:${phone}`)}
+          >
+            <Phone className="h-4 w-4 text-black" />
+            <span className="text-black font-medium text-sm">Llamar</span>
+          </Button>
+        )}
+        
+        <Button
+          size="sm"
+          variant="outline"
+          className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+          onClick={handleNavigationClick}
+        >
+          <Navigation className="h-4 w-4 text-black" />
+          <span className="text-black font-medium text-sm">Cómo llegar</span>
+        </Button>
+
+        {website && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+            onClick={() => window.open(website, '_blank', 'noopener noreferrer')}
+          >
+            <Globe className="h-4 w-4 text-black" />
+            <span className="text-black font-medium text-sm">Sitio web</span>
+          </Button>
+        )}
+
+        {email && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+            onClick={() => window.open(`mailto:${email}`)}
+          >
+            <Mail className="h-4 w-4 text-black" />
+            <span className="text-black font-medium text-sm">Email</span>
+          </Button>
+        )}
+      </div>
     </div>
   );
-};
+}

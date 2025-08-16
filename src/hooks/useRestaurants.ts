@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,6 +32,7 @@ interface UseRestaurantsProps {
   selectedDietTypes?: number[];
   isOpenNow?: boolean;
   isBudgetFriendly?: boolean;
+  isVegetarianVegan?: boolean;
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -71,7 +73,8 @@ export const useRestaurants = ({
   selectedEstablishmentTypes,
   selectedDietTypes,
   isOpenNow = false,
-  isBudgetFriendly = false
+  isBudgetFriendly = false,
+  isVegetarianVegan = false
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,7 +96,8 @@ export const useRestaurants = ({
           selectedEstablishmentTypes,
           selectedDietTypes,
           isOpenNow,
-          isBudgetFriendly
+          isBudgetFriendly,
+          isVegetarianVegan
         });
 
         // Handle budget-friendly filter - override price ranges if active
@@ -223,14 +227,50 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        // Handle diet type filters (manual selection only)
-        if (selectedDietTypes && selectedDietTypes.length > 0) {
-          console.log('Applying diet type filter for IDs:', selectedDietTypes);
+        // Handle diet type filters (both manual and quick filter)
+        let effectiveDietTypes = selectedDietTypes || [];
+        
+        // Add the basic vegetarian/vegan diet types when quick filter is active
+        if (isVegetarianVegan) {
+          console.log('Vegetarian/vegan quick filter active, fetching basic diet types with lowest percentages');
+          
+          // Fetch the diet types with lowest min_percentage for vegetarian and vegan categories
+          const { data: basicVegDietTypes, error: vegDietError } = await supabase
+            .from('diet_types')
+            .select('id, name, category, min_percentage, max_percentage')
+            .in('category', ['vegetarian', 'vegan'])
+            .order('category, min_percentage');
+
+          if (vegDietError) {
+            console.error('Error fetching vegetarian/vegan diet types:', vegDietError);
+          } else if (basicVegDietTypes && basicVegDietTypes.length > 0) {
+            // Get the diet types with the lowest min_percentage for each category
+            const vegetarianTypes = basicVegDietTypes.filter(dt => dt.category === 'vegetarian');
+            const veganTypes = basicVegDietTypes.filter(dt => dt.category === 'vegan');
+            
+            const lowestVegetarian = vegetarianTypes.length > 0 ? vegetarianTypes[0] : null;
+            const lowestVegan = veganTypes.length > 0 ? veganTypes[0] : null;
+            
+            const basicDietTypeIds = [];
+            if (lowestVegetarian) basicDietTypeIds.push(lowestVegetarian.id);
+            if (lowestVegan) basicDietTypeIds.push(lowestVegan.id);
+            
+            effectiveDietTypes = [...effectiveDietTypes, ...basicDietTypeIds];
+            console.log('Added basic vegetarian/vegan diet type IDs:', basicDietTypeIds);
+            console.log('Basic diet types details:', {
+              vegetarian: lowestVegetarian,
+              vegan: lowestVegan
+            });
+          }
+        }
+
+        if (effectiveDietTypes && effectiveDietTypes.length > 0) {
+          console.log('Applying diet type filter for IDs:', effectiveDietTypes);
           
           const { data: dietTypesData, error: dietTypesError } = await supabase
             .from('diet_types')
             .select('*')
-            .in('id', selectedDietTypes);
+            .in('id', effectiveDietTypes);
 
           if (dietTypesError) {
             console.error('Error fetching diet types:', dietTypesError);
@@ -397,7 +437,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly, isVegetarianVegan]);
 
   return { restaurants, loading, error };
 };

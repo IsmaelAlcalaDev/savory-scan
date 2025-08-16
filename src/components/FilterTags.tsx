@@ -1,3 +1,4 @@
+
 import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Leaf } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -188,18 +189,24 @@ export default function FilterTags({
         <Button
           variant="outline"
           size="sm"
-          className={`flex-shrink-0 h-8 px-4 rounded-full border-0 flex items-center gap-2 relative ${
+          className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
-              ? 'text-white bg-black hover:bg-black' 
-              : 'text-black bg-[#F3F3F3] hover:bg-[#D0D0D0]'
+              ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
+              : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
           }`}
-          style={{ fontSize: '14px' }}
+          style={isActive ? { 
+            backgroundColor: '#ef4444',
+            color: 'white'
+          } : { 
+            backgroundColor: '#F3F3F3',
+            color: '#4B4B4B'
+          }}
           onClick={() => handleOpenChange(true)}
         >
-          {FilterIcon && <FilterIcon className="h-3 w-3" />}
+          {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />}
           {children}
           {count > 0 && ` (${count})`}
-          <ChevronDown className="h-3 w-3" />
+          <ChevronDown className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
         </Button>
         <SheetContent 
           side="bottom" 
@@ -227,31 +234,43 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 rounded-full border-0 flex items-center gap-2 ${
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
               isHighRated 
-                ? 'text-white bg-black hover:bg-black' 
-                : 'text-black bg-[#F3F3F3] hover:bg-[#D0D0D0]'
+                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
+                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
             }`}
-            style={{ fontSize: '14px' }}
+            style={isHighRated ? { 
+              backgroundColor: '#ef4444',
+              color: 'white'
+            } : { 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
             onClick={() => onHighRatedChange(!isHighRated)}
           >
             <Star className={`h-3 w-3 ${isHighRated ? 'text-white fill-white' : 'text-black'}`} />
             +4.5
           </Button>
 
-          {/* Open Now Quick Filter Button */}
+          {/* Open Now Quick Filter Button - Mejorado */}
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 rounded-full border-0 flex items-center gap-2 ${
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
               isOpenNow 
-                ? 'text-white bg-black hover:bg-black' 
-                : 'text-black bg-[#F3F3F3] hover:bg-[#D0D0D0]'
+                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
+                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
             }`}
-            style={{ fontSize: '14px' }}
+            style={isOpenNow ? { 
+              backgroundColor: '#ef4444',
+              color: 'white'
+            } : { 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
             onClick={() => onOpenNowChange(!isOpenNow)}
           >
-            <Clock className="h-3 w-3" />
+            <Clock className={`h-3 w-3 ${isOpenNow ? 'text-white' : 'text-black'}`} />
             Abierto ahora
           </Button>
 
@@ -259,16 +278,44 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 rounded-full border-0 flex items-center gap-2 ${
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
               isBudgetFriendly 
-                ? 'text-white bg-black hover:bg-black' 
-                : 'text-black bg-[#F3F3F3] hover:bg-[#D0D0D0]'
+                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
+                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
             }`}
-            style={{ fontSize: '14px' }}
+            style={isBudgetFriendly ? { 
+              backgroundColor: '#ef4444',
+              color: 'white'
+            } : { 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
             onClick={() => onBudgetFriendlyChange(!isBudgetFriendly)}
           >
-            <CircleDollarSign className="h-3 w-3" />
+            <CircleDollarSign className={`h-3 w-3 ${isBudgetFriendly ? 'text-white' : 'text-black'}`} />
             Económico
+          </Button>
+
+          {/* Vegetarian/Vegan Quick Filter Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
+              isVegetarianVegan 
+                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
+                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
+            }`}
+            style={isVegetarianVegan ? { 
+              backgroundColor: '#ef4444',
+              color: 'white'
+            } : { 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
+            onClick={() => onVegetarianVeganChange(!isVegetarianVegan)}
+          >
+            <Leaf className={`h-3 w-3 ${isVegetarianVegan ? 'text-white' : 'text-black'}`} />
+            Vegetariano/Vegano
           </Button>
 
           {filterTags.map((filter) => (
@@ -285,6 +332,47 @@ export default function FilterTags({
           .scrollbar-hide {
             -ms-overflow-style: none;
             scrollbar-width: none;
+          }
+          
+          /* Custom checkbox styles */
+          [data-radix-collection-item] input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            border-radius: 2px;
+          }
+          
+          .peer {
+            width: 20px !important;
+            height: 20px !important;
+            border-radius: 2px !important;
+          }
+          
+          /* Increase spacing between checkbox and label */
+          .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+            margin-left: 12px;
+          }
+
+          /* Force disable hover on active filter buttons */
+          .bg-red-500:hover {
+            background-color: #ef4444 !important;
+            color: white !important;
+          }
+
+          /* Improve touch targets for mobile */
+          @media (max-width: 768px) {
+            .peer {
+              width: 24px !important;
+              height: 24px !important;
+            }
+            
+            [data-radix-collection-item] input[type="checkbox"] {
+              width: 24px;
+              height: 24px;
+            }
+            
+            .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+              margin-left: 16px;
+            }
           }
         `}</style>
       </div>
