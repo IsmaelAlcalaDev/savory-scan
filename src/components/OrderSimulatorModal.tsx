@@ -5,26 +5,21 @@ import { Button } from '@/components/ui/button';
 import {
   ModalWrapper,
   ModalContent,
-  ModalHeader,
-  ModalTitle,
 } from '@/components/ui/modal-wrapper';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 
-interface OrderSimulatorModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export default function OrderSimulatorModal({ isOpen, onClose }: OrderSimulatorModalProps) {
+export default function OrderSimulatorModal() {
   const {
     diners,
     orderItems,
+    isSimulatorOpen,
     updateItemQuantity,
     removeDishFromOrder,
     getTotalByDiner,
     getGrandTotal,
     clearSimulator,
-    openDinersModal
+    openDinersModal,
+    closeSimulator
   } = useOrderSimulator();
 
   const formatPrice = (price: number) => {
@@ -39,7 +34,7 @@ export default function OrderSimulatorModal({ isOpen, onClose }: OrderSimulatorM
   };
 
   return (
-    <ModalWrapper open={isOpen} onOpenChange={onClose}>
+    <ModalWrapper open={isSimulatorOpen} onOpenChange={closeSimulator}>
       <ModalContent className="fixed inset-0 max-w-none w-screen h-screen max-h-none m-0 rounded-none p-0 flex flex-col bg-background">
         {/* Custom Header */}
         <div className="flex-shrink-0 bg-background border-b px-4 sm:px-6 py-4">
@@ -71,7 +66,7 @@ export default function OrderSimulatorModal({ isOpen, onClose }: OrderSimulatorM
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onClose}
+                onClick={closeSimulator}
                 className="h-8 w-8 p-0"
               >
                 <X className="h-5 w-5" />
