@@ -46,7 +46,7 @@ export const useSavedTickets = (restaurantId: number) => {
 
       const { data, error: fetchError } = await supabase
         .from('ticket_simulations')
-        .select('id, saved_name, total, diners_count, created_at')
+        .select('id, code, total, diners_count, created_at')
         .eq('restaurant_id', restaurantId)
         .eq('created_by', user.id)
         .eq('is_saved', true)
@@ -70,7 +70,7 @@ export const useSavedTickets = (restaurantId: number) => {
 
           return {
             id: ticket.id,
-            code: ticket.saved_name || 'Ticket sin nombre',
+            code: ticket.code || 'Ticket sin nombre',
             total_amount: ticket.total || 0,
             total_items: totalItems,
             diner_count: ticket.diners_count || 0,
@@ -104,7 +104,7 @@ export const useSavedTickets = (restaurantId: number) => {
       const { data: ticketData, error: ticketError } = await supabase
         .from('ticket_simulations')
         .insert({
-          saved_name: name,
+          code: name,
           restaurant_id: restaurantId,
           created_by: user.id,
           total: totalAmount,
@@ -192,7 +192,7 @@ export const useSavedTickets = (restaurantId: number) => {
 
       return {
         id: ticketData.id,
-        code: ticketData.saved_name || 'Ticket sin nombre',
+        code: ticketData.code || 'Ticket sin nombre',
         total_amount: ticketData.total || 0,
         total_items: totalItems,
         diner_count: ticketData.diners_count || 0,
