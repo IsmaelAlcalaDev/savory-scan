@@ -114,7 +114,7 @@ export default function FilterTags({
 
   const getFilterTitle = (filterKey: string) => {
     switch (filterKey) {
-      case 'price': return 'Precio';
+      case 'price': return activeTab === 'dishes' ? 'Ordenar por Precio' : 'Precio';
       case 'establishment': return 'Tipo de Comercio';
       case 'diet': return 'Dieta';
       case 'customTags': return 'Etiquetas';
@@ -141,14 +141,63 @@ export default function FilterTags({
   const getFilterContent = (filterKey: string) => {
     switch (filterKey) {
       case 'price':
-        return (
-          <div className="[&_label]:text-base space-y-4">
-            <PriceFilter
-              selectedPriceRanges={selectedPriceRanges}
-              onPriceRangeChange={onPriceRangeChange}
-            />
-          </div>
-        );
+        if (activeTab === 'dishes') {
+          return (
+            <div className="[&_label]:text-base space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="price-asc"
+                    name="price-sort"
+                    value="price_asc"
+                    checked={selectedPriceRanges.includes('price_asc')}
+                    onChange={() => {
+                      if (selectedPriceRanges.includes('price_asc')) {
+                        onPriceRangeChange([]);
+                      } else {
+                        onPriceRangeChange(['price_asc']);
+                      }
+                    }}
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor="price-asc" className="text-sm font-medium">
+                    Precio: Menor a Mayor
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="price-desc"
+                    name="price-sort"
+                    value="price_desc"
+                    checked={selectedPriceRanges.includes('price_desc')}
+                    onChange={() => {
+                      if (selectedPriceRanges.includes('price_desc')) {
+                        onPriceRangeChange([]);
+                      } else {
+                        onPriceRangeChange(['price_desc']);
+                      }
+                    }}
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor="price-desc" className="text-sm font-medium">
+                    Precio: Mayor a Menor
+                  </label>
+                </div>
+              </div>
+            </div>
+          );
+        } else {
+          return (
+            <div className="[&_label]:text-base space-y-4">
+              <PriceFilter
+                selectedPriceRanges={selectedPriceRanges}
+                onPriceRangeChange={onPriceRangeChange}
+              />
+            </div>
+          );
+        }
       case 'establishment':
         return (
           <div className="[&_label]:text-base space-y-4">
@@ -235,7 +284,7 @@ export default function FilterTags({
   );
 
   const filterTags = [
-    { key: 'price', label: 'Precio' },
+    { key: 'price', label: activeTab === 'dishes' ? 'Ordenar' : 'Precio' },
     { key: 'establishment', label: 'Tipo' },
     { key: 'diet', label: 'Dieta' },
     ...(activeTab === 'dishes' ? [
