@@ -115,7 +115,8 @@ export const useOptimizedRestaurants = ({
       if (isBudgetFriendly) {
         query = query.eq('price_range', '€');
       } else if (priceRanges?.length) {
-        query = query.in('price_range', priceRanges as string[]);
+        const priceRangeArray = [...priceRanges] as string[];
+        query = query.in('price_range', priceRangeArray);
       }
 
       if (selectedEstablishmentTypes?.length) {
