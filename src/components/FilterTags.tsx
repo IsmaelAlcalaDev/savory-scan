@@ -236,7 +236,7 @@ export default function FilterTags({
 
   const filterTags = [
     { key: 'price', label: 'Precio' },
-    ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
+    { key: 'establishment', label: 'Tipo' },
     { key: 'diet', label: 'Dieta' },
     ...(activeTab === 'dishes' ? [
       { key: 'spice', label: 'Picante' },
