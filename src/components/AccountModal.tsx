@@ -21,6 +21,9 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
   const { user, signIn, signUp, signInWithGoogle, signOut, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -67,10 +70,19 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!email || !password || !firstName || !lastName) {
       toast({
         title: "Error",
-        description: "Por favor completa todos los campos",
+        description: "Por favor completa todos los campos obligatorios",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Las contraseñas no coinciden",
         variant: "destructive"
       });
       return;
@@ -87,7 +99,13 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
 
     setIsLoading(true);
     try {
-      const { error } = await signUp(email, password);
+      const { error } = await signUp(email, password, {
+        data: {
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          full_name: `${firstName.trim()} ${lastName.trim()}`
+        }
+      });
       if (error) {
         console.error('Sign up error:', error);
         if (error.message.includes('already registered')) {
@@ -111,6 +129,9 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
         onOpenChange(false);
         setEmail('');
         setPassword('');
+        setConfirmPassword('');
+        setFirstName('');
+        setLastName('');
       }
     } catch (error) {
       console.error('Unexpected error:', error);
@@ -334,8 +355,35 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
 
           <TabsContent value="signup" className="space-y-4">
             <form onSubmit={handleSignUp} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-firstname">Nombre *</Label>
+                  <Input
+                    id="signup-firstname"
+                    type="text"
+                    placeholder="Tu nombre"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-lastname">Apellido *</Label>
+                  <Input
+                    id="signup-lastname"
+                    type="text"
+                    placeholder="Tu apellido"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
+                <Label htmlFor="signup-email">Email *</Label>
                 <Input
                   id="signup-email"
                   type="email"
@@ -348,7 +396,7 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="signup-password">Contraseña</Label>
+                <Label htmlFor="signup-password">Contraseña *</Label>
                 <Input
                   id="signup-password"
                   type="password"
@@ -361,7 +409,30 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <div className="space-y-2">
+                <Label htmlFor="signup-confirm-password">Confirmar Contraseña *</Label>
+                <Input
+                  id="signup-confirm-password"
+                  type="password"
+                  placeholder="Repite tu contraseña"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isLoading}
+                  required
+                />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-sm text-red-600">Las contraseñas no coinciden</p>
+                )}
+                {confirmPassword && password === confirmPassword && password && (
+                  <p className="text-sm text-green-600">Las contraseñas coinciden ✓</p>
+                )}
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading || !firstName || !lastName || !email || !password || !confirmPassword || password !== confirmPassword}
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
