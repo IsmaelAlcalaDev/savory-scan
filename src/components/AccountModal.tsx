@@ -1,5 +1,7 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, User, LogOut } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import ProfileSection from './ProfileSection';
 import FavoritesSection from './FavoritesSection';
 import ReservationsSection from './ReservationsSection';
@@ -22,6 +25,7 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +53,6 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
           title: "¡Bienvenido!",
           description: "Has iniciado sesión correctamente"
         });
-        // Don't close modal, let it show the profile view
         setEmail('');
         setPassword('');
       }
@@ -166,22 +169,34 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
     }
   };
 
-  if (loading) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg">
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  const LoadingContent = () => (
+    <div className="flex items-center justify-center py-8">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
+  );
 
-  if (user) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+  const ProfileContent = () => (
+    <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
+      <div className={`flex-shrink-0 ${isMobile ? 'border-b border-gray-100 pb-4' : ''}`}>
+        {isMobile ? (
+          <SheetHeader>
+            <SheetTitle className="flex items-center justify-between text-lg">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Mi Perfil
+              </div>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="ml-auto"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Cerrar Sesión
+              </Button>
+            </SheetTitle>
+          </SheetHeader>
+        ) : (
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -202,51 +217,61 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
               Gestiona tu perfil, favoritos y configuración
             </DialogDescription>
           </DialogHeader>
+        )}
+      </div>
 
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="profile">Perfil</TabsTrigger>
-              <TabsTrigger value="favorites">Favoritos</TabsTrigger>
-              <TabsTrigger value="reservations">Reservas</TabsTrigger>
-              <TabsTrigger value="settings">Configuración</TabsTrigger>
-            </TabsList>
+      <div className={`${isMobile ? 'flex-1 overflow-y-auto px-6 py-4 min-h-0' : 'mt-4'}`}>
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className={`grid w-full grid-cols-4 ${isMobile ? 'h-12' : ''}`}>
+            <TabsTrigger value="profile" className={isMobile ? 'text-sm' : ''}>Perfil</TabsTrigger>
+            <TabsTrigger value="favorites" className={isMobile ? 'text-sm' : ''}>Favoritos</TabsTrigger>
+            <TabsTrigger value="reservations" className={isMobile ? 'text-sm' : ''}>Reservas</TabsTrigger>
+            <TabsTrigger value="settings" className={isMobile ? 'text-sm' : ''}>Config</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="profile" className="mt-6">
-              <ProfileSection />
-            </TabsContent>
+          <TabsContent value="profile" className={`${isMobile ? 'mt-6' : 'mt-6'}`}>
+            <ProfileSection />
+          </TabsContent>
 
-            <TabsContent value="favorites" className="mt-6">
-              <FavoritesSection />
-            </TabsContent>
+          <TabsContent value="favorites" className={`${isMobile ? 'mt-6' : 'mt-6'}`}>
+            <FavoritesSection />
+          </TabsContent>
 
-            <TabsContent value="reservations" className="mt-6">
-              <ReservationsSection />
-            </TabsContent>
+          <TabsContent value="reservations" className={`${isMobile ? 'mt-6' : 'mt-6'}`}>
+            <ReservationsSection />
+          </TabsContent>
 
-            <TabsContent value="settings" className="mt-6">
-              <SettingsSection />
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+          <TabsContent value="settings" className={`${isMobile ? 'mt-6' : 'mt-6'}`}>
+            <SettingsSection />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Iniciar Sesión</DialogTitle>
-          <DialogDescription>
-            Accede a tu cuenta para guardar favoritos y gestionar tu perfil
-          </DialogDescription>
-        </DialogHeader>
+  const AuthContent = () => (
+    <div className={`flex flex-col ${isMobile ? 'h-full' : ''}`}>
+      <div className={`flex-shrink-0 ${isMobile ? 'border-b border-gray-100 pb-4' : ''}`}>
+        {isMobile ? (
+          <SheetHeader>
+            <SheetTitle className="text-lg">Iniciar Sesión</SheetTitle>
+          </SheetHeader>
+        ) : (
+          <DialogHeader>
+            <DialogTitle>Iniciar Sesión</DialogTitle>
+            <DialogDescription>
+              Accede a tu cuenta para guardar favoritos y gestionar tu perfil
+            </DialogDescription>
+          </DialogHeader>
+        )}
+      </div>
 
+      <div className={`${isMobile ? 'flex-1 overflow-y-auto px-6 py-4 min-h-0' : 'mt-4'}`}>
         <div className="space-y-4">
           <button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full h-12 bg-white border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full bg-white border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${isMobile ? 'h-14 text-base' : 'h-12'}`}
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -285,16 +310,16 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
           </div>
         </div>
 
-        <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Iniciar Sesión</TabsTrigger>
-            <TabsTrigger value="signup">Registrarse</TabsTrigger>
+        <Tabs defaultValue="signin" className="w-full mt-4">
+          <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'h-12' : ''}`}>
+            <TabsTrigger value="signin" className={isMobile ? 'text-base' : ''}>Iniciar Sesión</TabsTrigger>
+            <TabsTrigger value="signup" className={isMobile ? 'text-base' : ''}>Registrarse</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="signin" className="space-y-4">
+          <TabsContent value="signin" className={`space-y-4 ${isMobile ? 'mt-6' : 'mt-4'}`}>
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="signin-email">Email</Label>
+                <Label htmlFor="signin-email" className={isMobile ? 'text-base' : ''}>Email</Label>
                 <Input
                   id="signin-email"
                   type="email"
@@ -303,11 +328,12 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
+                  className={isMobile ? 'h-12 text-base' : ''}
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="signin-password">Contraseña</Label>
+                <Label htmlFor="signin-password" className={isMobile ? 'text-base' : ''}>Contraseña</Label>
                 <Input
                   id="signin-password"
                   type="password"
@@ -316,10 +342,15 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                   required
+                  className={isMobile ? 'h-12 text-base' : ''}
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className={`w-full ${isMobile ? 'h-12 text-base' : ''}`} 
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -332,10 +363,10 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
             </form>
           </TabsContent>
 
-          <TabsContent value="signup" className="space-y-4">
+          <TabsContent value="signup" className={`space-y-4 ${isMobile ? 'mt-6' : 'mt-4'}`}>
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
+                <Label htmlFor="signup-email" className={isMobile ? 'text-base' : ''}>Email</Label>
                 <Input
                   id="signup-email"
                   type="email"
@@ -344,11 +375,12 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
+                  className={isMobile ? 'h-12 text-base' : ''}
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="signup-password">Contraseña</Label>
+                <Label htmlFor="signup-password" className={isMobile ? 'text-base' : ''}>Contraseña</Label>
                 <Input
                   id="signup-password"
                   type="password"
@@ -358,10 +390,15 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
                   disabled={isLoading}
                   required
                   minLength={6}
+                  className={isMobile ? 'h-12 text-base' : ''}
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className={`w-full ${isMobile ? 'h-12 text-base' : ''}`} 
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -374,6 +411,73 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
             </form>
           </TabsContent>
         </Tabs>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    if (isMobile) {
+      return (
+        <Sheet open={open} onOpenChange={onOpenChange}>
+          <SheetContent 
+            side="bottom" 
+            className="p-0 h-[100dvh] rounded-none max-h-[100dvh]"
+          >
+            <LoadingContent />
+          </SheetContent>
+        </Sheet>
+      );
+    }
+
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-lg">
+          <LoadingContent />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (user) {
+    if (isMobile) {
+      return (
+        <Sheet open={open} onOpenChange={onOpenChange}>
+          <SheetContent 
+            side="bottom" 
+            className="p-0 h-[100dvh] rounded-none max-h-[100dvh]"
+          >
+            <ProfileContent />
+          </SheetContent>
+        </Sheet>
+      );
+    }
+
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+          <ProfileContent />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent 
+          side="bottom" 
+          className="p-0 h-[100dvh] rounded-none max-h-[100dvh]"
+        >
+          <AuthContent />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <AuthContent />
       </DialogContent>
     </Dialog>
   );
