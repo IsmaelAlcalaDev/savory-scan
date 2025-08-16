@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -103,24 +104,8 @@ export const useRestaurants = ({
           console.log('Budget-friendly filter active, filtering by € only');
         }
 
-        // Convert price range values to display_text for filtering
-        let priceDisplayTexts: string[] | undefined;
-        if (effectivePriceRanges && effectivePriceRanges.length > 0) {
-          console.log('Converting price range values to display texts:', effectivePriceRanges);
-          
-          const { data: priceRangeData, error: priceError } = await supabase
-            .from('price_ranges')
-            .select('value, display_text')
-            .in('value', effectivePriceRanges);
-
-          if (priceError) {
-            console.error('Error fetching price ranges:', priceError);
-          } else if (priceRangeData && priceRangeData.length > 0) {
-            priceDisplayTexts = priceRangeData.map(range => range.display_text);
-            console.log('Mapped price display texts:', priceDisplayTexts);
-          }
-        }
-
+        // For budget-friendly filter, we'll filter directly by price_range = '€'
+        // No need to convert to display_text since we're filtering by the stored value
         let query = supabase
           .from('restaurants')
           .select(`
@@ -176,9 +161,26 @@ export const useRestaurants = ({
           query = query.gte('google_rating', 4.5);
         }
 
-        if (priceDisplayTexts && priceDisplayTexts.length > 0) {
-          console.log('Applying price range filter with display texts:', priceDisplayTexts);
-          query = query.in('price_range', priceDisplayTexts as any);
+        // Apply budget-friendly filter directly
+        if (isBudgetFriendly) {
+          console.log('Applying budget-friendly filter: price_range = €');
+          query = query.eq('price_range', '€');
+        } else if (effectivePriceRanges && effectivePriceRanges.length > 0) {
+          // Only apply regular price range filter if not budget-friendly
+          console.log('Converting price range values to display texts:', effectivePriceRanges);
+          
+          const { data: priceRangeData, error: priceError } = await supabase
+            .from('price_ranges')
+            .select('value, display_text')
+            .in('value', effectivePriceRanges);
+
+          if (priceError) {
+            console.error('Error fetching price ranges:', priceError);
+          } else if (priceRangeData && priceRangeData.length > 0) {
+            const priceDisplayTexts = priceRangeData.map(range => range.display_text);
+            console.log('Mapped price display texts:', priceDisplayTexts);
+            query = query.in('price_range', priceDisplayTexts as any);
+          }
         }
 
         if (cuisineTypeIds && cuisineTypeIds.length > 0) {
