@@ -1,4 +1,5 @@
-import { X, ChevronDown, MapPin, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Leaf } from 'lucide-react';
+
+import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Leaf } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -6,32 +7,26 @@ import {
   Sheet,
   SheetContent,
 } from '@/components/ui/sheet';
-import DistanceFilter from './DistanceFilter';
 import PriceFilter from './PriceFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import DietFilter from './DietFilter';
-import TimeRangeFilter from './TimeRangeFilter';
 import { useState } from 'react';
 
 interface FilterTagsProps {
   activeTab: 'restaurants' | 'dishes';
   selectedCuisines: number[];
   selectedFoodTypes: number[];
-  selectedDistance?: number[];
   selectedPriceRanges?: string[];
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
-  selectedTimeRanges?: number[];
   isOpenNow?: boolean;
   isHighRated?: boolean;
   isBudgetFriendly?: boolean;
   isVegetarianVegan?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'establishment' | 'diet' | 'openNow' | 'timeRange' | 'highRated' | 'budgetFriendly' | 'vegetarianVegan' | 'all', id?: number) => void;
-  onDistanceChange?: (distances: number[]) => void;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'establishment' | 'diet' | 'openNow' | 'highRated' | 'budgetFriendly' | 'vegetarianVegan' | 'all', id?: number) => void;
   onPriceRangeChange?: (ranges: string[]) => void;
   onEstablishmentTypeChange?: (types: number[]) => void;
   onDietTypeChange?: (types: number[]) => void;
-  onTimeRangeChange?: (ranges: number[]) => void;
   onOpenNowChange?: (isOpen: boolean) => void;
   onHighRatedChange?: (isHighRated: boolean) => void;
   onBudgetFriendlyChange?: (isBudgetFriendly: boolean) => void;
@@ -42,21 +37,17 @@ export default function FilterTags({
   activeTab, 
   selectedCuisines, 
   selectedFoodTypes,
-  selectedDistance = [],
   selectedPriceRanges = [],
   selectedEstablishmentTypes = [],
   selectedDietTypes = [],
-  selectedTimeRanges = [],
   isOpenNow = false,
   isHighRated = false,
   isBudgetFriendly = false,
   isVegetarianVegan = false,
   onClearFilter,
-  onDistanceChange = () => {},
   onPriceRangeChange = () => {},
   onEstablishmentTypeChange = () => {},
   onDietTypeChange = () => {},
-  onTimeRangeChange = () => {},
   onOpenNowChange = () => {},
   onHighRatedChange = () => {},
   onBudgetFriendlyChange = () => {},
@@ -67,11 +58,9 @@ export default function FilterTags({
   
   const hasActiveFilters = selectedCuisines.length > 0 || 
     selectedFoodTypes.length > 0 || 
-    selectedDistance.length > 0 || 
     selectedPriceRanges.length > 0 || 
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
-    selectedTimeRanges.length > 0 ||
     isOpenNow ||
     isHighRated ||
     isBudgetFriendly ||
@@ -79,33 +68,27 @@ export default function FilterTags({
 
   const getFilterIcon = (filterKey: string) => {
     switch (filterKey) {
-      case 'distance': return MapPin;
       case 'price': return Euro;
       case 'establishment': return Store;
       case 'diet': return Utensils;
-      case 'schedule': return Clock;
       default: return null;
     }
   };
 
   const getFilterTitle = (filterKey: string) => {
     switch (filterKey) {
-      case 'distance': return 'Distancia';
       case 'price': return 'Precio';
       case 'establishment': return 'Tipo de Comercio';
       case 'diet': return 'Dieta';
-      case 'schedule': return 'Horarios';
       default: return 'Filtro';
     }
   };
 
   const getFilterCount = (filterKey: string) => {
     switch (filterKey) {
-      case 'distance': return selectedDistance.length;
       case 'price': return selectedPriceRanges.length;
       case 'establishment': return selectedEstablishmentTypes.length;
       case 'diet': return selectedDietTypes.length;
-      case 'schedule': return selectedTimeRanges.length + (isOpenNow ? 1 : 0);
       default: return 0;
     }
   };
@@ -116,15 +99,6 @@ export default function FilterTags({
 
   const getFilterContent = (filterKey: string) => {
     switch (filterKey) {
-      case 'distance':
-        return (
-          <div className="[&_label]:text-base space-y-4">
-            <DistanceFilter
-              selectedDistances={selectedDistance}
-              onDistanceChange={onDistanceChange}
-            />
-          </div>
-        );
       case 'price':
         return (
           <div className="[&_label]:text-base space-y-4">
@@ -149,17 +123,6 @@ export default function FilterTags({
             <DietFilter
               selectedDietTypes={selectedDietTypes}
               onDietTypeChange={onDietTypeChange}
-            />
-          </div>
-        );
-      case 'schedule':
-        return (
-          <div className="[&_label]:text-base space-y-4">
-            <TimeRangeFilter
-              selectedTimeRanges={selectedTimeRanges}
-              onTimeRangeChange={onTimeRangeChange}
-              isOpenNow={isOpenNow}
-              onOpenNowChange={onOpenNowChange}
             />
           </div>
         );
@@ -205,13 +168,11 @@ export default function FilterTags({
     </div>
   );
 
-  // Reordered filter tags based on UX psychology principles
+  // Filtros simplificados - eliminamos distancia y horarios
   const filterTags = [
-    { key: 'distance', label: 'Distancia' },
     { key: 'price', label: 'Precio' },
     ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
     { key: 'diet', label: 'Dieta' },
-    { key: 'schedule', label: 'Horarios' },
   ];
 
   const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
@@ -291,7 +252,7 @@ export default function FilterTags({
             +4.5
           </Button>
 
-          {/* Open Now Quick Filter Button */}
+          {/* Open Now Quick Filter Button - Mejorado */}
           <Button
             variant="outline"
             size="sm"

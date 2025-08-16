@@ -27,7 +27,6 @@ interface UseRestaurantsProps {
   cuisineTypeIds?: number[];
   priceRanges?: string[];
   isHighRated?: boolean;
-  selectedDistanceRangeIds?: number[];
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
   isOpenNow?: boolean;
@@ -68,7 +67,6 @@ export const useRestaurants = ({
   cuisineTypeIds,
   priceRanges,
   isHighRated = false,
-  selectedDistanceRangeIds,
   selectedEstablishmentTypes,
   selectedDietTypes,
   isOpenNow = false
@@ -90,30 +88,10 @@ export const useRestaurants = ({
           cuisineTypeIds,
           priceRanges,
           isHighRated,
-          selectedDistanceRangeIds,
           selectedEstablishmentTypes,
           selectedDietTypes,
           isOpenNow
         });
-
-        // Get effective max distance from selected distance ranges
-        let effectiveMaxDistance = maxDistance;
-        if (selectedDistanceRangeIds && selectedDistanceRangeIds.length > 0) {
-          console.log('Fetching distance ranges for IDs:', selectedDistanceRangeIds);
-          
-          const { data: distanceRanges, error: distanceError } = await supabase
-            .from('distance_ranges')
-            .select('id, distance_km')
-            .in('id', selectedDistanceRangeIds);
-
-          if (distanceError) {
-            console.error('Error fetching distance ranges:', distanceError);
-          } else if (distanceRanges && distanceRanges.length > 0) {
-            const maxSelectedDistance = Math.max(...distanceRanges.map(range => Number(range.distance_km)));
-            effectiveMaxDistance = maxSelectedDistance;
-            console.log('Effective max distance from selected ranges:', effectiveMaxDistance);
-          }
-        }
 
         // Convert price range values to display_text for filtering
         let priceDisplayTexts: string[] | undefined;
@@ -155,10 +133,32 @@ export const useRestaurants = ({
             restaurant_services(
               services!inner(name)
             )
+            ${isOpenNow ? `,
+            restaurant_schedules!inner(
+              day_of_week,
+              opening_time,
+              closing_time,
+              is_closed
+            )` : ''}
           `)
           .eq('is_active', true)
           .eq('is_published', true)
           .is('deleted_at', null);
+
+        // Filtro "Abierto ahora" - optimizado con SQL
+        if (isOpenNow) {
+          console.log('Applying "open now" filter with SQL optimization');
+          
+          // Obtener día de la semana actual (0=domingo, 1=lunes, etc.)
+          const currentDay = new Date().getDay();
+          const currentTime = new Date().toTimeString().slice(0, 8); // HH:MM:SS format
+          
+          query = query
+            .eq('restaurant_schedules.day_of_week', currentDay)
+            .eq('restaurant_schedules.is_closed', false)
+            .lte('restaurant_schedules.opening_time', currentTime)
+            .gte('restaurant_schedules.closing_time', currentTime);
+        }
 
         if (searchQuery) {
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
@@ -181,11 +181,6 @@ export const useRestaurants = ({
         if (selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0) {
           console.log('Applying establishment type filter for IDs:', selectedEstablishmentTypes);
           query = query.in('establishment_type_id', selectedEstablishmentTypes);
-        }
-
-        // TODO: Add isOpenNow filtering logic when restaurant schedules are available
-        if (isOpenNow) {
-          console.log('Open now filter requested - implementation pending restaurant schedules');
         }
 
         const { data, error } = await query.limit(50);
@@ -287,11 +282,11 @@ export const useRestaurants = ({
           sortedData = formattedData
             .filter(restaurant => {
               if (restaurant.distance_km === null) return false;
-              return restaurant.distance_km <= effectiveMaxDistance;
+              return restaurant.distance_km <= maxDistance;
             })
             .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
           
-          console.log('Restaurants filtered by distance and sorted:', sortedData.length, 'within', effectiveMaxDistance, 'km');
+          console.log('Restaurants filtered by distance and sorted:', sortedData.length, 'within', maxDistance, 'km');
         }
 
         console.log('Final formatted restaurants after all filters:', sortedData.length);
@@ -353,7 +348,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedDistanceRangeIds, selectedEstablishmentTypes, selectedDietTypes, isOpenNow]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow]);
 
   return { restaurants, loading, error };
 };
