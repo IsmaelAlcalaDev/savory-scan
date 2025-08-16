@@ -1,4 +1,4 @@
-import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Tags, Flame } from 'lucide-react';
+import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Tags, Flame, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -78,6 +78,34 @@ export default function FilterTags({
     isOpenNow ||
     isHighRated ||
     isBudgetFriendly;
+
+  // Helper function to get the next price sort state for dishes
+  const getNextPriceSortState = (currentRanges: string[]): string[] => {
+    if (currentRanges.includes('price_asc')) {
+      return ['price_desc']; // Switch to descending
+    } else if (currentRanges.includes('price_desc')) {
+      return []; // Clear sorting
+    } else {
+      return ['price_asc']; // Start with ascending
+    }
+  };
+
+  // Helper function to get price button text and icon for dishes
+  const getPriceButtonContent = () => {
+    if (selectedPriceRanges.includes('price_asc')) {
+      return { text: 'Precio', icon: ArrowUp };
+    } else if (selectedPriceRanges.includes('price_desc')) {
+      return { text: 'Precio', icon: ArrowDown };
+    } else {
+      return { text: 'Ordenar', icon: null };
+    }
+  };
+
+  // Handle price button click for dishes (toggle behavior)
+  const handleDishPriceClick = () => {
+    const nextState = getNextPriceSortState(selectedPriceRanges);
+    onPriceRangeChange(nextState);
+  };
 
   const getFilterIcon = (filterKey: string) => {
     switch (filterKey) {
@@ -280,6 +308,54 @@ export default function FilterTags({
     const isActive = isFilterActive(filterKey);
     const count = getFilterCount(filterKey);
 
+    // Special handling for price filter in dishes tab
+    if (filterKey === 'price' && activeTab === 'dishes') {
+      const priceContent = getPriceButtonContent();
+      const PriceIcon = priceContent.icon;
+      
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
+            isActive 
+              ? 'bg-black text-white hover:bg-black hover:text-white' 
+              : 'text-black hover:text-black'
+          }`}
+          style={isActive ? { 
+            backgroundColor: '#000000',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: '600'
+          } : { 
+            backgroundColor: '#F3F3F3',
+            color: 'black',
+            fontSize: '14px',
+            fontWeight: '600'
+          }}
+          onClick={handleDishPriceClick}
+          onMouseEnter={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = '#F3F3F3';
+            }
+          }}
+        >
+          {PriceIcon ? (
+            <PriceIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
+          ) : (
+            FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
+          )}
+          {priceContent.text}
+        </Button>
+      );
+    }
+
+    // Regular filter trigger with modal
     return (
       <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
         <Button
