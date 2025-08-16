@@ -35,6 +35,7 @@ interface UseDishesParams {
   userLng?: number;
   maxDistance?: number;
   selectedDietTypes?: number[];
+  selectedDishDietTypes?: string[];
   selectedPriceRanges?: string[];
   selectedFoodTypes?: number[];
   selectedCustomTags?: string[];
@@ -73,6 +74,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     userLat,
     userLng,
     selectedDietTypes = [],
+    selectedDishDietTypes = [],
     selectedPriceRanges = [],
     selectedFoodTypes = [],
     selectedCustomTags = [],
@@ -86,6 +88,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     userLat,
     userLng,
     selectedDietTypes,
+    selectedDishDietTypes,
     selectedPriceRanges,
     selectedFoodTypes,
     selectedCustomTags,
@@ -214,9 +217,23 @@ export const useDishes = (params: UseDishesParams = {}) => {
         );
       }
 
-      // Diet type filters - Updated to work with new percentage-based system
+      // Diet type filters - Use direct boolean checks for dishes
+      if (selectedDishDietTypes.length > 0) {
+        filteredDishes = filteredDishes.filter(dish => {
+          return selectedDishDietTypes.some(dietType => {
+            switch (dietType) {
+              case 'vegetarian': return dish.is_vegetarian;
+              case 'vegan': return dish.is_vegan;
+              case 'gluten_free': return dish.is_gluten_free;
+              case 'healthy': return dish.is_healthy;
+              default: return false;
+            }
+          });
+        });
+      }
+
+      // Legacy diet type filters (for backward compatibility with restaurants)
       if (selectedDietTypes.length > 0) {
-        // Get diet types with their categories
         const { data: dietTypesData, error: dietTypesError } = await supabase
           .from('diet_types')
           .select('*')
@@ -311,7 +328,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       setDishes([]);
       setLoading(false);
     }
-  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels, prepTimeRanges]);
+  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels, prepTimeRanges]);
 
   useEffect(() => {
     // Skip if the fetch key hasn't changed (prevents infinite loops)

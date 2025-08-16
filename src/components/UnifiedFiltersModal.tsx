@@ -1,4 +1,3 @@
-
 import { useState, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -9,30 +8,42 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import AllergenFilter from './AllergenFilter';
 import DietFilter from './DietFilter';
+import DishDietFilter from './DishDietFilter';
 
 interface UnifiedFiltersModalProps {
+  activeTab?: 'restaurants' | 'dishes';
   selectedAllergens: string[];
   selectedDietTypes: number[];
+  selectedDishDietTypes?: string[];
   onAllergenChange: (allergens: string[]) => void;
   onDietTypeChange: (types: number[]) => void;
+  onDishDietTypeChange?: (types: string[]) => void;
   trigger?: ReactNode;
 }
 
 export default function UnifiedFiltersModal({
+  activeTab = 'restaurants',
   selectedAllergens,
   selectedDietTypes,
+  selectedDishDietTypes = [],
   onAllergenChange,
   onDietTypeChange,
+  onDishDietTypeChange = () => {},
   trigger
 }: UnifiedFiltersModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const isMobile = useIsMobile();
   
-  const activeFiltersCount = selectedAllergens.length + selectedDietTypes.length;
+  const activeFiltersCount = selectedAllergens.length + 
+    (activeTab === 'restaurants' ? selectedDietTypes.length : selectedDishDietTypes.length);
 
   const clearAllFilters = () => {
     onAllergenChange([]);
-    onDietTypeChange([]);
+    if (activeTab === 'restaurants') {
+      onDietTypeChange([]);
+    } else {
+      onDishDietTypeChange([]);
+    }
   };
 
   const defaultTrigger = (
@@ -101,10 +112,17 @@ export default function UnifiedFiltersModal({
               <p className={`text-muted-foreground ${isMobile ? 'text-base' : 'text-sm'}`}>
                 Filtra platos según tu tipo de dieta:
               </p>
-              <DietFilter
-                selectedDietTypes={selectedDietTypes}
-                onDietTypeChange={onDietTypeChange}
-              />
+              {activeTab === 'restaurants' ? (
+                <DietFilter
+                  selectedDietTypes={selectedDietTypes}
+                  onDietTypeChange={onDietTypeChange}
+                />
+              ) : (
+                <DishDietFilter
+                  selectedDietTypes={selectedDishDietTypes}
+                  onDietTypeChange={onDishDietTypeChange}
+                />
+              )}
             </div>
           </TabsContent>
         </Tabs>
