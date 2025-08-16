@@ -459,7 +459,7 @@ export default function FoodieSpotLayout({
   return <div className="min-h-screen bg-white pb-20">
       {/* Header - Full width */}
       <header className="sticky top-0 z-50 bg-white">
-        <div className="px-4 md:px-6 lg:px-8 xl:px-12">
+        <div className="px-2">
           {renderHeader()}
         </div>
 
