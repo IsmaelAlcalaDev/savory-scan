@@ -1,12 +1,29 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, User, LogOut } from 'lucide-react';
+import { 
+  Loader2, 
+  User, 
+  LogOut, 
+  Eye, 
+  EyeOff, 
+  Mail, 
+  Lock, 
+  Phone,
+  MapPin,
+  CheckCircle, 
+  XCircle,
+  AlertTriangle
+} from 'lucide-react';
+import { useSecureAuthFlow } from '@/hooks/useSecureAuthFlow';
 import ProfileSection from './ProfileSection';
 import FavoritesSection from './FavoritesSection';
 import ReservationsSection from './ReservationsSection';
@@ -18,13 +35,94 @@ interface AccountModalProps {
 }
 
 export default function AccountModal({ open, onOpenChange }: AccountModalProps) {
-  const { user, signIn, signUp, signInWithGoogle, signOut, loading } = useAuth();
+  const { user, signIn, signInWithGoogle, signOut, loading } = useAuth();
+  const { secureRegister, secureLogin, googleLogin, validatePassword, isLoading: authFlowLoading } = useSecureAuthFlow();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [city, setCity] = useState('');
+  const [phone, setPhone] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const isLoading = loading || authFlowLoading;
+  const passwordValidation = validatePassword(password);
+
+  const handleInputChange = (field: string, value: string) => {
+    switch (field) {
+      case 'email':
+        setEmail(value);
+        break;
+      case 'password':
+        setPassword(value);
+        break;
+      case 'confirmPassword':
+        setConfirmPassword(value);
+        break;
+      case 'firstName':
+        setFirstName(value);
+        break;
+      case 'lastName':
+        setLastName(value);
+        break;
+      case 'city':
+        setCity(value);
+        break;
+      case 'phone':
+        setPhone(value);
+        break;
+    }
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validateSignUpForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!email.trim()) {
+      newErrors.email = 'Email es obligatorio';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Formato de email inválido';
+    }
+
+    if (!firstName.trim()) {
+      newErrors.firstName = 'Nombre es obligatorio';
+    }
+
+    if (!lastName.trim()) {
+      newErrors.lastName = 'Apellido es obligatorio';
+    }
+
+    if (!city.trim()) {
+      newErrors.city = 'Ciudad es obligatoria';
+    }
+
+    if (!passwordValidation.isValid) {
+      newErrors.password = 'La contraseña no cumple los requisitos';
+    }
+
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden';
+    }
+
+    if (!confirmPassword.trim()) {
+      newErrors.confirmPassword = 'Confirmación de contraseña es obligatoria';
+    }
+
+    if (phone && !/^[\+]?[1-9][\d]{0,15}$/.test(phone.replace(/[\s\-\(\)]/g, ''))) {
+      newErrors.phone = 'Formato de teléfono inválido';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,130 +135,53 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const { error } = await signIn(email, password);
-      if (error) {
-        console.error('Sign in error:', error);
-        toast({
-          title: "Error al iniciar sesión",
-          description: error.message || "Credenciales incorrectas",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "¡Bienvenido!",
-          description: "Has iniciado sesión correctamente"
-        });
-        // Don't close modal, let it show the profile view
-        setEmail('');
-        setPassword('');
-      }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      toast({
-        title: "Error",
-        description: "Ocurrió un error inesperado",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+    const result = await secureLogin({ email, password });
+    if (result.success) {
+      setEmail('');
+      setPassword('');
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !firstName || !lastName) {
-      toast({
-        title: "Error",
-        description: "Por favor completa todos los campos obligatorios",
-        variant: "destructive"
-      });
+    
+    if (!validateSignUpForm()) {
       return;
     }
 
-    if (password !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Las contraseñas no coinciden",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Error",
-        description: "La contraseña debe tener al menos 6 caracteres",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { error } = await signUp(email, password);
-      if (error) {
-        console.error('Sign up error:', error);
-        if (error.message.includes('already registered')) {
-          toast({
-            title: "Usuario ya registrado",
-            description: "Este email ya está registrado. Intenta iniciar sesión.",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Error al registrarse",
-            description: error.message || "No se pudo crear la cuenta",
-            variant: "destructive"
-          });
-        }
-      } else {
+    const result = await secureRegister({
+      email,
+      password,
+      confirmPassword,
+      firstName,
+      lastName,
+      city,
+      phone
+    });
+    
+    if (result.success) {
+      // Clear form
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setFirstName('');
+      setLastName('');
+      setCity('');
+      setPhone('');
+      setErrors({});
+      
+      if (result.needsConfirmation) {
         toast({
           title: "¡Registro exitoso!",
           description: "Revisa tu email para confirmar tu cuenta"
         });
         onOpenChange(false);
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setFirstName('');
-        setLastName('');
       }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      toast({
-        title: "Error",
-        description: "Ocurrió un error inesperado",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await signInWithGoogle();
-      if (error) {
-        console.error('Google sign in error:', error);
-        toast({
-          title: "Error al iniciar sesión con Google",
-          description: error.message || "No se pudo iniciar sesión con Google",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      toast({
-        title: "Error",
-        description: "Ocurrió un error inesperado",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    await googleLogin();
   };
 
   const handleSignOut = async () => {
@@ -179,6 +200,45 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
         variant: "destructive"
       });
     }
+  };
+
+  const renderPasswordStrength = () => {
+    if (!password) return null;
+
+    return (
+      <div className="mt-2 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-gray-200 rounded-full h-2">
+            <div 
+              className={`h-2 rounded-full transition-all duration-300 ${
+                passwordValidation.strength >= 4 ? 'bg-green-500' :
+                passwordValidation.strength >= 3 ? 'bg-yellow-500' :
+                passwordValidation.strength >= 2 ? 'bg-orange-500' : 'bg-red-500'
+              }`}
+              style={{ width: `${(passwordValidation.strength / 5) * 100}%` }}
+            />
+          </div>
+          <Badge variant={passwordValidation.isValid ? 'default' : 'destructive'}>
+            {passwordValidation.isValid ? 'Fuerte' : 'Débil'}
+          </Badge>
+        </div>
+        
+        <div className="grid grid-cols-1 gap-1 text-xs">
+          {passwordValidation.issues.map((issue, index) => (
+            <div key={index} className="flex items-center gap-1">
+              <XCircle className="h-3 w-3 text-red-500" />
+              <span className="text-red-600">{issue}</span>
+            </div>
+          ))}
+          {passwordValidation.isValid && (
+            <div className="flex items-center gap-1">
+              <CheckCircle className="h-3 w-3 text-green-500" />
+              <span className="text-green-600">Contraseña segura</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -310,28 +370,44 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="signin-email">Email</Label>
-                <Input
-                  id="signin-email"
-                  type="email"
-                  placeholder="tu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  required
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="signin-email"
+                    type="email"
+                    placeholder="tu@email.com"
+                    value={email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="pl-10"
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="signin-password">Contraseña</Label>
-                <Input
-                  id="signin-password"
-                  type="password"
-                  placeholder="Tu contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  required
-                />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="signin-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Tu contraseña"
+                    value={password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    className="pl-10 pr-10"
+                    disabled={isLoading}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
@@ -349,88 +425,223 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
 
           <TabsContent value="signup" className="space-y-4">
             <form onSubmit={handleSignUp} className="space-y-4">
+              {/* Nombre y Apellido */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-firstname">Nombre *</Label>
-                  <Input
-                    id="signup-firstname"
-                    type="text"
-                    placeholder="Tu nombre"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    disabled={isLoading}
-                    required
-                  />
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="signup-firstname"
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      className="pl-10"
+                      disabled={isLoading}
+                      required
+                    />
+                  </div>
+                  {errors.firstName && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <XCircle className="h-3 w-3" />
+                      {errors.firstName}
+                    </p>
+                  )}
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="signup-lastname">Apellido *</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="signup-lastname"
+                      type="text"
+                      placeholder="Tu apellido"
+                      value={lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      className="pl-10"
+                      disabled={isLoading}
+                      required
+                    />
+                  </div>
+                  {errors.lastName && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <XCircle className="h-3 w-3" />
+                      {errors.lastName}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="space-y-2">
+                <Label htmlFor="signup-email">Email *</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="signup-lastname"
-                    type="text"
-                    placeholder="Tu apellido"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    id="signup-email"
+                    type="email"
+                    placeholder="tu@email.com"
+                    value={email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="pl-10"
                     disabled={isLoading}
                     required
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <XCircle className="h-3 w-3" />
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
+              {/* Ciudad */}
               <div className="space-y-2">
-                <Label htmlFor="signup-email">Email *</Label>
-                <Input
-                  id="signup-email"
-                  type="email"
-                  placeholder="tu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  required
-                />
+                <Label htmlFor="signup-city">Ciudad *</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="signup-city"
+                    type="text"
+                    placeholder="Tu ciudad"
+                    value={city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    className="pl-10"
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+                {errors.city && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <XCircle className="h-3 w-3" />
+                    {errors.city}
+                  </p>
+                )}
               </div>
-              
+
+              {/* Teléfono */}
+              <div className="space-y-2">
+                <Label htmlFor="signup-phone">Teléfono (opcional)</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="signup-phone"
+                    type="tel"
+                    placeholder="+34 123 456 789"
+                    value={phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    className="pl-10"
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.phone && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <XCircle className="h-3 w-3" />
+                    {errors.phone}
+                  </p>
+                )}
+              </div>
+
+              {/* Contraseña */}
               <div className="space-y-2">
                 <Label htmlFor="signup-password">Contraseña *</Label>
-                <Input
-                  id="signup-password"
-                  type="password"
-                  placeholder="Mínimo 6 caracteres"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  required
-                  minLength={6}
-                />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="signup-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    className="pl-10 pr-10"
+                    disabled={isLoading}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <XCircle className="h-3 w-3" />
+                    {errors.password}
+                  </p>
+                )}
+                {renderPasswordStrength()}
               </div>
 
+              {/* Confirmar Contraseña */}
               <div className="space-y-2">
                 <Label htmlFor="signup-confirm-password">Confirmar Contraseña *</Label>
-                <Input
-                  id="signup-confirm-password"
-                  type="password"
-                  placeholder="Repite tu contraseña"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isLoading}
-                  required
-                />
-                {confirmPassword && password !== confirmPassword && (
-                  <p className="text-sm text-red-600">Las contraseñas no coinciden</p>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="signup-confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                    className="pl-10 pr-10"
+                    disabled={isLoading}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    disabled={isLoading}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <XCircle className="h-3 w-3" />
+                    {errors.confirmPassword}
+                  </p>
                 )}
                 {confirmPassword && password === confirmPassword && password && (
-                  <p className="text-sm text-green-600">Las contraseñas coinciden ✓</p>
+                  <div className="flex items-center gap-1 text-green-600 text-sm">
+                    <CheckCircle className="h-3 w-3" />
+                    <span>Las contraseñas coinciden</span>
+                  </div>
                 )}
               </div>
+
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Te enviaremos un email de confirmación. Debes hacer clic en el enlace para activar tu cuenta.
+                </AlertDescription>
+              </Alert>
 
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isLoading || !firstName || !lastName || !email || !password || !confirmPassword || password !== confirmPassword}
+                disabled={
+                  isLoading || 
+                  !passwordValidation.isValid || 
+                  password !== confirmPassword ||
+                  !firstName.trim() ||
+                  !lastName.trim() ||
+                  !email.trim() ||
+                  !city.trim() ||
+                  !password ||
+                  !confirmPassword
+                }
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Registrando...
+                    Creando cuenta...
                   </>
                 ) : (
                   'Crear Cuenta'
