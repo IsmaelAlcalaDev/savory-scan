@@ -228,48 +228,33 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        // Apply vegetarian/vegan filter - find restaurants with at least one vegetarian or vegan dish
+        // Handle vegetarian/vegan quick filter by using diet types logic
+        let effectiveDietTypes = selectedDietTypes || [];
         if (isVegetarianVegan) {
-          console.log('Applying vegetarian/vegan filter');
+          console.log('Vegetarian/vegan quick filter active, fetching diet types');
           
-          const restaurantIds = formattedData.map(r => r.id);
-          
-          if (restaurantIds.length > 0) {
-            const { data: dishesData, error: dishesError } = await supabase
-              .from('dishes')
-              .select('restaurant_id, is_vegetarian, is_vegan')
-              .in('restaurant_id', restaurantIds)
-              .eq('is_active', true)
-              .is('deleted_at', null)
-              .or('is_vegetarian.eq.true,is_vegan.eq.true');
+          // Fetch vegetarian and vegan diet types
+          const { data: vegDietTypes, error: vegDietError } = await supabase
+            .from('diet_types')
+            .select('id')
+            .in('category', ['vegetarian', 'vegan']);
 
-            if (dishesError) {
-              console.error('Error fetching vegetarian/vegan dishes:', dishesError);
-            } else if (dishesData && dishesData.length > 0) {
-              // Get unique restaurant IDs that have vegetarian or vegan dishes
-              const restaurantsWithVegOptions = new Set(
-                dishesData.map(dish => dish.restaurant_id)
-              );
-              
-              formattedData = formattedData.filter(restaurant => 
-                restaurantsWithVegOptions.has(restaurant.id)
-              );
-              
-              console.log('Restaurants after vegetarian/vegan filtering:', formattedData.length);
-            } else {
-              // No vegetarian/vegan dishes found, return empty array
-              formattedData = [];
-            }
+          if (vegDietError) {
+            console.error('Error fetching vegetarian/vegan diet types:', vegDietError);
+          } else if (vegDietTypes && vegDietTypes.length > 0) {
+            const vegDietTypeIds = vegDietTypes.map(dt => dt.id);
+            effectiveDietTypes = [...effectiveDietTypes, ...vegDietTypeIds];
+            console.log('Added vegetarian/vegan diet type IDs:', vegDietTypeIds);
           }
         }
 
-        if (selectedDietTypes && selectedDietTypes.length > 0) {
-          console.log('Applying diet type filter for IDs:', selectedDietTypes);
+        if (effectiveDietTypes && effectiveDietTypes.length > 0) {
+          console.log('Applying diet type filter for IDs:', effectiveDietTypes);
           
           const { data: dietTypesData, error: dietTypesError } = await supabase
             .from('diet_types')
             .select('*')
-            .in('id', selectedDietTypes);
+            .in('id', effectiveDietTypes);
 
           if (dietTypesError) {
             console.error('Error fetching diet types:', dietTypesError);
