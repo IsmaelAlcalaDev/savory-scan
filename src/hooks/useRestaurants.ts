@@ -226,26 +226,16 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        // Handle vegetarian/vegan quick filter by using diet types logic
+        // Handle diet type filters (both manual and quick filter)
         let effectiveDietTypes = selectedDietTypes || [];
+        
+        // Add the basic vegetarian/vegan diet types when quick filter is active
         if (isVegetarianVegan) {
-          console.log('Vegetarian/vegan quick filter active, fetching lowest percentage diet types');
-          
-          // Fetch only the diet types with the lowest minimum percentage for each category
-          const { data: vegDietTypes, error: vegDietError } = await supabase
-            .from('diet_types')
-            .select('id, category, min_percentage')
-            .in('category', ['vegetarian', 'vegan'])
-            .or('category.eq.vegetarian.and.min_percentage.eq.15,category.eq.vegan.and.min_percentage.eq.10');
-
-          if (vegDietError) {
-            console.error('Error fetching vegetarian/vegan diet types:', vegDietError);
-          } else if (vegDietTypes && vegDietTypes.length > 0) {
-            const vegDietTypeIds = vegDietTypes.map(dt => dt.id);
-            effectiveDietTypes = [...effectiveDietTypes, ...vegDietTypeIds];
-            console.log('Added basic vegetarian/vegan diet type IDs:', vegDietTypeIds);
-            console.log('Diet types details:', vegDietTypes);
-          }
+          console.log('Vegetarian/vegan quick filter active, adding basic diet types');
+          // Add the specific IDs for basic vegetarian (15%) and vegan (10%) options
+          const basicVegDietTypes = [14, 17]; // IDs for "Opciones vegetarianas" and "Opciones veganas"
+          effectiveDietTypes = [...effectiveDietTypes, ...basicVegDietTypes];
+          console.log('Added basic vegetarian/vegan diet type IDs:', basicVegDietTypes);
         }
 
         if (effectiveDietTypes && effectiveDietTypes.length > 0) {
@@ -287,12 +277,19 @@ export const useRestaurants = ({
                     const restaurantId = parseInt(restaurantIdStr);
                     const percentage = calculateDietPercentage(dishes, dietType.category);
                     
+                    console.log(`Restaurant ${restaurantId}, Diet ${dietType.name}: ${percentage}% (required: ${dietType.min_percentage}-${dietType.max_percentage}%)`);
+                    
                     if (percentage >= dietType.min_percentage && percentage <= dietType.max_percentage) {
                       filteredRestaurantIds.add(restaurantId);
+                      console.log(`✓ Restaurant ${restaurantId} passes diet filter ${dietType.name}`);
+                    } else {
+                      console.log(`✗ Restaurant ${restaurantId} fails diet filter ${dietType.name}`);
                     }
                   });
                 });
 
+                console.log('Restaurants that pass diet filters:', Array.from(filteredRestaurantIds));
+                
                 formattedData = formattedData.filter(restaurant => 
                   filteredRestaurantIds.has(restaurant.id)
                 );
