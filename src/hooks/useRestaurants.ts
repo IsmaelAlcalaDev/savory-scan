@@ -30,6 +30,7 @@ interface UseRestaurantsProps {
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
   isOpenNow?: boolean;
+  isBudgetFriendly?: boolean;
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -69,7 +70,8 @@ export const useRestaurants = ({
   isHighRated = false,
   selectedEstablishmentTypes,
   selectedDietTypes,
-  isOpenNow = false
+  isOpenNow = false,
+  isBudgetFriendly = false
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,18 +92,26 @@ export const useRestaurants = ({
           isHighRated,
           selectedEstablishmentTypes,
           selectedDietTypes,
-          isOpenNow
+          isOpenNow,
+          isBudgetFriendly
         });
+
+        // Handle budget-friendly filter - override price ranges if active
+        let effectivePriceRanges = priceRanges;
+        if (isBudgetFriendly) {
+          effectivePriceRanges = ['€'];
+          console.log('Budget-friendly filter active, filtering by € only');
+        }
 
         // Convert price range values to display_text for filtering
         let priceDisplayTexts: string[] | undefined;
-        if (priceRanges && priceRanges.length > 0) {
-          console.log('Converting price range values to display texts:', priceRanges);
+        if (effectivePriceRanges && effectivePriceRanges.length > 0) {
+          console.log('Converting price range values to display texts:', effectivePriceRanges);
           
           const { data: priceRangeData, error: priceError } = await supabase
             .from('price_ranges')
             .select('value, display_text')
-            .in('value', priceRanges);
+            .in('value', effectivePriceRanges);
 
           if (priceError) {
             console.error('Error fetching price ranges:', priceError);
@@ -145,13 +155,11 @@ export const useRestaurants = ({
           .eq('is_published', true)
           .is('deleted_at', null);
 
-        // Filtro "Abierto ahora" - optimizado con SQL
         if (isOpenNow) {
           console.log('Applying "open now" filter with SQL optimization');
           
-          // Obtener día de la semana actual (0=domingo, 1=lunes, etc.)
           const currentDay = new Date().getDay();
-          const currentTime = new Date().toTimeString().slice(0, 8); // HH:MM:SS format
+          const currentTime = new Date().toTimeString().slice(0, 8);
           
           query = query
             .eq('restaurant_schedules.day_of_week', currentDay)
@@ -216,11 +224,9 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        // Apply diet type filtering with percentage calculations
         if (selectedDietTypes && selectedDietTypes.length > 0) {
           console.log('Applying diet type filter for IDs:', selectedDietTypes);
           
-          // First, get the diet types with their categories and percentages
           const { data: dietTypesData, error: dietTypesError } = await supabase
             .from('diet_types')
             .select('*')
@@ -232,7 +238,6 @@ export const useRestaurants = ({
             const restaurantIds = formattedData.map(r => r.id);
             
             if (restaurantIds.length > 0) {
-              // Query dishes for these restaurants
               const { data: dishesData, error: dishesError } = await supabase
                 .from('dishes')
                 .select('restaurant_id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
@@ -243,7 +248,6 @@ export const useRestaurants = ({
               if (dishesError) {
                 console.error('Error fetching dishes for diet filtering:', dishesError);
               } else if (dishesData) {
-                // Group dishes by restaurant
                 const dishesByRestaurant: Record<number, any[]> = {};
                 dishesData.forEach(dish => {
                   if (!dishesByRestaurant[dish.restaurant_id]) {
@@ -252,7 +256,6 @@ export const useRestaurants = ({
                   dishesByRestaurant[dish.restaurant_id].push(dish);
                 });
 
-                // Filter restaurants based on diet type percentages
                 const filteredRestaurantIds = new Set<number>();
 
                 dietTypesData.forEach((dietType: any) => {
@@ -266,7 +269,6 @@ export const useRestaurants = ({
                   });
                 });
 
-                // Keep only restaurants that match at least one diet type filter
                 formattedData = formattedData.filter(restaurant => 
                   filteredRestaurantIds.has(restaurant.id)
                 );
@@ -348,7 +350,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly]);
 
   return { restaurants, loading, error };
 };

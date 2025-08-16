@@ -42,7 +42,6 @@ export default function FoodieSpotLayout({
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
 
   // Estados para filtros
-  const [selectedDistance, setSelectedDistance] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [isHighRated, setIsHighRated] = useState(false);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
@@ -173,16 +172,13 @@ export default function FoodieSpotLayout({
     }
   }, []);
 
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'timeRange' | 'budgetFriendly' | 'vegetarianVegan' | 'all', id?: number) => {
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'timeRange' | 'budgetFriendly' | 'vegetarianVegan' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':
         setSelectedCuisines([]);
         break;
       case 'foodType':
         setSelectedFoodTypes([]);
-        break;
-      case 'distance':
-        setSelectedDistance([]);
         break;
       case 'price':
         setSelectedPriceRanges([]);
@@ -211,7 +207,6 @@ export default function FoodieSpotLayout({
       case 'all':
         setSelectedCuisines([]);
         setSelectedFoodTypes([]);
-        setSelectedDistance([]);
         setSelectedPriceRanges([]);
         setIsHighRated(false);
         setSelectedEstablishmentTypes([]);
@@ -249,10 +244,10 @@ export default function FoodieSpotLayout({
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
     isHighRated: isHighRated,
-    selectedDistanceRangeIds: selectedDistance.length > 0 ? selectedDistance : undefined,
     selectedEstablishmentTypes: selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined,
     selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
-    isOpenNow: isOpenNow
+    isOpenNow: isOpenNow,
+    isBudgetFriendly: isBudgetFriendly
   });
   
   const {
@@ -360,7 +355,6 @@ export default function FoodieSpotLayout({
   const renderContent = () => {
     const hasActiveFilters: boolean = selectedCuisines.length > 0 || 
     selectedFoodTypes.length > 0 || 
-    selectedDistance.length > 0 || 
     selectedPriceRanges.length > 0 || 
     isHighRated || 
     selectedEstablishmentTypes.length > 0 || 
@@ -377,7 +371,6 @@ export default function FoodieSpotLayout({
             activeTab="dishes" 
             selectedCuisines={selectedCuisines} 
             selectedFoodTypes={selectedFoodTypes} 
-            selectedDistance={selectedDistance} 
             selectedPriceRanges={selectedPriceRanges} 
             isHighRated={isHighRated} 
             selectedEstablishmentTypes={selectedEstablishmentTypes} 
@@ -387,7 +380,6 @@ export default function FoodieSpotLayout({
             isBudgetFriendly={isBudgetFriendly}
             isVegetarianVegan={isVegetarianVegan}
             onClearFilter={handleClearFilter}
-            onDistanceChange={setSelectedDistance}
             onPriceRangeChange={setSelectedPriceRanges}
             onHighRatedChange={setIsHighRated}
             onEstablishmentTypeChange={setSelectedEstablishmentTypes}
@@ -423,7 +415,6 @@ export default function FoodieSpotLayout({
           activeTab="restaurants" 
           selectedCuisines={selectedCuisines} 
           selectedFoodTypes={selectedFoodTypes} 
-          selectedDistance={selectedDistance} 
           selectedPriceRanges={selectedPriceRanges} 
           isHighRated={isHighRated} 
           selectedEstablishmentTypes={selectedEstablishmentTypes} 
@@ -433,7 +424,6 @@ export default function FoodieSpotLayout({
           isBudgetFriendly={isBudgetFriendly}
           isVegetarianVegan={isVegetarianVegan}
           onClearFilter={handleClearFilter}
-          onDistanceChange={setSelectedDistance}
           onPriceRangeChange={setSelectedPriceRanges}
           onHighRatedChange={setIsHighRated}
           onEstablishmentTypeChange={setSelectedEstablishmentTypes}
@@ -479,7 +469,7 @@ export default function FoodieSpotLayout({
               <p className="text-sm text-muted-foreground mt-2">
                 Intenta cambiar los filtros de búsqueda
               </p>
-            </div> : restaurants.map(restaurant => <RestaurantCard key={restaurant.id} id={restaurant.id} name={restaurant.name} slug={restaurant.slug} description={restaurant.description} priceRange={restaurant.price_range} googleRating={restaurant.google_rating} distance={restaurant.distance_km} cuisineTypes={restaurant.cuisine_types} establishmentType={restaurant.establishment_type} services={restaurant.services} favoritesCount={restaurant.favorites_count} coverImageUrl={restaurant.cover_image_url} logoUrl={restaurant.logo_url} onLoginRequired={handleLoginRequired} />)}
+            </div> : restaurants.map(restaurant => <RestaurantCard key={restaurant.id} id={restaurant.id} name={restaurant.name} slug={restaurant.slug} description={restaurant.description} priceRange={restaurant.price_range} cuisineTypes={restaurant.cuisine_types} establishmentType={restaurant.establishment_type} services={restaurant.services} favoritesCount={restaurant.favorites_count} coverImageUrl={restaurant.cover_image_url} logoUrl={restaurant.logo_url} onLoginRequired={handleLoginRequired} />)}
         </div>
       </>;
   };
