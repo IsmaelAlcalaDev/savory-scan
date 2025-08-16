@@ -24,6 +24,7 @@ interface OrderSimulatorContextType {
   orderItems: OrderItem[];
   isSimulatorOpen: boolean;
   isDinersModalOpen: boolean;
+  isSaveTicketModalOpen: boolean;
   addDiner: (name: string) => void;
   removeDiner: (dinerId: string) => void;
   addDishToOrder: (dish: Dish, dinerId: string, quantity?: number) => void;
@@ -33,9 +34,12 @@ interface OrderSimulatorContextType {
   closeSimulator: () => void;
   openDinersModal: () => void;
   closeDinersModal: () => void;
+  openSaveTicketModal: () => void;
+  closeSaveTicketModal: () => void;
   getTotalByDiner: (dinerId: string) => number;
   getGrandTotal: () => number;
   clearSimulator: () => void;
+  loadTicket: (items: any[], diners: any[]) => void;
 }
 
 const OrderSimulatorContext = createContext<OrderSimulatorContextType | undefined>(undefined);
@@ -55,6 +59,7 @@ export const OrderSimulatorProvider: React.FC<{ children: React.ReactNode }> = (
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [isDinersModalOpen, setIsDinersModalOpen] = useState(false);
+  const [isSaveTicketModalOpen, setIsSaveTicketModalOpen] = useState(false);
 
   const addDiner = useCallback((name: string) => {
     const newDiner: Diner = {
@@ -122,10 +127,72 @@ export const OrderSimulatorProvider: React.FC<{ children: React.ReactNode }> = (
     setOrderItems([]);
   }, []);
 
+  const loadTicket = useCallback((items: any[], dinersData: any[]) => {
+    // Clear current state
+    setOrderItems([]);
+    
+    // Set diners from ticket
+    const loadedDiners = dinersData.map((diner, index) => ({
+      id: (index + 1).toString(),
+      name: diner.name
+    }));
+    setDiners(loadedDiners);
+
+    // Set order items from ticket
+    const loadedItems = items.map((item, index) => {
+      const diner = loadedDiners.find(d => d.name === item.diner_name) || loadedDiners[0];
+      
+      // Create a simplified dish object with the necessary data
+      const dish: Dish = {
+        id: item.dish_id,
+        name: item.dish_name,
+        description: '',
+        base_price: item.unit_price,
+        image_url: item.dish_image_url,
+        image_alt: item.dish_name,
+        is_featured: false,
+        is_vegetarian: false,
+        is_vegan: false,
+        is_gluten_free: false,
+        is_lactose_free: false,
+        is_healthy: false,
+        spice_level: 0,
+        preparation_time_minutes: null,
+        favorites_count: 0,
+        allergens: [],
+        custom_tags: [],
+        variants: item.variant_id ? [{
+          id: item.variant_id,
+          name: item.variant_name || 'Estándar',
+          price: item.unit_price,
+          is_default: true
+        }] : []
+      };
+
+      const orderItem: OrderItem = {
+        id: `loaded-${index}`,
+        dish,
+        dinerId: diner.id,
+        quantity: item.quantity,
+        selectedVariant: item.variant_id ? {
+          id: item.variant_id,
+          name: item.variant_name || 'Estándar',
+          price: item.unit_price
+        } : undefined
+      };
+
+      return orderItem;
+    });
+
+    setOrderItems(loadedItems);
+  }, []);
+
   const openSimulator = () => setIsSimulatorOpen(true);
   const closeSimulator = () => setIsSimulatorOpen(false);
   const openDinersModal = () => setIsDinersModalOpen(true);
   const closeDinersModal = () => setIsDinersModalOpen(false);
+  const openSaveTicketModal = () => setIsSaveTicketModalOpen(true);
+  const closeSaveTicketModal = () => setIsSaveTicketModalOpen(false);
 
   return (
     <OrderSimulatorContext.Provider value={{
@@ -133,6 +200,7 @@ export const OrderSimulatorProvider: React.FC<{ children: React.ReactNode }> = (
       orderItems,
       isSimulatorOpen,
       isDinersModalOpen,
+      isSaveTicketModalOpen,
       addDiner,
       removeDiner,
       addDishToOrder,
@@ -142,9 +210,12 @@ export const OrderSimulatorProvider: React.FC<{ children: React.ReactNode }> = (
       closeSimulator,
       openDinersModal,
       closeDinersModal,
+      openSaveTicketModal,
+      closeSaveTicketModal,
       getTotalByDiner,
       getGrandTotal,
-      clearSimulator
+      clearSimulator,
+      loadTicket
     }}>
       {children}
     </OrderSimulatorContext.Provider>
