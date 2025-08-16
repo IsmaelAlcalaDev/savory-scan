@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ interface FilterTagsProps {
   isOpenNow: boolean;
   isBudgetFriendly: boolean;
   isMostPopular?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'dishDiet' | 'spice' | 'customTags' | 'openNow' | 'budgetFriendly' | 'mostPopular' | 'all') => void;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'dishDiet' | 'spice' | 'customTags' | 'openNow' | 'budgetFriendly' | 'mostPopular' | 'all', id?: number) => void;
   onPriceRangeChange: (ranges: string[]) => void;
   onHighRatedChange: (value: boolean) => void;
   onEstablishmentTypeChange: (types: number[]) => void;
@@ -162,7 +163,9 @@ export default function FilterTags({
           <>
             <DishDietFilter
               selectedDishDietTypes={selectedDishDietTypes}
+              selectedSpiceLevels={selectedSpiceLevels}
               onDishDietTypeChange={onDishDietTypeChange}
+              onSpiceLevelChange={onSpiceLevelChange}
             />
              <CustomTagsFilter
               selectedCustomTags={selectedCustomTags}
