@@ -10,7 +10,7 @@ export default function Account() {
         <meta name="description" content="Gestiona tu cuenta de FoodieSpot" />
       </Helmet>
       
-      <FoodieSpotLayout initialTab="account" />
+      <FoodieSpotLayout />
     </>
   );
 }

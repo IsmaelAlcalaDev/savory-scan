@@ -1,6 +1,6 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useDebounce } from 'use-debounce';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
@@ -13,13 +13,15 @@ import EstablishmentTypeModal from '@/components/EstablishmentTypeModal';
 import UnifiedFiltersModal from './UnifiedFiltersModal';
 import { ResetFiltersButton } from './FilterTags';
 
-export default function FoodieSpotLayout() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') === 'restaurants' ? 'restaurants' : 'dishes';
+interface FoodieSpotLayoutProps {
+  initialTab?: 'restaurants' | 'dishes';
+}
+
+export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes'>(initialTab);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
@@ -42,27 +44,27 @@ export default function FoodieSpotLayout() {
     loading: dishesLoading, 
     error: dishesError 
   } = useDishes({
-    searchQuery: debouncedSearchQuery,
+    searchQuery: searchQuery,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
     selectedDishDietTypes,
     selectedPriceRanges,
     selectedCustomTags,
-    spiceLevels: selectedSpiceLevels
+    selectedSpiceLevels
   });
 
-  // Restaurants hook
+  // Restaurants hook with correct parameters
   const { 
     restaurants, 
     loading: restaurantsLoading, 
     error: restaurantsError 
   } = useRestaurants({
-    searchQuery: debouncedSearchQuery,
+    searchQuery: searchQuery,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
-    selectedCuisines,
+    cuisineTypeIds: selectedCuisines,
     selectedFoodTypes,
-    selectedPriceRanges,
+    priceRanges: selectedPriceRanges,
     selectedEstablishmentTypes,
     selectedDietTypes,
     isOpenNow,
@@ -72,10 +74,11 @@ export default function FoodieSpotLayout() {
   });
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-    params.set('tab', activeTab);
-    router.push(`/?${params.toString()}`, { shallow: true });
-  }, [activeTab, router, searchParams]);
+    const path = activeTab === 'restaurants' ? '/restaurantes' : '/platos';
+    if (location.pathname !== path) {
+      navigate(path, { replace: true });
+    }
+  }, [activeTab, navigate, location.pathname]);
 
   const handleTabChange = (tab: 'restaurants' | 'dishes') => {
     setActiveTab(tab);
@@ -210,7 +213,14 @@ export default function FoodieSpotLayout() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {dishes.map((dish) => (
-                      <DishCard key={dish.id} dish={dish} />
+                      <DishCard 
+                        key={dish.id} 
+                        dish={{
+                          ...dish,
+                          is_lactose_free: false,
+                          variants: []
+                        }} 
+                      />
                     ))}
                   </div>
                 </>
@@ -248,7 +258,10 @@ export default function FoodieSpotLayout() {
         </div>
       </main>
 
-      <BottomNavigation activeTab={activeTab} />
+      <BottomNavigation 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange}
+      />
 
       <EstablishmentTypeModal
         selectedEstablishmentTypes={selectedEstablishmentTypes}
