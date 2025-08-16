@@ -1,6 +1,5 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { useDietTypes } from '@/hooks/useDietTypes';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -30,13 +29,6 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
       healthy: 'Platos equilibrados y nutritivos'
     };
     return descriptions[category] || '';
-  };
-
-  const getPercentageDescription = (min: number, max: number) => {
-    if (min <= 20) return 'Algunas opciones disponibles';
-    if (min <= 40) return 'Buena variedad de opciones';
-    if (min <= 60) return 'Amplia selección';
-    return 'Especialidad del restaurante';
   };
 
   if (loading) {
@@ -94,33 +86,24 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
             
             <div className="space-y-3 ml-2">
               {category.options.map((diet) => (
-                <div key={diet.id} className="flex items-start justify-between group">
-                  <div className="flex items-start space-x-3 flex-1">
-                    <Checkbox 
-                      id={`diet-${diet.id}`}
-                      checked={selectedDietTypes.includes(diet.id)}
-                      onCheckedChange={() => handleDietToggle(diet.id)}
-                      className="mt-1"
-                    />
-                    <label 
-                      htmlFor={`diet-${diet.id}`}
-                      className="text-sm font-medium leading-relaxed cursor-pointer flex items-start gap-2 flex-1"
-                    >
-                      {diet.icon && <span className="text-base mt-0.5">{diet.icon}</span>}
-                      <div className="flex-1">
-                        <span className="block">{diet.name}</span>
-                        <span className="text-xs text-gray-500 block mt-0.5">
-                          {getPercentageDescription(diet.min_percentage, diet.max_percentage)}
-                        </span>
-                      </div>
-                    </label>
-                  </div>
-                  <Badge 
-                    variant="secondary" 
-                    className="text-xs bg-gray-100 text-gray-600 ml-2 opacity-60 group-hover:opacity-100 transition-opacity"
+                <div key={diet.id} className="flex items-start space-x-3">
+                  <Checkbox 
+                    id={`diet-${diet.id}`}
+                    checked={selectedDietTypes.includes(diet.id)}
+                    onCheckedChange={() => handleDietToggle(diet.id)}
+                    className="mt-1"
+                  />
+                  <label 
+                    htmlFor={`diet-${diet.id}`}
+                    className="text-sm font-medium leading-relaxed cursor-pointer flex items-start gap-2 flex-1"
                   >
-                    {diet.min_percentage}%-{diet.max_percentage}%
-                  </Badge>
+                    {diet.icon && <span className="text-base mt-0.5">{diet.icon}</span>}
+                    <div className="flex-1">
+                      <span className="block">
+                        {diet.name} ({diet.min_percentage}%-{diet.max_percentage}%)
+                      </span>
+                    </div>
+                  </label>
                 </div>
               ))}
             </div>
