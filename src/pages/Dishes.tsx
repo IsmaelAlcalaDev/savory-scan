@@ -1,6 +1,6 @@
 
 import { Helmet } from 'react-helmet-async';
-import FoodieSpotLayout from '@/components/FoodieSpotLayout';
+import UpdatedDishes from './UpdatedDishes';
 
 export default function Dishes() {
   return (
@@ -13,7 +13,7 @@ export default function Dishes() {
         <meta property="og:type" content="website" />
       </Helmet>
       
-      <FoodieSpotLayout initialTab="dishes" />
+      <UpdatedDishes />
     </>
   );
 }
