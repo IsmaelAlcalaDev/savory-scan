@@ -5,7 +5,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
-import { useCallback } from 'react';
 
 interface DietFilterWithPercentagesProps {
   selectedDietTypes: number[];
@@ -15,12 +14,12 @@ interface DietFilterWithPercentagesProps {
 export default function DietFilterWithPercentages({ selectedDietTypes, onDietTypeChange }: DietFilterWithPercentagesProps) {
   const { dietCategories, loading, error } = useDietTypes();
 
-  const handleDietChange = useCallback((dietId: number, checked: boolean) => {
-    const newSelected = checked
-      ? [...selectedDietTypes, dietId]
-      : selectedDietTypes.filter(id => id !== dietId);
+  const handleDietToggle = (dietId: number) => {
+    const newSelected = selectedDietTypes.includes(dietId)
+      ? selectedDietTypes.filter(id => id !== dietId)
+      : [...selectedDietTypes, dietId];
     onDietTypeChange(newSelected);
-  }, [selectedDietTypes, onDietTypeChange]);
+  };
 
   const getCategoryDescription = (category: string) => {
     const descriptions: Record<string, string> = {
@@ -97,12 +96,12 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
                   <Checkbox 
                     id={`diet-${diet.id}`}
                     checked={selectedDietTypes.includes(diet.id)}
-                    onCheckedChange={(checked) => handleDietChange(diet.id, checked === true)}
+                    onCheckedChange={() => handleDietToggle(diet.id)}
                     className="mt-1"
                   />
                   <label 
                     htmlFor={`diet-${diet.id}`}
-                    className="text-sm font-medium leading-relaxed cursor-pointer flex items-start gap-2 flex-1 select-none"
+                    className="text-sm font-medium leading-relaxed cursor-pointer flex items-start gap-2 flex-1"
                   >
                     <span>{diet.min_percentage}%-{diet.max_percentage}%</span>
                   </label>

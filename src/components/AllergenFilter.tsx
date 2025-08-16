@@ -1,6 +1,6 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -45,12 +45,12 @@ export default function AllergenFilter({ selectedAllergens, onAllergenChange }: 
     fetchAllergens();
   }, []);
 
-  const handleAllergenChange = useCallback((allergenSlug: string, checked: boolean) => {
-    const newSelected = checked
-      ? [...selectedAllergens, allergenSlug]
-      : selectedAllergens.filter(slug => slug !== allergenSlug);
+  const handleAllergenToggle = (allergenSlug: string) => {
+    const newSelected = selectedAllergens.includes(allergenSlug)
+      ? selectedAllergens.filter(slug => slug !== allergenSlug)
+      : [...selectedAllergens, allergenSlug];
     onAllergenChange(newSelected);
-  }, [selectedAllergens, onAllergenChange]);
+  };
 
   if (loading) {
     return (
@@ -74,12 +74,12 @@ export default function AllergenFilter({ selectedAllergens, onAllergenChange }: 
           <Checkbox 
             id={`allergen-${allergen.id}`}
             checked={selectedAllergens.includes(allergen.slug)}
-            onCheckedChange={(checked) => handleAllergenChange(allergen.slug, checked === true)}
+            onCheckedChange={() => handleAllergenToggle(allergen.slug)}
             className={isMobile ? 'w-6 h-6' : ''}
           />
           <label 
             htmlFor={`allergen-${allergen.id}`}
-            className={`font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2 select-none ${
+            className={`font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2 ${
               isMobile ? 'text-base min-h-[44px] flex-1' : 'text-sm'
             }`}
           >
