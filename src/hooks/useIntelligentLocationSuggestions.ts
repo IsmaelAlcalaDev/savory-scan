@@ -29,18 +29,19 @@ export const useIntelligentLocationSuggestions = (query: string) => {
       try {
         console.log('Intelligent search for query:', query);
 
-        // Usar la función de búsqueda inteligente
-        const { data, error } = await supabase.rpc('intelligent_location_search', {
-          search_query: query,
-          search_limit: 8
-        });
+        // Usar la función de búsqueda inteligente con el cliente SQL directo
+        const { data, error } = await supabase
+          .rpc('intelligent_location_search' as any, {
+            search_query: query,
+            search_limit: 8
+          });
 
         if (error) {
           console.error('Error in intelligent search:', error);
           // Fallback a búsqueda tradicional si la función inteligente falla
           await fallbackSearch(query);
-        } else {
-          const formattedSuggestions: LocationSuggestion[] = (data || []).map((item: any) => ({
+        } else if (data && Array.isArray(data)) {
+          const formattedSuggestions: LocationSuggestion[] = data.map((item: any) => ({
             id: item.id,
             name: item.name,
             type: item.type as 'city' | 'municipality' | 'district' | 'poi',
@@ -54,6 +55,9 @@ export const useIntelligentLocationSuggestions = (query: string) => {
 
           setSuggestions(formattedSuggestions);
           console.log('Intelligent search results:', formattedSuggestions);
+        } else {
+          // Si no hay datos, usar fallback
+          await fallbackSearch(query);
         }
       } catch (error) {
         console.error('Error in intelligent location search:', error);
