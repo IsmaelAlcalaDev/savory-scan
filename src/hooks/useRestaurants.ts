@@ -32,7 +32,6 @@ interface UseRestaurantsProps {
   selectedDietTypes?: number[];
   isOpenNow?: boolean;
   isBudgetFriendly?: boolean;
-  isVegetarianVegan?: boolean;
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -73,8 +72,7 @@ export const useRestaurants = ({
   selectedEstablishmentTypes,
   selectedDietTypes,
   isOpenNow = false,
-  isBudgetFriendly = false,
-  isVegetarianVegan = false
+  isBudgetFriendly = false
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,8 +94,7 @@ export const useRestaurants = ({
           selectedEstablishmentTypes,
           selectedDietTypes,
           isOpenNow,
-          isBudgetFriendly,
-          isVegetarianVegan
+          isBudgetFriendly
         });
 
         // Handle budget-friendly filter - override price ranges if active
@@ -107,6 +104,8 @@ export const useRestaurants = ({
           console.log('Budget-friendly filter active, filtering by € only');
         }
 
+        // For budget-friendly filter, we'll filter directly by price_range = '€'
+        // No need to convert to display_text since we're filtering by the stored value
         let query = supabase
           .from('restaurants')
           .select(`
@@ -227,61 +226,20 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        // Handle diet type filters (both manual and quick filter)
-        let effectiveDietTypes = selectedDietTypes || [];
-        
-        // Add the basic vegetarian/vegan diet types when quick filter is active
-        if (isVegetarianVegan) {
-          console.log('Vegetarian/vegan quick filter active, fetching basic diet types with lowest percentages');
-          
-          // Fetch the diet types with lowest min_percentage for vegetarian and vegan categories
-          const { data: basicVegDietTypes, error: vegDietError } = await supabase
-            .from('diet_types')
-            .select('id, name, category, min_percentage, max_percentage')
-            .in('category', ['vegetarian', 'vegan'])
-            .order('category, min_percentage');
-
-          if (vegDietError) {
-            console.error('Error fetching vegetarian/vegan diet types:', vegDietError);
-          } else if (basicVegDietTypes && basicVegDietTypes.length > 0) {
-            // Get the diet types with the lowest min_percentage for each category
-            const vegetarianTypes = basicVegDietTypes.filter(dt => dt.category === 'vegetarian');
-            const veganTypes = basicVegDietTypes.filter(dt => dt.category === 'vegan');
-            
-            const lowestVegetarian = vegetarianTypes.length > 0 ? vegetarianTypes[0] : null;
-            const lowestVegan = veganTypes.length > 0 ? veganTypes[0] : null;
-            
-            const basicDietTypeIds = [];
-            if (lowestVegetarian) basicDietTypeIds.push(lowestVegetarian.id);
-            if (lowestVegan) basicDietTypeIds.push(lowestVegan.id);
-            
-            effectiveDietTypes = [...effectiveDietTypes, ...basicDietTypeIds];
-            console.log('Added basic vegetarian/vegan diet type IDs:', basicDietTypeIds);
-            console.log('Basic diet types details:', {
-              vegetarian: lowestVegetarian,
-              vegan: lowestVegan
-            });
-          }
-        }
-
-        if (effectiveDietTypes && effectiveDietTypes.length > 0) {
-          console.log('Applying diet type filter for IDs:', effectiveDietTypes);
+        if (selectedDietTypes && selectedDietTypes.length > 0) {
+          console.log('Applying diet type filter for IDs:', selectedDietTypes);
           
           const { data: dietTypesData, error: dietTypesError } = await supabase
             .from('diet_types')
             .select('*')
-            .in('id', effectiveDietTypes);
+            .in('id', selectedDietTypes);
 
           if (dietTypesError) {
             console.error('Error fetching diet types:', dietTypesError);
           } else if (dietTypesData && dietTypesData.length > 0) {
-            console.log('Diet types being applied:', dietTypesData);
-            
             const restaurantIds = formattedData.map(r => r.id);
             
             if (restaurantIds.length > 0) {
-              console.log('Fetching dishes for restaurants:', restaurantIds);
-              
               const { data: dishesData, error: dishesError } = await supabase
                 .from('dishes')
                 .select('restaurant_id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
@@ -292,8 +250,6 @@ export const useRestaurants = ({
               if (dishesError) {
                 console.error('Error fetching dishes for diet filtering:', dishesError);
               } else if (dishesData) {
-                console.log('Dishes data retrieved:', dishesData.length, 'dishes');
-                
                 const dishesByRestaurant: Record<number, any[]> = {};
                 dishesData.forEach(dish => {
                   if (!dishesByRestaurant[dish.restaurant_id]) {
@@ -302,62 +258,21 @@ export const useRestaurants = ({
                   dishesByRestaurant[dish.restaurant_id].push(dish);
                 });
 
-                console.log('Dishes grouped by restaurant:', dishesByRestaurant);
+                const filteredRestaurantIds = new Set<number>();
 
-                // For diet filtering, we need AND logic - restaurant must pass ALL diet types
-                const validRestaurantIds = new Set<number>();
-
-                // Get all restaurants that have dishes
-                const restaurantsWithDishes = Object.keys(dishesByRestaurant).map(id => parseInt(id));
-                console.log('Restaurants with dishes:', restaurantsWithDishes);
-                
-                // For each restaurant, check if it passes ALL selected diet types
-                restaurantsWithDishes.forEach(restaurantId => {
-                  const dishes = dishesByRestaurant[restaurantId];
-                  let passesAllDietTypes = true;
-                  
-                  console.log(`\n--- Checking Restaurant ${restaurantId} ---`);
-                  console.log(`Total dishes: ${dishes.length}`);
-                  
-                  // Check each diet type - restaurant must pass ALL of them (AND logic)
-                  for (const dietType of dietTypesData) {
+                dietTypesData.forEach((dietType: any) => {
+                  Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
+                    const restaurantId = parseInt(restaurantIdStr);
                     const percentage = calculateDietPercentage(dishes, dietType.category);
                     
-                    console.log(`Diet ${dietType.name} (${dietType.category}): ${percentage}% (required: ${dietType.min_percentage}-${dietType.max_percentage}%)`);
-                    
-                    // Debug: show matching dishes
-                    const matchingDishes = dishes.filter(dish => {
-                      switch (dietType.category) {
-                        case 'vegetarian': return dish.is_vegetarian;
-                        case 'vegan': return dish.is_vegan;
-                        case 'gluten_free': return dish.is_gluten_free;
-                        case 'healthy': return dish.is_healthy;
-                        default: return false;
-                      }
-                    });
-                    console.log(`  -> ${matchingDishes.length} out of ${dishes.length} dishes match ${dietType.category}`);
-                    
-                    if (percentage < dietType.min_percentage || percentage > dietType.max_percentage) {
-                      passesAllDietTypes = false;
-                      console.log(`✗ Restaurant ${restaurantId} FAILS diet filter ${dietType.name} (${percentage}% not in range ${dietType.min_percentage}-${dietType.max_percentage}%)`);
-                      break; // No need to check other diet types
-                    } else {
-                      console.log(`✓ Restaurant ${restaurantId} PASSES diet filter ${dietType.name} (${percentage}% in range ${dietType.min_percentage}-${dietType.max_percentage}%)`);
+                    if (percentage >= dietType.min_percentage && percentage <= dietType.max_percentage) {
+                      filteredRestaurantIds.add(restaurantId);
                     }
-                  }
-                  
-                  if (passesAllDietTypes) {
-                    validRestaurantIds.add(restaurantId);
-                    console.log(`✓ Restaurant ${restaurantId} passes ALL diet filters`);
-                  } else {
-                    console.log(`✗ Restaurant ${restaurantId} fails at least one diet filter`);
-                  }
+                  });
                 });
 
-                console.log('Final restaurants that pass ALL diet filters (AND logic):', Array.from(validRestaurantIds));
-                
                 formattedData = formattedData.filter(restaurant => 
-                  validRestaurantIds.has(restaurant.id)
+                  filteredRestaurantIds.has(restaurant.id)
                 );
                 
                 console.log('Restaurants after diet filtering:', formattedData.length);
@@ -437,7 +352,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly, isVegetarianVegan]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly]);
 
   return { restaurants, loading, error };
 };
