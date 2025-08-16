@@ -1,4 +1,3 @@
-
 import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,14 +5,11 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
 } from '@/components/ui/sheet';
 import PriceFilter from './PriceFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import DietFilter from './DietFilter';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 
 interface FilterTagsProps {
   activeTab: 'restaurants' | 'dishes';
@@ -64,45 +60,38 @@ export default function FilterTags({
     isHighRated ||
     isBudgetFriendly;
 
-  const filterConfig = useMemo(() => ({
-    price: {
-      icon: Euro,
-      title: 'Precio',
-      count: selectedPriceRanges.length,
-      isActive: selectedPriceRanges.length > 0
-    },
-    establishment: {
-      icon: Store,
-      title: 'Tipo de Comercio',
-      count: selectedEstablishmentTypes.length,
-      isActive: selectedEstablishmentTypes.length > 0
-    },
-    diet: {
-      icon: Utensils,
-      title: 'Dieta',
-      count: selectedDietTypes.length,
-      isActive: selectedDietTypes.length > 0
+  const getFilterIcon = (filterKey: string) => {
+    switch (filterKey) {
+      case 'price': return Euro;
+      case 'establishment': return Store;
+      case 'diet': return Utensils;
+      default: return null;
     }
-  }), [selectedPriceRanges.length, selectedEstablishmentTypes.length, selectedDietTypes.length]);
+  };
 
-  const handleOpenModal = useCallback((filterKey: string) => {
-    setActiveFilterModal(filterKey);
-  }, []);
+  const getFilterTitle = (filterKey: string) => {
+    switch (filterKey) {
+      case 'price': return 'Precio';
+      case 'establishment': return 'Tipo de Comercio';
+      case 'diet': return 'Dieta';
+      default: return 'Filtro';
+    }
+  };
 
-  const handleCloseModal = useCallback(() => {
-    setActiveFilterModal(null);
-  }, []);
+  const getFilterCount = (filterKey: string) => {
+    switch (filterKey) {
+      case 'price': return selectedPriceRanges.length;
+      case 'establishment': return selectedEstablishmentTypes.length;
+      case 'diet': return selectedDietTypes.length;
+      default: return 0;
+    }
+  };
 
-  const handleApplyFilters = useCallback(() => {
-    setActiveFilterModal(null);
-  }, []);
+  const isFilterActive = (filterKey: string) => {
+    return getFilterCount(filterKey) > 0;
+  };
 
-  const handleResetFilters = useCallback(() => {
-    onClearFilter('all');
-    setActiveFilterModal(null);
-  }, [onClearFilter]);
-
-  const getFilterContent = useCallback((filterKey: string) => {
+  const getFilterContent = (filterKey: string) => {
     switch (filterKey) {
       case 'price':
         return (
@@ -138,103 +127,63 @@ export default function FilterTags({
           </div>
         );
     }
-  }, [selectedPriceRanges, selectedEstablishmentTypes, selectedDietTypes, onPriceRangeChange, onEstablishmentTypeChange, onDietTypeChange]);
+  };
 
-  const FilterTrigger = useCallback(({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
-    const config = filterConfig[filterKey as keyof typeof filterConfig];
-    if (!config) return null;
+  const handleOpenModal = useCallback((filterKey: string) => {
+    setActiveFilterModal(filterKey);
+  }, []);
 
-    const { icon: FilterIcon, isActive, count } = config;
+  const handleCloseModal = useCallback(() => {
+    setActiveFilterModal(null);
+  }, []);
 
-    return (
-      <Button
-        variant="outline"
-        size="sm"
-        className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
-          isActive 
-            ? 'bg-black text-white hover:bg-black hover:text-white' 
-            : 'text-black hover:text-black'
-        }`}
-        style={isActive ? { 
-          backgroundColor: '#000000',
-          color: 'white',
-          fontSize: '14px',
-          fontWeight: '600'
-        } : { 
-          backgroundColor: '#F3F3F3',
-          color: 'black',
-          fontSize: '14px',
-          fontWeight: '600'
-        }}
-        onClick={() => handleOpenModal(filterKey)}
-        onMouseEnter={(e) => {
-          if (!isActive) {
-            e.currentTarget.style.backgroundColor = 'rgb(238, 238, 238)';
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isActive) {
-            e.currentTarget.style.backgroundColor = '#F3F3F3';
-          }
-        }}
-      >
-        {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />}
-        {children}
-        {count > 0 && ` (${count})`}
-        <ChevronDown className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
-      </Button>
-    );
-  }, [filterConfig, handleOpenModal]);
+  const handleApplyFilters = useCallback(() => {
+    setActiveFilterModal(null);
+  }, []);
 
-  const FilterContent = useCallback(({ filterKey }: { filterKey: string }) => {
-    const config = filterConfig[filterKey as keyof typeof filterConfig];
-    if (!config) return null;
+  const handleResetFilters = useCallback(() => {
+    onClearFilter('all');
+    setActiveFilterModal(null);
+  }, [onClearFilter]);
 
-    return (
-      <div className="flex flex-col h-full">
-        {/* Header with proper accessibility */}
-        <SheetHeader className="text-center py-4 border-b border-gray-100 flex-shrink-0">
-          <SheetTitle className="text-lg font-semibold">{config.title}</SheetTitle>
-          <SheetDescription className="sr-only">
-            Configura los filtros de {config.title.toLowerCase()}
-          </SheetDescription>
-        </SheetHeader>
-        
-        {/* Filter content - scrollable area with event isolation */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
-          <div 
-            className="[&>div>div:not(:last-child)]:border-b [&>div>div:not(:last-child)]:border-gray-100 [&>div>div:not(:last-child)]:pb-4 [&>div>div:not(:first-child)]:pt-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {getFilterContent(filterKey)}
-          </div>
-        </div>
-        
-        {/* Bottom buttons - fixed at bottom */}
-        <div className="flex-shrink-0 p-4 space-y-3 border-t border-gray-100 bg-background">
-          <Button 
-            onClick={handleApplyFilters}
-            className="w-full h-12 text-base"
-          >
-            Aplicar filtros
-          </Button>
-          <Button 
-            onClick={handleResetFilters}
-            variant="ghost"
-            className="w-full h-12 text-base bg-transparent border-0"
-          >
-            Restablecer
-          </Button>
+  const FilterContent = ({ filterKey }: { filterKey: string }) => (
+    <div className="flex flex-col h-full">
+      {/* Title */}
+      <div className="text-center py-4 border-b border-gray-100 flex-shrink-0">
+        <h3 className="text-lg font-semibold">{getFilterTitle(filterKey)}</h3>
+      </div>
+      
+      {/* Filter content - scrollable area */}
+      <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+        <div className="[&>div>div:not(:last-child)]:border-b [&>div>div:not(:last-child)]:border-gray-100 [&>div>div:not(:last-child)]:pb-4 [&>div>div:not(:first-child)]:pt-4">
+          {getFilterContent(filterKey)}
         </div>
       </div>
-    );
-  }, [filterConfig, getFilterContent, handleApplyFilters, handleResetFilters]);
+      
+      {/* Bottom buttons - fixed at bottom */}
+      <div className="flex-shrink-0 p-4 space-y-3 border-t border-gray-100 bg-background">
+        <Button 
+          onClick={handleApplyFilters}
+          className="w-full h-12 text-base"
+        >
+          Aplicar filtros
+        </Button>
+        <Button 
+          onClick={handleResetFilters}
+          variant="ghost"
+          className="w-full h-12 text-base bg-transparent border-0"
+        >
+          Restablecer
+        </Button>
+      </div>
+    </div>
+  );
 
-  const filterTags = useMemo(() => [
+  const filterTags = [
     { key: 'price', label: 'Precio' },
     ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
     { key: 'diet', label: 'Dieta' },
-  ], [activeTab]);
+  ];
 
   return (
     <>
@@ -348,7 +297,6 @@ export default function FilterTags({
             Económico
           </Button>
 
-          {/* Filter Dropdown Triggers */}
           {filterTags.map((filter) => (
             <FilterTrigger key={filter.key} filterKey={filter.key}>
               {filter.label}
@@ -407,18 +355,58 @@ export default function FilterTags({
           }
         `}</style>
       </div>
+    </>
+  );
 
-      {/* Separate Sheet components for each filter */}
-      {filterTags.map((filter) => (
-        <Sheet 
-          key={`${filter.key}-modal`} 
-          open={activeFilterModal === filter.key} 
-          onOpenChange={(open) => {
-            if (!open) {
-              handleCloseModal();
+  const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
+    const FilterIcon = getFilterIcon(filterKey);
+    const isActive = isFilterActive(filterKey);
+    const count = getFilterCount(filterKey);
+
+    return (
+      <>
+        <Button
+          variant="outline"
+          size="sm"
+          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
+            isActive 
+              ? 'bg-black text-white hover:bg-black hover:text-white' 
+              : 'text-black hover:text-black'
+          }`}
+          style={isActive ? { 
+            backgroundColor: '#000000',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: '600'
+          } : { 
+            backgroundColor: '#F3F3F3',
+            color: 'black',
+            fontSize: '14px',
+            fontWeight: '600'
+          }}
+          onClick={() => handleOpenModal(filterKey)}
+          onMouseEnter={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = 'rgb(238, 238, 238)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = '#F3F3F3';
             }
           }}
         >
+          {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />}
+          {children}
+          {count > 0 && ` (${count})`}
+          <ChevronDown className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
+        </Button>
+
+        <Sheet open={activeFilterModal === filterKey} onOpenChange={(open) => {
+          if (!open) {
+            handleCloseModal();
+          }
+        }}>
           <SheetContent 
             side="bottom" 
             className={`p-0 ${
@@ -427,12 +415,12 @@ export default function FilterTags({
                 : 'rounded-t-[20px] rounded-b-none h-[80vh] max-h-[80vh]'
             }`}
           >
-            <FilterContent filterKey={filter.key} />
+            <FilterContent filterKey={filterKey} />
           </SheetContent>
         </Sheet>
-      ))}
-    </>
-  );
+      </>
+    );
+  };
 }
 
 // Export the ResetFiltersButton as a separate component
