@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapPin, Phone, Globe, ChevronLeft, Star, Utensils } from 'lucide-react';
@@ -6,9 +7,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import DishCard from '@/components/DishCard';
 import DishSearchBar from '@/components/DishSearchBar';
-import OrderSimulatorModal from '@/components/OrderSimulatorModal'; // Importa el modal
+import OrderSimulatorModal from '@/components/OrderSimulatorModal';
 import { Separator } from "@/components/ui/separator"
 import { useNavigate } from 'react-router-dom';
+import type { Dish } from '@/hooks/useRestaurantMenu';
 
 interface Restaurant {
   id: string;
@@ -22,15 +24,6 @@ interface Restaurant {
   website: string;
   latitude: number;
   longitude: number;
-}
-
-interface Dish {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  category: string;
 }
 
 export default function RestaurantMenu() {
@@ -65,28 +58,94 @@ export default function RestaurantMenu() {
 
         const mockDishes: Dish[] = [
           {
-            id: '1',
+            id: 1,
             name: 'Margherita Pizza',
             description: 'Classic pizza with tomato, mozzarella, and basil',
-            price: 12.99,
-            image: '/images/margherita-pizza.jpg',
-            category: 'Pizza',
+            base_price: 12.99,
+            image_url: '/images/margherita-pizza.jpg',
+            image_alt: 'Margherita Pizza',
+            is_featured: true,
+            is_vegetarian: true,
+            is_vegan: false,
+            is_gluten_free: false,
+            is_lactose_free: false,
+            is_healthy: false,
+            spice_level: 0,
+            preparation_time_minutes: 15,
+            favorites_count: 25,
+            category_name: 'Pizza',
+            allergens: ['gluten', 'dairy'],
+            custom_tags: ['popular'],
+            variants: [
+              {
+                id: 1,
+                name: 'Personal',
+                price: 12.99,
+                is_default: true
+              },
+              {
+                id: 2,
+                name: 'Familiar',
+                price: 18.99,
+                is_default: false
+              }
+            ]
           },
           {
-            id: '2',
+            id: 2,
             name: 'Spaghetti Carbonara',
             description: 'Spaghetti with eggs, pancetta, Parmesan, and black pepper',
-            price: 14.99,
-            image: '/images/spaghetti-carbonara.jpg',
-            category: 'Pasta',
+            base_price: 14.99,
+            image_url: '/images/spaghetti-carbonara.jpg',
+            image_alt: 'Spaghetti Carbonara',
+            is_featured: false,
+            is_vegetarian: false,
+            is_vegan: false,
+            is_gluten_free: false,
+            is_lactose_free: false,
+            is_healthy: false,
+            spice_level: 0,
+            preparation_time_minutes: 20,
+            favorites_count: 18,
+            category_name: 'Pasta',
+            allergens: ['gluten', 'eggs', 'dairy'],
+            custom_tags: ['classic'],
+            variants: [
+              {
+                id: 3,
+                name: 'Regular',
+                price: 14.99,
+                is_default: true
+              }
+            ]
           },
           {
-            id: '3',
+            id: 3,
             name: 'Tiramisu',
             description: 'Coffee-flavored Italian dessert',
-            price: 7.99,
-            image: '/images/tiramisu.jpg',
-            category: 'Dessert',
+            base_price: 7.99,
+            image_url: '/images/tiramisu.jpg',
+            image_alt: 'Tiramisu',
+            is_featured: false,
+            is_vegetarian: true,
+            is_vegan: false,
+            is_gluten_free: false,
+            is_lactose_free: false,
+            is_healthy: false,
+            spice_level: 0,
+            preparation_time_minutes: 5,
+            favorites_count: 32,
+            category_name: 'Dessert',
+            allergens: ['eggs', 'dairy', 'gluten'],
+            custom_tags: ['dessert', 'coffee'],
+            variants: [
+              {
+                id: 4,
+                name: 'Individual',
+                price: 7.99,
+                is_default: true
+              }
+            ]
           },
         ];
         setDishes(mockDishes);
@@ -102,7 +161,7 @@ export default function RestaurantMenu() {
 
   const filteredDishes = dishes.filter(dish =>
     dish.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    dish.description.toLowerCase().includes(searchQuery.toLowerCase())
+    dish.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (loading) {
@@ -187,7 +246,13 @@ export default function RestaurantMenu() {
           <ScrollArea className="h-[400px]">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredDishes.map(dish => (
-                <DishCard key={dish.id} dish={dish} />
+                <DishCard 
+                  key={dish.id} 
+                  dish={dish} 
+                  restaurantId={parseInt(restaurantId || '1')}
+                  expandedDishId={null}
+                  onExpandedChange={() => {}}
+                />
               ))}
             </div>
           </ScrollArea>
