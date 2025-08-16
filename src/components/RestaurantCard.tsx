@@ -47,6 +47,14 @@ export default function RestaurantCard({
   layout = 'grid',
   onFavoriteChange
 }: RestaurantCardProps) {
+  console.log('RestaurantCard props:', { 
+    id, 
+    name, 
+    googleRating, 
+    googleRatingCount, 
+    distance 
+  });
+
   const handleClick = () => {
     if (onClick) {
       onClick();
