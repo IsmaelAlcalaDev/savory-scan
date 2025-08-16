@@ -262,8 +262,7 @@ export default function FoodieSpotLayout({
     selectedFoodTypes,
     selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
     selectedCustomTags: selectedCustomTags.length > 0 ? selectedCustomTags : undefined,
-    spiceLevels: [],
-    prepTimeRanges: []
+    spiceLevels: []
   });
 
   console.log('FoodieSpotLayout: Hook results:', {
