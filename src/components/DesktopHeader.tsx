@@ -5,34 +5,55 @@ import { Button } from '@/components/ui/button';
 import InlineSearchBar from './InlineSearchBar';
 
 interface DesktopHeaderProps {
+  appName: string;
+  appLogoUrl: string;
   currentLocationName: string;
   isLoadingLocation: boolean;
+  searchQuery: string;
+  searchPlaceholder: string;
+  isSearchFocused: boolean;
+  onLogoClick: () => void;
   onLocationClick: () => void;
   onMenuClick: () => void;
-  searchQuery: string;
   onSearchChange: (query: string) => void;
+  onSearchFocus: () => void;
+  onSearchBlur: () => void;
 }
 
 export default function DesktopHeader({
+  appName,
+  appLogoUrl,
   currentLocationName,
   isLoadingLocation,
+  searchQuery,
+  searchPlaceholder,
+  onLogoClick,
   onLocationClick,
   onMenuClick,
-  searchQuery,
-  onSearchChange
+  onSearchChange,
+  onSearchFocus,
+  onSearchBlur
 }: DesktopHeaderProps) {
   return (
     <div className="hidden lg:flex items-center justify-between gap-8">
       <div className="flex items-center gap-6">
-        <h1 className="text-2xl font-bold text-foreground">
-          FoodieSpot
-        </h1>
+        <button onClick={onLogoClick} className="flex items-center gap-2">
+          <img src={appLogoUrl} alt={`${appName} logo`} className="h-10 w-10 rounded-full" />
+          <h1 className="text-2xl font-bold text-foreground">
+            {appName}
+          </h1>
+        </button>
         
         <div className="w-80">
           <InlineSearchBar
-            value={searchQuery}
-            onChange={onSearchChange}
-            placeholder="Buscar restaurantes, cocinas..."
+            isOpen={false}
+            onClose={() => {}}
+            searchQuery={searchQuery}
+            onSearchChange={onSearchChange}
+            placeholder={searchPlaceholder}
+            restaurantName=""
+            onGoBack={() => {}}
+            onSearchToggle={() => {}}
           />
         </div>
       </div>

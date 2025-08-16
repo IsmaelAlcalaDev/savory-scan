@@ -5,33 +5,33 @@ import { Button } from '@/components/ui/button';
 import InlineSearchBar from './InlineSearchBar';
 
 interface MobileHeaderProps {
+  appName: string;
+  appLogoUrl: string;
   currentLocationName: string;
   isLoadingLocation: boolean;
+  onLogoClick: () => void;
   onLocationClick: () => void;
   onMenuClick: () => void;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
 }
 
 export default function MobileHeader({
+  appName,
+  appLogoUrl,
   currentLocationName,
   isLoadingLocation,
+  onLogoClick,
   onLocationClick,
-  onMenuClick,
-  searchQuery,
-  onSearchChange
+  onMenuClick
 }: MobileHeaderProps) {
   return (
     <div className="md:hidden">
-      {/* Top row: Search bar centered, menu on right */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className="flex-1">
-          <InlineSearchBar
-            value={searchQuery}
-            onChange={onSearchChange}
-            placeholder="Buscar restaurantes, cocinas..."
-          />
-        </div>
+      {/* Top row: Logo and menu */}
+      <div className="flex items-center justify-between mb-3">
+        <button onClick={onLogoClick} className="flex items-center gap-2">
+          <img src={appLogoUrl} alt={`${appName} logo`} className="h-8 w-8 rounded-full" />
+          <h1 className="text-xl font-bold text-foreground">{appName}</h1>
+        </button>
+        
         <button className="p-0 border-0 bg-transparent text-gray-800 transition-colors" onClick={onMenuClick}>
           <Menu className="h-7 w-7" strokeWidth={2.5} />
         </button>
@@ -45,13 +45,6 @@ export default function MobileHeader({
             {isLoadingLocation ? 'Detectando...' : currentLocationName}
           </span>
         </Button>
-      </div>
-
-      {/* Menu */}
-      <div className="flex items-center flex-shrink-0">
-        <button className="p-0 border-0 bg-transparent text-gray-800 transition-colors" onClick={onMenuClick}>
-          <Menu className="h-7 w-7" strokeWidth={2.5} />
-        </button>
       </div>
     </div>
   );

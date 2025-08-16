@@ -5,29 +5,52 @@ import { Button } from '@/components/ui/button';
 import InlineSearchBar from './InlineSearchBar';
 
 interface TabletHeaderProps {
+  appName: string;
+  appLogoUrl: string;
   currentLocationName: string;
   isLoadingLocation: boolean;
+  searchQuery: string;
+  searchPlaceholder: string;
+  isSearchFocused: boolean;
+  onLogoClick: () => void;
   onLocationClick: () => void;
   onMenuClick: () => void;
-  searchQuery: string;
   onSearchChange: (query: string) => void;
+  onSearchFocus: () => void;
+  onSearchBlur: () => void;
 }
 
 export default function TabletHeader({
+  appName,
+  appLogoUrl,
   currentLocationName,
   isLoadingLocation,
+  searchQuery,
+  searchPlaceholder,
+  onLogoClick,
   onLocationClick,
   onMenuClick,
-  searchQuery,
-  onSearchChange
+  onSearchChange,
+  onSearchFocus,
+  onSearchBlur
 }: TabletHeaderProps) {
   return (
     <div className="hidden md:flex lg:hidden items-center gap-4">
+      <button onClick={onLogoClick} className="flex items-center gap-2 flex-shrink-0">
+        <img src={appLogoUrl} alt={`${appName} logo`} className="h-8 w-8 rounded-full" />
+        <h1 className="text-xl font-bold text-foreground whitespace-nowrap">{appName}</h1>
+      </button>
+      
       <div className="flex-1 max-w-md">
         <InlineSearchBar
-          value={searchQuery}
-          onChange={onSearchChange}
-          placeholder="Buscar restaurantes, cocinas..."
+          isOpen={false}
+          onClose={() => {}}
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          placeholder={searchPlaceholder}
+          restaurantName=""
+          onGoBack={() => {}}
+          onSearchToggle={() => {}}
         />
       </div>
       
