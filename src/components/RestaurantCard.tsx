@@ -47,8 +47,6 @@ export default function RestaurantCard({
   layout = 'grid',
   onFavoriteChange
 }: RestaurantCardProps) {
-  // Remove the debug console.log since we identified the issue
-  
   const handleClick = () => {
     if (onClick) {
       onClick();
@@ -110,7 +108,8 @@ export default function RestaurantCard({
         </div>
 
         <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
+          {/* Logo and name row */}
+          <div className="flex items-start gap-2">
             {logoUrl && (
               <div className="flex-shrink-0">
                 <img 
@@ -125,33 +124,39 @@ export default function RestaurantCard({
               </div>
             )}
             
-            <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth flex-1">
-              {name}
-            </h3>
-            
-            {googleRating && typeof googleRating === 'number' && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
-                {googleRatingCount && typeof googleRatingCount === 'number' && (
-                  <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
+            {/* Name and rating container - aligned with content below */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth">
+                  {name}
+                </h3>
+                
+                {googleRating && typeof googleRating === 'number' && (
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
+                    {googleRatingCount && typeof googleRatingCount === 'number' && (
+                      <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-            <span className="line-clamp-1">
-              {cuisineTypes.slice(0, 2).join(', ')}
-            </span>
-            <span>•</span>
-            <span className="text-foreground font-medium">{priceRange}</span>
-            {distance && typeof distance === 'number' && (
-              <>
+              
+              {/* Second line - aligned with name, not logo */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap mt-1">
+                <span className="line-clamp-1">
+                  {cuisineTypes.slice(0, 2).join(', ')}
+                </span>
                 <span>•</span>
-                <span className="flex-shrink-0 text-primary font-medium">{formatDistance(distance)}</span>
-              </>
-            )}
+                <span className="text-foreground font-medium">{priceRange}</span>
+                {distance && typeof distance === 'number' && (
+                  <>
+                    <span>•</span>
+                    <span className="flex-shrink-0 text-primary font-medium">{formatDistance(distance)}</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -216,9 +221,10 @@ export default function RestaurantCard({
             </div>
           )}
           
+          {/* Name and rating container - aligned with content below */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth flex-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth">
                 {name}
               </h3>
               {googleRating && typeof googleRating === 'number' && (
@@ -231,21 +237,22 @@ export default function RestaurantCard({
                 </div>
               )}
             </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-          <span className="line-clamp-1">
-            {cuisineTypes.slice(0, 2).join(', ')}
-          </span>
-          <span>•</span>
-          <span className="text-foreground font-medium">{priceRange}</span>
-          {distance && typeof distance === 'number' && (
-            <>
+            
+            {/* Second line - aligned with name, not logo */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+              <span className="line-clamp-1">
+                {cuisineTypes.slice(0, 2).join(', ')}
+              </span>
               <span>•</span>
-              <span className="flex-shrink-0 text-primary font-medium">{formatDistance(distance)}</span>
-            </>
-          )}
+              <span className="text-foreground font-medium">{priceRange}</span>
+              {distance && typeof distance === 'number' && (
+                <>
+                  <span>•</span>
+                  <span className="flex-shrink-0 text-primary font-medium">{formatDistance(distance)}</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
