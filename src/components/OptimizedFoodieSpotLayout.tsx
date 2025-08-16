@@ -1,14 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { useOptimizedRestaurants } from '@/hooks/useOptimizedRestaurants';
-import { useOptimizedDishes } from '@/hooks/useOptimizedDishes';
-import { useCuisineTypes } from '@/hooks/useCuisineTypes';
-import { useDietTypes } from '@/hooks/useDietTypes';
-import { usePriceRanges } from '@/hooks/usePriceRanges';
-import { useEstablishmentTypes } from '@/hooks/useEstablishmentTypes';
-import DishesGrid from './DishesGrid';
-import RestaurantCard from './RestaurantCard';
-import { Skeleton } from '@/components/ui/skeleton';
+import VirtualizedRestaurantGrid from './VirtualizedRestaurantGrid';
+import VirtualizedDishesGrid from './VirtualizedDishesGrid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface OptimizedFoodieSpotLayoutProps {
@@ -46,27 +39,10 @@ export default function OptimizedFoodieSpotLayout({
     }
   }, []);
 
-  // Use optimized hooks
-  const { restaurants, loading: restaurantsLoading, error: restaurantsError } = useOptimizedRestaurants({
-    searchQuery,
-    userLat: userLocation?.lat,
-    userLng: userLocation?.lng,
-    cuisineTypeIds: selectedCuisineTypes,
-    priceRanges: selectedPriceRanges,
-    isHighRated,
-    selectedEstablishmentTypes,
-    selectedDietTypes,
-    isOpenNow,
-    isBudgetFriendly
-  });
-
-  const { dishes, loading: dishesLoading, error: dishesError } = useOptimizedDishes({
-    searchQuery,
-    userLat: userLocation?.lat,
-    userLng: userLocation?.lng,
-    selectedDietTypes,
-    selectedPriceRanges
-  });
+  const handleLoginRequired = () => {
+    // Handle login requirement
+    console.log('Login required');
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,72 +92,41 @@ export default function OptimizedFoodieSpotLayout({
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs with Virtualized Components */}
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dishes' | 'restaurants')}>
           <TabsList className="grid w-full grid-cols-2 mb-8">
             <TabsTrigger value="dishes">
-              Platos {!dishesLoading && `(${dishes.length})`}
+              Platos
             </TabsTrigger>
             <TabsTrigger value="restaurants">
-              Restaurantes {!restaurantsLoading && `(${restaurants.length})`}
+              Restaurantes
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dishes">
-            <DishesGrid 
-              dishes={dishes} 
-              loading={dishesLoading} 
-              error={dishesError} 
+            <VirtualizedDishesGrid
+              searchQuery={searchQuery}
+              userLat={userLocation?.lat}
+              userLng={userLocation?.lng}
+              selectedDietTypes={selectedDietTypes}
+              selectedPriceRanges={selectedPriceRanges}
             />
           </TabsContent>
 
           <TabsContent value="restaurants">
-            {restaurantsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {Array.from({ length: 9 }).map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="h-48 w-full rounded-lg" />
-                    <div className="p-4 space-y-3">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-2/3" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : restaurantsError ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Error al cargar restaurantes: {restaurantsError}</p>
-              </div>
-            ) : restaurants.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">No se encontraron restaurantes</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Intenta cambiar los filtros de búsqueda
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {restaurants.map((restaurant) => (
-                  <RestaurantCard
-                    key={restaurant.id}
-                    id={restaurant.id}
-                    name={restaurant.name}
-                    slug={restaurant.slug}
-                    description={restaurant.description}
-                    priceRange={restaurant.price_range}
-                    googleRating={restaurant.google_rating}
-                    distance={restaurant.distance_km}
-                    cuisineTypes={restaurant.cuisine_types}
-                    establishmentType={restaurant.establishment_type_name}
-                    services={restaurant.services}
-                    favoritesCount={restaurant.favorites_count}
-                    coverImageUrl={restaurant.cover_image_url}
-                    logoUrl={restaurant.logo_url}
-                  />
-                ))}
-              </div>
-            )}
+            <VirtualizedRestaurantGrid
+              searchQuery={searchQuery}
+              userLat={userLocation?.lat}
+              userLng={userLocation?.lng}
+              cuisineTypeIds={selectedCuisineTypes}
+              priceRanges={selectedPriceRanges}
+              isHighRated={isHighRated}
+              selectedEstablishmentTypes={selectedEstablishmentTypes}
+              selectedDietTypes={selectedDietTypes}
+              isOpenNow={isOpenNow}
+              isBudgetFriendly={isBudgetFriendly}
+              onLoginRequired={handleLoginRequired}
+            />
           </TabsContent>
         </Tabs>
       </div>
