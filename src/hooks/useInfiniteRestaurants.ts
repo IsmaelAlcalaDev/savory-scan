@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -40,7 +39,7 @@ export const useInfiniteRestaurants = ({
   searchQuery = '',
   userLat,
   userLng,
-  maxDistance = 50,
+  maxDistance = 1000, // Increased default to 1000km to show all Spanish restaurants
   cuisineTypeIds,
   priceRanges,
   isHighRated = false,
@@ -118,7 +117,7 @@ export const useInfiniteRestaurants = ({
 
       console.log('🎯 Base query created');
 
-      // Apply filters
+      // Apply filters (NO distance filtering here - we filter by distance only for sorting)
       if (searchQuery) {
         query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         console.log('🔍 Applied search filter:', searchQuery);
@@ -152,12 +151,8 @@ export const useInfiniteRestaurants = ({
         console.log('🍽️ Applied cuisine type filter:', cuisineTypeIds);
       }
 
-      // Order by location if available, otherwise by rating/popularity
-      if (userLat && userLng) {
-        // When we have location, we'll calculate distance and sort by it
-        console.log('📍 Will order by distance from user location');
-      } else {
-        // When no location, order by rating and popularity
+      // Order by popularity when no location, we'll sort by distance after fetching
+      if (!userLat || !userLng) {
         query = query.order('google_rating', { ascending: false, nullsFirst: false })
                     .order('favorites_count', { ascending: false });
         console.log('⭐ Ordering by rating and popularity (no location)');
@@ -214,10 +209,10 @@ export const useInfiniteRestaurants = ({
 
       console.log('🔧 Formatted restaurants:', formattedRestaurants.length);
 
-      // If we have user location, sort by distance after formatting
-      // Keep ALL restaurants, but prioritize nearby ones
+      // Sort restaurants based on location availability
       let sortedRestaurants = formattedRestaurants;
       if (userLat && userLng) {
+        // When we have user location, sort by distance (closest first)
         sortedRestaurants = formattedRestaurants.sort((a, b) => {
           // Restaurants with distance first, sorted by distance
           if (a.distance_km !== undefined && b.distance_km !== undefined) {
@@ -239,6 +234,9 @@ export const useInfiniteRestaurants = ({
         if (withDistance.length > 0) {
           console.log(`📏 Distance range: ${withDistance[0].distance_km}km to ${withDistance[withDistance.length-1]?.distance_km}km`);
         }
+      } else {
+        // When no location, keep original order (by rating/popularity from query)
+        console.log('⭐ Keeping popularity order (no location available)');
       }
 
       console.log('✅ Final restaurants to display:', sortedRestaurants.length);
@@ -278,15 +276,16 @@ export const useInfiniteRestaurants = ({
     }
   }, [fetchKey, searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly, itemsPerPage]);
 
-  // Always fetch data
+  // Always fetch data - no waiting for location
   useEffect(() => {
-    // Skip if parameters haven't changed
+    // Skip if parameters haven't changed and restaurants already loaded
     if (lastFetchRef.current === fetchKey && restaurants.length > 0) {
       console.log('⏭️ Skipping fetch - parameters unchanged and restaurants already loaded');
       return;
     }
 
-    console.log('🚀 useInfiniteRestaurants: Starting fetch, location:', { userLat, userLng });
+    console.log('🚀 useInfiniteRestaurants: Starting fetch');
+    console.log('📍 Location available:', { userLat, userLng });
 
     // Clear existing timeout
     if (fetchTimeoutRef.current) {
@@ -306,12 +305,12 @@ export const useInfiniteRestaurants = ({
     abortControllerRef.current = new AbortController();
     const currentController = abortControllerRef.current;
 
-    // Debounce the fetch
+    // Reduced debounce time for faster initial load
     fetchTimeoutRef.current = setTimeout(() => {
       if (!currentController.signal.aborted) {
         fetchRestaurants(0, currentController.signal, false);
       }
-    }, 300);
+    }, 100); // Reduced from 300ms to 100ms
 
     return () => {
       if (fetchTimeoutRef.current) {

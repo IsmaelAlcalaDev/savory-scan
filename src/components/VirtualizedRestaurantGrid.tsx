@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useInfiniteRestaurants } from '@/hooks/useInfiniteRestaurants';
@@ -27,7 +26,7 @@ export default function VirtualizedRestaurantGrid({
   searchQuery = '',
   userLat,
   userLng,
-  maxDistance = 50,
+  maxDistance = 1000,
   cuisineTypeIds,
   priceRanges,
   isHighRated = false,
@@ -162,7 +161,7 @@ export default function VirtualizedRestaurantGrid({
 
   return (
     <div className="space-y-6">
-      {/* Results counter with location info */}
+      {/* Results counter with improved location info */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <MapPin className="h-4 w-4" />
         <span>
