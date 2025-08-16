@@ -70,6 +70,12 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+          <p className="text-xs text-blue-700">
+            💡 Los porcentajes indican la proporción de platos del menú que cumplen cada criterio
+          </p>
+        </div>
+
         {dietCategories.map((category, categoryIndex) => (
           <div key={category.category} className="space-y-4">
             <div className="flex items-center gap-2">
@@ -98,11 +104,7 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
                     className="text-sm font-medium leading-relaxed cursor-pointer flex items-start gap-2 flex-1"
                   >
                     {diet.icon && <span className="text-base mt-0.5">{diet.icon}</span>}
-                    <div className="flex-1">
-                      <span className="block">
-                        {diet.name} ({diet.min_percentage}%-{diet.max_percentage}%)
-                      </span>
-                    </div>
+                    <span>{diet.min_percentage}%-{diet.max_percentage}%</span>
                   </label>
                 </div>
               ))}
@@ -110,12 +112,6 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
             {categoryIndex < dietCategories.length - 1 && <Separator className="mt-4" />}
           </div>
         ))}
-        
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-4">
-          <p className="text-xs text-blue-700">
-            💡 Los porcentajes indican la proporción de platos del menú que cumplen cada criterio
-          </p>
-        </div>
       </div>
     </TooltipProvider>
   );
