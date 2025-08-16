@@ -104,7 +104,7 @@ export const useSavedTickets = (restaurantId: number) => {
         const price = item.selectedVariant?.price || item.dish.base_price;
         
         return {
-          ticket_simulation_id: ticketData.id,
+          ticket_id: ticketData.id,
           dish_id: item.dish.id,
           dish_name: item.dish.name,
           variant_id: item.selectedVariant?.id,
@@ -152,7 +152,7 @@ export const useSavedTickets = (restaurantId: number) => {
       const { data: itemsData, error: itemsError } = await supabase
         .from('ticket_items')
         .select('*')
-        .eq('ticket_simulation_id', ticketId);
+        .eq('ticket_id', ticketId);
 
       if (itemsError) throw itemsError;
 
