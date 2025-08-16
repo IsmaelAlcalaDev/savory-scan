@@ -46,7 +46,6 @@ export default function FoodieSpotLayout({
   const [isHighRated, setIsHighRated] = useState(false);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
-  const [selectedTimeRanges, setSelectedTimeRanges] = useState<number[]>([]);
   const [isOpenNow, setIsOpenNow] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
@@ -172,7 +171,7 @@ export default function FoodieSpotLayout({
     }
   }, []);
 
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'timeRange' | 'budgetFriendly' | 'vegetarianVegan' | 'all', id?: number) => {
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'budgetFriendly' | 'vegetarianVegan' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':
         setSelectedCuisines([]);
@@ -192,9 +191,6 @@ export default function FoodieSpotLayout({
       case 'diet':
         setSelectedDietTypes([]);
         break;
-      case 'timeRange':
-        setSelectedTimeRanges([]);
-        break;
       case 'openNow':
         setIsOpenNow(!isOpenNow);
         break;
@@ -211,7 +207,6 @@ export default function FoodieSpotLayout({
         setIsHighRated(false);
         setSelectedEstablishmentTypes([]);
         setSelectedDietTypes([]);
-        setSelectedTimeRanges([]);
         setIsOpenNow(false);
         setIsBudgetFriendly(false);
         setIsVegetarianVegan(false);
@@ -359,7 +354,6 @@ export default function FoodieSpotLayout({
     isHighRated || 
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
-    selectedTimeRanges.length > 0 ||
     isOpenNow ||
     isBudgetFriendly ||
     isVegetarianVegan;
@@ -375,7 +369,6 @@ export default function FoodieSpotLayout({
             isHighRated={isHighRated} 
             selectedEstablishmentTypes={selectedEstablishmentTypes} 
             selectedDietTypes={selectedDietTypes} 
-            selectedTimeRanges={selectedTimeRanges}
             isOpenNow={isOpenNow}
             isBudgetFriendly={isBudgetFriendly}
             isVegetarianVegan={isVegetarianVegan}
@@ -384,7 +377,6 @@ export default function FoodieSpotLayout({
             onHighRatedChange={setIsHighRated}
             onEstablishmentTypeChange={setSelectedEstablishmentTypes}
             onDietTypeChange={setSelectedDietTypes}
-            onTimeRangeChange={setSelectedTimeRanges}
             onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
             onBudgetFriendlyChange={setIsBudgetFriendly}
             onVegetarianVeganChange={setIsVegetarianVegan}
@@ -419,7 +411,6 @@ export default function FoodieSpotLayout({
           isHighRated={isHighRated} 
           selectedEstablishmentTypes={selectedEstablishmentTypes} 
           selectedDietTypes={selectedDietTypes} 
-          selectedTimeRanges={selectedTimeRanges}
           isOpenNow={isOpenNow}
           isBudgetFriendly={isBudgetFriendly}
           isVegetarianVegan={isVegetarianVegan}
@@ -428,7 +419,6 @@ export default function FoodieSpotLayout({
           onHighRatedChange={setIsHighRated}
           onEstablishmentTypeChange={setSelectedEstablishmentTypes}
           onDietTypeChange={setSelectedDietTypes}
-          onTimeRangeChange={setSelectedTimeRanges}
           onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
           onBudgetFriendlyChange={setIsBudgetFriendly}
           onVegetarianVeganChange={setIsVegetarianVegan}
