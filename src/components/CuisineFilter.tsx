@@ -52,7 +52,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
   if (loading) {
     return (
       <div className="relative w-full">
-        <div className="flex gap-4 pb-1 px-1 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 pb-1 px-1 overflow-x-auto scrollbar-hide">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
               <Skeleton className="h-16 w-16" />
@@ -95,7 +95,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
       
       <div 
         ref={scrollRef}
-        className="flex gap-4 pb-1 px-2 overflow-x-auto scrollbar-hide"
+        className="flex gap-2 pb-1 px-2 overflow-x-auto scrollbar-hide"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none'
@@ -105,7 +105,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
         {cuisineTypes.map((cuisine) => (
           <div
             key={cuisine.id}
-            className="flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0 min-w-[70px]"
+            className="flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0 min-w-[60px]"
             onClick={() => handleCuisineToggle(cuisine.id)}
           >
             <div className="flex items-center justify-center w-16 h-16 text-4xl transition-all duration-200">
@@ -124,7 +124,7 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
               )}
             </div>
             <span 
-              className={`font-medium text-center whitespace-nowrap transition-colors text-black max-w-[70px] truncate ${
+              className={`font-medium text-center whitespace-nowrap transition-colors text-black max-w-[60px] truncate ${
                 selectedCuisines.includes(cuisine.id) 
                   ? 'text-primary' 
                   : 'text-black'
