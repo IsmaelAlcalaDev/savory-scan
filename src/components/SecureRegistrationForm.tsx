@@ -87,6 +87,10 @@ export default function SecureRegistrationForm({
       newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
 
+    if (!formData.confirmPassword.trim()) {
+      newErrors.confirmPassword = 'Confirmación de contraseña es obligatoria';
+    }
+
     if (formData.phone && !/^[\+]?[1-9][\d]{0,15}$/.test(formData.phone.replace(/[\s\-\(\)]/g, ''))) {
       newErrors.phone = 'Formato de teléfono inválido';
     }
@@ -347,14 +351,14 @@ export default function SecureRegistrationForm({
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Te enviaremos un email personalizado de confirmación. Debes hacer clic en el enlace para activar tu cuenta.
+                Te enviaremos un email de confirmación. Debes hacer clic en el enlace para activar tu cuenta.
               </AlertDescription>
             </Alert>
 
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isLoading || !passwordValidation.isValid}
+              disabled={isLoading || !passwordValidation.isValid || formData.password !== formData.confirmPassword}
             >
               {isLoading ? 'Creando cuenta...' : 'Crear Cuenta'}
             </Button>

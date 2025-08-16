@@ -54,6 +54,35 @@ export const useSecureAuthFlow = () => {
     return emailRegex.test(email);
   };
 
+  // Check if email is already registered (including OAuth providers)
+  const checkEmailExists = async (email: string) => {
+    try {
+      // Attempt to sign in with a dummy password to see if the email exists
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: 'dummy_password_check'
+      });
+      
+      // If we get specific error messages, we can determine if email exists
+      if (error?.message.includes('Invalid login credentials')) {
+        // Email exists but password is wrong
+        return true;
+      } else if (error?.message.includes('Email not confirmed')) {
+        // Email exists but not confirmed
+        return true;
+      } else if (error?.message.includes('too many requests')) {
+        // Rate limited, assume email might exist
+        return true;
+      }
+      
+      // For other errors, we can't be sure, so return false
+      return false;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    }
+  };
+
   // Check for account lockout
   useEffect(() => {
     const stored = localStorage.getItem('loginAttempts');
@@ -128,8 +157,16 @@ export const useSecureAuthFlow = () => {
         throw new Error('Ciudad es obligatoria');
       }
 
+      // Check if email already exists
+      const emailExists = await checkEmailExists(data.email);
+      if (emailExists) {
+        throw new Error('Este email ya está registrado. Si te registraste con Google, usa el botón de Google para iniciar sesión.');
+      }
+
       // Register with email confirmation
       const redirectUrl = `${window.location.origin}/`;
+      
+      console.log('Registering user with redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.signUp({
         email: data.email,
@@ -147,11 +184,13 @@ export const useSecureAuthFlow = () => {
       });
 
       if (error) {
-        if (error.message.includes('already registered')) {
-          throw new Error('Este email ya está registrado. Intenta iniciar sesión.');
+        if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+          throw new Error('Este email ya está registrado. Intenta iniciar sesión o usa Google si te registraste con Google.');
         }
         throw error;
       }
+
+      console.log('Registration successful, confirmation email should be sent');
 
       return { 
         success: true, 
@@ -173,6 +212,8 @@ export const useSecureAuthFlow = () => {
 
   const resendConfirmation = async (email: string) => {
     try {
+      console.log('Resending confirmation email to:', email);
+      
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
@@ -182,12 +223,15 @@ export const useSecureAuthFlow = () => {
       });
 
       if (error) {
+        console.error('Resend error:', error);
         throw error;
       }
 
+      console.log('Confirmation email resent successfully');
+
       toast({
         title: "Correo reenviado",
-        description: "Hemos reenviado el correo de confirmación",
+        description: "Hemos reenviado el correo de confirmación. Revisa tu bandeja de entrada y spam.",
       });
 
       return { success: true };
@@ -229,7 +273,7 @@ export const useSecureAuthFlow = () => {
           throw new Error('Email o contraseña incorrectos');
         }
         if (error.message.includes('Email not confirmed')) {
-          throw new Error('Por favor confirma tu email antes de iniciar sesión');
+          throw new Error('Por favor confirma tu email antes de iniciar sesión. Revisa tu bandeja de entrada y spam.');
         }
         throw error;
       }
@@ -257,6 +301,8 @@ export const useSecureAuthFlow = () => {
   const googleLogin = async () => {
     setIsLoading(true);
     try {
+      console.log('Attempting Google login with redirect URL:', `${window.location.origin}/`);
+      
       const { error } = await signInWithGoogle();
       if (error) {
         throw error;
