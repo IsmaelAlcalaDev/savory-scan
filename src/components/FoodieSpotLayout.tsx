@@ -231,6 +231,7 @@ export default function FoodieSpotLayout({
     searchQuery: searchQueryRestaurants,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
+    maxDistance: 1000, // Increased to 1000km to cover all of Spain
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
     isHighRated: isHighRated,
@@ -248,7 +249,7 @@ export default function FoodieSpotLayout({
     searchQuery: searchQueryDishes,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
-    maxDistance: 50,
+    maxDistance: 1000, // Also increased for dishes
     selectedFoodTypes,
     selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
     spiceLevels: [],
@@ -418,7 +419,7 @@ export default function FoodieSpotLayout({
         <div className="flex items-center justify-between mb-3 mt-3">
           <div>
             <h2 className="text-sm font-medium mb-1 text-muted-foreground">
-              {restaurantsLoading ? 'Cargando...' : `${restaurants.length} resultados`}
+              {restaurantsLoading ? 'Cargando...' : userLocation ? `${restaurants.length} restaurantes cerca de ti` : `${restaurants.length} restaurantes en España`}
             </h2>
             {restaurantsError && <p className="text-sm text-destructive mt-1">Error: {restaurantsError}</p>}
           </div>

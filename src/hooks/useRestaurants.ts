@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -65,7 +64,7 @@ export const useRestaurants = ({
   searchQuery = '',
   userLat,
   userLng,
-  maxDistance = 50,
+  maxDistance = 1000, // Increased default to 1000km to cover all of Spain
   cuisineTypeIds,
   priceRanges,
   isHighRated = false,
@@ -304,16 +303,29 @@ export const useRestaurants = ({
           }
         }
 
+        // FIXED: Remove distance filtering, only sort by distance or popularity
         let sortedData = formattedData;
         if (userLat && userLng) {
-          sortedData = formattedData
-            .filter(restaurant => {
-              if (restaurant.distance_km === null) return false;
-              return restaurant.distance_km <= maxDistance;
-            })
-            .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
+          // Sort by distance when user location is available (closest first)
+          sortedData = formattedData.sort((a, b) => {
+            if (a.distance_km === null && b.distance_km === null) return 0;
+            if (a.distance_km === null) return 1;
+            if (b.distance_km === null) return -1;
+            return a.distance_km - b.distance_km;
+          });
           
-          console.log('Restaurants filtered by distance and sorted:', sortedData.length, 'within', maxDistance, 'km');
+          console.log('Restaurants sorted by distance:', sortedData.length, 'restaurants');
+        } else {
+          // Sort by popularity/rating when no location available
+          sortedData = formattedData.sort((a, b) => {
+            // First by favorites count, then by rating
+            if (b.favorites_count !== a.favorites_count) {
+              return b.favorites_count - a.favorites_count;
+            }
+            return (b.google_rating || 0) - (a.google_rating || 0);
+          });
+          
+          console.log('Restaurants sorted by popularity:', sortedData.length, 'restaurants');
         }
 
         console.log('Final formatted restaurants after all filters:', sortedData.length);
