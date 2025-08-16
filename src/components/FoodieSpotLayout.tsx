@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 
 import DishSearchBar from '@/components/DishSearchBar';
 import CuisineFilter from '@/components/CuisineFilter';
@@ -23,7 +23,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
-  const [selectedPriceRanges, setSelectedPriceRanges] = useState<number[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedSort, setSelectedSort] = useState<string>('nearest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -31,12 +31,10 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const { restaurants, loading, error } = useRestaurants({
-    query: debouncedSearchQuery,
-    cuisineIds: selectedCuisines,
-    serviceIds: selectedServices,
+    searchQuery: debouncedSearchQuery,
+    cuisineTypeIds: selectedCuisines,
     priceRanges: selectedPriceRanges,
-    establishmentTypes: selectedEstablishmentTypes,
-    sortBy: selectedSort,
+    selectedEstablishmentTypes: selectedEstablishmentTypes,
   });
 
   const filteredRestaurants = restaurants;
@@ -118,7 +116,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                     {(selectedServices.length > 0 || selectedCuisines.length > 0 || selectedPriceRanges.length > 0 || selectedEstablishmentTypes.length > 0 || searchQuery) && (
                       <button
                         onClick={resetFilters}
-                        className="text-sm text-black hover:text-black transition-none"
+                        className="text-sm text-black"
                       >
                         Restablecer
                       </button>
@@ -140,12 +138,10 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
                 <div className="flex items-center gap-2">
                   <UnifiedFiltersModal
-                    selectedServices={selectedServices}
                     selectedCuisines={selectedCuisines}
                     selectedPriceRanges={selectedPriceRanges}
                     selectedEstablishmentTypes={selectedEstablishmentTypes}
                     selectedSort={selectedSort}
-                    onServicesChange={setSelectedServices}
                     onCuisinesChange={setSelectedCuisines}
                     onPriceRangesChange={setSelectedPriceRanges}
                     onEstablishmentTypesChange={setSelectedEstablishmentTypes}
@@ -170,7 +166,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                   ))}
                 </div>
               ) : error ? (
-                <div className="text-red-500">Error: {error.message}</div>
+                <div className="text-red-500">Error: {error}</div>
               ) : filteredRestaurants.length === 0 ? (
                 <div className="text-muted-foreground">No restaurants found.</div>
               ) : (
@@ -182,16 +178,16 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                       name={restaurant.name}
                       slug={restaurant.slug}
                       description={restaurant.description}
-                      priceRange={restaurant.priceRange}
-                      googleRating={restaurant.googleRating}
-                      googleRatingCount={restaurant.googleRatingCount}
-                      distance={restaurant.distance}
-                      cuisineTypes={restaurant.cuisineTypes.map(cuisine => cuisine.name)}
-                      establishmentType={restaurant.establishmentType?.name}
-                      services={restaurant.services?.map(service => service.name)}
-                      favoritesCount={restaurant.favoritesCount}
-                      coverImageUrl={restaurant.coverImageUrl}
-                      logoUrl={restaurant.logoUrl}
+                      priceRange={restaurant.price_range}
+                      googleRating={restaurant.google_rating}
+                      googleRatingCount={restaurant.google_rating_count}
+                      distance={restaurant.distance_km}
+                      cuisineTypes={restaurant.cuisine_types}
+                      establishmentType={restaurant.establishment_type}
+                      services={restaurant.services}
+                      favoritesCount={restaurant.favorites_count}
+                      coverImageUrl={restaurant.cover_image_url}
+                      logoUrl={restaurant.logo_url}
                       layout={viewMode}
                     />
                   ))}
