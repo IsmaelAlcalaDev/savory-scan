@@ -123,14 +123,14 @@ export default function RestaurantCard({
               </div>
             )}
             
-            <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth">
+            <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth flex-1">
               {name}
             </h3>
             
             {googleRating && (
               <div className="flex items-center gap-1 flex-shrink-0">
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                <span className="font-medium text-foreground text-sm">{googleRating}</span>
+                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
                 {googleRatingCount && (
                   <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
                 )}
@@ -143,11 +143,11 @@ export default function RestaurantCard({
               {cuisineTypes.slice(0, 2).join(', ')}
             </span>
             <span>•</span>
-            <span className="text-foreground">{priceRange}</span>
+            <span className="text-foreground font-medium">{priceRange}</span>
             {distance && (
               <>
                 <span>•</span>
-                <span className="flex-shrink-0">{formatDistance(distance)}</span>
+                <span className="flex-shrink-0 text-primary font-medium">{formatDistance(distance)}</span>
               </>
             )}
           </div>
@@ -198,14 +198,14 @@ export default function RestaurantCard({
         </div>
       </div>
 
-      <div className="space-y-1">
-        <div className="flex items-center gap-2 flex-wrap">
+      <div className="space-y-2">
+        <div className="flex items-start gap-2">
           {logoUrl && (
             <div className="flex-shrink-0">
               <img 
                 src={logoUrl} 
                 alt={`${name} logo`}
-                className="w-12 h-12 rounded object-cover"
+                className="w-10 h-10 rounded object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
@@ -215,14 +215,14 @@ export default function RestaurantCard({
           )}
           
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-smooth">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth flex-1">
                 {name}
               </h3>
               {googleRating && (
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                  <span className="font-medium text-foreground text-sm">{googleRating}</span>
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
                   {googleRatingCount && (
                     <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
                   )}
@@ -237,11 +237,11 @@ export default function RestaurantCard({
             {cuisineTypes.slice(0, 2).join(', ')}
           </span>
           <span>•</span>
-          <span className="text-foreground">{priceRange}</span>
+          <span className="text-foreground font-medium">{priceRange}</span>
           {distance && (
             <>
               <span>•</span>
-              <span className="flex-shrink-0">{formatDistance(distance)}</span>
+              <span className="flex-shrink-0 text-primary font-medium">{formatDistance(distance)}</span>
             </>
           )}
         </div>
