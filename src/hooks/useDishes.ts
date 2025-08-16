@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -40,7 +41,6 @@ interface UseDishesParams {
   selectedFoodTypes?: number[];
   selectedCustomTags?: string[];
   spiceLevels?: number[];
-  prepTimeRanges?: number[];
 }
 
 const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -78,8 +78,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedPriceRanges = [],
     selectedFoodTypes = [],
     selectedCustomTags = [],
-    spiceLevels = [],
-    prepTimeRanges = []
+    spiceLevels = []
   } = params;
 
   // Create a stable key for the current fetch parameters
@@ -92,8 +91,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedPriceRanges,
     selectedFoodTypes,
     selectedCustomTags,
-    spiceLevels,
-    prepTimeRanges
+    spiceLevels
   });
 
   const fetchDishes = useCallback(async (signal: AbortSignal) => {
@@ -286,21 +284,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
         );
       }
 
-      // Preparation time filters
-      if (prepTimeRanges.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => {
-          if (!dish.preparation_time_minutes) return false;
-          return prepTimeRanges.some(range => {
-            switch (range) {
-              case 1: return dish.preparation_time_minutes! < 15;
-              case 2: return dish.preparation_time_minutes! >= 15 && dish.preparation_time_minutes! <= 30;
-              case 3: return dish.preparation_time_minutes! > 30;
-              default: return true;
-            }
-          });
-        });
-      }
-
       // Sort by featured first, then by distance if available
       filteredDishes.sort((a, b) => {
         if (a.is_featured && !b.is_featured) return -1;
@@ -328,7 +311,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       setDishes([]);
       setLoading(false);
     }
-  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels, prepTimeRanges]);
+  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels]);
 
   useEffect(() => {
     // Skip if the fetch key hasn't changed (prevents infinite loops)
