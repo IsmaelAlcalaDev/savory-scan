@@ -15,9 +15,11 @@ interface UnifiedFiltersModalProps {
   selectedAllergens: string[];
   selectedDietTypes: number[];
   selectedDishDietTypes?: string[];
+  selectedSpiceLevels?: number[];
   onAllergenChange: (allergens: string[]) => void;
   onDietTypeChange: (types: number[]) => void;
   onDishDietTypeChange?: (types: string[]) => void;
+  onSpiceLevelChange?: (levels: number[]) => void;
   trigger?: ReactNode;
 }
 
@@ -26,16 +28,18 @@ export default function UnifiedFiltersModal({
   selectedAllergens,
   selectedDietTypes,
   selectedDishDietTypes = [],
+  selectedSpiceLevels = [],
   onAllergenChange,
   onDietTypeChange,
   onDishDietTypeChange = () => {},
+  onSpiceLevelChange = () => {},
   trigger
 }: UnifiedFiltersModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const isMobile = useIsMobile();
   
   const activeFiltersCount = selectedAllergens.length + 
-    (activeTab === 'restaurants' ? selectedDietTypes.length : selectedDishDietTypes.length);
+    (activeTab === 'restaurants' ? selectedDietTypes.length : selectedDishDietTypes.length + selectedSpiceLevels.length);
 
   const clearAllFilters = () => {
     onAllergenChange([]);
@@ -43,6 +47,7 @@ export default function UnifiedFiltersModal({
       onDietTypeChange([]);
     } else {
       onDishDietTypeChange([]);
+      onSpiceLevelChange([]);
     }
   };
 
@@ -120,7 +125,9 @@ export default function UnifiedFiltersModal({
               ) : (
                 <DishDietFilter
                   selectedDietTypes={selectedDishDietTypes}
+                  selectedSpiceLevels={selectedSpiceLevels}
                   onDietTypeChange={onDishDietTypeChange}
+                  onSpiceLevelChange={onSpiceLevelChange}
                 />
               )}
             </div>

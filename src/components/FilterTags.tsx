@@ -22,15 +22,17 @@ interface FilterTagsProps {
   selectedDietTypes?: number[];
   selectedDishDietTypes?: string[];
   selectedCustomTags?: string[];
+  selectedSpiceLevels?: number[];
   isOpenNow?: boolean;
   isHighRated?: boolean;
   isBudgetFriendly?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'establishment' | 'diet' | 'dishDiet' | 'customTags' | 'openNow' | 'highRated' | 'budgetFriendly' | 'all', id?: number) => void;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'establishment' | 'diet' | 'dishDiet' | 'customTags' | 'spice' | 'openNow' | 'highRated' | 'budgetFriendly' | 'all', id?: number) => void;
   onPriceRangeChange?: (ranges: string[]) => void;
   onEstablishmentTypeChange?: (types: number[]) => void;
   onDietTypeChange?: (types: number[]) => void;
   onDishDietTypeChange?: (types: string[]) => void;
   onCustomTagsChange?: (tags: string[]) => void;
+  onSpiceLevelChange?: (levels: number[]) => void;
   onOpenNowChange?: (isOpen: boolean) => void;
   onHighRatedChange?: (isHighRated: boolean) => void;
   onBudgetFriendlyChange?: (isBudgetFriendly: boolean) => void;
@@ -45,6 +47,7 @@ export default function FilterTags({
   selectedDietTypes = [],
   selectedDishDietTypes = [],
   selectedCustomTags = [],
+  selectedSpiceLevels = [],
   isOpenNow = false,
   isHighRated = false,
   isBudgetFriendly = false,
@@ -54,6 +57,7 @@ export default function FilterTags({
   onDietTypeChange = () => {},
   onDishDietTypeChange = () => {},
   onCustomTagsChange = () => {},
+  onSpiceLevelChange = () => {},
   onOpenNowChange = () => {},
   onHighRatedChange = () => {},
   onBudgetFriendlyChange = () => {}
@@ -67,6 +71,7 @@ export default function FilterTags({
     selectedEstablishmentTypes.length > 0 || 
     (activeTab === 'restaurants' ? selectedDietTypes.length > 0 : selectedDishDietTypes.length > 0) ||
     selectedCustomTags.length > 0 ||
+    selectedSpiceLevels.length > 0 ||
     isOpenNow ||
     isHighRated ||
     isBudgetFriendly;
@@ -95,7 +100,7 @@ export default function FilterTags({
     switch (filterKey) {
       case 'price': return selectedPriceRanges.length;
       case 'establishment': return selectedEstablishmentTypes.length;
-      case 'diet': return activeTab === 'restaurants' ? selectedDietTypes.length : selectedDishDietTypes.length;
+      case 'diet': return activeTab === 'restaurants' ? selectedDietTypes.length : selectedDishDietTypes.length + selectedSpiceLevels.length;
       case 'customTags': return selectedCustomTags.length;
       default: return 0;
     }
@@ -136,7 +141,9 @@ export default function FilterTags({
             ) : (
               <DishDietFilter
                 selectedDietTypes={selectedDishDietTypes}
+                selectedSpiceLevels={selectedSpiceLevels}
                 onDietTypeChange={onDishDietTypeChange}
+                onSpiceLevelChange={onSpiceLevelChange}
               />
             )}
           </div>
