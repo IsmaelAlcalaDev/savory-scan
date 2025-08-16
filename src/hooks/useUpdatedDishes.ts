@@ -159,6 +159,15 @@ export const useUpdatedDishes = (filters: DishFilters = {}) => {
             distance_km = haversineDistance(userLat, userLng, restaurant.latitude, restaurant.longitude);
           }
 
+          // Safely handle JSON arrays from Supabase
+          const customTags = Array.isArray(dish.custom_tags) 
+            ? dish.custom_tags.filter((tag): tag is string => typeof tag === 'string')
+            : [];
+          
+          const allergens = Array.isArray(dish.allergens)
+            ? dish.allergens.filter((allergen): allergen is string => typeof allergen === 'string')
+            : [];
+
           return {
             id: dish.id,
             name: dish.name,
@@ -184,8 +193,8 @@ export const useUpdatedDishes = (filters: DishFilters = {}) => {
             restaurant_google_rating: restaurant.google_rating,
             distance_km,
             formatted_price: formatPrice(dish.base_price),
-            custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags : [],
-            allergens: Array.isArray(dish.allergens) ? dish.allergens : []
+            custom_tags: customTags,
+            allergens: allergens
           };
         });
 
