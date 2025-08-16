@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -101,13 +102,13 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     selectedDietTypes: selectedDishDietTypes,
     selectedPriceRanges: selectedDishPriceRanges,
     selectedFoodTypes,
-    spiceLevels,
+    spiceLevels: selectedSpiceLevels,
     prepTimeRanges: selectedPrepTimeRanges
   });
 
   useEffect(() => {
     if (ipLocation && !userLocation && !ipLoading) {
-      setUserLocation({ lat: ipLocation.lat, lng: ipLocation.lng });
+      setUserLocation({ lat: ipLocation.latitude, lng: ipLocation.longitude });
       setLocationName(ipLocation.city || 'Tu ubicación');
     }
   }, [ipLocation, userLocation, ipLoading]);
@@ -191,25 +192,39 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       {/* Headers */}
       <div className="hidden lg:block">
         <DesktopHeader 
+          appName="FoodieSpot"
+          appLogoUrl="/placeholder.svg"
+          currentLocationName={locationName}
+          isLoadingLocation={ipLoading}
+          searchQuery={searchQuery}
+          searchPlaceholder="Buscar restaurantes..."
+          isSearchFocused={false}
+          onLogoClick={() => {}}
           onLocationClick={() => setIsLocationModalOpen(true)}
-          onAuthClick={() => setIsAuthModalOpen(true)}
-          locationName={locationName}
+          onMenuClick={() => setIsAuthModalOpen(true)}
+          onSearchChange={setSearchQuery}
+          onSearchFocus={() => {}}
+          onSearchBlur={() => {}}
         />
       </div>
       
       <div className="hidden md:block lg:hidden">
         <TabletHeader 
           onLocationClick={() => setIsLocationModalOpen(true)}
-          onAuthClick={() => setIsAuthModalOpen(true)}
+          onMenuClick={() => setIsAuthModalOpen(true)}
           locationName={locationName}
         />
       </div>
       
       <div className="block md:hidden">
         <MobileHeader 
+          appName="FoodieSpot"
+          appLogoUrl="/placeholder.svg"
+          currentLocationName={locationName}
+          isLoadingLocation={ipLoading}
+          onLogoClick={() => {}}
           onLocationClick={() => setIsLocationModalOpen(true)}
           onMenuClick={() => setIsMenuModalOpen(true)}
-          locationName={locationName}
         />
       </div>
 
@@ -240,14 +255,14 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
               <div className="flex-1">
                 {activeTab === 'restaurants' ? (
                   <SearchBar 
-                    value={searchQuery}
-                    onChange={setSearchQuery}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
                     placeholder="Buscar restaurantes..."
                   />
                 ) : (
                   <DishSearchBar 
-                    value={dishSearchQuery}
-                    onChange={setDishSearchQuery}
+                    searchQuery={dishSearchQuery}
+                    onSearchChange={setDishSearchQuery}
                     placeholder="Buscar platos..."
                   />
                 )}
@@ -275,7 +290,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             {hasActiveFilters && (
               <FilterTags
                 activeTab={activeTab}
-                selectedCuisineTypes={selectedCuisineTypes}
+                selectedCuisines={selectedCuisineTypes}
                 selectedPriceRanges={selectedPriceRanges}
                 selectedDistanceRanges={selectedDistanceRanges}
                 selectedEstablishmentTypes={selectedEstablishmentTypes}
@@ -297,7 +312,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                 setSelectedEstablishmentTypes={setSelectedEstablishmentTypes}
                 setSelectedDietTypes={setSelectedDietTypes}
                 setSelectedTimeRanges={setSelectedTimeRanges}
-                setIsOpenNow={setIsOpenNow}
+                setIsOpenNow={setIsOpenNow} 
                 setIsHighRated={setIsHighRated}
                 setSearchQuery={setSearchQuery}
                 setSelectedDishDietTypes={setSelectedDishDietTypes}
@@ -350,8 +365,22 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                 {restaurants.map((restaurant) => (
                   <RestaurantCard
                     key={restaurant.id}
-                    restaurant={restaurant}
-                    viewMode={viewMode}
+                    id={restaurant.id}
+                    name={restaurant.name}
+                    slug={restaurant.slug}
+                    description={restaurant.description}
+                    priceRange={restaurant.price_range}
+                    googleRating={restaurant.google_rating}
+                    googleRatingCount={restaurant.google_rating_count}
+                    distance={restaurant.distance_km}
+                    cuisineTypes={restaurant.cuisine_types}
+                    establishmentType={restaurant.establishment_type}
+                    services={restaurant.services}
+                    favoritesCount={restaurant.favorites_count}
+                    coverImageUrl={restaurant.cover_image_url}
+                    logoUrl={restaurant.logo_url}
+                    layout={viewMode}
+                    onLoginRequired={() => setIsAuthModalOpen(true)}
                   />
                 ))}
               </div>
@@ -363,7 +392,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
               dishes={dishes}
               loading={dishesLoading}
               error={dishesError}
-              viewMode={viewMode}
               hasActiveFilters={hasActiveFilters}
               onClearFilters={clearAllFilters}
             />
@@ -374,52 +402,40 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       {/* Bottom Navigation for Mobile */}
       <div className="block md:hidden">
         <BottomNavigation 
-          onAuthClick={() => setIsAuthModalOpen(true)}
+          activeTab={activeTab === 'restaurants' ? 'restaurants' : activeTab === 'dishes' ? 'dishes' : 'account'}
+          onTabChange={(tab) => {
+            if (tab === 'account') {
+              setIsAuthModalOpen(true);
+            } else {
+              setActiveTab(tab);
+            }
+          }}
         />
       </div>
 
       {/* Modals */}
       <UnifiedFiltersModal
-        isOpen={isFiltersOpen}
-        onClose={() => setIsFiltersOpen(false)}
-        activeTab={activeTab}
-        selectedCuisineTypes={selectedCuisineTypes}
-        setSelectedCuisineTypes={setSelectedCuisineTypes}
-        selectedPriceRanges={selectedPriceRanges}
-        setSelectedPriceRanges={setSelectedPriceRanges}
-        selectedDistanceRanges={selectedDistanceRanges}
-        setSelectedDistanceRanges={setSelectedDistanceRanges}
-        selectedEstablishmentTypes={selectedEstablishmentTypes}
-        setSelectedEstablishmentTypes={setSelectedEstablishmentTypes}
-        selectedDietTypes={selectedDietTypes}
-        setSelectedDietTypes={setSelectedDietTypes}
-        selectedTimeRanges={selectedTimeRanges}
-        setSelectedTimeRanges={setSelectedTimeRanges}
-        isOpenNow={isOpenNow}
-        setIsOpenNow={setIsOpenNow}
-        isHighRated={isHighRated}
-        setIsHighRated={setIsHighRated}
-        selectedDishDietTypes={selectedDishDietTypes}
-        setSelectedDishDietTypes={setSelectedDishDietTypes}
-        selectedDishPriceRanges={selectedDishPriceRanges}
-        setSelectedDishPriceRanges={setSelectedDishPriceRanges}
-        selectedFoodTypes={selectedFoodTypes}
-        setSelectedFoodTypes={setSelectedFoodTypes}
-        selectedSpiceLevels={selectedSpiceLevels}
-        setSelectedSpiceLevels={setSelectedSpiceLevels}
-        selectedPrepTimeRanges={selectedPrepTimeRanges}
-        setSelectedPrepTimeRanges={setSelectedPrepTimeRanges}
+        selectedAllergens={[]}
+        selectedDietTypes={activeTab === 'restaurants' ? selectedDietTypes : selectedDishDietTypes}
+        onAllergenChange={() => {}}
+        onDietTypeChange={activeTab === 'restaurants' ? setSelectedDietTypes : setSelectedDishDietTypes}
       />
 
       <LocationModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}
-        onLocationSelect={handleLocationSelect}
+        onLocationSelect={(location) => {
+          if (location.type === 'gps' && location.data) {
+            setUserLocation({ lat: location.data.lat, lng: location.data.lng });
+            setLocationName(location.data.name || 'Tu ubicación');
+          }
+          setIsLocationModalOpen(false);
+        }}
         currentLocation={userLocation}
       />
 
       <MenuModal
-        isOpen={isMenuModalOpen}
+        open={isMenuModalOpen}
         onClose={() => setIsMenuModalOpen(false)}
         onAuthClick={() => {
           setIsMenuModalOpen(false);
