@@ -47,7 +47,7 @@ export default function DesktopHeader({
   }, []);
 
   return (
-    <div className={`flex items-center justify-between py-1.5 px-4 lg:py-2 xl:py-2.5 bg-white transition-all duration-200 ${
+    <div className={`flex items-center justify-between py-1.5 px-24 lg:px-24 xl:px-32 2xl:px-48 lg:py-2 xl:py-2.5 bg-white transition-all duration-200 ${
       isScrolled ? 'shadow-sm border-b border-gray-100' : ''
     }`}>
       {/* Left Section: Logo - Responsive sizing */}
