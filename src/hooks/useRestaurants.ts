@@ -30,6 +30,8 @@ interface UseRestaurantsProps {
   selectedDistanceRangeIds?: number[];
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
+  selectedTimeRanges?: number[];
+  isOpenNow?: boolean;
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -59,6 +61,66 @@ const calculateDietPercentage = (dishes: any[], category: string): number => {
   return Math.round((matchingDishes.length / dishes.length) * 100);
 };
 
+const isCurrentlyOpen = (schedules: any[]): boolean => {
+  const now = new Date();
+  const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+
+  const todaySchedule = schedules.find(schedule => schedule.day_of_week === currentDay);
+  
+  if (!todaySchedule || todaySchedule.is_closed) {
+    return false;
+  }
+
+  const openTime = todaySchedule.opening_time;
+  const closeTime = todaySchedule.closing_time;
+  
+  // Handle overnight schedules (e.g., 22:00-02:00)
+  if (closeTime < openTime) {
+    return currentTime >= openTime || currentTime <= closeTime;
+  }
+  
+  return currentTime >= openTime && currentTime <= closeTime;
+};
+
+const isOpenDuringTimeRange = (schedules: any[], timeRange: { start_time: string, end_time: string }): boolean => {
+  const now = new Date();
+  const currentDay = now.getDay();
+  
+  const todaySchedule = schedules.find(schedule => schedule.day_of_week === currentDay);
+  
+  if (!todaySchedule || todaySchedule.is_closed) {
+    return false;
+  }
+
+  const scheduleStart = todaySchedule.opening_time;
+  const scheduleEnd = todaySchedule.closing_time;
+  const rangeStart = timeRange.start_time;
+  const rangeEnd = timeRange.end_time;
+  
+  // Check for overlap between schedule and time range
+  // Handle overnight schedules
+  if (scheduleEnd < scheduleStart) {
+    // Restaurant is open overnight
+    if (rangeEnd < rangeStart) {
+      // Time range is also overnight
+      return true; // There will be overlap
+    } else {
+      // Time range is within same day
+      return rangeStart >= scheduleStart || rangeEnd <= scheduleEnd;
+    }
+  } else {
+    // Normal schedule (same day)
+    if (rangeEnd < rangeStart) {
+      // Time range is overnight
+      return rangeStart >= scheduleStart || rangeEnd <= scheduleEnd;
+    } else {
+      // Both are same day - check for overlap
+      return rangeStart < scheduleEnd && rangeEnd > scheduleStart;
+    }
+  }
+};
+
 export const useRestaurants = ({
   searchQuery = '',
   userLat,
@@ -69,7 +131,9 @@ export const useRestaurants = ({
   isHighRated = false,
   selectedDistanceRangeIds,
   selectedEstablishmentTypes,
-  selectedDietTypes
+  selectedDietTypes,
+  selectedTimeRanges,
+  isOpenNow = false
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +154,9 @@ export const useRestaurants = ({
           isHighRated,
           selectedDistanceRangeIds,
           selectedEstablishmentTypes,
-          selectedDietTypes
+          selectedDietTypes,
+          selectedTimeRanges,
+          isOpenNow
         });
 
         // Get effective max distance from selected distance ranges
@@ -127,6 +193,24 @@ export const useRestaurants = ({
           } else if (priceRangeData && priceRangeData.length > 0) {
             priceDisplayTexts = priceRangeData.map(range => range.display_text);
             console.log('Mapped price display texts:', priceDisplayTexts);
+          }
+        }
+
+        // Get time ranges if filtering by time
+        let timeRangeData: any[] = [];
+        if (selectedTimeRanges && selectedTimeRanges.length > 0) {
+          console.log('Fetching time ranges for IDs:', selectedTimeRanges);
+          
+          const { data: ranges, error: timeError } = await supabase
+            .from('time_ranges')
+            .select('id, start_time, end_time')
+            .in('id', selectedTimeRanges);
+
+          if (timeError) {
+            console.error('Error fetching time ranges:', timeError);
+          } else if (ranges) {
+            timeRangeData = ranges;
+            console.log('Fetched time ranges:', timeRangeData);
           }
         }
 
@@ -274,6 +358,63 @@ export const useRestaurants = ({
           }
         }
 
+        // Apply time-based filtering
+        if (isOpenNow || (selectedTimeRanges && selectedTimeRanges.length > 0)) {
+          console.log('Applying time-based filtering...');
+          
+          const restaurantIds = formattedData.map(r => r.id);
+          
+          if (restaurantIds.length > 0) {
+            // Get schedules for all restaurants
+            const { data: schedulesData, error: schedulesError } = await supabase
+              .from('restaurant_schedules')
+              .select('restaurant_id, day_of_week, opening_time, closing_time, is_closed')
+              .in('restaurant_id', restaurantIds);
+
+            if (schedulesError) {
+              console.error('Error fetching restaurant schedules:', schedulesError);
+            } else if (schedulesData) {
+              // Group schedules by restaurant
+              const schedulesByRestaurant: Record<number, any[]> = {};
+              schedulesData.forEach(schedule => {
+                if (!schedulesByRestaurant[schedule.restaurant_id]) {
+                  schedulesByRestaurant[schedule.restaurant_id] = [];
+                }
+                schedulesByRestaurant[schedule.restaurant_id].push(schedule);
+              });
+
+              // Filter restaurants based on time criteria
+              formattedData = formattedData.filter(restaurant => {
+                const schedules = schedulesByRestaurant[restaurant.id] || [];
+                
+                if (schedules.length === 0) {
+                  return false; // No schedule data, exclude restaurant
+                }
+
+                // Check if open now
+                if (isOpenNow && !isCurrentlyOpen(schedules)) {
+                  return false;
+                }
+
+                // Check if open during selected time ranges
+                if (selectedTimeRanges && selectedTimeRanges.length > 0) {
+                  const matchesTimeRange = timeRangeData.some(timeRange => 
+                    isOpenDuringTimeRange(schedules, timeRange)
+                  );
+                  
+                  if (!matchesTimeRange) {
+                    return false;
+                  }
+                }
+
+                return true;
+              });
+
+              console.log('Restaurants after time filtering:', formattedData.length);
+            }
+          }
+        }
+
         let sortedData = formattedData;
         if (userLat && userLng) {
           sortedData = formattedData
@@ -345,7 +486,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedDistanceRangeIds, selectedEstablishmentTypes, selectedDietTypes]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedDistanceRangeIds, selectedEstablishmentTypes, selectedDietTypes, selectedTimeRanges, isOpenNow]);
 
   return { restaurants, loading, error };
 };
