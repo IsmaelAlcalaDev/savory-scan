@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
@@ -14,7 +15,7 @@ import MenuModal from './MenuModal';
 import MobileHeader from './MobileHeader';
 import TabletHeader from './TabletHeader';
 import DesktopHeader from './DesktopHeader';
-import { useRestaurants } from '@/hooks/useRestaurants';
+import { useOptimizedRestaurants } from '@/hooks/useOptimizedRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -253,11 +254,11 @@ export default function FoodieSpotLayout({
     restaurants,
     loading: restaurantsLoading,
     error: restaurantsError
-  } = useRestaurants({
+  } = useOptimizedRestaurants({
     searchQuery: searchQueryRestaurants,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
-    maxDistance: 1000, // Increased to 1000km to cover all of Spain
+    maxDistance: 1000,
     cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
     priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
     isHighRated: isHighRated,
@@ -275,7 +276,7 @@ export default function FoodieSpotLayout({
     searchQuery: searchQueryDishes,
     userLat: userLocation?.lat,
     userLng: userLocation?.lng,
-    maxDistance: 1000, // Also increased for dishes
+    maxDistance: 1000,
     selectedFoodTypes,
     selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
     spiceLevels: [],
