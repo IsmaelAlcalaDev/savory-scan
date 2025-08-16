@@ -38,6 +38,7 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
           const Icon = item.icon;
           
           // Hide account tab on tablet and desktop (show only on mobile)
+          // Using specific breakpoint to avoid overlap with header buttons
           if (item.mobileOnly && !isMobile) {
             return null;
           }
@@ -48,6 +49,8 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
               onClick={() => onTabChange(item.id)}
               className={cn(
                 "flex flex-col items-center gap-1 py-1 px-2 rounded-lg transition-all duration-200",
+                // Hide account button on tablet and desktop using Tailwind classes as backup
+                item.mobileOnly && "md:hidden",
                 isActive 
                   ? "text-primary bg-primary/10" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
