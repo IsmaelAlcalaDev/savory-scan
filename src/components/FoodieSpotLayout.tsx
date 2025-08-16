@@ -189,7 +189,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             </TabsList>
             <TabsContent value="restaurants" className="space-y-4">
               <RestaurantsGrid 
-                searchQuery={searchQuery}
+                searchQuery={debouncedSearchQuery}
                 userLat={userLat}
                 userLng={userLng}
                 selectedCuisines={selectedCuisines}
@@ -206,7 +206,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             </TabsContent>
             <TabsContent value="dishes" className="space-y-4">
               <DishesGrid 
-                searchQuery={searchQuery}
+                searchQuery={debouncedSearchQuery}
                 userLat={userLat}
                 userLng={userLng}
                 selectedDietTypes={selectedDietTypes}

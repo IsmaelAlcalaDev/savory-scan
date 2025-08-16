@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,6 +12,7 @@ interface DishData {
   is_vegetarian: boolean;
   is_vegan: boolean;
   is_gluten_free: boolean;
+  is_lactose_free: boolean;
   is_healthy: boolean;
   spice_level: number;
   preparation_time_minutes?: number;
@@ -28,7 +28,8 @@ interface DishData {
   distance_km?: number;
   formatted_price: string;
   custom_tags: string[];
-  allergens?: string[];
+  allergens: string[];
+  variants?: any[];
 }
 
 interface UseDishesParams {
@@ -115,6 +116,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
           is_vegetarian,
           is_vegan,
           is_gluten_free,
+          is_lactose_free,
           is_healthy,
           spice_level,
           preparation_time_minutes,
@@ -208,6 +210,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
             is_vegetarian: dish.is_vegetarian,
             is_vegan: dish.is_vegan,
             is_gluten_free: dish.is_gluten_free,
+            is_lactose_free: dish.is_lactose_free || false,
             is_healthy: dish.is_healthy,
             spice_level: dish.spice_level,
             preparation_time_minutes: dish.preparation_time_minutes,
@@ -223,7 +226,8 @@ export const useDishes = (params: UseDishesParams = {}) => {
             distance_km,
             formatted_price: formatPrice(dish.base_price),
             custom_tags: customTags,
-            allergens
+            allergens,
+            variants: []
           };
         });
 
