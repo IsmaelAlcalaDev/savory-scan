@@ -23,7 +23,7 @@ import { LazySecurityDashboard } from "./components/lazy/LazySecurityDashboard";
 
 // Immediate imports for critical routes
 import LocationEntry from "./pages/LocationEntry";
-import Restaurants from "./pages/Restaurants";
+import OptimizedRestaurants from "./pages/OptimizedRestaurants";
 import Dishes from "./pages/Dishes";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -44,7 +44,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<LocationEntry />} />
-      <Route path="/restaurantes" element={<Restaurants />} />
+      <Route path="/restaurantes" element={<OptimizedRestaurants />} />
       <Route path="/platos" element={<Dishes />} />
       <Route path="/restaurant/:slug" element={
         <LazyPageWrapper>
