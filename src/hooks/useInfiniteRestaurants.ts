@@ -60,7 +60,7 @@ export const useInfiniteRestaurants = ({
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastFetchRef = useRef<string>('');
 
-  // Create stable key for fetch parameters (removed enabled)
+  // Create stable key for fetch parameters
   const fetchKey = JSON.stringify({
     searchQuery,
     userLat,
@@ -143,10 +143,10 @@ export const useInfiniteRestaurants = ({
       // Order by location if available, otherwise by rating/popularity
       if (userLat && userLng) {
         // When we have location, we'll calculate distance and sort by it
-        console.log('useInfiniteRestaurants: Ordering by distance from user location');
+        console.log('useInfiniteRestaurants: Will order by distance from user location');
       } else {
         // When no location, order by rating and popularity
-        query = query.order('google_rating', { ascending: false, nullsLast: true })
+        query = query.order('google_rating', { ascending: false, nullsFirst: false })
                     .order('favorites_count', { ascending: false });
         console.log('useInfiniteRestaurants: Ordering by rating and popularity (no location)');
       }
@@ -179,7 +179,6 @@ export const useInfiniteRestaurants = ({
           distance_km = Math.round((R * c) * 100) / 100;
         }
 
-        // NO LONGER FILTER BY DISTANCE - keep all restaurants
         return {
           id: restaurant.id,
           name: restaurant.name,
@@ -248,7 +247,7 @@ export const useInfiniteRestaurants = ({
     }
   }, [fetchKey, searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly, itemsPerPage]);
 
-  // Always fetch data - no longer conditional on enabled
+  // Always fetch data
   useEffect(() => {
     // Skip if parameters haven't changed
     if (lastFetchRef.current === fetchKey && restaurants.length > 0) {
