@@ -127,7 +127,7 @@ export default function RestaurantCard({
             {/* Name and rating container - aligned with content below */}
             <div className="flex-1 min-w-0 flex flex-col justify-center">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base line-clamp-1 text-black">
+                <h3 className="text-base line-clamp-1 text-black font-medium">
                   {name}
                 </h3>
                 
@@ -148,7 +148,7 @@ export default function RestaurantCard({
                   {cuisineTypes.slice(0, 2).join(', ')}
                 </span>
                 <span>•</span>
-                <span className="text-muted-foreground font-bold font-light">{priceRange}</span>
+                <span className="text-muted-foreground font-medium">{priceRange}</span>
                 {distance && typeof distance === 'number' && (
                   <>
                     <span>•</span>
@@ -224,7 +224,7 @@ export default function RestaurantCard({
           {/* Name and rating container - aligned with content below */}
           <div className="flex-1 min-w-0 flex flex-col justify-center">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-base line-clamp-1 text-black">
+              <h3 className="text-base line-clamp-1 text-black font-medium">
                 {name}
               </h3>
               {googleRating && typeof googleRating === 'number' && (
@@ -244,7 +244,7 @@ export default function RestaurantCard({
                 {cuisineTypes.slice(0, 2).join(', ')}
               </span>
               <span>•</span>
-              <span className="text-muted-foreground font-bold font-light">{priceRange}</span>
+              <span className="text-muted-foreground font-medium">{priceRange}</span>
               {distance && typeof distance === 'number' && (
                 <>
                   <span>•</span>
