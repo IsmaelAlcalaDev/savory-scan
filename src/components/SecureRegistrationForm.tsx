@@ -184,7 +184,7 @@ export default function SecureRegistrationForm({
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Nombre y Apellido */}
+            {/* Nombre y Apellido - CAMPOS PRINCIPALES */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">Nombre *</Label>
@@ -198,10 +198,14 @@ export default function SecureRegistrationForm({
                     placeholder="Tu nombre"
                     className="pl-10"
                     disabled={isLoading}
+                    required
                   />
                 </div>
                 {errors.firstName && (
-                  <p className="text-sm text-red-600">{errors.firstName}</p>
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <XCircle className="h-3 w-3" />
+                    {errors.firstName}
+                  </p>
                 )}
               </div>
 
@@ -217,10 +221,14 @@ export default function SecureRegistrationForm({
                     placeholder="Tu apellido"
                     className="pl-10"
                     disabled={isLoading}
+                    required
                   />
                 </div>
                 {errors.lastName && (
-                  <p className="text-sm text-red-600">{errors.lastName}</p>
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <XCircle className="h-3 w-3" />
+                    {errors.lastName}
+                  </p>
                 )}
               </div>
             </div>
@@ -238,10 +246,14 @@ export default function SecureRegistrationForm({
                   placeholder="tu@email.com"
                   className="pl-10"
                   disabled={isLoading}
+                  required
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-red-600">{errors.email}</p>
+                <p className="text-sm text-red-600 flex items-center gap-1">
+                  <XCircle className="h-3 w-3" />
+                  {errors.email}
+                </p>
               )}
             </div>
 
@@ -258,10 +270,14 @@ export default function SecureRegistrationForm({
                   placeholder="Tu ciudad"
                   className="pl-10"
                   disabled={isLoading}
+                  required
                 />
               </div>
               {errors.city && (
-                <p className="text-sm text-red-600">{errors.city}</p>
+                <p className="text-sm text-red-600 flex items-center gap-1">
+                  <XCircle className="h-3 w-3" />
+                  {errors.city}
+                </p>
               )}
             </div>
 
@@ -281,7 +297,10 @@ export default function SecureRegistrationForm({
                 />
               </div>
               {errors.phone && (
-                <p className="text-sm text-red-600">{errors.phone}</p>
+                <p className="text-sm text-red-600 flex items-center gap-1">
+                  <XCircle className="h-3 w-3" />
+                  {errors.phone}
+                </p>
               )}
             </div>
 
@@ -298,6 +317,7 @@ export default function SecureRegistrationForm({
                   placeholder="••••••••"
                   className="pl-10 pr-10"
                   disabled={isLoading}
+                  required
                 />
                 <button
                   type="button"
@@ -309,12 +329,15 @@ export default function SecureRegistrationForm({
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-red-600">{errors.password}</p>
+                <p className="text-sm text-red-600 flex items-center gap-1">
+                  <XCircle className="h-3 w-3" />
+                  {errors.password}
+                </p>
               )}
               {renderPasswordStrength()}
             </div>
 
-            {/* Confirmar Contraseña */}
+            {/* Confirmar Contraseña - CAMPO PRINCIPAL */}
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirmar Contraseña *</Label>
               <div className="relative">
@@ -327,6 +350,7 @@ export default function SecureRegistrationForm({
                   placeholder="••••••••"
                   className="pl-10 pr-10"
                   disabled={isLoading}
+                  required
                 />
                 <button
                   type="button"
@@ -338,9 +362,12 @@ export default function SecureRegistrationForm({
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-red-600">{errors.confirmPassword}</p>
+                <p className="text-sm text-red-600 flex items-center gap-1">
+                  <XCircle className="h-3 w-3" />
+                  {errors.confirmPassword}
+                </p>
               )}
-              {formData.confirmPassword && formData.password === formData.confirmPassword && (
+              {formData.confirmPassword && formData.password === formData.confirmPassword && formData.password && (
                 <div className="flex items-center gap-1 text-green-600 text-sm">
                   <CheckCircle className="h-3 w-3" />
                   <span>Las contraseñas coinciden</span>
@@ -358,7 +385,17 @@ export default function SecureRegistrationForm({
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isLoading || !passwordValidation.isValid || formData.password !== formData.confirmPassword}
+              disabled={
+                isLoading || 
+                !passwordValidation.isValid || 
+                formData.password !== formData.confirmPassword ||
+                !formData.firstName.trim() ||
+                !formData.lastName.trim() ||
+                !formData.email.trim() ||
+                !formData.city.trim() ||
+                !formData.password ||
+                !formData.confirmPassword
+              }
             >
               {isLoading ? 'Creando cuenta...' : 'Crear Cuenta'}
             </Button>
