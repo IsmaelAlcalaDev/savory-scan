@@ -200,6 +200,7 @@ export const useInfiniteRestaurants = ({
       });
 
       // If we have user location, sort by distance after formatting
+      // Keep ALL restaurants, but prioritize nearby ones
       let sortedRestaurants = formattedRestaurants;
       if (userLat && userLng) {
         sortedRestaurants = formattedRestaurants.sort((a, b) => {
@@ -214,6 +215,7 @@ export const useInfiniteRestaurants = ({
           // Restaurants with distance always before those without
           return a.distance_km !== undefined ? -1 : 1;
         });
+        console.log('useInfiniteRestaurants: Sorted', sortedRestaurants.length, 'restaurants by distance');
       }
 
       if (!signal.aborted) {
