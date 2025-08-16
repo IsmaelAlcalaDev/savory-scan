@@ -8,7 +8,6 @@ import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
 import RestaurantMenuSection from '@/components/RestaurantMenuSection';
 import MenuSectionTabs from '@/components/MenuSectionTabs';
 import InlineSearchBar from '@/components/InlineSearchBar';
-import SavedTicketsSection from '@/components/SavedTicketsSection';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
 import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
@@ -290,9 +289,6 @@ function RestaurantMenuContent() {
           )}
         </div>
 
-        {/* Saved Tickets Section */}
-        <SavedTicketsSection restaurantId={restaurant.id} />
-
         {/* Menu Content - Full width container */}
         <div className="w-full">
           {filteredSections.length === 0 ? (
@@ -319,8 +315,7 @@ function RestaurantMenuContent() {
         {/* Order Simulator Components */}
         <OrderSimulatorSummary />
         
-        {/* Order Simulator Modal - No props needed since it gets state from context */}
-        <OrderSimulatorModal />
+        <OrderSimulatorModal isOpen={isSimulatorOpen} onClose={closeSimulator} />
         
         <AddDinersModal isOpen={isDinersModalOpen} onClose={closeDinersModal} />
       </div>

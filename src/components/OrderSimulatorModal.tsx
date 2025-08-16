@@ -1,39 +1,31 @@
 
-import React, { useState, useMemo } from 'react';
-import { X, Plus, Minus, Trash2, Users, Save, ShoppingCart } from 'lucide-react';
+import React from 'react';
+import { X, Users, Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAuthModal } from '@/hooks/useAuthModal';
-import { useSavedTickets } from '@/hooks/useSavedTickets';
-import { toast } from 'sonner';
 import {
   ModalWrapper,
   ModalContent,
   ModalHeader,
   ModalTitle,
 } from '@/components/ui/modal-wrapper';
-import AddDinersModal from './AddDinersModal';
-import SaveTicketModal from './SaveTicketModal';
+import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 
-export default function OrderSimulatorModal() {
-  const { 
-    isSimulatorOpen,
-    closeSimulator, 
-    orderItems, 
-    diners, 
-    updateItemQuantity, 
+interface OrderSimulatorModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function OrderSimulatorModal({ isOpen, onClose }: OrderSimulatorModalProps) {
+  const {
+    diners,
+    orderItems,
+    updateItemQuantity,
     removeDishFromOrder,
-    clearSimulator
+    getTotalByDiner,
+    getGrandTotal,
+    clearSimulator,
+    openDinersModal
   } = useOrderSimulator();
-  
-  const { user } = useAuth();
-  const { openModal: openAuthModal } = useAuthModal();
-  const { saveTicket } = useSavedTickets();
-
-  const [showAddDinersModal, setShowAddDinersModal] = useState(false);
-  const [showSaveTicketModal, setShowSaveTicketModal] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
@@ -42,233 +34,208 @@ export default function OrderSimulatorModal() {
     }).format(price);
   };
 
-  const totalItems = useMemo(() => {
-    return orderItems.reduce((sum, item) => sum + item.quantity, 0);
-  }, [orderItems]);
-
-  // Calculate totals
-  const subtotal = useMemo(() => {
-    return orderItems.reduce((total, item) => {
-      const price = item.selectedVariant?.price || item.dish.base_price;
-      return total + (price * item.quantity);
-    }, 0);
-  }, [orderItems]);
-
-  const taxes = subtotal * 0.21; // 21% tax
-  const total = subtotal + taxes;
-
-  const handleSaveTicket = () => {
-    if (!user) {
-      // If user is not authenticated, open auth modal
-      openAuthModal();
-      return;
-    }
-
-    // If user is authenticated, show save ticket modal
-    setShowSaveTicketModal(true);
+  const getDinerItems = (dinerId: string) => {
+    return orderItems.filter(item => item.dinerId === dinerId);
   };
-
-  const handleConfirmSave = async (name: string) => {
-    if (!user) {
-      toast.error('Debes iniciar sesión para guardar tickets');
-      return { success: false, error: 'Usuario no autenticado' };
-    }
-
-    setIsSaving(true);
-    try {
-      const result = await saveTicket(name, orderItems, diners, total);
-      if (result.success) {
-        toast.success('Ticket guardado exitosamente');
-        return { success: true };
-      } else {
-        toast.error(result.error || 'Error al guardar el ticket');
-        return { success: false, error: result.error };
-      }
-    } catch (error) {
-      console.error('Error saving ticket:', error);
-      toast.error('Error inesperado al guardar el ticket');
-      return { success: false, error: 'Error inesperado' };
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  if (orderItems.length === 0) {
-    return null;
-  }
 
   return (
-    <>
-      <ModalWrapper open={isSimulatorOpen} onOpenChange={closeSimulator}>
-        <ModalContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-          <ModalHeader className="flex items-center justify-between">
-            <ModalTitle className="flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5" />
-              Simulador de Pedido
-            </ModalTitle>
-          </ModalHeader>
-
-          <div className="flex-1 overflow-y-auto p-4">
-            {/* Diners Section */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Comensales ({diners.length})
-                </h3>
+    <ModalWrapper open={isOpen} onOpenChange={onClose}>
+      <ModalContent className="fixed inset-0 max-w-none w-screen h-screen max-h-none m-0 rounded-none p-0 flex flex-col bg-background">
+        {/* Custom Header */}
+        <div className="flex-shrink-0 bg-background border-b px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Users className="h-6 w-6 text-primary" />
+              <h1 className="text-xl sm:text-2xl font-bold">Simulador de Pedido</h1>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openDinersModal}
+                className="hidden sm:flex"
+              >
+                Gestionar Comensales
+              </Button>
+              {orderItems.length > 0 && (
                 <Button
-                  onClick={() => setShowAddDinersModal(true)}
                   variant="outline"
                   size="sm"
+                  onClick={clearSimulator}
+                  className="text-destructive hover:text-destructive hidden sm:flex"
                 >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Gestionar
+                  Limpiar
                 </Button>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {diners.map((diner) => {
-                  const dinerItems = orderItems.filter(item => item.dinerId === diner.id);
-                  const dinerTotal = dinerItems.reduce((sum, item) => {
-                    const price = item.selectedVariant?.price || item.dish.base_price;
-                    return sum + (price * item.quantity);
-                  }, 0);
-                  
-                  return (
-                    <div key={diner.id} className="bg-muted rounded-lg p-3 min-w-[120px]">
-                      <div className="font-medium text-sm">{diner.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {dinerItems.length} platos - {formatPrice(dinerTotal)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Order Items */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Platos del Pedido</h3>
-              {orderItems.map((item) => (
-                <div key={item.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-medium">{item.dish.name}</h4>
-                      {item.selectedVariant && (
-                        <p className="text-sm text-muted-foreground">{item.selectedVariant.name}</p>
-                      )}
-                      <p className="text-sm font-medium text-primary">
-                        {formatPrice(item.selectedVariant?.price || item.dish.base_price)}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateItemQuantity(item.id, Math.max(0, item.quantity - 1))}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="font-medium min-w-[2rem] text-center">{item.quantity}</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => removeDishFromOrder(item.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Diner Assignment */}
-                  {diners.length > 0 && (
-                    <div className="mt-3 pt-3 border-t">
-                      <p className="text-sm font-medium mb-2">Asignado a:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {diners.map((diner) => (
-                          <div
-                            key={diner.id}
-                            className={`px-2 py-1 rounded text-xs ${
-                              item.dinerId === diner.id 
-                                ? 'bg-primary text-primary-foreground' 
-                                : 'bg-muted text-muted-foreground'
-                            }`}
-                          >
-                            {diner.name}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Order Summary */}
-            <div className="mt-6 p-4 bg-muted rounded-lg">
-              <h3 className="text-lg font-semibold mb-3">Resumen del Pedido</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>{formatPrice(subtotal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Impuestos (21%):</span>
-                  <span>{formatPrice(taxes)}</span>
-                </div>
-                <div className="flex justify-between font-bold text-lg border-t pt-2">
-                  <span>Total:</span>
-                  <span>{formatPrice(total)}</span>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {totalItems} platos • {diners.length} comensales
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 mt-6">
+              )}
               <Button
-                onClick={handleSaveTicket}
-                variant="outline"
-                className="flex-1"
-                disabled={isSaving}
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0"
               >
-                <Save className="h-4 w-4 mr-2" />
-                {isSaving ? 'Guardando...' : 'Guardar Ticket'}
-              </Button>
-              <Button
-                onClick={clearSimulator}
-                variant="destructive"
-                className="flex-1"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Limpiar Pedido
+                <X className="h-5 w-5" />
               </Button>
             </div>
           </div>
-        </ModalContent>
-      </ModalWrapper>
 
-      <AddDinersModal
-        isOpen={showAddDinersModal}
-        onClose={() => setShowAddDinersModal(false)}
-      />
+          {/* Mobile action buttons */}
+          <div className="flex sm:hidden gap-2 mt-3">
+            <Button
+              variant="outline"  
+              size="sm"
+              onClick={openDinersModal}
+              className="flex-1"
+            >
+              Gestionar Comensales
+            </Button>
+            {orderItems.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearSimulator}
+                className="text-destructive hover:text-destructive"
+              >
+                Limpiar
+              </Button>
+            )}
+          </div>
+        </div>
 
-      <SaveTicketModal
-        isOpen={showSaveTicketModal}
-        onClose={() => setShowSaveTicketModal(false)}
-        onSave={handleConfirmSave}
-        isLoading={isSaving}
-      />
-    </>
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          {orderItems.length === 0 ? (
+            <div className="flex items-center justify-center h-full px-4">
+              <div className="text-center max-w-md">
+                <Users className="h-20 w-20 mx-auto mb-6 text-muted-foreground opacity-50" />
+                <h3 className="text-2xl font-semibold mb-3">No hay platos en el simulador</h3>
+                <p className="text-muted-foreground text-lg">
+                  Añade platos desde la carta para simular tu pedido
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto">
+              {diners.map((diner) => {
+                const dinerItems = getDinerItems(diner.id);
+                const dinerTotal = getTotalByDiner(diner.id);
+
+                return (
+                  <div key={diner.id} className="bg-accent/20 rounded-xl p-4 sm:p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-bold text-xl sm:text-2xl">{diner.name}</h3>
+                      <div className="font-bold text-xl sm:text-2xl text-primary">
+                        {formatPrice(dinerTotal)}
+                      </div>
+                    </div>
+
+                    {dinerItems.length === 0 ? (
+                      <p className="text-muted-foreground italic text-center py-8">
+                        No ha añadido platos aún
+                      </p>
+                    ) : (
+                      <div className="grid gap-4">
+                        {dinerItems.map((item) => {
+                          const price = item.selectedVariant?.price || item.dish.base_price;
+                          const itemTotal = price * item.quantity;
+
+                          return (
+                            <div key={item.id} className="bg-background rounded-xl p-4 shadow-sm">
+                              <div className="flex items-start gap-4">
+                                {/* Dish Image */}
+                                <div className="flex-shrink-0">
+                                  {item.dish.image_url ? (
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden">
+                                      <img
+                                        src={item.dish.image_url}
+                                        alt={item.dish.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted/50 rounded-lg" />
+                                  )}
+                                </div>
+
+                                {/* Dish Info */}
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold text-lg sm:text-xl mb-1">{item.dish.name}</h4>
+                                  {item.selectedVariant && (
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      {item.selectedVariant.name}
+                                    </p>
+                                  )}
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                    <p className="text-base font-medium text-primary">
+                                      {formatPrice(price)} × {item.quantity}
+                                    </p>
+                                    <p className="text-lg font-bold text-primary">
+                                      = {formatPrice(itemTotal)}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Quantity Controls */}
+                                <div className="flex-shrink-0">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                    <span className="w-10 text-center font-semibold text-lg">
+                                      {item.quantity}
+                                    </span>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeDishFromOrder(item.id)}
+                                    className="h-8 w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Fixed Footer with Grand Total */}
+        {orderItems.length > 0 && (
+          <div className="flex-shrink-0 bg-background border-t px-4 sm:px-6 py-4">
+            <div className="max-w-6xl mx-auto">
+              <div className="bg-primary/10 rounded-xl p-4 sm:p-6 border-2 border-primary/20">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-xl sm:text-2xl">Total General</h3>
+                  <div className="font-bold text-2xl sm:text-3xl text-primary">
+                    {formatPrice(getGrandTotal())}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </ModalContent>
+    </ModalWrapper>
   );
 }
