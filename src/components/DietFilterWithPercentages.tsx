@@ -1,4 +1,3 @@
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { useDietTypes } from '@/hooks/useDietTypes';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -103,7 +102,6 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
                     htmlFor={`diet-${diet.id}`}
                     className="text-sm font-medium leading-relaxed cursor-pointer flex items-start gap-2 flex-1"
                   >
-                    {diet.icon && <span className="text-base mt-0.5">{diet.icon}</span>}
                     <span>{diet.min_percentage}%-{diet.max_percentage}%</span>
                   </label>
                 </div>
