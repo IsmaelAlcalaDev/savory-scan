@@ -2,21 +2,55 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { usePriceRanges } from '@/hooks/usePriceRanges';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCallback, memo } from 'react';
 
 interface PriceFilterProps {
   selectedPriceRanges: string[];
   onPriceRangeChange: (priceRanges: string[]) => void;
 }
 
-export default function PriceFilter({ selectedPriceRanges, onPriceRangeChange }: PriceFilterProps) {
+const PriceFilterOption = memo(({ 
+  range, 
+  isChecked, 
+  onToggle 
+}: { 
+  range: any; 
+  isChecked: boolean; 
+  onToggle: (value: string) => void;
+}) => {
+  const handleChange = useCallback(() => {
+    onToggle(range.value);
+  }, [onToggle, range.value]);
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Checkbox 
+        id={`price-${range.id}`}
+        checked={isChecked}
+        onCheckedChange={handleChange}
+      />
+      <label 
+        htmlFor={`price-${range.id}`}
+        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
+      >
+        {range.icon && <span>{range.icon}</span>}
+        {range.display_text}
+      </label>
+    </div>
+  );
+});
+
+PriceFilterOption.displayName = 'PriceFilterOption';
+
+function PriceFilter({ selectedPriceRanges, onPriceRangeChange }: PriceFilterProps) {
   const { priceRanges, loading, error } = usePriceRanges();
 
-  const handlePriceToggle = (priceValue: string) => {
+  const handlePriceToggle = useCallback((priceValue: string) => {
     const newSelected = selectedPriceRanges.includes(priceValue)
       ? selectedPriceRanges.filter(value => value !== priceValue)
       : [...selectedPriceRanges, priceValue];
     onPriceRangeChange(newSelected);
-  };
+  }, [selectedPriceRanges, onPriceRangeChange]);
 
   if (loading) {
     return (
@@ -36,21 +70,15 @@ export default function PriceFilter({ selectedPriceRanges, onPriceRangeChange }:
   return (
     <div className="space-y-3">
       {priceRanges.map((range) => (
-        <div key={range.id} className="flex items-center space-x-2">
-          <Checkbox 
-            id={`price-${range.id}`}
-            checked={selectedPriceRanges.includes(range.value)}
-            onCheckedChange={() => handlePriceToggle(range.value)}
-          />
-          <label 
-            htmlFor={`price-${range.id}`}
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
-          >
-            {range.icon && <span>{range.icon}</span>}
-            {range.display_text}
-          </label>
-        </div>
+        <PriceFilterOption
+          key={range.id}
+          range={range}
+          isChecked={selectedPriceRanges.includes(range.value)}
+          onToggle={handlePriceToggle}
+        />
       ))}
     </div>
   );
 }
+
+export default memo(PriceFilter);
