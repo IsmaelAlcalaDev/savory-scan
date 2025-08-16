@@ -8,15 +8,9 @@ interface MobileHeaderProps {
   appLogoUrl: string;
   currentLocationName: string;
   isLoadingLocation: boolean;
-  searchQuery: string;
-  searchPlaceholder: string;
-  isSearchFocused: boolean;
   onLogoClick: () => void;
   onLocationClick: () => void;
   onMenuClick: () => void;
-  onSearchChange: (value: string) => void;
-  onSearchFocus: () => void;
-  onSearchBlur: () => void;
 }
 
 export default function MobileHeader({
@@ -24,18 +18,12 @@ export default function MobileHeader({
   appLogoUrl,
   currentLocationName,
   isLoadingLocation,
-  searchQuery,
-  searchPlaceholder,
-  isSearchFocused,
   onLogoClick,
   onLocationClick,
-  onMenuClick,
-  onSearchChange,
-  onSearchFocus,
-  onSearchBlur
+  onMenuClick
 }: MobileHeaderProps) {
   return (
-    <div className="flex items-center justify-between py-1 px-4 sm:px-6 lg:px-8">
+    <div className="flex items-center justify-between py-1 px-4">
       {/* Logo - Smaller size */}
       <div className="flex items-center flex-shrink-0">
         <button onClick={onLogoClick} className="flex items-center">
