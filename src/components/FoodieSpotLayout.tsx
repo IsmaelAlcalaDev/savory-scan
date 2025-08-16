@@ -232,6 +232,41 @@ export default function FoodieSpotLayout({
     }
   };
 
+  const getResultsText = (count: number, loading: boolean) => {
+    if (loading) return 'Cargando...';
+    
+    if (activeBottomTab === 'dishes') {
+      if (userLocation) {
+        return `${count} platos cerca de ti`;
+      } else {
+        return `${count} platos en España`;
+      }
+    }
+    
+    // For restaurants tab
+    if (selectedEstablishmentTypes.length === 1) {
+      // Find the establishment type name
+      // For now, use generic text since we don't have establishment type names loaded
+      if (userLocation) {
+        return `${count} establecimientos cerca de ti`;
+      } else {
+        return `${count} establecimientos en España`;
+      }
+    } else if (selectedEstablishmentTypes.length > 1) {
+      if (userLocation) {
+        return `${count} establecimientos cerca de ti`;
+      } else {
+        return `${count} establecimientos en España`;
+      }
+    } else {
+      if (userLocation) {
+        return `${count} restaurantes cerca de ti`;
+      } else {
+        return `${count} restaurantes en España`;
+      }
+    }
+  };
+
   const {
     restaurants,
     loading: restaurantsLoading,
@@ -418,7 +453,7 @@ export default function FoodieSpotLayout({
           <div className="flex items-center justify-between mb-3 mt-3">
             <div>
               <h2 className="text-sm font-medium mb-1 text-muted-foreground">
-                {dishesLoading ? 'Cargando...' : `${dishes.length} resultados`}
+                {getResultsText(dishes.length, dishesLoading)}
               </h2>
               {dishesError && <p className="text-sm text-destructive mt-1">Error: {dishesError}</p>}
             </div>
@@ -458,7 +493,7 @@ export default function FoodieSpotLayout({
         <div className="flex items-center justify-between mb-3 mt-3">
           <div>
             <h2 className="text-sm font-medium mb-1 text-muted-foreground">
-              {restaurantsLoading ? 'Cargando...' : userLocation ? `${restaurants.length} restaurantes cerca de ti` : `${restaurants.length} restaurantes en España`}
+              {getResultsText(restaurants.length, restaurantsLoading)}
             </h2>
             {restaurantsError && <p className="text-sm text-destructive mt-1">Error: {restaurantsError}</p>}
           </div>
