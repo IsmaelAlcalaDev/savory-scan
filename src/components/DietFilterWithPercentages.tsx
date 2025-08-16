@@ -5,23 +5,105 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
+import { useCallback, memo, useMemo } from 'react';
 
 interface DietFilterWithPercentagesProps {
   selectedDietTypes: number[];
   onDietTypeChange: (types: number[]) => void;
 }
 
-export default function DietFilterWithPercentages({ selectedDietTypes, onDietTypeChange }: DietFilterWithPercentagesProps) {
+const DietOption = memo(({ 
+  diet, 
+  isChecked, 
+  onToggle 
+}: { 
+  diet: any; 
+  isChecked: boolean; 
+  onToggle: (id: number) => void;
+}) => {
+  const handleChange = useCallback(() => {
+    onToggle(diet.id);
+  }, [onToggle, diet.id]);
+
+  return (
+    <div className="flex items-start space-x-3">
+      <Checkbox 
+        id={`diet-${diet.id}`}
+        checked={isChecked}
+        onCheckedChange={handleChange}
+        className="mt-1"
+      />
+      <label 
+        htmlFor={`diet-${diet.id}`}
+        className="text-sm font-medium leading-relaxed cursor-pointer flex items-start gap-2 flex-1"
+      >
+        <span>{diet.min_percentage}%-{diet.max_percentage}%</span>
+      </label>
+    </div>
+  );
+});
+
+DietOption.displayName = 'DietOption';
+
+const DietCategorySection = memo(({ 
+  category, 
+  categoryIndex, 
+  totalCategories, 
+  selectedDietTypes, 
+  onDietToggle,
+  getCategoryDescription 
+}: { 
+  category: any; 
+  categoryIndex: number; 
+  totalCategories: number; 
+  selectedDietTypes: number[]; 
+  onDietToggle: (id: number) => void;
+  getCategoryDescription: (category: string) => string;
+}) => {
+  const description = useMemo(() => getCategoryDescription(category.category), [getCategoryDescription, category.category]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <h4 className="font-semibold text-base text-gray-900">{category.displayName}</h4>
+        <Tooltip>
+          <TooltipTrigger>
+            <Info className="h-4 w-4 text-gray-400" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-sm max-w-48">{description}</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+      
+      <div className="space-y-3 ml-2">
+        {category.options.map((diet: any) => (
+          <DietOption
+            key={diet.id}
+            diet={diet}
+            isChecked={selectedDietTypes.includes(diet.id)}
+            onToggle={onDietToggle}
+          />
+        ))}
+      </div>
+      {categoryIndex < totalCategories - 1 && <Separator className="mt-4" />}
+    </div>
+  );
+});
+
+DietCategorySection.displayName = 'DietCategorySection';
+
+function DietFilterWithPercentages({ selectedDietTypes, onDietTypeChange }: DietFilterWithPercentagesProps) {
   const { dietCategories, loading, error } = useDietTypes();
 
-  const handleDietToggle = (dietId: number) => {
+  const handleDietToggle = useCallback((dietId: number) => {
     const newSelected = selectedDietTypes.includes(dietId)
       ? selectedDietTypes.filter(id => id !== dietId)
       : [...selectedDietTypes, dietId];
     onDietTypeChange(newSelected);
-  };
+  }, [selectedDietTypes, onDietTypeChange]);
 
-  const getCategoryDescription = (category: string) => {
+  const getCategoryDescription = useCallback((category: string) => {
     const descriptions: Record<string, string> = {
       vegetarian: 'Platos que no contienen carne ni pescado',
       vegan: 'Platos completamente libres de productos animales',
@@ -29,7 +111,7 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
       healthy: 'Platos equilibrados y nutritivos'
     };
     return descriptions[category] || '';
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -77,41 +159,19 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
         </div>
 
         {dietCategories.map((category, categoryIndex) => (
-          <div key={category.category} className="space-y-4">
-            <div className="flex items-center gap-2">
-              <h4 className="font-semibold text-base text-gray-900">{category.displayName}</h4>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="h-4 w-4 text-gray-400" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-sm max-w-48">{getCategoryDescription(category.category)}</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            
-            <div className="space-y-3 ml-2">
-              {category.options.map((diet) => (
-                <div key={diet.id} className="flex items-start space-x-3">
-                  <Checkbox 
-                    id={`diet-${diet.id}`}
-                    checked={selectedDietTypes.includes(diet.id)}
-                    onCheckedChange={() => handleDietToggle(diet.id)}
-                    className="mt-1"
-                  />
-                  <label 
-                    htmlFor={`diet-${diet.id}`}
-                    className="text-sm font-medium leading-relaxed cursor-pointer flex items-start gap-2 flex-1"
-                  >
-                    <span>{diet.min_percentage}%-{diet.max_percentage}%</span>
-                  </label>
-                </div>
-              ))}
-            </div>
-            {categoryIndex < dietCategories.length - 1 && <Separator className="mt-4" />}
-          </div>
+          <DietCategorySection
+            key={category.category}
+            category={category}
+            categoryIndex={categoryIndex}
+            totalCategories={dietCategories.length}
+            selectedDietTypes={selectedDietTypes}
+            onDietToggle={handleDietToggle}
+            getCategoryDescription={getCategoryDescription}
+          />
         ))}
       </div>
     </TooltipProvider>
   );
 }
+
+export default memo(DietFilterWithPercentages);
