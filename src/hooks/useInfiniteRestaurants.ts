@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -52,10 +53,10 @@ export const useInfiniteRestaurants = ({
   enabled = true
 }: UseInfiniteRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Cambiar a false inicialmente
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(false); // Cambiar a false inicialmente
   const [currentPage, setCurrentPage] = useState(0);
   
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -227,18 +228,33 @@ export const useInfiniteRestaurants = ({
     }
   }, [fetchKey, searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly, itemsPerPage]);
 
-  // Initial fetch or when filters change - now respects enabled flag
+  // Reset state when enabled changes from false to true or when location changes
   useEffect(() => {
-    // Don't fetch if disabled
     if (!enabled) {
-      console.log('useInfiniteRestaurants: Fetch disabled, waiting for location...');
+      console.log('useInfiniteRestaurants: Disabled, clearing data...');
+      setRestaurants([]);
+      setLoading(false);
+      setError(null);
+      setHasMore(false);
+      setCurrentPage(0);
+      lastFetchRef.current = '';
+      
+      // Cancel any ongoing requests
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
       return;
     }
 
-    // Skip if parameters haven't changed
+    // Only fetch if enabled and parameters have changed
     if (lastFetchRef.current === fetchKey && restaurants.length > 0) {
       return;
     }
+
+    console.log('useInfiniteRestaurants: Starting fetch with location:', { userLat, userLng, enabled });
 
     // Clear existing timeout
     if (fetchTimeoutRef.current) {
@@ -253,6 +269,7 @@ export const useInfiniteRestaurants = ({
     setLoading(true);
     setError(null);
     setCurrentPage(0);
+    setRestaurants([]); // Clear restaurants immediately
 
     // Create new abort controller
     abortControllerRef.current = new AbortController();
@@ -277,7 +294,7 @@ export const useInfiniteRestaurants = ({
 
   // Load more function
   const loadMore = useCallback(() => {
-    if (loadingMore || !hasMore || loading) return;
+    if (loadingMore || !hasMore || loading || !enabled) return;
 
     setLoadingMore(true);
     const nextPage = currentPage + 1;
@@ -293,7 +310,7 @@ export const useInfiniteRestaurants = ({
     const currentController = abortControllerRef.current;
 
     fetchRestaurants(nextPage, currentController.signal, true);
-  }, [currentPage, hasMore, loading, loadingMore, fetchRestaurants]);
+  }, [currentPage, hasMore, loading, loadingMore, fetchRestaurants, enabled]);
 
   // Handle favorites updates (same as useOptimizedRestaurants)
   useEffect(() => {
@@ -354,8 +371,8 @@ export const useInfiniteRestaurants = ({
   return { 
     restaurants, 
     loading: enabled ? loading : false, 
-    loadingMore,
-    error, 
+    loadingMore: enabled ? loadingMore : false,
+    error: enabled ? error : null, 
     hasMore: enabled ? hasMore : false,
     loadMore,
     totalLoaded: restaurants.length
