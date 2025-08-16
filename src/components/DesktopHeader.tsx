@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -35,8 +35,21 @@ export default function DesktopHeader({
   onSearchFocus,
   onSearchBlur
 }: DesktopHeaderProps) {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="flex items-center justify-between py-1.5 px-4 lg:py-2 xl:py-2.5 bg-white shadow-sm border-b border-gray-100">
+    <div className={`flex items-center justify-between py-1.5 px-4 lg:py-2 xl:py-2.5 bg-white transition-all duration-200 ${
+      isScrolled ? 'shadow-sm border-b border-gray-100' : ''
+    }`}>
       {/* Left Section: Logo - Responsive sizing */}
       <div className="flex items-center flex-shrink-0 relative">
         <button onClick={onLogoClick} className="flex items-center">
