@@ -79,28 +79,6 @@ export default function FilterTags({
     isHighRated ||
     isBudgetFriendly;
 
-  const getHighRatedButtonText = () => {
-    // Only apply dynamic text logic for restaurants tab
-    if (activeTab !== 'restaurants') {
-      return '+4.5';
-    }
-
-    // If no establishment types are selected, default to "Restaurante"
-    if (selectedEstablishmentTypes.length === 0) {
-      return 'Restaurante +4.5';
-    }
-
-    // If one establishment type is selected, use its name
-    if (selectedEstablishmentTypes.length === 1) {
-      const selectedType = establishmentTypes.find(type => type.id === selectedEstablishmentTypes[0]);
-      return selectedType ? `${selectedType.name} +4.5` : 'Restaurante +4.5';
-    }
-
-    // If multiple types are selected, use the first one
-    const firstType = establishmentTypes.find(type => type.id === selectedEstablishmentTypes[0]);
-    return firstType ? `${firstType.name} +4.5` : 'Restaurante +4.5';
-  };
-
   const getFilterIcon = (filterKey: string) => {
     switch (filterKey) {
       case 'price': return Euro;
@@ -395,7 +373,7 @@ export default function FilterTags({
             }}
           >
             <Star className={`h-3 w-3 ${isHighRated ? 'text-white fill-white' : 'text-black'}`} />
-            {getHighRatedButtonText()}
+            Top
           </Button>
 
           {/* Open Now Quick Filter Button */}
