@@ -4,46 +4,37 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import DishFavoriteButton from './DishFavoriteButton';
 
-interface DishData {
+interface AllDishCardProps {
   id: number;
   name: string;
   description?: string;
-  base_price: number;
-  image_url?: string;
-  image_alt?: string;
-  is_featured: boolean;
-  is_vegetarian: boolean;
-  is_vegan: boolean;
-  is_gluten_free: boolean;
-  is_healthy: boolean;
-  spice_level: number;
-  preparation_time_minutes?: number;
-  favorites_count: number;
-  category_name?: string;
-  restaurant_id: number;
-  restaurant_name: string;
-  restaurant_slug: string;
-  restaurant_latitude: number;
-  restaurant_longitude: number;
-  restaurant_price_range: string;
-  restaurant_google_rating?: number;
-  distance_km?: number;
-  formatted_price: string;
-  custom_tags: string[];
-  allergens: string[];
-}
-
-interface AllDishCardProps {
-  dish: DishData;
-  showRestaurantInfo?: boolean;
+  basePrice: number;
+  imageUrl?: string;
+  categoryName?: string;
+  restaurantName: string;
+  restaurantSlug: string;
+  restaurantId: number;
+  restaurantRating?: number;
+  distance?: number;
+  formattedPrice: string;
   onClick?: () => void;
   className?: string;
   layout?: 'grid' | 'list';
 }
 
 export default function AllDishCard({
-  dish,
-  showRestaurantInfo = false,
+  id,
+  name,
+  description,
+  basePrice,
+  imageUrl,
+  categoryName,
+  restaurantName,
+  restaurantSlug,
+  restaurantId,
+  restaurantRating,
+  distance,
+  formattedPrice,
   onClick,
   className,
   layout = 'grid'
@@ -53,7 +44,7 @@ export default function AllDishCard({
       onClick();
     } else {
       // Navigate to restaurant profile since we don't have individual dish pages
-      window.location.href = `/restaurant/${dish.restaurant_slug}`;
+      window.location.href = `/restaurant/${restaurantSlug}`;
     }
   };
 
@@ -74,10 +65,10 @@ export default function AllDishCard({
         onClick={handleClick}
       >
         <div className="w-24 h-24 relative overflow-hidden rounded-lg flex-shrink-0">
-          {dish.image_url ? (
+          {imageUrl ? (
             <img 
-              src={dish.image_url} 
-              alt={dish.image_alt || dish.name}
+              src={imageUrl} 
+              alt={name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
@@ -87,22 +78,22 @@ export default function AllDishCard({
           ) : null}
           <div className={cn(
             "absolute inset-0 transition-smooth",
-            dish.image_url ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
+            imageUrl ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
           )} />
           
-          {dish.category_name && (
+          {categoryName && (
             <div className="absolute top-2 left-2">
               <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
-                {dish.category_name}
+                {categoryName}
               </Badge>
             </div>
           )}
 
           <div className="absolute bottom-2 right-2 z-20">
             <DishFavoriteButton
-              dishId={dish.id}
-              restaurantId={dish.restaurant_id}
-              favoritesCount={dish.favorites_count}
+              dishId={id}
+              restaurantId={restaurantId}
+              favoritesCount={0}
               size="sm"
               className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
               savedFrom="list_card"
@@ -113,28 +104,24 @@ export default function AllDishCard({
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-base line-clamp-1 transition-smooth">
-              {dish.name}
+              {name}
             </h3>
-            {dish.restaurant_google_rating && (
+            {restaurantRating && (
               <div className="flex items-center gap-1 flex-shrink-0">
                 <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                <span className="font-medium text-foreground text-sm">{dish.restaurant_google_rating}</span>
+                <span className="font-medium text-foreground text-sm">{restaurantRating}</span>
               </div>
             )}
           </div>
           
           <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-            {showRestaurantInfo && (
-              <>
-                <span className="line-clamp-1">{dish.restaurant_name}</span>
-                <span>•</span>
-              </>
-            )}
-            <span className="text-foreground font-medium">{dish.formatted_price}</span>
-            {dish.distance_km && (
+            <span className="line-clamp-1">{restaurantName}</span>
+            <span>•</span>
+            <span className="text-foreground font-medium">{formattedPrice}</span>
+            {distance && (
               <>
                 <span>•</span>
-                <span className="flex-shrink-0">{formatDistance(dish.distance_km)}</span>
+                <span className="flex-shrink-0">{formatDistance(distance)}</span>
               </>
             )}
           </div>
@@ -152,10 +139,10 @@ export default function AllDishCard({
       onClick={handleClick}
     >
       <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
-        {dish.image_url ? (
+        {imageUrl ? (
           <img 
-            src={dish.image_url} 
-            alt={dish.image_alt || dish.name}
+            src={imageUrl} 
+            alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -165,22 +152,22 @@ export default function AllDishCard({
         ) : null}
         <div className={cn(
           "absolute inset-0 transition-smooth",
-          dish.image_url ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
+          imageUrl ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
         )} />
         
-        {dish.category_name && (
+        {categoryName && (
           <div className="absolute top-3 left-3">
             <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
-              {dish.category_name}
+              {categoryName}
             </Badge>
           </div>
         )}
 
         <div className="absolute bottom-3 right-3 z-20">
           <DishFavoriteButton
-            dishId={dish.id}
-            restaurantId={dish.restaurant_id}
-            favoritesCount={dish.favorites_count}
+            dishId={id}
+            restaurantId={restaurantId}
+            favoritesCount={0}
             size="md"
             className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
             savedFrom="grid_card"
@@ -191,28 +178,24 @@ export default function AllDishCard({
       <div className="space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-semibold text-base line-clamp-2 transition-smooth">
-            {dish.name}
+            {name}
           </h3>
-          {dish.restaurant_google_rating && (
+          {restaurantRating && (
             <div className="flex items-center gap-1 flex-shrink-0">
               <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              <span className="font-medium text-foreground text-sm">{dish.restaurant_google_rating}</span>
+              <span className="font-medium text-foreground text-sm">{restaurantRating}</span>
             </div>
           )}
         </div>
         
         <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-          {showRestaurantInfo && (
-            <>
-              <span className="line-clamp-1">{dish.restaurant_name}</span>
-              <span>•</span>
-            </>
-          )}
-          <span className="text-foreground font-medium">{dish.formatted_price}</span>
-          {dish.distance_km && (
+          <span className="line-clamp-1">{restaurantName}</span>
+          <span>•</span>
+          <span className="text-foreground font-medium">{formattedPrice}</span>
+          {distance && (
             <>
               <span>•</span>
-              <span className="flex-shrink-0">{formatDistance(dish.distance_km)}</span>
+              <span className="flex-shrink-0">{formatDistance(distance)}</span>
             </>
           )}
         </div>
