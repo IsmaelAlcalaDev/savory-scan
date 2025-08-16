@@ -10,7 +10,7 @@ import {
 import PriceFilter from './PriceFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import DietFilter from './DietFilter';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 interface FilterTagsProps {
   activeTab: 'restaurants' | 'dishes';
@@ -130,7 +130,24 @@ export default function FilterTags({
     }
   };
 
-  const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
+  const handleOpenModal = useCallback((filterKey: string) => {
+    setActiveFilterModal(filterKey);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setActiveFilterModal(null);
+  }, []);
+
+  const handleApplyFilters = useCallback(() => {
+    setActiveFilterModal(null);
+  }, []);
+
+  const handleResetFilters = useCallback(() => {
+    onClearFilter('all');
+    setActiveFilterModal(null);
+  }, [onClearFilter]);
+
+  const FilterContent = ({ filterKey }: { filterKey: string }) => (
     <div className="flex flex-col h-full">
       {/* Title */}
       <div className="text-center py-4 border-b border-gray-100 flex-shrink-0">
@@ -147,13 +164,13 @@ export default function FilterTags({
       {/* Bottom buttons - fixed at bottom */}
       <div className="flex-shrink-0 p-4 space-y-3 border-t border-gray-100 bg-background">
         <Button 
-          onClick={onApply}
+          onClick={handleApplyFilters}
           className="w-full h-12 text-base"
         >
           Aplicar filtros
         </Button>
         <Button 
-          onClick={onReset}
+          onClick={handleResetFilters}
           variant="ghost"
           className="w-full h-12 text-base bg-transparent border-0"
         >
@@ -170,16 +187,12 @@ export default function FilterTags({
   ];
 
   const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
-    const handleOpenChange = (open: boolean) => {
-      setActiveFilterModal(open ? filterKey : null);
-    };
-
     const FilterIcon = getFilterIcon(filterKey);
     const isActive = isFilterActive(filterKey);
     const count = getFilterCount(filterKey);
 
     return (
-      <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
+      <>
         <Button
           variant="outline"
           size="sm"
@@ -199,7 +212,7 @@ export default function FilterTags({
             fontSize: '14px',
             fontWeight: '600'
           }}
-          onClick={() => handleOpenChange(true)}
+          onClick={() => handleOpenModal(filterKey)}
           onMouseEnter={(e) => {
             if (!isActive) {
               e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
@@ -216,21 +229,24 @@ export default function FilterTags({
           {count > 0 && ` (${count})`}
           <ChevronDown className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
         </Button>
-        <SheetContent 
-          side="bottom" 
-          className={`p-0 ${
-            isMobile 
-              ? 'h-[100dvh] rounded-none max-h-[100dvh]' 
-              : 'rounded-t-[20px] rounded-b-none h-[80vh] max-h-[80vh]'
-          }`}
-        >
-          <FilterContent 
-            filterKey={filterKey}
-            onApply={() => setActiveFilterModal(null)} 
-            onReset={() => onClearFilter('all')} 
-          />
-        </SheetContent>
-      </Sheet>
+
+        <Sheet open={activeFilterModal === filterKey} onOpenChange={(open) => {
+          if (!open) {
+            handleCloseModal();
+          }
+        }}>
+          <SheetContent 
+            side="bottom" 
+            className={`p-0 ${
+              isMobile 
+                ? 'h-[100dvh] rounded-none max-h-[100dvh]' 
+                : 'rounded-t-[20px] rounded-b-none h-[80vh] max-h-[80vh]'
+            }`}
+          >
+            <FilterContent filterKey={filterKey} />
+          </SheetContent>
+        </Sheet>
+      </>
     );
   };
 
