@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -52,22 +51,18 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
     window.open(url, '_blank');
   };
 
-  const renderFlag = (language: any, size = 20) => {
+  const renderFlag = (language: any) => {
     if (language.flag_url) {
       return (
-        <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
-          <img
-            src={language.flag_url}
-            alt={`${language.name} flag`}
-            className="w-full h-full object-cover"
-            width={size}
-            height={size}
-          />
-        </div>
+        <img
+          src={language.flag_url}
+          alt={`${language.name} flag`}
+          className="w-4 h-4 rounded-sm object-cover flex-shrink-0"
+        />
       );
     }
     return (
-      <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium flex-shrink-0">
+      <div className="w-4 h-4 rounded-sm bg-gray-200 flex items-center justify-center text-xs font-medium flex-shrink-0">
         {language.code.toUpperCase()}
       </div>
     );
@@ -75,27 +70,27 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
 
   const MenuContent = (
     <div className="p-4 space-y-4 sm:space-y-6 h-full">
-      {/* Selector de idioma - Rediseñado */}
+      {/* Selector de idioma - Estilo lista con texto */}
       <div>
         <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
           <Languages className="h-4 w-4 sm:h-5 sm:w-5" />
           Idioma
         </h3>
         {!isLoading && languages.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {languages.map((language: any) => (
               <button
                 key={language.id}
                 onClick={() => handleLanguageChange(language)}
-                className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all text-left ${
+                className={`w-full flex items-center justify-between px-2 py-2 rounded-md transition-colors text-left hover:bg-gray-50 ${
                   selectedLanguage?.id === language.id
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    ? 'text-primary bg-primary/5'
+                    : 'text-foreground'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  {renderFlag(language, 20)}
-                  <span className="text-sm font-medium">{language.name}</span>
+                  {renderFlag(language)}
+                  <span className="text-sm">{language.name}</span>
                 </div>
                 {selectedLanguage?.id === language.id && (
                   <Check className="h-4 w-4 text-primary" />
