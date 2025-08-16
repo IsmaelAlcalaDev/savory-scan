@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -40,7 +39,7 @@ interface UseDishesParams {
   selectedPriceRanges?: string[];
   selectedFoodTypes?: number[];
   selectedCustomTags?: string[];
-  spiceLevels?: number[];
+  selectedSpiceLevels?: number[];
 }
 
 const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -78,7 +77,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedPriceRanges = [],
     selectedFoodTypes = [],
     selectedCustomTags = [],
-    spiceLevels = []
+    selectedSpiceLevels = []
   } = params;
 
   // Create a stable key for the current fetch parameters
@@ -91,7 +90,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedPriceRanges,
     selectedFoodTypes,
     selectedCustomTags,
-    spiceLevels
+    selectedSpiceLevels
   });
 
   const fetchDishes = useCallback(async (signal: AbortSignal) => {
@@ -278,9 +277,9 @@ export const useDishes = (params: UseDishesParams = {}) => {
       }
 
       // Spice level filters
-      if (spiceLevels.length > 0) {
+      if (selectedSpiceLevels.length > 0) {
         filteredDishes = filteredDishes.filter(dish =>
-          spiceLevels.includes(dish.spice_level)
+          selectedSpiceLevels.includes(dish.spice_level)
         );
       }
 
@@ -311,7 +310,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       setDishes([]);
       setLoading(false);
     }
-  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels]);
+  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, selectedSpiceLevels]);
 
   useEffect(() => {
     // Skip if the fetch key hasn't changed (prevents infinite loops)
