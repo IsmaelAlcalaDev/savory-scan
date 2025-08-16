@@ -275,9 +275,13 @@ export const useRestaurants = ({
           if (dietTypesError) {
             console.error('Error fetching diet types:', dietTypesError);
           } else if (dietTypesData && dietTypesData.length > 0) {
+            console.log('Diet types being applied:', dietTypesData);
+            
             const restaurantIds = formattedData.map(r => r.id);
             
             if (restaurantIds.length > 0) {
+              console.log('Fetching dishes for restaurants:', restaurantIds);
+              
               const { data: dishesData, error: dishesError } = await supabase
                 .from('dishes')
                 .select('restaurant_id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
@@ -288,6 +292,8 @@ export const useRestaurants = ({
               if (dishesError) {
                 console.error('Error fetching dishes for diet filtering:', dishesError);
               } else if (dishesData) {
+                console.log('Dishes data retrieved:', dishesData.length, 'dishes');
+                
                 const dishesByRestaurant: Record<number, any[]> = {};
                 dishesData.forEach(dish => {
                   if (!dishesByRestaurant[dish.restaurant_id]) {
@@ -296,29 +302,47 @@ export const useRestaurants = ({
                   dishesByRestaurant[dish.restaurant_id].push(dish);
                 });
 
-                // For the quick filter, we need AND logic - restaurant must pass ALL diet types
+                console.log('Dishes grouped by restaurant:', dishesByRestaurant);
+
+                // For diet filtering, we need AND logic - restaurant must pass ALL diet types
                 const validRestaurantIds = new Set<number>();
 
-                // Initialize with all restaurants that have dishes
+                // Get all restaurants that have dishes
                 const restaurantsWithDishes = Object.keys(dishesByRestaurant).map(id => parseInt(id));
+                console.log('Restaurants with dishes:', restaurantsWithDishes);
                 
                 // For each restaurant, check if it passes ALL selected diet types
                 restaurantsWithDishes.forEach(restaurantId => {
                   const dishes = dishesByRestaurant[restaurantId];
                   let passesAllDietTypes = true;
                   
+                  console.log(`\n--- Checking Restaurant ${restaurantId} ---`);
+                  console.log(`Total dishes: ${dishes.length}`);
+                  
                   // Check each diet type - restaurant must pass ALL of them (AND logic)
                   for (const dietType of dietTypesData) {
                     const percentage = calculateDietPercentage(dishes, dietType.category);
                     
-                    console.log(`Restaurant ${restaurantId}, Diet ${dietType.name}: ${percentage}% (required: ${dietType.min_percentage}-${dietType.max_percentage}%)`);
+                    console.log(`Diet ${dietType.name} (${dietType.category}): ${percentage}% (required: ${dietType.min_percentage}-${dietType.max_percentage}%)`);
+                    
+                    // Debug: show matching dishes
+                    const matchingDishes = dishes.filter(dish => {
+                      switch (dietType.category) {
+                        case 'vegetarian': return dish.is_vegetarian;
+                        case 'vegan': return dish.is_vegan;
+                        case 'gluten_free': return dish.is_gluten_free;
+                        case 'healthy': return dish.is_healthy;
+                        default: return false;
+                      }
+                    });
+                    console.log(`  -> ${matchingDishes.length} out of ${dishes.length} dishes match ${dietType.category}`);
                     
                     if (percentage < dietType.min_percentage || percentage > dietType.max_percentage) {
                       passesAllDietTypes = false;
-                      console.log(`✗ Restaurant ${restaurantId} fails diet filter ${dietType.name}`);
+                      console.log(`✗ Restaurant ${restaurantId} FAILS diet filter ${dietType.name} (${percentage}% not in range ${dietType.min_percentage}-${dietType.max_percentage}%)`);
                       break; // No need to check other diet types
                     } else {
-                      console.log(`✓ Restaurant ${restaurantId} passes diet filter ${dietType.name}`);
+                      console.log(`✓ Restaurant ${restaurantId} PASSES diet filter ${dietType.name} (${percentage}% in range ${dietType.min_percentage}-${dietType.max_percentage}%)`);
                     }
                   }
                   
@@ -330,7 +354,7 @@ export const useRestaurants = ({
                   }
                 });
 
-                console.log('Restaurants that pass ALL diet filters (AND logic):', Array.from(validRestaurantIds));
+                console.log('Final restaurants that pass ALL diet filters (AND logic):', Array.from(validRestaurantIds));
                 
                 formattedData = formattedData.filter(restaurant => 
                   validRestaurantIds.has(restaurant.id)
