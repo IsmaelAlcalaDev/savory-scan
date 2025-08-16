@@ -231,11 +231,36 @@ export const useRestaurants = ({
         
         // Add the basic vegetarian/vegan diet types when quick filter is active
         if (isVegetarianVegan) {
-          console.log('Vegetarian/vegan quick filter active, adding basic diet types');
-          // Add the specific IDs for basic vegetarian (15%) and vegan (10%) options
-          const basicVegDietTypes = [14, 17]; // IDs for "Opciones vegetarianas" and "Opciones veganas"
-          effectiveDietTypes = [...effectiveDietTypes, ...basicVegDietTypes];
-          console.log('Added basic vegetarian/vegan diet type IDs:', basicVegDietTypes);
+          console.log('Vegetarian/vegan quick filter active, fetching basic diet types with lowest percentages');
+          
+          // Fetch the diet types with lowest min_percentage for vegetarian and vegan categories
+          const { data: basicVegDietTypes, error: vegDietError } = await supabase
+            .from('diet_types')
+            .select('id, name, category, min_percentage, max_percentage')
+            .in('category', ['vegetarian', 'vegan'])
+            .order('category, min_percentage');
+
+          if (vegDietError) {
+            console.error('Error fetching vegetarian/vegan diet types:', vegDietError);
+          } else if (basicVegDietTypes && basicVegDietTypes.length > 0) {
+            // Get the diet types with the lowest min_percentage for each category
+            const vegetarianTypes = basicVegDietTypes.filter(dt => dt.category === 'vegetarian');
+            const veganTypes = basicVegDietTypes.filter(dt => dt.category === 'vegan');
+            
+            const lowestVegetarian = vegetarianTypes.length > 0 ? vegetarianTypes[0] : null;
+            const lowestVegan = veganTypes.length > 0 ? veganTypes[0] : null;
+            
+            const basicDietTypeIds = [];
+            if (lowestVegetarian) basicDietTypeIds.push(lowestVegetarian.id);
+            if (lowestVegan) basicDietTypeIds.push(lowestVegan.id);
+            
+            effectiveDietTypes = [...effectiveDietTypes, ...basicDietTypeIds];
+            console.log('Added basic vegetarian/vegan diet type IDs:', basicDietTypeIds);
+            console.log('Basic diet types details:', {
+              vegetarian: lowestVegetarian,
+              vegan: lowestVegan
+            });
+          }
         }
 
         if (effectiveDietTypes && effectiveDietTypes.length > 0) {
