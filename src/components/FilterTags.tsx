@@ -382,7 +382,7 @@ export const ResetFiltersButton = ({ hasActiveFilters, onClearAll }: { hasActive
     <Button
       variant="ghost"
       size="sm"
-      className="flex items-center gap-1 text-xs bg-black text-white h-auto p-2 rounded-full"
+      className="flex items-center gap-1 text-xs text-black h-auto p-2 hover:bg-transparent bg-transparent"
       onClick={onClearAll}
     >
       <RotateCcw className="h-3 w-3" />
