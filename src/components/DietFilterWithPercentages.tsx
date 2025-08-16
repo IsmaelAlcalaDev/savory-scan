@@ -1,3 +1,4 @@
+
 import { Checkbox } from '@/components/ui/checkbox';
 import { useDietTypes } from '@/hooks/useDietTypes';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -69,8 +70,8 @@ export default function DietFilterWithPercentages({ selectedDietTypes, onDietTyp
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-          <p className="text-xs text-blue-700">
+        <div className="bg-green-50 border border-green-200 rounded-md p-3">
+          <p className="text-xs text-green-700">
             💡 Los porcentajes indican la proporción de platos del menú que cumplen cada criterio
           </p>
         </div>
