@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface NearestLocationResult {
@@ -9,8 +8,32 @@ interface NearestLocationResult {
   parent?: string;
 }
 
+interface LocationData {
+  latitude: number;
+  longitude: number;
+  name?: string;
+}
+
 export const useNearestLocation = () => {
   const [loading, setLoading] = useState(false);
+  const [location, setLocation] = useState<LocationData | null>(null);
+
+  useEffect(() => {
+    // Get user's current location on mount
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.log('Error getting location:', error);
+        }
+      );
+    }
+  }, []);
 
   const findNearestLocation = async (latitude: number, longitude: number): Promise<NearestLocationResult | null> => {
     setLoading(true);
@@ -111,6 +134,13 @@ export const useNearestLocation = () => {
         current.distance < prev.distance ? current : prev
       );
 
+      // Update location state with the found location
+      setLocation({
+        latitude,
+        longitude,
+        name: nearest?.name,
+      });
+
       console.log('Nearest location found:', nearest);
       return nearest;
 
@@ -122,7 +152,7 @@ export const useNearestLocation = () => {
     }
   };
 
-  return { findNearestLocation, loading };
+  return { location, findNearestLocation, loading };
 };
 
 // Función para calcular distancia usando la fórmula de Haversine

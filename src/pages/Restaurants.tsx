@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { SearchBar } from '@/components/SearchBar';
+import SearchBar from '@/components/SearchBar';
 import { QuickActionTags } from '@/components/QuickActionTags';
-import { RestaurantCard } from '@/components/RestaurantCard';
-import { FilterTags } from '@/components/FilterTags';
-import { UnifiedFiltersModal } from '@/components/UnifiedFiltersModal';
-import { ViewModeToggle } from '@/components/ViewModeToggle';
+import RestaurantCard from '@/components/RestaurantCard';
+import FilterTags from '@/components/FilterTags';
+import UnifiedFiltersModal from '@/components/UnifiedFiltersModal';
+import ViewModeToggle from '@/components/ViewModeToggle';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useNearestLocation } from '@/hooks/useNearestLocation';
 import { Loader2 } from 'lucide-react';
