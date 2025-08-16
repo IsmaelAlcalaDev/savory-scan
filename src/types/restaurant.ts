@@ -1,4 +1,5 @@
 
+
 export interface Restaurant {
   id: number;
   name: string;
@@ -12,6 +13,8 @@ export interface Restaurant {
   establishment_type?: string;
   services: string[];
   favorites_count: number;
+  cover_image_url?: string;
+  logo_url?: string;
 }
 
 export interface RestaurantService {
@@ -20,3 +23,4 @@ export interface RestaurantService {
   icon?: string;
   description?: string;
 }
+
