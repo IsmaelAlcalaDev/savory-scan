@@ -104,8 +104,6 @@ export const useRestaurants = ({
           console.log('Budget-friendly filter active, filtering by € only');
         }
 
-        // For budget-friendly filter, we'll filter directly by price_range = '€'
-        // No need to convert to display_text since we're filtering by the stored value
         let query = supabase
           .from('restaurants')
           .select(`
@@ -226,9 +224,11 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
+        // Apply diet type filters
         if (selectedDietTypes && selectedDietTypes.length > 0) {
           console.log('Applying diet type filter for IDs:', selectedDietTypes);
           
+          // Get diet types data to understand the filtering criteria
           const { data: dietTypesData, error: dietTypesError } = await supabase
             .from('diet_types')
             .select('*')
@@ -237,9 +237,12 @@ export const useRestaurants = ({
           if (dietTypesError) {
             console.error('Error fetching diet types:', dietTypesError);
           } else if (dietTypesData && dietTypesData.length > 0) {
+            console.log('Diet types to apply:', dietTypesData);
+            
             const restaurantIds = formattedData.map(r => r.id);
             
             if (restaurantIds.length > 0) {
+              // Get all dishes for these restaurants
               const { data: dishesData, error: dishesError } = await supabase
                 .from('dishes')
                 .select('restaurant_id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
@@ -250,6 +253,9 @@ export const useRestaurants = ({
               if (dishesError) {
                 console.error('Error fetching dishes for diet filtering:', dishesError);
               } else if (dishesData) {
+                console.log('Dishes data for diet filtering:', dishesData.length, 'dishes found');
+                
+                // Group dishes by restaurant
                 const dishesByRestaurant: Record<number, any[]> = {};
                 dishesData.forEach(dish => {
                   if (!dishesByRestaurant[dish.restaurant_id]) {
@@ -258,24 +264,41 @@ export const useRestaurants = ({
                   dishesByRestaurant[dish.restaurant_id].push(dish);
                 });
 
-                const filteredRestaurantIds = new Set<number>();
+                console.log('Dishes grouped by restaurant:', Object.keys(dishesByRestaurant).length, 'restaurants have dishes');
 
-                dietTypesData.forEach((dietType: any) => {
-                  Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
-                    const restaurantId = parseInt(restaurantIdStr);
+                // Filter restaurants that meet ALL selected diet type criteria
+                const validRestaurantIds = new Set<number>();
+
+                // For each restaurant, check if it meets ALL diet type requirements
+                Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
+                  const restaurantId = parseInt(restaurantIdStr);
+                  let meetsAllCriteria = true;
+
+                  // Check each selected diet type
+                  for (const dietType of dietTypesData) {
                     const percentage = calculateDietPercentage(dishes, dietType.category);
+                    console.log(`Restaurant ${restaurantId} - ${dietType.category}: ${percentage}% (need ${dietType.min_percentage}%-${dietType.max_percentage}%)`);
                     
-                    if (percentage >= dietType.min_percentage && percentage <= dietType.max_percentage) {
-                      filteredRestaurantIds.add(restaurantId);
+                    if (percentage < dietType.min_percentage || percentage > dietType.max_percentage) {
+                      meetsAllCriteria = false;
+                      break;
                     }
-                  });
+                  }
+
+                  if (meetsAllCriteria) {
+                    validRestaurantIds.add(restaurantId);
+                    console.log(`Restaurant ${restaurantId} meets all diet criteria`);
+                  }
                 });
 
+                console.log('Valid restaurants after diet filtering:', validRestaurantIds.size, 'out of', formattedData.length);
+
+                // Filter the restaurants array
                 formattedData = formattedData.filter(restaurant => 
-                  filteredRestaurantIds.has(restaurant.id)
+                  validRestaurantIds.has(restaurant.id)
                 );
                 
-                console.log('Restaurants after diet filtering:', formattedData.length);
+                console.log('Final restaurants after diet filtering:', formattedData.length);
               }
             }
           }
