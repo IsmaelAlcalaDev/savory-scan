@@ -65,7 +65,7 @@ export default function TabletHeader({
         {/* Search */}
         <div className="flex-1 max-w-md">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{ color: '#4B4B4B' }} />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10 text-black" />
             <Input
               type="text"
               placeholder={searchPlaceholder}
@@ -73,10 +73,9 @@ export default function TabletHeader({
               onChange={(e) => onSearchChange(e.target.value)}
               onFocus={onSearchFocus}
               onBlur={onSearchBlur}
-              className="pl-10 pr-4 h-10 text-base rounded-full border-0 placeholder:text-[#4B4B4B]"
+              className="pl-10 pr-4 h-10 text-base rounded-full border-0 text-black placeholder:text-black"
               style={{ 
-                backgroundColor: '#F3F3F3',
-                color: '#4B4B4B'
+                backgroundColor: 'rgb(243, 243, 243)'
               }}
             />
           </div>
