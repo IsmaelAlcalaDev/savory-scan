@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useEnhancedRestaurants } from '@/hooks/useEnhancedRestaurants';
@@ -23,12 +23,12 @@ interface FoodieSpotLayoutProps {
 }
 
 export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes'>(initialTab);
-  const [restaurantSearchQuery, setRestaurantSearchQuery] = useState(searchParams.get('restaurantSearch') || '');
-  const [dishSearchQuery, setDishSearchQuery] = useState(searchParams.get('dishSearch') || '');
+  const [restaurantSearchQuery, setRestaurantSearchQuery] = useState('');
+  const [dishSearchQuery, setDishSearchQuery] = useState('');
   const debouncedRestaurantSearch = useDebounce(restaurantSearchQuery, 300);
   const debouncedDishSearch = useDebounce(dishSearchQuery, 300);
   const [selectedCuisineTypes, setSelectedCuisineTypes] = useState<number[]>([]);
@@ -84,30 +84,19 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
 
   const handleTabChange = useCallback((value: 'restaurants' | 'dishes') => {
     setActiveTab(value);
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('tab', value);
-    router.push(`/?${newParams.toString()}`, { scroll: false });
-  }, [router, searchParams]);
-
-  useEffect(() => {
-    const tabFromParams = searchParams.get('tab');
-    if (tabFromParams === 'restaurants' || tabFromParams === 'dishes') {
-      setActiveTab(tabFromParams);
+    if (value === 'restaurants') {
+      navigate('/restaurantes');
+    } else {
+      navigate('/platos');
     }
-  }, [searchParams]);
+  }, [navigate]);
 
   const handleRestaurantSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRestaurantSearchQuery(e.target.value);
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('restaurantSearch', e.target.value);
-    router.push(`/?${newParams.toString()}`, { scroll: false });
   };
 
-   const handleDishSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDishSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDishSearchQuery(e.target.value);
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('dishSearch', e.target.value);
-    router.push(`/?${newParams.toString()}`, { scroll: false });
   };
 
   const clearAllFilters = useCallback(() => {
@@ -288,22 +277,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
           )}
         </TabsContent>
         <TabsContent value="dishes" className="p-0 outline-none">
-          {dishesLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="aspect-[4/3] rounded-lg" />
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              ))}
-            </div>
-          ) : dishesError ? (
-            <p className="text-red-500">{dishesError}</p>
-          ) : (
-            <DishesGrid dishes={dishes} />
-          )}
+          <DishesGrid dishes={dishes} loading={dishesLoading} error={dishesError} />
         </TabsContent>
       </div>
     </div>
