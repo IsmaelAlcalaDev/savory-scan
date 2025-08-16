@@ -18,6 +18,7 @@ import DesktopHeader from './DesktopHeader';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import { useEstablishmentTypes } from '@/hooks/useEstablishmentTypes';
 import { Skeleton } from '@/components/ui/skeleton';
 import DishesGrid from './DishesGrid';
 import FilterTags, { ResetFiltersButton } from './FilterTags';
@@ -89,6 +90,9 @@ export default function FoodieSpotLayout({
   } = useAppSettings();
   const appName = appSettings?.appName ?? 'FoodieSpot';
   const appLogoUrl = appSettings?.logoUrl ?? 'https://w7.pngwing.com/pngs/256/867/png-transparent-zomato-logo-thumbnail.png';
+
+  // Load establishment types for dynamic text
+  const { establishmentTypes } = useEstablishmentTypes();
 
   // Cargar ubicación guardada o solicitar GPS
   useEffect(() => {
@@ -243,27 +247,30 @@ export default function FoodieSpotLayout({
       }
     }
     
-    // For restaurants tab
+    // For restaurants tab - show establishment type if selected
+    let establishmentText = 'restaurantes';
+    
     if (selectedEstablishmentTypes.length === 1) {
       // Find the establishment type name
-      // For now, use generic text since we don't have establishment type names loaded
-      if (userLocation) {
-        return `${count} establecimientos cerca de ti`;
-      } else {
-        return `${count} establecimientos en España`;
+      const selectedType = establishmentTypes.find(type => type.id === selectedEstablishmentTypes[0]);
+      if (selectedType) {
+        // Ensure it ends with 's' for plural
+        let typeName = selectedType.name.toLowerCase();
+        if (!typeName.endsWith('s')) {
+          typeName += 's';
+        }
+        establishmentText = typeName;
       }
     } else if (selectedEstablishmentTypes.length > 1) {
-      if (userLocation) {
-        return `${count} establecimientos cerca de ti`;
-      } else {
-        return `${count} establecimientos en España`;
-      }
+      // Multiple types selected, use generic "establecimientos"
+      establishmentText = 'establecimientos';
+    }
+    
+    // Return the text with location
+    if (userLocation) {
+      return `${count} ${establishmentText} cerca de ti`;
     } else {
-      if (userLocation) {
-        return `${count} restaurantes cerca de ti`;
-      } else {
-        return `${count} restaurantes en España`;
-      }
+      return `${count} ${establishmentText} en España`;
     }
   };
 
