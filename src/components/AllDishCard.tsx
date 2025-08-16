@@ -103,7 +103,7 @@ export default function AllDishCard({
 
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth">
+            <h3 className="font-semibold text-base line-clamp-1 transition-smooth">
               {name}
             </h3>
             {restaurantRating && (
@@ -177,7 +177,7 @@ export default function AllDishCard({
 
       <div className="space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-smooth">
+          <h3 className="font-semibold text-base line-clamp-2 transition-smooth">
             {name}
           </h3>
           {restaurantRating && (
