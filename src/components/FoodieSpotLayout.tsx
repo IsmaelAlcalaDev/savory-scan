@@ -57,6 +57,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     }
   };
 
+  // Cast para el bottom navigation que solo maneja restaurants y dishes
+  const handleBottomTabChange = (tab: "restaurants" | "dishes") => {
+    setActiveTab(tab);
+  };
+
   useEffect(() => {
     if (initialTab === 'account' && user) {
       setAccountModalOpen(true);
@@ -142,8 +147,8 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       {/* Bottom Navigation - Only on Mobile */}
       {isMobile && (
         <BottomNavigation
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
+          activeTab={activeTab === 'account' ? 'restaurants' : activeTab as "restaurants" | "dishes"}
+          onTabChange={handleBottomTabChange}
         />
       )}
 
