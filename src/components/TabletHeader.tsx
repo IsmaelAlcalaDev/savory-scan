@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { Search, MapPin, Menu, X } from 'lucide-react';
+import { Search, MapPin, Menu, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TabletHeaderProps {
   appName: string;
@@ -15,6 +17,7 @@ interface TabletHeaderProps {
   onLogoClick: () => void;
   onLocationClick: () => void;
   onMenuClick: () => void;
+  onAccountClick: () => void;
   onSearchChange: (value: string) => void;
   onSearchFocus: () => void;
   onSearchBlur: () => void;
@@ -31,10 +34,28 @@ export default function TabletHeader({
   onLogoClick,
   onLocationClick,
   onMenuClick,
+  onAccountClick,
   onSearchChange,
   onSearchFocus,
   onSearchBlur
 }: TabletHeaderProps) {
+  const { user } = useAuth();
+
+  const getUserInitials = (user: any) => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name
+        .split(' ')
+        .map((name: string) => name[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase();
+    }
+    return 'U';
+  };
+
   return (
     <div className="flex items-center justify-between py-1 px-6 gap-2">
       {/* Logo - Smaller size */}
@@ -82,8 +103,34 @@ export default function TabletHeader({
         </div>
       </div>
 
-      {/* Menu */}
-      <div className="flex items-center gap-4 flex-shrink-0">
+      {/* Right: Account and Menu */}
+      <div className="flex items-center gap-3 flex-shrink-0">
+        {/* Account Section */}
+        {user ? (
+          <button
+            onClick={onAccountClick}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage 
+                src={user.user_metadata?.avatar_url} 
+                alt="Profile" 
+              />
+              <AvatarFallback className="text-sm font-medium bg-gray-200 text-gray-700">
+                {getUserInitials(user)}
+              </AvatarFallback>
+            </Avatar>
+          </button>
+        ) : (
+          <Button
+            onClick={onAccountClick}
+            className="bg-black text-white hover:bg-gray-800 text-sm px-4 py-2 h-8 rounded-full transition-colors"
+          >
+            Registrarse
+          </Button>
+        )}
+
+        {/* Menu */}
         <button 
           className="p-1 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
           onClick={onMenuClick}

@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Menu } from 'lucide-react';
+import { Search, MapPin, Menu, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DesktopHeaderProps {
   appName: string;
@@ -15,6 +17,7 @@ interface DesktopHeaderProps {
   onLogoClick: () => void;
   onLocationClick: () => void;
   onMenuClick: () => void;
+  onAccountClick: () => void;
   onSearchChange: (value: string) => void;
   onSearchFocus: () => void;
   onSearchBlur: () => void;
@@ -31,11 +34,13 @@ export default function DesktopHeader({
   onLogoClick,
   onLocationClick,
   onMenuClick,
+  onAccountClick,
   onSearchChange,
   onSearchFocus,
   onSearchBlur
 }: DesktopHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,6 +50,21 @@ export default function DesktopHeader({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const getUserInitials = (user: any) => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name
+        .split(' ')
+        .map((name: string) => name[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase();
+    }
+    return 'U';
+  };
 
   return (
     <div className={`flex items-center justify-between py-1.5 px-24 lg:px-24 xl:px-32 2xl:px-48 lg:py-2 xl:py-2.5 bg-white transition-all duration-200 ${
@@ -99,8 +119,34 @@ export default function DesktopHeader({
         </div>
       </div>
 
-      {/* Right Section: Menu */}
-      <div className="flex items-center gap-4 flex-shrink-0">
+      {/* Right Section: Account and Menu */}
+      <div className="flex items-center gap-3 lg:gap-4 flex-shrink-0">
+        {/* Account Section */}
+        {user ? (
+          <button
+            onClick={onAccountClick}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <Avatar className="h-7 w-7 lg:h-8 lg:w-8 xl:h-9 xl:w-9">
+              <AvatarImage 
+                src={user.user_metadata?.avatar_url} 
+                alt="Profile" 
+              />
+              <AvatarFallback className="text-xs lg:text-sm font-medium bg-gray-200 text-gray-700">
+                {getUserInitials(user)}
+              </AvatarFallback>
+            </Avatar>
+          </button>
+        ) : (
+          <Button
+            onClick={onAccountClick}
+            className="bg-black text-white hover:bg-gray-800 text-xs lg:text-sm px-3 lg:px-4 py-1.5 lg:py-2 h-7 lg:h-8 xl:h-9 rounded-full transition-colors"
+          >
+            Registrarse
+          </Button>
+        )}
+
+        {/* Menu Button */}
         <button 
           className="p-1 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
           onClick={onMenuClick}
