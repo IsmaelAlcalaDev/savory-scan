@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Navigation, Utensils, Heart, Star } from 'lucide-react';
@@ -153,7 +152,7 @@ export default function LocationEntry() {
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
-                className="pl-12 pr-4 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-card text-lg placeholder:text-gray-400 focus:ring-2 focus:ring-white/50"
+                className="pl-12 pr-4 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-card text-lg placeholder:text-gray-400 focus:ring-2 focus:ring-white/50 rounded-full"
                 maxLength={50}
               />
             </div>
@@ -165,21 +164,14 @@ export default function LocationEntry() {
                   <div className="p-2">
                     {/* Opción de ubicación actual - siempre primera */}
                     <button
-                      className="w-full text-left p-3 hover:bg-blue-50 rounded-md transition-colors border-b border-gray-200"
+                      className="w-full text-left p-3 hover:bg-gray-100 rounded-md transition-colors border-b border-gray-200"
                       onClick={handleGPSLocation}
                       disabled={isLoadingGPS}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="bg-blue-100 p-2 rounded-full">
-                          <Navigation className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-blue-600">
-                            {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Te ayudamos a encontrar restaurantes cerca
-                          </div>
+                        <Navigation className="h-5 w-5 text-black" />
+                        <div className="font-medium text-black">
+                          {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
                         </div>
                       </div>
                     </button>
