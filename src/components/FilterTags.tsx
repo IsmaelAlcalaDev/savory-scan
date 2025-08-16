@@ -1,3 +1,4 @@
+
 import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -182,7 +183,7 @@ export default function FilterTags({
         <Button
           variant="outline"
           size="sm"
-          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative font-bold ${
+          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
               ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
               : 'text-black hover:bg-[#EAEAEA]'
@@ -190,11 +191,13 @@ export default function FilterTags({
           style={isActive ? { 
             backgroundColor: '#ef4444',
             color: 'white',
-            fontSize: '14px'
+            fontSize: '14px',
+            fontWeight: '600'
           } : { 
             backgroundColor: '#F3F3F3',
             color: 'black',
-            fontSize: '14px'
+            fontSize: '14px',
+            fontWeight: '600'
           }}
           onClick={() => handleOpenChange(true)}
         >
@@ -229,7 +232,7 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-bold ${
+            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isHighRated 
                 ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
                 : 'text-black hover:bg-[#EAEAEA]'
@@ -237,11 +240,13 @@ export default function FilterTags({
             style={isHighRated ? { 
               backgroundColor: '#ef4444',
               color: 'white',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontWeight: '600'
             } : { 
               backgroundColor: '#F3F3F3',
               color: 'black',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontWeight: '600'
             }}
             onClick={() => onHighRatedChange(!isHighRated)}
           >
@@ -253,7 +258,7 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-bold ${
+            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isOpenNow 
                 ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
                 : 'text-black hover:bg-[#EAEAEA]'
@@ -261,11 +266,13 @@ export default function FilterTags({
             style={isOpenNow ? { 
               backgroundColor: '#ef4444',
               color: 'white',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontWeight: '600'
             } : { 
               backgroundColor: '#F3F3F3',
               color: 'black',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontWeight: '600'
             }}
             onClick={() => onOpenNowChange(!isOpenNow)}
           >
@@ -277,7 +284,7 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-bold ${
+            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isBudgetFriendly 
                 ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
                 : 'text-black hover:bg-[#EAEAEA]'
@@ -285,11 +292,13 @@ export default function FilterTags({
             style={isBudgetFriendly ? { 
               backgroundColor: '#ef4444',
               color: 'white',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontWeight: '600'
             } : { 
               backgroundColor: '#F3F3F3',
               color: 'black',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontWeight: '600'
             }}
             onClick={() => onBudgetFriendlyChange(!isBudgetFriendly)}
           >
