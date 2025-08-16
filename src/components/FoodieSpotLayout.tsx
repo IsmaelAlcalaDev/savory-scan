@@ -14,6 +14,7 @@ import MenuModal from './MenuModal';
 import MobileHeader from './MobileHeader';
 import TabletHeader from './TabletHeader';
 import DesktopHeader from './DesktopHeader';
+import QuickFilters from './QuickFilters';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
@@ -239,7 +240,9 @@ export default function FoodieSpotLayout({
     isHighRated: isHighRated,
     selectedDistanceRangeIds: selectedDistance.length > 0 ? selectedDistance : undefined,
     selectedEstablishmentTypes: selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined,
-    selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined
+    selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
+    selectedTimeRanges: selectedTimeRanges.length > 0 ? selectedTimeRanges : undefined,
+    isOpenNow: isOpenNow
   });
   
   const {
@@ -357,6 +360,16 @@ export default function FoodieSpotLayout({
 
     if (activeBottomTab === 'dishes') {
       return <>
+          {/* Quick Filters */}
+          <QuickFilters
+            isOpenNow={isOpenNow}
+            onOpenNowChange={setIsOpenNow}
+            selectedPriceRanges={selectedPriceRanges}
+            onPriceRangeChange={setSelectedPriceRanges}
+            selectedDietTypes={selectedDietTypes}
+            onDietTypeChange={setSelectedDietTypes}
+          />
+
           {/* Filter Tags */}
           <FilterTags 
             activeTab="dishes" 
@@ -399,6 +412,16 @@ export default function FoodieSpotLayout({
 
     // Default restaurants content (siempre mostrar cuando no sea 'dishes')
     return <>
+        {/* Quick Filters */}
+        <QuickFilters
+          isOpenNow={isOpenNow}
+          onOpenNowChange={setIsOpenNow}
+          selectedPriceRanges={selectedPriceRanges}
+          onPriceRangeChange={setSelectedPriceRanges}
+          selectedDietTypes={selectedDietTypes}
+          onDietTypeChange={setSelectedDietTypes}
+        />
+
         {/* Filter Tags */}
         <FilterTags 
           activeTab="restaurants" 
