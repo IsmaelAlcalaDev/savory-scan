@@ -18,18 +18,14 @@ import SaveTicketModal from './SaveTicketModal';
 
 export default function OrderSimulatorModal() {
   const { 
-    isOpen, 
+    isSimulatorOpen,
     closeSimulator, 
     orderItems, 
     diners, 
     updateItemQuantity, 
-    removeItem, 
-    assignItemToDiner,
-    getSubtotal,
-    getTaxes,
+    removeDishFromOrder,
     getGrandTotal,
-    getItemsForDiner,
-    clearOrder
+    clearSimulator
   } = useOrderSimulator();
   
   const { user } = useAuth();
@@ -51,9 +47,16 @@ export default function OrderSimulatorModal() {
     return orderItems.reduce((sum, item) => sum + item.quantity, 0);
   }, [orderItems]);
 
-  const subtotal = getSubtotal();
-  const taxes = getTaxes();
-  const total = getGrandTotal();
+  // Calculate totals
+  const subtotal = useMemo(() => {
+    return orderItems.reduce((total, item) => {
+      const price = item.selectedVariant?.price || item.dish.base_price;
+      return total + (price * item.quantity);
+    }, 0);
+  }, [orderItems]);
+
+  const taxes = subtotal * 0.21; // 21% tax
+  const total = subtotal + taxes;
 
   const handleSaveTicket = () => {
     if (!user) {
@@ -74,7 +77,7 @@ export default function OrderSimulatorModal() {
 
     setIsSaving(true);
     try {
-      const result = await saveTicket(name);
+      const result = await saveTicket(name, orderItems, diners, total);
       if (result.success) {
         toast.success('Ticket guardado exitosamente');
         return { success: true };
@@ -97,7 +100,7 @@ export default function OrderSimulatorModal() {
 
   return (
     <>
-      <ModalWrapper open={isOpen} onOpenChange={closeSimulator}>
+      <ModalWrapper open={isSimulatorOpen} onOpenChange={closeSimulator}>
         <ModalContent className="max-w-4xl max-h-[90vh] overflow-hidden">
           <ModalHeader className="flex items-center justify-between">
             <ModalTitle className="flex items-center gap-2">
@@ -126,8 +129,11 @@ export default function OrderSimulatorModal() {
               
               <div className="flex flex-wrap gap-2">
                 {diners.map((diner) => {
-                  const dinerItems = getItemsForDiner(diner.id);
-                  const dinerTotal = dinerItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                  const dinerItems = orderItems.filter(item => item.dinerId === diner.id);
+                  const dinerTotal = dinerItems.reduce((sum, item) => {
+                    const price = item.selectedVariant?.price || item.dish.base_price;
+                    return sum + (price * item.quantity);
+                  }, 0);
                   
                   return (
                     <div key={diner.id} className="bg-muted rounded-lg p-3 min-w-[120px]">
@@ -145,21 +151,23 @@ export default function OrderSimulatorModal() {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Platos del Pedido</h3>
               {orderItems.map((item) => (
-                <div key={`${item.dishId}-${item.variant || 'default'}`} className="border rounded-lg p-4">
+                <div key={item.id} className="border rounded-lg p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h4 className="font-medium">{item.name}</h4>
-                      {item.variant && (
-                        <p className="text-sm text-muted-foreground">{item.variant}</p>
+                      <h4 className="font-medium">{item.dish.name}</h4>
+                      {item.selectedVariant && (
+                        <p className="text-sm text-muted-foreground">{item.selectedVariant.name}</p>
                       )}
-                      <p className="text-sm font-medium text-primary">{formatPrice(item.price)}</p>
+                      <p className="text-sm font-medium text-primary">
+                        {formatPrice(item.selectedVariant?.price || item.dish.base_price)}
+                      </p>
                     </div>
                     
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => updateItemQuantity(item.dishId, item.variant, Math.max(0, item.quantity - 1))}
+                        onClick={() => updateItemQuantity(item.id, Math.max(0, item.quantity - 1))}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
@@ -167,14 +175,14 @@ export default function OrderSimulatorModal() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => updateItemQuantity(item.dishId, item.variant, item.quantity + 1)}
+                        onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => removeItem(item.dishId, item.variant)}
+                        onClick={() => removeDishFromOrder(item.id)}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -184,25 +192,20 @@ export default function OrderSimulatorModal() {
                   {/* Diner Assignment */}
                   {diners.length > 0 && (
                     <div className="mt-3 pt-3 border-t">
-                      <p className="text-sm font-medium mb-2">Asignar a comensal:</p>
+                      <p className="text-sm font-medium mb-2">Asignado a:</p>
                       <div className="flex flex-wrap gap-2">
                         {diners.map((diner) => (
-                          <Button
+                          <div
                             key={diner.id}
-                            variant={item.assignedTo === diner.id ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => assignItemToDiner(item.dishId, item.variant, diner.id)}
+                            className={`px-2 py-1 rounded text-xs ${
+                              item.dinerId === diner.id 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-muted text-muted-foreground'
+                            }`}
                           >
                             {diner.name}
-                          </Button>
+                          </div>
                         ))}
-                        <Button
-                          variant={!item.assignedTo ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => assignItemToDiner(item.dishId, item.variant, null)}
-                        >
-                          Sin asignar
-                        </Button>
                       </div>
                     </div>
                   )}
@@ -219,7 +222,7 @@ export default function OrderSimulatorModal() {
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Impuestos:</span>
+                  <span>Impuestos (21%):</span>
                   <span>{formatPrice(taxes)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
@@ -244,7 +247,7 @@ export default function OrderSimulatorModal() {
                 {isSaving ? 'Guardando...' : 'Guardar Ticket'}
               </Button>
               <Button
-                onClick={clearOrder}
+                onClick={clearSimulator}
                 variant="destructive"
                 className="flex-1"
               >
