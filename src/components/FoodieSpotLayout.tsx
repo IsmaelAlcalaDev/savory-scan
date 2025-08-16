@@ -241,7 +241,6 @@ export default function FoodieSpotLayout({
     selectedDistanceRangeIds: selectedDistance.length > 0 ? selectedDistance : undefined,
     selectedEstablishmentTypes: selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined,
     selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
-    selectedTimeRanges: selectedTimeRanges.length > 0 ? selectedTimeRanges : undefined,
     isOpenNow: isOpenNow
   });
   
@@ -360,17 +359,7 @@ export default function FoodieSpotLayout({
 
     if (activeBottomTab === 'dishes') {
       return <>
-          {/* Quick Filters */}
-          <QuickFilters
-            isOpenNow={isOpenNow}
-            onOpenNowChange={setIsOpenNow}
-            selectedPriceRanges={selectedPriceRanges}
-            onPriceRangeChange={setSelectedPriceRanges}
-            selectedDietTypes={selectedDietTypes}
-            onDietTypeChange={setSelectedDietTypes}
-          />
-
-          {/* Filter Tags */}
+          {/* Filter Tags with Quick Filters integrated */}
           <FilterTags 
             activeTab="dishes" 
             selectedCuisines={selectedCuisines} 
@@ -412,17 +401,7 @@ export default function FoodieSpotLayout({
 
     // Default restaurants content (siempre mostrar cuando no sea 'dishes')
     return <>
-        {/* Quick Filters */}
-        <QuickFilters
-          isOpenNow={isOpenNow}
-          onOpenNowChange={setIsOpenNow}
-          selectedPriceRanges={selectedPriceRanges}
-          onPriceRangeChange={setSelectedPriceRanges}
-          selectedDietTypes={selectedDietTypes}
-          onDietTypeChange={setSelectedDietTypes}
-        />
-
-        {/* Filter Tags */}
+        {/* Filter Tags with Quick Filters integrated */}
         <FilterTags 
           activeTab="restaurants" 
           selectedCuisines={selectedCuisines} 
