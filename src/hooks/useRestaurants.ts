@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -295,28 +296,44 @@ export const useRestaurants = ({
                   dishesByRestaurant[dish.restaurant_id].push(dish);
                 });
 
-                const filteredRestaurantIds = new Set<number>();
+                // For the quick filter, we need AND logic - restaurant must pass ALL diet types
+                const validRestaurantIds = new Set<number>();
 
-                dietTypesData.forEach((dietType: any) => {
-                  Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
-                    const restaurantId = parseInt(restaurantIdStr);
+                // Initialize with all restaurants that have dishes
+                const restaurantsWithDishes = Object.keys(dishesByRestaurant).map(id => parseInt(id));
+                
+                // For each restaurant, check if it passes ALL selected diet types
+                restaurantsWithDishes.forEach(restaurantId => {
+                  const dishes = dishesByRestaurant[restaurantId];
+                  let passesAllDietTypes = true;
+                  
+                  // Check each diet type - restaurant must pass ALL of them (AND logic)
+                  for (const dietType of dietTypesData) {
                     const percentage = calculateDietPercentage(dishes, dietType.category);
                     
                     console.log(`Restaurant ${restaurantId}, Diet ${dietType.name}: ${percentage}% (required: ${dietType.min_percentage}-${dietType.max_percentage}%)`);
                     
-                    if (percentage >= dietType.min_percentage && percentage <= dietType.max_percentage) {
-                      filteredRestaurantIds.add(restaurantId);
-                      console.log(`✓ Restaurant ${restaurantId} passes diet filter ${dietType.name}`);
-                    } else {
+                    if (percentage < dietType.min_percentage || percentage > dietType.max_percentage) {
+                      passesAllDietTypes = false;
                       console.log(`✗ Restaurant ${restaurantId} fails diet filter ${dietType.name}`);
+                      break; // No need to check other diet types
+                    } else {
+                      console.log(`✓ Restaurant ${restaurantId} passes diet filter ${dietType.name}`);
                     }
-                  });
+                  }
+                  
+                  if (passesAllDietTypes) {
+                    validRestaurantIds.add(restaurantId);
+                    console.log(`✓ Restaurant ${restaurantId} passes ALL diet filters`);
+                  } else {
+                    console.log(`✗ Restaurant ${restaurantId} fails at least one diet filter`);
+                  }
                 });
 
-                console.log('Restaurants that pass diet filters:', Array.from(filteredRestaurantIds));
+                console.log('Restaurants that pass ALL diet filters (AND logic):', Array.from(validRestaurantIds));
                 
                 formattedData = formattedData.filter(restaurant => 
-                  filteredRestaurantIds.has(restaurant.id)
+                  validRestaurantIds.has(restaurant.id)
                 );
                 
                 console.log('Restaurants after diet filtering:', formattedData.length);
