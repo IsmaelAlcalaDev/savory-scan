@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -6,6 +7,13 @@ import {
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   Mail, 
   Phone, 
@@ -18,8 +26,7 @@ import {
   FileText,
   HelpCircle,
   Users,
-  Languages,
-  Check
+  Languages
 } from 'lucide-react';
 import { useLanguages } from '@/hooks/useLanguages';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -42,9 +49,12 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
     }
   }, [languages, selectedLanguage]);
 
-  const handleLanguageChange = (language: any) => {
-    setSelectedLanguage(language);
-    console.log('Changing language to:', language.code);
+  const handleLanguageChange = (languageId: string) => {
+    const language = languages.find((lang: any) => lang.id.toString() === languageId);
+    if (language) {
+      setSelectedLanguage(language);
+      console.log('Changing language to:', language.code);
+    }
   };
 
   const handleLinkClick = (url: string) => {
@@ -70,34 +80,33 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
 
   const MenuContent = (
     <div className="p-4 space-y-4 sm:space-y-6 h-full">
-      {/* Selector de idioma - Estilo lista con texto */}
+      {/* Selector de idioma - Dropdown */}
       <div>
         <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
           <Languages className="h-4 w-4 sm:h-5 sm:w-5" />
           Idioma
         </h3>
-        {!isLoading && languages.length > 0 && (
-          <div className="space-y-1">
-            {languages.map((language: any) => (
-              <button
-                key={language.id}
-                onClick={() => handleLanguageChange(language)}
-                className={`w-full flex items-center justify-between px-2 py-2 rounded-md transition-colors text-left hover:bg-gray-50 ${
-                  selectedLanguage?.id === language.id
-                    ? 'text-primary bg-primary/5'
-                    : 'text-foreground'
-                }`}
-              >
+        {!isLoading && languages.length > 0 && selectedLanguage && (
+          <Select value={selectedLanguage.id.toString()} onValueChange={handleLanguageChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue>
                 <div className="flex items-center gap-3">
-                  {renderFlag(language)}
-                  <span className="text-sm">{language.name}</span>
+                  {renderFlag(selectedLanguage)}
+                  <span className="text-sm">{selectedLanguage.name}</span>
                 </div>
-                {selectedLanguage?.id === language.id && (
-                  <Check className="h-4 w-4 text-primary" />
-                )}
-              </button>
-            ))}
-          </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {languages.map((language: any) => (
+                <SelectItem key={language.id} value={language.id.toString()}>
+                  <div className="flex items-center gap-3">
+                    {renderFlag(language)}
+                    <span className="text-sm">{language.name}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
       </div>
 
