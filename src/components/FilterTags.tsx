@@ -1,3 +1,4 @@
+
 import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import {
 import PriceFilter from './PriceFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import DietFilter from './DietFilter';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
 interface FilterTagsProps {
   activeTab: 'restaurants' | 'dishes';
@@ -129,24 +130,7 @@ export default function FilterTags({
     }
   };
 
-  const handleOpenModal = useCallback((filterKey: string) => {
-    setActiveFilterModal(filterKey);
-  }, []);
-
-  const handleCloseModal = useCallback(() => {
-    setActiveFilterModal(null);
-  }, []);
-
-  const handleApplyFilters = useCallback(() => {
-    setActiveFilterModal(null);
-  }, []);
-
-  const handleResetFilters = useCallback(() => {
-    onClearFilter('all');
-    setActiveFilterModal(null);
-  }, [onClearFilter]);
-
-  const FilterContent = ({ filterKey }: { filterKey: string }) => (
+  const FilterContent = ({ filterKey, onApply, onReset }: { filterKey: string, onApply: () => void, onReset: () => void }) => (
     <div className="flex flex-col h-full">
       {/* Title */}
       <div className="text-center py-4 border-b border-gray-100 flex-shrink-0">
@@ -163,13 +147,13 @@ export default function FilterTags({
       {/* Bottom buttons - fixed at bottom */}
       <div className="flex-shrink-0 p-4 space-y-3 border-t border-gray-100 bg-background">
         <Button 
-          onClick={handleApplyFilters}
+          onClick={onApply}
           className="w-full h-12 text-base"
         >
           Aplicar filtros
         </Button>
         <Button 
-          onClick={handleResetFilters}
+          onClick={onReset}
           variant="ghost"
           className="w-full h-12 text-base bg-transparent border-0"
         >
@@ -184,6 +168,71 @@ export default function FilterTags({
     ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
     { key: 'diet', label: 'Dieta' },
   ];
+
+  const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
+    const handleOpenChange = (open: boolean) => {
+      setActiveFilterModal(open ? filterKey : null);
+    };
+
+    const FilterIcon = getFilterIcon(filterKey);
+    const isActive = isFilterActive(filterKey);
+    const count = getFilterCount(filterKey);
+
+    return (
+      <Sheet open={activeFilterModal === filterKey} onOpenChange={handleOpenChange}>
+        <Button
+          variant="outline"
+          size="sm"
+          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
+            isActive 
+              ? 'bg-black text-white hover:bg-black hover:text-white' 
+              : 'text-black hover:text-black'
+          }`}
+          style={isActive ? { 
+            backgroundColor: '#000000',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: '600'
+          } : { 
+            backgroundColor: '#F3F3F3',
+            color: 'black',
+            fontSize: '14px',
+            fontWeight: '600'
+          }}
+          onClick={() => handleOpenChange(true)}
+          onMouseEnter={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = '#F3F3F3';
+            }
+          }}
+        >
+          {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />}
+          {children}
+          {count > 0 && ` (${count})`}
+          <ChevronDown className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
+        </Button>
+        <SheetContent 
+          side="bottom" 
+          className={`p-0 ${
+            isMobile 
+              ? 'h-[100dvh] rounded-none max-h-[100dvh]' 
+              : 'rounded-t-[20px] rounded-b-none h-[80vh] max-h-[80vh]'
+          }`}
+        >
+          <FilterContent 
+            filterKey={filterKey}
+            onApply={() => setActiveFilterModal(null)} 
+            onReset={() => onClearFilter('all')} 
+          />
+        </SheetContent>
+      </Sheet>
+    );
+  };
 
   return (
     <>
@@ -212,7 +261,7 @@ export default function FilterTags({
             onClick={() => onHighRatedChange(!isHighRated)}
             onMouseEnter={(e) => {
               if (!isHighRated) {
-                e.currentTarget.style.backgroundColor = 'rgb(238, 238, 238)';
+                e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
               }
             }}
             onMouseLeave={(e) => {
@@ -248,7 +297,7 @@ export default function FilterTags({
             onClick={() => onOpenNowChange(!isOpenNow)}
             onMouseEnter={(e) => {
               if (!isOpenNow) {
-                e.currentTarget.style.backgroundColor = 'rgb(238, 238, 238)';
+                e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
               }
             }}
             onMouseLeave={(e) => {
@@ -284,7 +333,7 @@ export default function FilterTags({
             onClick={() => onBudgetFriendlyChange(!isBudgetFriendly)}
             onMouseEnter={(e) => {
               if (!isBudgetFriendly) {
-                e.currentTarget.style.backgroundColor = 'rgb(238, 238, 238)';
+                e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
               }
             }}
             onMouseLeave={(e) => {
@@ -357,70 +406,6 @@ export default function FilterTags({
       </div>
     </>
   );
-
-  const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
-    const FilterIcon = getFilterIcon(filterKey);
-    const isActive = isFilterActive(filterKey);
-    const count = getFilterCount(filterKey);
-
-    return (
-      <>
-        <Button
-          variant="outline"
-          size="sm"
-          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
-            isActive 
-              ? 'bg-black text-white hover:bg-black hover:text-white' 
-              : 'text-black hover:text-black'
-          }`}
-          style={isActive ? { 
-            backgroundColor: '#000000',
-            color: 'white',
-            fontSize: '14px',
-            fontWeight: '600'
-          } : { 
-            backgroundColor: '#F3F3F3',
-            color: 'black',
-            fontSize: '14px',
-            fontWeight: '600'
-          }}
-          onClick={() => handleOpenModal(filterKey)}
-          onMouseEnter={(e) => {
-            if (!isActive) {
-              e.currentTarget.style.backgroundColor = 'rgb(238, 238, 238)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isActive) {
-              e.currentTarget.style.backgroundColor = '#F3F3F3';
-            }
-          }}
-        >
-          {FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />}
-          {children}
-          {count > 0 && ` (${count})`}
-          <ChevronDown className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
-        </Button>
-
-        <Sheet open={activeFilterModal === filterKey} onOpenChange={(open) => {
-          if (!open) {
-            handleCloseModal();
-          }
-        }}>
-          <SheetContent 
-            side="bottom" 
-            className={`p-0 ${
-              isMobile 
-                ? 'h-[100dvh] rounded-none max-h-[100dvh]' 
-                : 'rounded-t-[20px] rounded-b-none h-[80vh] max-h-[80vh]'
-            }`}
-          >
-            <FilterContent filterKey={filterKey} />
-          </SheetContent>
-        </Sheet>
-      </>
-    );
-  };
 }
 
 // Export the ResetFiltersButton as a separate component
