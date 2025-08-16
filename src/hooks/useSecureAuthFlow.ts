@@ -326,6 +326,7 @@ export const useSecureAuthFlow = () => {
     resendConfirmation,
     validatePassword,
     validateEmail,
+    checkEmailExists,
     isLoading,
     loginAttempts,
     isLocked,
