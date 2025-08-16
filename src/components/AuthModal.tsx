@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import SecureRegistrationForm from './SecureRegistrationForm';
 import SecureLoginForm from './SecureLoginForm';
 import AccountProfileView from './AccountProfileView';
@@ -15,7 +15,7 @@ interface AuthModalProps {
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const { user, loading } = useAuth();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [isLogin, setIsLogin] = useState(true);
 
   const handleSuccess = () => {
