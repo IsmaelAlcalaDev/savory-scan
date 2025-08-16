@@ -105,15 +105,15 @@ export default function CuisineFilter({ selectedCuisines, onCuisineChange }: Cui
         {cuisineTypes.map((cuisine) => (
           <div
             key={cuisine.id}
-            className="flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0 min-w-[60px]"
+            className="flex flex-col items-center gap-1 cursor-pointer flex-shrink-0 min-w-[60px]"
             onClick={() => handleCuisineToggle(cuisine.id)}
           >
-            <div className="flex items-center justify-center w-16 h-16 text-4xl transition-all duration-200">
+            <div className="flex items-center justify-center w-16 h-16 text-4xl">
               {cuisine.icon && (
                 <span 
                   role="img" 
                   aria-label={cuisine.name}
-                  className={`transition-all duration-200 ${
+                  className={`${
                     selectedCuisines.includes(cuisine.id) 
                       ? 'filter brightness-110 drop-shadow-md' 
                       : 'filter brightness-100'

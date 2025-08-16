@@ -1,504 +1,215 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import CuisineFilter from './CuisineFilter';
-import FoodTypeFilter from './FoodTypeFilter';
-import RestaurantCard from './RestaurantCard';
-import AllDishCard from './AllDishCard';
-import LocationModal from './LocationModal';
-import BottomNavigation from './BottomNavigation';
-import AccountModal from './AccountModal';
-import MenuModal from './MenuModal';
-import MobileHeader from './MobileHeader';
-import TabletHeader from './TabletHeader';
-import DesktopHeader from './DesktopHeader';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+
+import DishSearchBar from '@/components/DishSearchBar';
+import CuisineFilter from '@/components/CuisineFilter';
+import RestaurantCard from '@/components/RestaurantCard';
+import FilterTags from '@/components/FilterTags';
+import UnifiedFiltersModal from '@/components/UnifiedFiltersModal';
+import ViewModeToggle from '@/components/ViewModeToggle';
 import { useRestaurants } from '@/hooks/useRestaurants';
-import { useDishes } from '@/hooks/useDishes';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Skeleton } from '@/components/ui/skeleton';
-import DishesGrid from './DishesGrid';
-import FilterTags, { ResetFiltersButton } from './FilterTags';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
 
 interface FoodieSpotLayoutProps {
-  initialTab?: 'restaurants' | 'dishes' | 'account';
+  initialTab?: 'restaurants' | 'dishes';
 }
 
-export default function FoodieSpotLayout({
-  initialTab = 'restaurants'
-}: FoodieSpotLayoutProps) {
-  console.log('FoodieSpotLayout: Rendering component with initialTab:', initialTab);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isMobile = useIsMobile();
-  
-  // Separate search states for each tab
-  const [searchQueryRestaurants, setSearchQueryRestaurants] = useState('');
-  const [searchQueryDishes, setSearchQueryDishes] = useState('');
-  
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
-  const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
-
-  // Estados para filtros
-  const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
-  const [isHighRated, setIsHighRated] = useState(false);
+  const [selectedServices, setSelectedServices] = useState<number[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<number[]>([]);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
-  const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
-  const [isOpenNow, setIsOpenNow] = useState(false);
-  const [locationModalOpen, setLocationModalOpen] = useState(false);
-  const [accountModalOpen, setAccountModalOpen] = useState(false);
-  const [userLocation, setUserLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [currentLocationName, setCurrentLocationName] = useState('Selecciona ubicación');
-  const [menuModalOpen, setMenuModalOpen] = useState(false);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [selectedSort, setSelectedSort] = useState<string>('nearest');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
 
-  // Add new states for quick filters
-  const [isBudgetFriendly, setIsBudgetFriendly] = useState(false);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const { restaurants, loading, error } = useRestaurants({
+    query: debouncedSearchQuery,
+    cuisineIds: selectedCuisines,
+    serviceIds: selectedServices,
+    priceRanges: selectedPriceRanges,
+    establishmentTypes: selectedEstablishmentTypes,
+    sortBy: selectedSort,
+  });
 
-  // Determine active tab based on current route
-  const getActiveTabFromRoute = (): 'restaurants' | 'dishes' | 'account' => {
-    if (location.pathname === '/platos') return 'dishes';
-    if (location.pathname === '/restaurantes' || location.pathname === '/') return 'restaurants';
-    return 'restaurants';
+  const filteredRestaurants = restaurants;
+
+  const resetFilters = () => {
+    setSelectedServices([]);
+    setSelectedCuisines([]);
+    setSelectedPriceRanges([]);
+    setSelectedEstablishmentTypes([]);
+    setSelectedSort('nearest');
+    setSearchQuery('');
   };
-  const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>(getActiveTabFromRoute());
 
-  // Update active tab when route changes and scroll to top
   useEffect(() => {
-    const newTab = getActiveTabFromRoute();
-    console.log('Route changed, updating active tab to:', newTab, 'from path:', location.pathname);
-    setActiveBottomTab(newTab);
-    
-    // Scroll to top when switching tabs
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+    console.log('FoodieSpotLayout state:', {
+      activeTab,
+      searchQuery,
+      selectedCuisines,
+      selectedServices,
+      selectedPriceRanges,
+      selectedEstablishmentTypes,
+      selectedSort,
+      viewMode,
+      restaurants,
+      loading,
+      error,
+    });
+  }, [activeTab, searchQuery, selectedCuisines, selectedServices, selectedPriceRanges, selectedEstablishmentTypes, selectedSort, viewMode, restaurants, loading, error]);
 
-  // Cargar configuración de branding desde la BD
-  const {
-    data: appSettings
-  } = useAppSettings();
-  const appName = appSettings?.appName ?? 'FoodieSpot';
-  const appLogoUrl = appSettings?.logoUrl ?? 'https://w7.pngwing.com/pngs/256/867/png-transparent-zomato-logo-thumbnail.png';
-
-  // Cargar ubicación guardada o solicitar GPS
-  useEffect(() => {
-    const loadSavedLocation = () => {
-      try {
-        const savedLocation = localStorage.getItem('selectedLocation');
-        if (savedLocation) {
-          const locationData = JSON.parse(savedLocation);
-          console.log('Loading saved location:', locationData);
-          if (locationData.latitude && locationData.longitude) {
-            setUserLocation({
-              lat: locationData.latitude,
-              lng: locationData.longitude
-            });
-
-            // Determinar nombre de la ubicación
-            if (locationData.address) {
-              setCurrentLocationName(locationData.address);
-            } else if (locationData.name && locationData.parent) {
-              const locationDisplay = `${locationData.name}, ${locationData.parent.split(',')[0]}`;
-              setCurrentLocationName(locationDisplay);
-            } else if (locationData.name) {
-              setCurrentLocationName(locationData.name);
-            } else {
-              setCurrentLocationName('Ubicación guardada');
-            }
-            return true;
-          }
-        }
-      } catch (error) {
-        console.error('Error loading saved location:', error);
-      }
-      return false;
-    };
-    const requestGPSLocation = async () => {
-      if (!('geolocation' in navigator)) {
-        console.log('Geolocation not supported');
-        return;
-      }
-      setIsLoadingLocation(true);
-      setCurrentLocationName('Detectando ubicación...');
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000 // 5 minutos
-          });
-        });
-        const {
-          latitude,
-          longitude
-        } = position.coords;
-        console.log('GPS location obtained:', {
-          latitude,
-          longitude
-        });
-        setUserLocation({
-          lat: latitude,
-          lng: longitude
-        });
-        setCurrentLocationName('Ubicación detectada');
-
-        // Guardar en localStorage
-        localStorage.setItem('selectedLocation', JSON.stringify({
-          latitude,
-          longitude,
-          address: 'Ubicación detectada'
-        }));
-      } catch (error: any) {
-        console.error('GPS Error:', error);
-        setCurrentLocationName('Selecciona ubicación');
-      } finally {
-        setIsLoadingLocation(false);
-      }
-    };
-
-    // Primero intentar cargar ubicación guardada
-    const hasSavedLocation = loadSavedLocation();
-
-    // Si no hay ubicación guardada, solicitar GPS
-    if (!hasSavedLocation) {
-      requestGPSLocation();
-    }
-  }, []);
-
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'budgetFriendly' | 'all', id?: number) => {
-    switch (type) {
-      case 'cuisine':
-        setSelectedCuisines([]);
-        break;
-      case 'foodType':
-        setSelectedFoodTypes([]);
-        break;
-      case 'price':
-        setSelectedPriceRanges([]);
-        break;
-      case 'highRated':
-        setIsHighRated(false);
-        break;
-      case 'establishment':
-        setSelectedEstablishmentTypes([]);
-        break;
-      case 'diet':
-        setSelectedDietTypes([]);
-        break;
-      case 'openNow':
-        setIsOpenNow(!isOpenNow);
-        break;
-      case 'budgetFriendly':
-        setIsBudgetFriendly(false);
-        break;
-      case 'all':
-        setSelectedCuisines([]);
-        setSelectedFoodTypes([]);
-        setSelectedPriceRanges([]);
-        setIsHighRated(false);
-        setSelectedEstablishmentTypes([]);
-        setSelectedDietTypes([]);
-        setIsOpenNow(false);
-        setIsBudgetFriendly(false);
-        break;
-    }
-  };
-
-  // Get current search query based on active tab
-  const getCurrentSearchQuery = () => {
-    return activeBottomTab === 'dishes' ? searchQueryDishes : searchQueryRestaurants;
-  };
-
-  // Set search query for current tab
-  const setCurrentSearchQuery = (query: string) => {
-    if (activeBottomTab === 'dishes') {
-      setSearchQueryDishes(query);
-    } else {
-      setSearchQueryRestaurants(query);
-    }
-  };
-
-  const {
-    restaurants,
-    loading: restaurantsLoading,
-    error: restaurantsError
-  } = useRestaurants({
-    searchQuery: searchQueryRestaurants,
-    userLat: userLocation?.lat,
-    userLng: userLocation?.lng,
-    maxDistance: 1000, // Increased to 1000km to cover all of Spain
-    cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
-    priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
-    isHighRated: isHighRated,
-    selectedEstablishmentTypes: selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined,
-    selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
-    isOpenNow: isOpenNow,
-    isBudgetFriendly: isBudgetFriendly
-  });
-  
-  const {
-    dishes,
-    loading: dishesLoading,
-    error: dishesError
-  } = useDishes({
-    searchQuery: searchQueryDishes,
-    userLat: userLocation?.lat,
-    userLng: userLocation?.lng,
-    maxDistance: 1000, // Also increased for dishes
-    selectedFoodTypes,
-    selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
-    spiceLevels: [],
-    prepTimeRanges: []
-  });
-
-  console.log('FoodieSpotLayout: Hook results:', {
-    restaurants: restaurants.length,
-    restaurantsLoading,
-    restaurantsError,
-    dishes: dishes.length,
-    dishesLoading,
-    dishesError,
-    activeBottomTab,
-    searchQueryRestaurants,
-    searchQueryDishes
-  });
-
-  const handleLocationSelect = (location: {
-    type: string;
-    data?: any;
-  }) => {
-    console.log('FoodieSpotLayout: Manual location selected:', location);
-    if (location.type === 'gps') {
-      setUserLocation({
-        lat: location.data.latitude,
-        lng: location.data.longitude
-      });
-      if (location.data.name && location.data.parent) {
-        const locationDisplay = `${location.data.name}, ${location.data.parent.split(',')[0]}`;
-        setCurrentLocationName(locationDisplay);
-      } else if (location.data.address) {
-        setCurrentLocationName(location.data.address);
-      } else {
-        setCurrentLocationName('Ubicación detectada');
-      }
-    } else if (location.type === 'city') {
-      setUserLocation({
-        lat: location.data.latitude,
-        lng: location.data.longitude
-      });
-      setCurrentLocationName(location.data.name);
-    } else if (location.type === 'suggestion') {
-      setUserLocation({
-        lat: location.data.latitude,
-        lng: location.data.longitude
-      });
-      const locationDisplay = location.data.parent ? `${location.data.name}, ${location.data.parent.split(',')[0]}` : location.data.name;
-      setCurrentLocationName(locationDisplay);
-    } else if (location.type === 'manual') {
-      setCurrentLocationName(location.data.query);
-    }
-    console.log('Updated location name:', currentLocationName);
-  };
-
-  const handleBottomTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
-    console.log('Bottom tab change requested to:', tab);
-    if (tab === 'account') {
-      setAccountModalOpen(true);
-      return;
-    }
-    if (tab === 'dishes') {
-      navigate('/platos', {
-        replace: true
-      });
-    } else if (tab === 'restaurants') {
-      navigate('/restaurantes', {
-        replace: true
-      });
-    }
-  };
-  
-  const handleLoginRequired = () => {
-    setAccountModalOpen(true);
-  };
-
-  // Get dynamic placeholder based on active tab
-  const getSearchPlaceholder = () => {
-    return activeBottomTab === 'dishes' ? 'Buscar platos...' : 'Buscar restaurantes...';
-  };
-
-  const renderHeader = () => {
-    if (isMobile) {
-      return <MobileHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} />;
-    } else if (window.innerWidth < 1024) {
-      // Tablet
-      return <TabletHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} searchQuery={getCurrentSearchQuery()} searchPlaceholder={getSearchPlaceholder()} isSearchFocused={isSearchFocused} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} onSearchChange={setCurrentSearchQuery} onSearchFocus={() => setIsSearchFocused(true)} onSearchBlur={() => setIsSearchFocused(false)} />;
-    } else {
-      // Desktop
-      return <DesktopHeader appName={appName} appLogoUrl={appLogoUrl} currentLocationName={currentLocationName} isLoadingLocation={isLoadingLocation} searchQuery={getCurrentSearchQuery()} searchPlaceholder={getSearchPlaceholder()} isSearchFocused={isSearchFocused} onLogoClick={() => navigate('/restaurantes')} onLocationClick={() => setLocationModalOpen(true)} onMenuClick={() => setMenuModalOpen(true)} onSearchChange={setCurrentSearchQuery} onSearchFocus={() => setIsSearchFocused(true)} onSearchBlur={() => setIsSearchFocused(false)} />;
-    }
-  };
-
-  const renderContent = () => {
-    const hasActiveFilters: boolean = selectedCuisines.length > 0 || 
-    selectedFoodTypes.length > 0 || 
-    selectedPriceRanges.length > 0 || 
-    isHighRated || 
-    selectedEstablishmentTypes.length > 0 || 
-    selectedDietTypes.length > 0 || 
-    isOpenNow ||
-    isBudgetFriendly;
-
-    if (activeBottomTab === 'dishes') {
-      return <>
-          {/* Filter Tags with Quick Filters integrated */}
-          <FilterTags 
-            activeTab="dishes" 
-            selectedCuisines={selectedCuisines} 
-            selectedFoodTypes={selectedFoodTypes} 
-            selectedPriceRanges={selectedPriceRanges} 
-            isHighRated={isHighRated} 
-            selectedEstablishmentTypes={selectedEstablishmentTypes} 
-            selectedDietTypes={selectedDietTypes} 
-            isOpenNow={isOpenNow}
-            isBudgetFriendly={isBudgetFriendly}
-            onClearFilter={handleClearFilter}
-            onPriceRangeChange={setSelectedPriceRanges}
-            onHighRatedChange={setIsHighRated}
-            onEstablishmentTypeChange={setSelectedEstablishmentTypes}
-            onDietTypeChange={setSelectedDietTypes}
-            onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
-            onBudgetFriendlyChange={setIsBudgetFriendly}
-          />
-
-          {/* Results Header with adjusted spacing */}
-          <div className="flex items-center justify-between mb-3 mt-3">
-            <div>
-              <h2 className="text-sm font-medium mb-1 text-muted-foreground">
-                {dishesLoading ? 'Cargando...' : `${dishes.length} resultados`}
-              </h2>
-              {dishesError && <p className="text-sm text-destructive mt-1">Error: {dishesError}</p>}
-            </div>
-            <ResetFiltersButton 
-              hasActiveFilters={hasActiveFilters} 
-              onClearAll={() => handleClearFilter('all')} 
-            />
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="bg-white shadow-sm">
+        <div className="container flex items-center justify-between h-16">
+          <div className="flex items-center">
+            <Button variant="link" className="mr-4">FoodieSpot</Button>
+            <Tabs defaultValue={initialTab} className="hidden md:flex">
+              <TabsList>
+                <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
+                <TabsTrigger value="dishes">Dishes</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
-
-          <DishesGrid dishes={dishes} loading={dishesLoading} error={dishesError} />
-        </>;
-    }
-
-    // Default restaurants content (siempre mostrar cuando no sea 'dishes')
-    return <>
-        {/* Filter Tags with Quick Filters integrated */}
-        <FilterTags 
-          activeTab="restaurants" 
-          selectedCuisines={selectedCuisines} 
-          selectedFoodTypes={selectedFoodTypes} 
-          selectedPriceRanges={selectedPriceRanges} 
-          isHighRated={isHighRated} 
-          selectedEstablishmentTypes={selectedEstablishmentTypes} 
-          selectedDietTypes={selectedDietTypes} 
-          isOpenNow={isOpenNow}
-          isBudgetFriendly={isBudgetFriendly}
-          onClearFilter={handleClearFilter}
-          onPriceRangeChange={setSelectedPriceRanges}
-          onHighRatedChange={setIsHighRated}
-          onEstablishmentTypeChange={setSelectedEstablishmentTypes}
-          onDietTypeChange={setSelectedDietTypes}
-          onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
-          onBudgetFriendlyChange={setIsBudgetFriendly}
-        />
-
-        {/* Results Header with adjusted spacing */}
-        <div className="flex items-center justify-between mb-3 mt-3">
-          <div>
-            <h2 className="text-sm font-medium mb-1 text-muted-foreground">
-              {restaurantsLoading ? 'Cargando...' : userLocation ? `${restaurants.length} restaurantes cerca de ti` : `${restaurants.length} restaurantes en España`}
-            </h2>
-            {restaurantsError && <p className="text-sm text-destructive mt-1">Error: {restaurantsError}</p>}
-          </div>
-          <ResetFiltersButton 
-            hasActiveFilters={hasActiveFilters} 
-            onClearAll={() => handleClearFilter('all')} 
-          />
-        </div>
-
-        {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-          {restaurantsLoading ? Array.from({
-          length: 12
-        }).map((_, i) => <div key={i} className="space-y-3">
-                <Skeleton className="h-48 w-full rounded-lg" />
-                <div className="p-4 space-y-3">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-              </div>) : restaurantsError ? <div className="col-span-full text-center py-8">
-              <p className="text-muted-foreground">Error al cargar restaurantes: {restaurantsError}</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Revisa la consola para más detalles
-              </p>
-            </div> : restaurants.length === 0 ? <div className="col-span-full text-center py-8">
-              <p className="text-muted-foreground">No se encontraron restaurantes</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Intenta cambiar los filtros de búsqueda
-              </p>
-            </div> : restaurants.map(restaurant => <RestaurantCard key={restaurant.id} id={restaurant.id} name={restaurant.name} slug={restaurant.slug} description={restaurant.description} priceRange={restaurant.price_range} cuisineTypes={restaurant.cuisine_types} establishmentType={restaurant.establishment_type} services={restaurant.services} favoritesCount={restaurant.favorites_count} coverImageUrl={restaurant.cover_image_url} logoUrl={restaurant.logo_url} onLoginRequired={handleLoginRequired} />)}
-        </div>
-      </>;
-  };
-
-  return <div className="min-h-screen bg-white pb-20">
-      {/* Header - Full width */}
-      <header className="sticky top-0 z-50 bg-white">
-        <div className="px-4 md:px-6 lg:px-8 xl:px-12">
-          {renderHeader()}
-        </div>
-
-        {/* Content wrapper with larger desktop margins */}
-        <div className="px-4 md:px-6 lg:px-24 xl:px-32 2xl:px-48">
-          {/* Tipos de Cocina / Tipos de Comida */}
-          <div className="pb-2 pt-0">
-            {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
-          </div>
-
-          {/* Search bar for mobile - Full width below cuisine types with doubled spacing */}
-          {isMobile && <div className="pb-4">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{
-              color: '#4B4B4B'
-            }} />
-                <input type="text" placeholder={getSearchPlaceholder()} value={getCurrentSearchQuery()} onChange={e => setCurrentSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 placeholder:text-[#4B4B4B]" style={{
-              backgroundColor: '#F3F3F3',
-              color: '#4B4B4B'
-            }} />
-              </div>
-            </div>}
+          <Button variant="outline">
+            <Search className="mr-2 h-4 w-4" />
+            Search
+          </Button>
         </div>
       </header>
 
-      {/* Main Content with desktop margins */}
-      <div className="w-full px-4 md:px-6 lg:px-24 xl:px-32 2xl:px-48">
-        <div className="p-0 md:p-4">
-          {renderContent()}
-        </div>
-      </div>
+      <main className="max-w-6xl mx-auto px-4 pb-20 md:pb-8">
+        {activeTab === 'restaurants' && (
+          <div className="space-y-6">
+            {/* Search Section */}
+            <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm pb-4">
+              <div className="space-y-4">
+                <DishSearchBar
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  placeholder="Buscar restaurantes..."
+                />
 
-      {/* Bottom Navigation - Full width */}
-      <BottomNavigation activeTab={activeBottomTab} onTabChange={handleBottomTabChange} />
+                {/* Cuisine Filter */}
+                <CuisineFilter
+                  selectedCuisines={selectedCuisines}
+                  onCuisineChange={setSelectedCuisines}
+                />
+              </div>
+            </div>
+
+            {/* Results Section */}
+            <div className="space-y-4">
+              {/* Header with filters and results count */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-foreground">
+                      {filteredRestaurants.length} restaurante{filteredRestaurants.length !== 1 ? 's' : ''} cerca de ti
+                    </h2>
+                    {(selectedServices.length > 0 || selectedCuisines.length > 0 || selectedPriceRanges.length > 0 || selectedEstablishmentTypes.length > 0 || searchQuery) && (
+                      <button
+                        onClick={resetFilters}
+                        className="text-sm text-black hover:text-black transition-none"
+                      >
+                        Restablecer
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Active filters */}
+                  <FilterTags
+                    selectedServices={selectedServices}
+                    selectedCuisines={selectedCuisines}
+                    selectedPriceRanges={selectedPriceRanges}
+                    selectedEstablishmentTypes={selectedEstablishmentTypes}
+                    onRemoveService={(serviceId) => setSelectedServices(prev => prev.filter(id => id !== serviceId))}
+                    onRemoveCuisine={(cuisineId) => setSelectedCuisines(prev => prev.filter(id => id !== cuisineId))}
+                    onRemovePriceRange={(priceId) => setSelectedPriceRanges(prev => prev.filter(id => id !== priceId))}
+                    onRemoveEstablishmentType={(typeId) => setSelectedEstablishmentTypes(prev => prev.filter(id => id !== typeId))}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <UnifiedFiltersModal
+                    selectedServices={selectedServices}
+                    selectedCuisines={selectedCuisines}
+                    selectedPriceRanges={selectedPriceRanges}
+                    selectedEstablishmentTypes={selectedEstablishmentTypes}
+                    selectedSort={selectedSort}
+                    onServicesChange={setSelectedServices}
+                    onCuisinesChange={setSelectedCuisines}
+                    onPriceRangesChange={setSelectedPriceRanges}
+                    onEstablishmentTypesChange={setSelectedEstablishmentTypes}
+                    onSortChange={setSelectedSort}
+                    isOpen={isFiltersModalOpen}
+                    onOpenChange={setIsFiltersModalOpen}
+                  />
+                  <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Array.from({ length: 9 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                      <Skeleton className="h-40 w-full rounded-lg" />
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="text-red-500">Error: {error.message}</div>
+              ) : filteredRestaurants.length === 0 ? (
+                <div className="text-muted-foreground">No restaurants found.</div>
+              ) : (
+                <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-3"}>
+                  {filteredRestaurants.map((restaurant) => (
+                    <RestaurantCard
+                      key={restaurant.id}
+                      id={restaurant.id}
+                      name={restaurant.name}
+                      slug={restaurant.slug}
+                      description={restaurant.description}
+                      priceRange={restaurant.priceRange}
+                      googleRating={restaurant.googleRating}
+                      googleRatingCount={restaurant.googleRatingCount}
+                      distance={restaurant.distance}
+                      cuisineTypes={restaurant.cuisineTypes.map(cuisine => cuisine.name)}
+                      establishmentType={restaurant.establishmentType?.name}
+                      services={restaurant.services?.map(service => service.name)}
+                      favoritesCount={restaurant.favoritesCount}
+                      coverImageUrl={restaurant.coverImageUrl}
+                      logoUrl={restaurant.logoUrl}
+                      layout={viewMode}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'dishes' && (
+          <div>
+            <h2>Dishes Tab Content</h2>
+            <p>Content for the dishes tab will go here.</p>
+          </div>
+        )}
+      </main>
 
       {/* Modals */}
-      <AccountModal open={accountModalOpen} onOpenChange={setAccountModalOpen} />
-
-      <MenuModal open={menuModalOpen} onOpenChange={setMenuModalOpen} />
-
-      <LocationModal open={locationModalOpen} onOpenChange={setLocationModalOpen} onLocationSelect={handleLocationSelect} />
-    </div>;
+    </div>
+  );
 }
