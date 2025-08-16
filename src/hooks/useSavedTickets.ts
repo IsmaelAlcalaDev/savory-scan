@@ -6,7 +6,7 @@ import type { OrderItem, Diner } from '@/contexts/OrderSimulatorContext';
 
 export interface SavedTicket {
   id: string;
-  name: string;
+  code: string;
   total_amount: number;
   total_items: number;
   diner_count: number;
@@ -46,14 +46,23 @@ export const useSavedTickets = (restaurantId: number) => {
 
       const { data, error: fetchError } = await supabase
         .from('ticket_simulations')
-        .select('id, name, total_amount, total_items, diner_count, created_at')
+        .select('id, code, total, items_count, diners_count, created_at')
         .eq('restaurant_id', restaurantId)
         .eq('created_by', user.id)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
 
-      setSavedTickets(data || []);
+      const formattedTickets: SavedTicket[] = (data || []).map(ticket => ({
+        id: ticket.id,
+        code: ticket.code,
+        total_amount: ticket.total || 0,
+        total_items: ticket.items_count || 0,
+        diner_count: ticket.diners_count || 0,
+        created_at: ticket.created_at
+      }));
+
+      setSavedTickets(formattedTickets);
     } catch (err) {
       console.error('Error fetching saved tickets:', err);
       setError(err instanceof Error ? err.message : 'Error al cargar tickets guardados');
@@ -74,17 +83,17 @@ export const useSavedTickets = (restaurantId: number) => {
       setLoading(true);
       setError(null);
 
-      // Create ticket simulation
+      // Create ticket simulation with the correct column names
       const { data: ticketData, error: ticketError } = await supabase
         .from('ticket_simulations')
         .insert({
-          name,
+          code: name,
           restaurant_id: restaurantId,
           created_by: user.id,
-          total_amount: totalAmount,
-          total_items: orderItems.reduce((sum, item) => sum + item.quantity, 0),
-          diner_count: diners.length,
-          diners_data: diners.map(d => ({ name: d.name })),
+          total: totalAmount,
+          items_count: orderItems.reduce((sum, item) => sum + item.quantity, 0),
+          diners_count: diners.length,
+          diner_names: diners.map(d => ({ name: d.name })),
           currency: 'EUR'
         })
         .select('id')
@@ -92,22 +101,19 @@ export const useSavedTickets = (restaurantId: number) => {
 
       if (ticketError) throw ticketError;
 
-      // Create ticket items
+      // Create ticket items with the correct column names
       const ticketItems = orderItems.map(item => {
         const price = item.selectedVariant?.price || item.dish.base_price;
         const diner = diners.find(d => d.id === item.dinerId);
         
         return {
-          ticket_simulation_id: ticketData.id,
+          ticket_id: ticketData.id,
           dish_id: item.dish.id,
           dish_name: item.dish.name,
-          dish_image_url: item.dish.image_url,
           variant_id: item.selectedVariant?.id,
-          variant_name: item.selectedVariant?.name,
           quantity: item.quantity,
           unit_price: price,
-          total_price: price * item.quantity,
-          diner_name: diner?.name || 'Comensal'
+          subtotal: price * item.quantity
         };
       });
 
@@ -149,19 +155,33 @@ export const useSavedTickets = (restaurantId: number) => {
       const { data: itemsData, error: itemsError } = await supabase
         .from('ticket_items')
         .select('*')
-        .eq('ticket_simulation_id', ticketId);
+        .eq('ticket_id', ticketId);
 
       if (itemsError) throw itemsError;
 
+      // Format the response to match expected interface
+      const formattedItems = (itemsData || []).map(item => ({
+        id: item.id,
+        dish_id: item.dish_id,
+        dish_name: item.dish_name,
+        dish_image_url: undefined,
+        variant_id: item.variant_id,
+        variant_name: undefined,
+        quantity: item.quantity || 1,
+        unit_price: item.unit_price,
+        total_price: item.subtotal,
+        diner_name: 'Comensal'
+      }));
+
       return {
         id: ticketData.id,
-        name: ticketData.name,
-        total_amount: ticketData.total_amount,
-        total_items: ticketData.total_items,
-        diner_count: ticketData.diner_count,
+        code: ticketData.code,
+        total_amount: ticketData.total || 0,
+        total_items: ticketData.items_count || 0,
+        diner_count: ticketData.diners_count || 0,
         created_at: ticketData.created_at,
-        items: itemsData || [],
-        diners: ticketData.diners_data || []
+        items: formattedItems,
+        diners: Array.isArray(ticketData.diner_names) ? ticketData.diner_names as Array<{name: string}> : []
       };
     } catch (err) {
       console.error('Error fetching ticket detail:', err);

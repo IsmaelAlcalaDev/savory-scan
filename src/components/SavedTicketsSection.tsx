@@ -67,7 +67,7 @@ export default function SavedTicketsSection({ restaurantId }: SavedTicketsSectio
               onClick={() => handleLoadTicket(ticket)}
             >
               <div className="flex items-start justify-between mb-2">
-                <h4 className="font-medium text-sm truncate pr-2">{ticket.name}</h4>
+                <h4 className="font-medium text-sm truncate pr-2">{ticket.code}</h4>
                 <Button
                   variant="ghost"
                   size="sm"
