@@ -309,7 +309,6 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                 description={restaurant.description}
                 priceRange={restaurant.price_range}
                 googleRating={restaurant.google_rating}
-                googleRatingCount={restaurant.google_rating_count}
                 distance={restaurant.distance_km}
                 cuisineTypes={restaurant.cuisine_types}
                 establishmentType={restaurant.establishment_type}
@@ -337,7 +336,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             {dishes.map((dish) => (
               <DishCard 
                 key={dish.id} 
-                dish={dish}
+                dish={{
+                  ...dish,
+                  is_lactose_free: dish.is_lactose_free || false,
+                  variants: dish.variants || []
+                }}
                 restaurantId={dish.restaurant_id || 0}
                 expandedDishId={expandedDishId}
                 onExpandedChange={setExpandedDishId}
