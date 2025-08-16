@@ -1,4 +1,3 @@
-
 import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import {
 import PriceFilter from './PriceFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import DietFilter from './DietFilter';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 
 interface FilterTagsProps {
   activeTab: 'restaurants' | 'dishes';
@@ -54,6 +53,16 @@ export default function FilterTags({
 }: FilterTagsProps) {
   const isMobile = useIsMobile();
   const [activeFilterModal, setActiveFilterModal] = useState<string | null>(null);
+  
+  // Use refs to store the latest values to prevent stale closures
+  const selectedPriceRangesRef = useRef(selectedPriceRanges);
+  const selectedEstablishmentTypesRef = useRef(selectedEstablishmentTypes);
+  const selectedDietTypesRef = useRef(selectedDietTypes);
+  
+  // Update refs when props change
+  selectedPriceRangesRef.current = selectedPriceRanges;
+  selectedEstablishmentTypesRef.current = selectedEstablishmentTypes;
+  selectedDietTypesRef.current = selectedDietTypes;
   
   const hasActiveFilters = selectedCuisines.length > 0 || 
     selectedFoodTypes.length > 0 || 
@@ -102,45 +111,54 @@ export default function FilterTags({
     setActiveFilterModal(null);
   }, [onClearFilter]);
 
-  // Wrapper for filter change handlers to prevent modal closing
-  const handlePriceRangeChangeWrapper = useCallback((ranges: string[]) => {
-    onPriceRangeChange(ranges);
+  // Stable handlers that don't cause re-renders
+  const stablePriceRangeHandler = useCallback((ranges: string[]) => {
+    // Don't call the handler if the values haven't actually changed
+    if (JSON.stringify(ranges) !== JSON.stringify(selectedPriceRangesRef.current)) {
+      onPriceRangeChange(ranges);
+    }
   }, [onPriceRangeChange]);
 
-  const handleEstablishmentTypeChangeWrapper = useCallback((types: number[]) => {
-    onEstablishmentTypeChange(types);
+  const stableEstablishmentTypeHandler = useCallback((types: number[]) => {
+    // Don't call the handler if the values haven't actually changed
+    if (JSON.stringify(types) !== JSON.stringify(selectedEstablishmentTypesRef.current)) {
+      onEstablishmentTypeChange(types);
+    }
   }, [onEstablishmentTypeChange]);
 
-  const handleDietTypeChangeWrapper = useCallback((types: number[]) => {
-    onDietTypeChange(types);
+  const stableDietTypeHandler = useCallback((types: number[]) => {
+    // Don't call the handler if the values haven't actually changed
+    if (JSON.stringify(types) !== JSON.stringify(selectedDietTypesRef.current)) {
+      onDietTypeChange(types);
+    }
   }, [onDietTypeChange]);
 
-  const getFilterContent = (filterKey: string) => {
+  const getFilterContent = useCallback((filterKey: string) => {
     switch (filterKey) {
       case 'price':
         return (
-          <div className="[&_label]:text-base space-y-4" onClick={(e) => e.stopPropagation()}>
+          <div className="[&_label]:text-base space-y-4">
             <PriceFilter
               selectedPriceRanges={selectedPriceRanges}
-              onPriceRangeChange={handlePriceRangeChangeWrapper}
+              onPriceRangeChange={stablePriceRangeHandler}
             />
           </div>
         );
       case 'establishment':
         return (
-          <div className="[&_label]:text-base space-y-4" onClick={(e) => e.stopPropagation()}>
+          <div className="[&_label]:text-base space-y-4">
             <EstablishmentTypeFilter
               selectedEstablishmentTypes={selectedEstablishmentTypes}
-              onEstablishmentTypeChange={handleEstablishmentTypeChangeWrapper}
+              onEstablishmentTypeChange={stableEstablishmentTypeHandler}
             />
           </div>
         );
       case 'diet':
         return (
-          <div className="[&_label]:text-base space-y-4" onClick={(e) => e.stopPropagation()}>
+          <div className="[&_label]:text-base space-y-4">
             <DietFilter
               selectedDietTypes={selectedDietTypes}
-              onDietTypeChange={handleDietTypeChangeWrapper}
+              onDietTypeChange={stableDietTypeHandler}
             />
           </div>
         );
@@ -151,9 +169,9 @@ export default function FilterTags({
           </div>
         );
     }
-  };
+  }, [selectedPriceRanges, selectedEstablishmentTypes, selectedDietTypes, stablePriceRangeHandler, stableEstablishmentTypeHandler, stableDietTypeHandler]);
 
-  const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
+  const FilterTrigger = useCallback(({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
     const config = filterConfig[filterKey as keyof typeof filterConfig];
     if (!config) return null;
 
@@ -197,9 +215,9 @@ export default function FilterTags({
         <ChevronDown className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
       </Button>
     );
-  };
+  }, [filterConfig, handleOpenModal]);
 
-  const FilterContent = ({ filterKey }: { filterKey: string }) => {
+  const FilterContent = useCallback(({ filterKey }: { filterKey: string }) => {
     const config = filterConfig[filterKey as keyof typeof filterConfig];
     if (!config) return null;
 
@@ -213,9 +231,12 @@ export default function FilterTags({
           </SheetDescription>
         </SheetHeader>
         
-        {/* Filter content - scrollable area */}
+        {/* Filter content - scrollable area with event isolation */}
         <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
-          <div className="[&>div>div:not(:last-child)]:border-b [&>div>div:not(:last-child)]:border-gray-100 [&>div>div:not(:last-child)]:pb-4 [&>div>div:not(:first-child)]:pt-4">
+          <div 
+            className="[&>div>div:not(:last-child)]:border-b [&>div>div:not(:last-child)]:border-gray-100 [&>div>div:not(:last-child)]:pb-4 [&>div>div:not(:first-child)]:pt-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             {getFilterContent(filterKey)}
           </div>
         </div>
@@ -238,13 +259,13 @@ export default function FilterTags({
         </div>
       </div>
     );
-  };
+  }, [filterConfig, getFilterContent, handleApplyFilters, handleResetFilters]);
 
-  const filterTags = [
+  const filterTags = useMemo(() => [
     { key: 'price', label: 'Precio' },
     ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
     { key: 'diet', label: 'Dieta' },
-  ];
+  ], [activeTab]);
 
   return (
     <>
