@@ -65,6 +65,7 @@ export default function FoodieSpotLayout({
 
   // Add new states for quick filters
   const [isBudgetFriendly, setIsBudgetFriendly] = useState(false);
+  const [isMostPopular, setIsMostPopular] = useState(false);
 
   // Determine active tab based on current route
   const getActiveTabFromRoute = (): 'restaurants' | 'dishes' | 'account' => {
@@ -185,7 +186,7 @@ export default function FoodieSpotLayout({
     setSelectedSpiceLevels(levels);
   };
 
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'dishDiet' | 'spice' | 'customTags' | 'openNow' | 'budgetFriendly' | 'all', id?: number) => {
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'dishDiet' | 'spice' | 'customTags' | 'openNow' | 'budgetFriendly' | 'mostPopular' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':
         setSelectedCuisines([]);
@@ -220,6 +221,9 @@ export default function FoodieSpotLayout({
       case 'budgetFriendly':
         setIsBudgetFriendly(false);
         break;
+      case 'mostPopular':
+        setIsMostPopular(false);
+        break;
       case 'all':
         setSelectedCuisines([]);
         setSelectedFoodTypes([]);
@@ -232,6 +236,7 @@ export default function FoodieSpotLayout({
         setSelectedCustomTags([]);
         setIsOpenNow(false);
         setIsBudgetFriendly(false);
+        setIsMostPopular(false);
         break;
     }
   };
@@ -281,7 +286,8 @@ export default function FoodieSpotLayout({
     selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
     selectedDishDietTypes: selectedDishDietTypes.length > 0 ? selectedDishDietTypes : undefined,
     selectedCustomTags: selectedCustomTags.length > 0 ? selectedCustomTags : undefined,
-    spiceLevels: selectedSpiceLevels.length > 0 ? selectedSpiceLevels : undefined
+    spiceLevels: selectedSpiceLevels.length > 0 ? selectedSpiceLevels : undefined,
+    sortByPopularity: isMostPopular
   });
 
   console.log('FoodieSpotLayout: Hook results:', {
@@ -389,7 +395,8 @@ export default function FoodieSpotLayout({
     selectedSpiceLevels.length > 0 ||
     selectedCustomTags.length > 0 ||
     isOpenNow ||
-    isBudgetFriendly;
+    isBudgetFriendly ||
+    isMostPopular;
 
     if (activeBottomTab === 'account') {
       // Show account content directly when authenticated and on account tab
@@ -427,6 +434,7 @@ export default function FoodieSpotLayout({
             selectedCustomTags={selectedCustomTags}
             isOpenNow={isOpenNow}
             isBudgetFriendly={isBudgetFriendly}
+            isMostPopular={isMostPopular}
             onClearFilter={handleClearFilter}
             onPriceRangeChange={setSelectedPriceRanges}
             onHighRatedChange={setIsHighRated}
@@ -437,6 +445,7 @@ export default function FoodieSpotLayout({
             onCustomTagsChange={setSelectedCustomTags}
             onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
             onBudgetFriendlyChange={setIsBudgetFriendly}
+            onMostPopularChange={setIsMostPopular}
           />
 
           {/* Results Header with adjusted spacing */}
