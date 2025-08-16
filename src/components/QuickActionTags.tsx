@@ -40,7 +40,7 @@ export default function QuickActionTags({
           <Button
             size="sm"
             variant="outline"
-            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm border border-gray-200 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
             onClick={() => window.open(`tel:${phone}`)}
           >
             <Phone className="h-4 w-4 text-black" />
@@ -51,7 +51,7 @@ export default function QuickActionTags({
         <Button
           size="sm"
           variant="outline"
-          className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+          className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm border border-gray-200 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
           onClick={handleNavigationClick}
         >
           <Navigation className="h-4 w-4 text-black" />
@@ -62,7 +62,7 @@ export default function QuickActionTags({
           <Button
             size="sm"
             variant="outline"
-            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm border border-gray-200 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
             onClick={() => window.open(website, '_blank', 'noopener noreferrer')}
           >
             <Globe className="h-4 w-4 text-black" />
@@ -74,7 +74,7 @@ export default function QuickActionTags({
           <Button
             size="sm"
             variant="outline"
-            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm hover:shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
+            className="px-4 py-2 h-auto bg-white rounded-lg shadow-sm border border-gray-200 transition-all duration-300 flex items-center gap-2 flex-shrink-0"
             onClick={() => window.open(`mailto:${email}`)}
           >
             <Mail className="h-4 w-4 text-black" />

@@ -1,92 +1,50 @@
 
 import React from 'react';
-import { Search, MapPin, Menu, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Menu, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import InlineSearchBar from './InlineSearchBar';
 
 interface TabletHeaderProps {
-  appName: string;
-  appLogoUrl: string;
   currentLocationName: string;
   isLoadingLocation: boolean;
-  searchQuery: string;
-  searchPlaceholder: string;
-  isSearchFocused: boolean;
-  onLogoClick: () => void;
   onLocationClick: () => void;
   onMenuClick: () => void;
-  onSearchChange: (value: string) => void;
-  onSearchFocus: () => void;
-  onSearchBlur: () => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
 export default function TabletHeader({
-  appName,
-  appLogoUrl,
   currentLocationName,
   isLoadingLocation,
-  searchQuery,
-  searchPlaceholder,
-  isSearchFocused,
-  onLogoClick,
   onLocationClick,
   onMenuClick,
-  onSearchChange,
-  onSearchFocus,
-  onSearchBlur
+  searchQuery,
+  onSearchChange
 }: TabletHeaderProps) {
   return (
-    <div className="flex items-center justify-between py-3 px-4 gap-4">
-      {/* Logo - Increased size */}
-      <div className="flex items-center flex-shrink-0">
-        <button onClick={onLogoClick} className="flex items-center">
-          <img 
-            src={appLogoUrl}
-            alt={`${appName} Logo`} 
-            className="w-24 h-24 bg-transparent object-contain cursor-pointer"
-          />
-        </button>
+    <div className="hidden md:flex lg:hidden items-center gap-4">
+      <div className="flex-1 max-w-md">
+        <InlineSearchBar
+          value={searchQuery}
+          onChange={onSearchChange}
+          placeholder="Buscar restaurantes, cocinas..."
+        />
       </div>
-
-      {/* Center: Location and Search */}
-      <div className="flex items-center gap-4 flex-1 max-w-2xl">
-        {/* Location */}
+      
+      <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           onClick={onLocationClick}
-          className="flex items-center gap-2 text-sm text-black hover:text-black hover:bg-transparent whitespace-nowrap"
+          className="flex items-center gap-2 text-sm text-black whitespace-nowrap"
         >
           <MapPin className="h-4 w-4 text-black" />
           <span className="max-w-32 truncate">
             {isLoadingLocation ? 'Detectando...' : currentLocationName}
           </span>
         </Button>
-
-        {/* Search */}
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{ color: '#4B4B4B' }} />
-            <Input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              onFocus={onSearchFocus}
-              onBlur={onSearchBlur}
-              className="pl-10 pr-4 h-10 text-base rounded-full border-0 placeholder:text-[#4B4B4B]"
-              style={{ 
-                backgroundColor: '#F3F3F3',
-                color: '#4B4B4B'
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Menu */}
-      <div className="flex items-center gap-4 flex-shrink-0">
-        <button 
-          className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
+        
+        <button
+          className="p-0 border-0 bg-transparent text-gray-800 transition-colors"
           onClick={onMenuClick}
         >
           <Menu className="h-8 w-8" strokeWidth={2.5} />

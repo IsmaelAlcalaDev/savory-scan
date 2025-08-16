@@ -185,8 +185,8 @@ export default function FilterTags({
           size="sm"
           className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
-              ? 'bg-black text-white hover:bg-black hover:text-white' 
-              : 'text-black hover:bg-gray-300 hover:text-black'
+              ? 'bg-black text-white' 
+              : 'text-black'
           }`}
           style={isActive ? { 
             backgroundColor: '#000000',
@@ -234,8 +234,8 @@ export default function FilterTags({
             size="sm"
             className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isHighRated 
-                ? 'bg-black text-white hover:bg-black hover:text-white' 
-                : 'text-black hover:bg-gray-300 hover:text-black'
+                ? 'bg-black text-white' 
+                : 'text-black'
             }`}
             style={isHighRated ? { 
               backgroundColor: '#000000',
@@ -260,8 +260,8 @@ export default function FilterTags({
             size="sm"
             className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isOpenNow 
-                ? 'bg-black text-white hover:bg-black hover:text-white' 
-                : 'text-black hover:bg-gray-300 hover:text-black'
+                ? 'bg-black text-white' 
+                : 'text-black'
             }`}
             style={isOpenNow ? { 
               backgroundColor: '#000000',
@@ -286,8 +286,8 @@ export default function FilterTags({
             size="sm"
             className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isBudgetFriendly 
-                ? 'bg-black text-white hover:bg-black hover:text-white' 
-                : 'text-black hover:bg-gray-300 hover:text-black'
+                ? 'bg-black text-white' 
+                : 'text-black'
             }`}
             style={isBudgetFriendly ? { 
               backgroundColor: '#000000',
@@ -338,18 +338,6 @@ export default function FilterTags({
           /* Increase spacing between checkbox and label */
           .space-x-2 > :not([hidden]) ~ :not([hidden]) {
             margin-left: 12px;
-          }
-
-          /* Force black hover on active filter buttons */
-          .bg-black:hover {
-            background-color: #000000 !important;
-            color: white !important;
-          }
-
-          /* Slightly darker gray hover for inactive buttons */
-          .hover\\:bg-gray-300:hover {
-            background-color: #d1d5db !important;
-            color: black !important;
           }
 
           /* Improve touch targets for mobile */
