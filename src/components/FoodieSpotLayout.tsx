@@ -50,6 +50,7 @@ export default function FoodieSpotLayout({
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [selectedCustomTags, setSelectedCustomTags] = useState<string[]>([]);
+  const [selectedSpiceLevels, setSelectedSpiceLevels] = useState<number[]>([]);
   const [isOpenNow, setIsOpenNow] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
@@ -175,7 +176,7 @@ export default function FoodieSpotLayout({
     }
   }, []);
 
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'customTags' | 'openNow' | 'budgetFriendly' | 'all', id?: number) => {
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'customTags' | 'spiceLevels' | 'openNow' | 'budgetFriendly' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':
         setSelectedCuisines([]);
@@ -198,6 +199,9 @@ export default function FoodieSpotLayout({
       case 'customTags':
         setSelectedCustomTags([]);
         break;
+      case 'spiceLevels':
+        setSelectedSpiceLevels([]);
+        break;
       case 'openNow':
         setIsOpenNow(!isOpenNow);
         break;
@@ -212,6 +216,7 @@ export default function FoodieSpotLayout({
         setSelectedEstablishmentTypes([]);
         setSelectedDietTypes([]);
         setSelectedCustomTags([]);
+        setSelectedSpiceLevels([]);
         setIsOpenNow(false);
         setIsBudgetFriendly(false);
         break;
@@ -297,7 +302,7 @@ export default function FoodieSpotLayout({
     selectedFoodTypes,
     selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
     selectedCustomTags: selectedCustomTags.length > 0 ? selectedCustomTags : undefined,
-    spiceLevels: []
+    spiceLevels: selectedSpiceLevels
   });
 
   console.log('FoodieSpotLayout: Hook results:', {
@@ -402,6 +407,7 @@ export default function FoodieSpotLayout({
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
     selectedCustomTags.length > 0 ||
+    selectedSpiceLevels.length > 0 ||
     isOpenNow ||
     isBudgetFriendly;
 
@@ -437,6 +443,7 @@ export default function FoodieSpotLayout({
             selectedEstablishmentTypes={selectedEstablishmentTypes} 
             selectedDietTypes={selectedDietTypes} 
             selectedCustomTags={selectedCustomTags}
+            selectedSpiceLevels={selectedSpiceLevels}
             isOpenNow={isOpenNow}
             isBudgetFriendly={isBudgetFriendly}
             onClearFilter={handleClearFilter}
@@ -445,6 +452,7 @@ export default function FoodieSpotLayout({
             onEstablishmentTypeChange={setSelectedEstablishmentTypes}
             onDietTypeChange={setSelectedDietTypes}
             onCustomTagsChange={setSelectedCustomTags}
+            onSpiceLevelChange={setSelectedSpiceLevels}
             onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
             onBudgetFriendlyChange={setIsBudgetFriendly}
           />
