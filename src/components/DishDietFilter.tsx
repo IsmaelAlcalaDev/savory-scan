@@ -5,16 +5,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 
 interface DishDietFilterProps {
-  selectedDishDietTypes: string[];
+  selectedDietTypes: string[];
   selectedSpiceLevels?: number[];
-  onDishDietTypeChange: (types: string[]) => void;
+  onDietTypeChange: (types: string[]) => void;
   onSpiceLevelChange?: (levels: number[]) => void;
 }
 
 export default function DishDietFilter({
-  selectedDishDietTypes,
+  selectedDietTypes,
   selectedSpiceLevels = [],
-  onDishDietTypeChange,
+  onDietTypeChange,
   onSpiceLevelChange = () => {}
 }: DishDietFilterProps) {
   const dietOptions = [
@@ -32,9 +32,9 @@ export default function DishDietFilter({
 
   const handleDietToggle = (dietId: string, checked: boolean) => {
     if (checked) {
-      onDishDietTypeChange([...selectedDishDietTypes, dietId]);
+      onDietTypeChange([...selectedDietTypes, dietId]);
     } else {
-      onDishDietTypeChange(selectedDishDietTypes.filter(id => id !== dietId));
+      onDietTypeChange(selectedDietTypes.filter(id => id !== dietId));
     }
   };
 
@@ -56,7 +56,7 @@ export default function DishDietFilter({
             <div key={diet.id} className="flex items-center space-x-3">
               <Checkbox
                 id={`dish-diet-${diet.id}`}
-                checked={selectedDishDietTypes.includes(diet.id)}
+                checked={selectedDietTypes.includes(diet.id)}
                 onCheckedChange={(checked) => handleDietToggle(diet.id, checked as boolean)}
                 className="data-[state=checked]:bg-black data-[state=checked]:border-black"
               />

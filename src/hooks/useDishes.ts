@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,7 +28,6 @@ interface DishData {
   distance_km?: number;
   formatted_price: string;
   custom_tags: string[];
-  popularity_score?: number;
 }
 
 interface UseDishesParams {
@@ -41,7 +41,6 @@ interface UseDishesParams {
   selectedFoodTypes?: number[];
   selectedCustomTags?: string[];
   spiceLevels?: number[];
-  sortByPopularity?: boolean;
 }
 
 const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -79,8 +78,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedPriceRanges = [],
     selectedFoodTypes = [],
     selectedCustomTags = [],
-    spiceLevels = [],
-    sortByPopularity = false
+    spiceLevels = []
   } = params;
 
   // Create a stable key for the current fetch parameters
@@ -93,40 +91,8 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedPriceRanges,
     selectedFoodTypes,
     selectedCustomTags,
-    spiceLevels,
-    sortByPopularity
+    spiceLevels
   });
-
-  const fetchPopularityMetrics = async (dishIds: number[]) => {
-    if (!dishIds.length) return new Map();
-
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const { data: metricsData, error: metricsError } = await supabase
-      .from('dish_metrics')
-      .select('dish_id, views_count, added_to_ticket_count')
-      .in('dish_id', dishIds)
-      .gte('metric_date', thirtyDaysAgo.toISOString().split('T')[0]);
-
-    if (metricsError) {
-      console.error('Error fetching popularity metrics:', metricsError);
-      return new Map();
-    }
-
-    // Aggregate metrics by dish_id
-    const popularityMap = new Map<number, number>();
-    
-    if (metricsData) {
-      metricsData.forEach(metric => {
-        const currentScore = popularityMap.get(metric.dish_id) || 0;
-        const newScore = (metric.views_count || 0) + (metric.added_to_ticket_count || 0);
-        popularityMap.set(metric.dish_id, currentScore + newScore);
-      });
-    }
-
-    return popularityMap;
-  };
 
   const fetchDishes = useCallback(async (signal: AbortSignal) => {
     try {
@@ -231,8 +197,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
             restaurant_google_rating: restaurant.google_rating,
             distance_km,
             formatted_price: formatPrice(dish.base_price),
-            custom_tags: customTags,
-            popularity_score: 0
+            custom_tags: customTags
           };
         });
 
@@ -319,48 +284,17 @@ export const useDishes = (params: UseDishesParams = {}) => {
         );
       }
 
-      // Get popularity metrics if sorting by popularity
-      let popularityMap = new Map<number, number>();
-      if (sortByPopularity) {
-        const dishIds = filteredDishes.map(dish => dish.id);
-        popularityMap = await fetchPopularityMetrics(dishIds);
-        
-        // Add popularity scores to dishes
-        filteredDishes = filteredDishes.map(dish => ({
-          ...dish,
-          popularity_score: popularityMap.get(dish.id) || 0
-        }));
-      }
-
-      // Sort dishes
+      // Sort by featured first, then by distance if available
       filteredDishes.sort((a, b) => {
-        if (sortByPopularity) {
-          // Sort by popularity score first (highest first)
-          const popularityA = a.popularity_score || 0;
-          const popularityB = b.popularity_score || 0;
-          
-          if (popularityA !== popularityB) {
-            return popularityB - popularityA;
-          }
-          
-          // Then by distance if available
-          if (a.distance_km !== undefined && b.distance_km !== undefined) {
-            return a.distance_km - b.distance_km;
-          }
-        } else {
-          // Default sorting: featured first, then by distance
-          if (a.is_featured && !b.is_featured) return -1;
-          if (!a.is_featured && b.is_featured) return 1;
-          if (a.distance_km !== undefined && b.distance_km !== undefined) {
-            return a.distance_km - b.distance_km;
-          }
+        if (a.is_featured && !b.is_featured) return -1;
+        if (!a.is_featured && b.is_featured) return 1;
+        if (a.distance_km !== undefined && b.distance_km !== undefined) {
+          return a.distance_km - b.distance_km;
         }
-        
         return 0;
       });
 
       console.log('useDishes: Final dishes to display:', filteredDishes.length);
-      console.log('useDishes: Sort by popularity:', sortByPopularity);
 
       if (!signal.aborted) {
         setDishes(filteredDishes);
@@ -377,7 +311,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       setDishes([]);
       setLoading(false);
     }
-  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels, sortByPopularity]);
+  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels]);
 
   useEffect(() => {
     // Skip if the fetch key hasn't changed (prevents infinite loops)
