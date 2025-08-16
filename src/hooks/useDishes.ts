@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -40,7 +41,6 @@ interface UseDishesParams {
   selectedFoodTypes?: number[];
   selectedCustomTags?: string[];
   spiceLevels?: number[];
-  isHighRated?: boolean;
 }
 
 const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -78,8 +78,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedPriceRanges = [],
     selectedFoodTypes = [],
     selectedCustomTags = [],
-    spiceLevels = [],
-    isHighRated = false
+    spiceLevels = []
   } = params;
 
   // Create a stable key for the current fetch parameters
@@ -92,15 +91,14 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedPriceRanges,
     selectedFoodTypes,
     selectedCustomTags,
-    spiceLevels,
-    isHighRated
+    spiceLevels
   });
 
   const fetchDishes = useCallback(async (signal: AbortSignal) => {
     try {
       console.log('useDishes: Starting fetch with key:', fetchKey);
       
-      let query = supabase
+      const { data, error: fetchError } = await supabase
         .from('dishes')
         .select(`
           id,
@@ -133,14 +131,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
           )
         `)
         .eq('is_active', true)
-        .eq('restaurants.is_active', true);
-
-      // Apply high rating filter if enabled
-      if (isHighRated) {
-        query = query.gte('restaurants.google_rating', 4.5);
-      }
-
-      const { data, error: fetchError } = await query
+        .eq('restaurants.is_active', true)
         .limit(100)
         .abortSignal(signal);
 
@@ -320,7 +311,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       setDishes([]);
       setLoading(false);
     }
-  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels, isHighRated]);
+  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels]);
 
   useEffect(() => {
     // Skip if the fetch key hasn't changed (prevents infinite loops)
