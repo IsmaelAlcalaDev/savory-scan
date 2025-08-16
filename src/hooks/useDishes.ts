@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -26,7 +27,6 @@ interface DishData {
   restaurant_google_rating?: number;
   distance_km?: number;
   formatted_price: string;
-  custom_tags?: string[];
 }
 
 interface UseDishesParams {
@@ -37,7 +37,6 @@ interface UseDishesParams {
   selectedDietTypes?: number[];
   selectedPriceRanges?: string[];
   selectedFoodTypes?: number[];
-  selectedCustomTags?: string[];
   spiceLevels?: number[];
   prepTimeRanges?: number[];
 }
@@ -75,7 +74,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedDietTypes = [],
     selectedPriceRanges = [],
     selectedFoodTypes = [],
-    selectedCustomTags = [],
     spiceLevels = [],
     prepTimeRanges = []
   } = params;
@@ -88,7 +86,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedDietTypes,
     selectedPriceRanges,
     selectedFoodTypes,
-    selectedCustomTags,
     spiceLevels,
     prepTimeRanges
   });
@@ -114,7 +111,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
           spice_level,
           preparation_time_minutes,
           favorites_count,
-          custom_tags,
           restaurants!inner (
             id,
             name,
@@ -187,8 +183,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
             restaurant_price_range: restaurant.price_range,
             restaurant_google_rating: restaurant.google_rating,
             distance_km,
-            formatted_price: formatPrice(dish.base_price),
-            custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags : []
+            formatted_price: formatPrice(dish.base_price)
           };
         });
 
@@ -205,7 +200,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
         );
       }
 
-      // Diet type filters
+      // Diet type filters - Updated to work with new percentage-based system
       if (selectedDietTypes.length > 0) {
         // Get diet types with their categories
         const { data: dietTypesData, error: dietTypesError } = await supabase
@@ -226,14 +221,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
             });
           });
         }
-      }
-
-      // Custom tags filter
-      if (selectedCustomTags.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => {
-          const dishCustomTags = dish.custom_tags || [];
-          return selectedCustomTags.some(tag => dishCustomTags.includes(tag));
-        });
       }
 
       // Price range filters
@@ -299,7 +286,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       setDishes([]);
       setLoading(false);
     }
-  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels, prepTimeRanges]);
+  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, spiceLevels, prepTimeRanges]);
 
   useEffect(() => {
     // Skip if the fetch key hasn't changed (prevents infinite loops)

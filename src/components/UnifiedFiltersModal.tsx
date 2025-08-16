@@ -9,36 +9,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import AllergenFilter from './AllergenFilter';
 import DietFilter from './DietFilter';
-import CustomTagsFilter from './CustomTagsFilter';
 
 interface UnifiedFiltersModalProps {
   selectedAllergens: string[];
   selectedDietTypes: number[];
-  selectedCustomTags: string[];
   onAllergenChange: (allergens: string[]) => void;
   onDietTypeChange: (types: number[]) => void;
-  onCustomTagsChange: (tags: string[]) => void;
   trigger?: ReactNode;
 }
 
 export default function UnifiedFiltersModal({
   selectedAllergens,
   selectedDietTypes,
-  selectedCustomTags,
   onAllergenChange,
   onDietTypeChange,
-  onCustomTagsChange,
   trigger
 }: UnifiedFiltersModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const isMobile = useIsMobile();
   
-  const activeFiltersCount = selectedAllergens.length + selectedDietTypes.length + selectedCustomTags.length;
+  const activeFiltersCount = selectedAllergens.length + selectedDietTypes.length;
 
   const clearAllFilters = () => {
     onAllergenChange([]);
     onDietTypeChange([]);
-    onCustomTagsChange([]);
   };
 
   const defaultTrigger = (
@@ -81,15 +75,12 @@ export default function UnifiedFiltersModal({
       {/* Content */}
       <div className={`${isMobile ? 'flex-1 overflow-y-auto px-6 py-4 min-h-0' : 'mt-4'}`}>
         <Tabs defaultValue="allergens" className="w-full">
-          <TabsList className={`grid w-full grid-cols-3 ${isMobile ? 'h-12' : ''}`}>
+          <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'h-12' : ''}`}>
             <TabsTrigger value="allergens" className={isMobile ? 'text-base' : ''}>
               Alérgenos
             </TabsTrigger>
             <TabsTrigger value="diet" className={isMobile ? 'text-base' : ''}>
               Dieta
-            </TabsTrigger>
-            <TabsTrigger value="tags" className={isMobile ? 'text-base' : ''}>
-              Etiquetas
             </TabsTrigger>
           </TabsList>
           
@@ -113,18 +104,6 @@ export default function UnifiedFiltersModal({
               <DietFilter
                 selectedDietTypes={selectedDietTypes}
                 onDietTypeChange={onDietTypeChange}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="tags" className={`${isMobile ? 'mt-6' : 'mt-4'}`}>
-            <div className="space-y-4">
-              <p className={`text-muted-foreground ${isMobile ? 'text-base' : 'text-sm'}`}>
-                Filtra platos por etiquetas especiales:
-              </p>
-              <CustomTagsFilter
-                selectedCustomTags={selectedCustomTags}
-                onCustomTagsChange={onCustomTagsChange}
               />
             </div>
           </TabsContent>
