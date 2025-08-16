@@ -1,8 +1,8 @@
+
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import FavoriteButton from './FavoriteButton';
-import LazyImage from './LazyImage';
 
 interface RestaurantCardProps {
   id: number;
@@ -75,16 +75,20 @@ export default function RestaurantCard({
       >
         <div className="w-24 h-24 relative overflow-hidden rounded-lg flex-shrink-0">
           {displayImage ? (
-            <LazyImage 
+            <img 
               src={displayImage} 
               alt={name}
-              className="w-full h-full group-hover:scale-105 transition-transform duration-300"
-              width={96}
-              height={96}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
             />
-          ) : (
-            <div className="w-full h-full bg-gradient-hero" />
-          )}
+          ) : null}
+          <div className={cn(
+            "absolute inset-0 transition-smooth",
+            displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
+          )} />
           
           <div className="absolute top-2 left-2">
             <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
@@ -107,12 +111,14 @@ export default function RestaurantCard({
           <div className="flex items-center gap-2 flex-wrap">
             {logoUrl && (
               <div className="flex-shrink-0">
-                <LazyImage 
+                <img 
                   src={logoUrl} 
                   alt={`${name} logo`}
                   className="w-8 h-8 rounded object-cover"
-                  width={32}
-                  height={32}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
                 />
               </div>
             )}
@@ -159,16 +165,20 @@ export default function RestaurantCard({
     >
       <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
         {displayImage ? (
-          <LazyImage 
+          <img 
             src={displayImage} 
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            width={400}
-            height={240}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
           />
-        ) : (
-          <div className="w-full h-full bg-gradient-hero" />
-        )}
+        ) : null}
+        <div className={cn(
+          "absolute inset-0 transition-smooth",
+          displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
+        )} />
         
         <div className="absolute top-3 left-3">
           <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
@@ -191,12 +201,14 @@ export default function RestaurantCard({
         <div className="flex items-center gap-2 flex-wrap">
           {logoUrl && (
             <div className="flex-shrink-0">
-              <LazyImage 
+              <img 
                 src={logoUrl} 
                 alt={`${name} logo`}
                 className="w-12 h-12 rounded object-cover"
-                width={48}
-                height={48}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
               />
             </div>
           )}
