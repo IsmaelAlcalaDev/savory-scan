@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -81,7 +82,10 @@ export const useInfiniteRestaurants = ({
     append: boolean = false
   ) => {
     try {
-      console.log('useInfiniteRestaurants: Fetching page', page, 'append:', append, 'hasLocation:', !!userLat);
+      console.log('🔍 useInfiniteRestaurants: Starting fetch');
+      console.log('📍 User location:', { userLat, userLng });
+      console.log('📄 Page:', page, 'append:', append);
+      console.log('🔧 Filters:', { searchQuery, isHighRated, isBudgetFriendly, priceRanges, selectedEstablishmentTypes, cuisineTypeIds });
       
       const offset = page * itemsPerPage;
       
@@ -112,58 +116,67 @@ export const useInfiniteRestaurants = ({
         .eq('is_published', true)
         .is('deleted_at', null);
 
+      console.log('🎯 Base query created');
+
       // Apply filters
       if (searchQuery) {
         query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        console.log('🔍 Applied search filter:', searchQuery);
       }
 
       if (isHighRated) {
         query = query.gte('google_rating', 4.5);
+        console.log('⭐ Applied high rating filter');
       }
 
       if (isBudgetFriendly) {
         query = query.eq('price_range', '€');
+        console.log('💰 Applied budget friendly filter');
       } else if (priceRanges?.length) {
         const priceRangeArray = priceRanges.filter((range): range is "€" | "€€" | "€€€" | "€€€€" => 
           range === "€" || range === "€€" || range === "€€€" || range === "€€€€"
         );
         if (priceRangeArray.length > 0) {
           query = query.in('price_range', priceRangeArray);
+          console.log('💰 Applied price range filter:', priceRangeArray);
         }
       }
 
       if (selectedEstablishmentTypes?.length) {
         query = query.in('establishment_type_id', selectedEstablishmentTypes);
+        console.log('🏪 Applied establishment type filter:', selectedEstablishmentTypes);
       }
 
       if (cuisineTypeIds?.length) {
         query = query.in('restaurant_cuisines.cuisine_type_id', cuisineTypeIds);
+        console.log('🍽️ Applied cuisine type filter:', cuisineTypeIds);
       }
 
       // Order by location if available, otherwise by rating/popularity
       if (userLat && userLng) {
         // When we have location, we'll calculate distance and sort by it
-        console.log('useInfiniteRestaurants: Will order by distance from user location');
+        console.log('📍 Will order by distance from user location');
       } else {
         // When no location, order by rating and popularity
         query = query.order('google_rating', { ascending: false, nullsFirst: false })
                     .order('favorites_count', { ascending: false });
-        console.log('useInfiniteRestaurants: Ordering by rating and popularity (no location)');
+        console.log('⭐ Ordering by rating and popularity (no location)');
       }
 
       // Pagination
       query = query.range(offset, offset + itemsPerPage - 1);
+      console.log('📄 Applied pagination:', { offset, limit: itemsPerPage });
 
       const { data, error: fetchError } = await query.abortSignal(signal);
 
       if (signal.aborted) return;
 
       if (fetchError) {
-        console.error('useInfiniteRestaurants: Query error:', fetchError);
+        console.error('❌ useInfiniteRestaurants: Query error:', fetchError);
         throw fetchError;
       }
 
-      console.log('useInfiniteRestaurants: Received', data?.length || 0, 'restaurants for page', page);
+      console.log('✅ Raw data received:', data?.length || 0, 'restaurants');
 
       const formattedRestaurants: Restaurant[] = (data || []).map((restaurant: any) => {
         // Calculate distance if user location is provided
@@ -199,6 +212,8 @@ export const useInfiniteRestaurants = ({
         };
       });
 
+      console.log('🔧 Formatted restaurants:', formattedRestaurants.length);
+
       // If we have user location, sort by distance after formatting
       // Keep ALL restaurants, but prioritize nearby ones
       let sortedRestaurants = formattedRestaurants;
@@ -215,17 +230,31 @@ export const useInfiniteRestaurants = ({
           // Restaurants with distance always before those without
           return a.distance_km !== undefined ? -1 : 1;
         });
-        console.log('useInfiniteRestaurants: Sorted', sortedRestaurants.length, 'restaurants by distance');
+        console.log('📍 Sorted', sortedRestaurants.length, 'restaurants by distance');
+        
+        // Log distance info
+        const withDistance = sortedRestaurants.filter(r => r.distance_km !== undefined);
+        const withoutDistance = sortedRestaurants.filter(r => r.distance_km === undefined);
+        console.log(`📊 Distance breakdown: ${withDistance.length} with distance, ${withoutDistance.length} without`);
+        if (withDistance.length > 0) {
+          console.log(`📏 Distance range: ${withDistance[0].distance_km}km to ${withDistance[withDistance.length-1]?.distance_km}km`);
+        }
       }
+
+      console.log('✅ Final restaurants to display:', sortedRestaurants.length);
 
       if (!signal.aborted) {
         const newHasMore = sortedRestaurants.length === itemsPerPage;
         setHasMore(newHasMore);
         
         if (append) {
-          setRestaurants(prev => [...prev, ...sortedRestaurants]);
+          setRestaurants(prev => {
+            console.log('➕ Appending', sortedRestaurants.length, 'restaurants to existing', prev.length);
+            return [...prev, ...sortedRestaurants];
+          });
           setLoadingMore(false);
         } else {
+          console.log('🔄 Setting', sortedRestaurants.length, 'restaurants (replacing previous)');
           setRestaurants(sortedRestaurants);
           setLoading(false);
         }
@@ -237,7 +266,7 @@ export const useInfiniteRestaurants = ({
     } catch (err) {
       if (signal.aborted) return;
       
-      console.error('useInfiniteRestaurants: Error:', err);
+      console.error('❌ useInfiniteRestaurants: Error:', err);
       setError(err instanceof Error ? err.message : 'Error al cargar restaurantes');
       
       if (append) {
@@ -253,10 +282,11 @@ export const useInfiniteRestaurants = ({
   useEffect(() => {
     // Skip if parameters haven't changed
     if (lastFetchRef.current === fetchKey && restaurants.length > 0) {
+      console.log('⏭️ Skipping fetch - parameters unchanged and restaurants already loaded');
       return;
     }
 
-    console.log('useInfiniteRestaurants: Starting fetch, location:', { userLat, userLng });
+    console.log('🚀 useInfiniteRestaurants: Starting fetch, location:', { userLat, userLng });
 
     // Clear existing timeout
     if (fetchTimeoutRef.current) {
