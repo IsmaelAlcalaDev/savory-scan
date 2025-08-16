@@ -9,6 +9,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import AllergenFilter from './AllergenFilter';
 import DietFilter from './DietFilter';
 import DishDietFilter from './DishDietFilter';
+import SpiceFilter from './SpiceFilter';
 
 interface UnifiedFiltersModalProps {
   activeTab?: 'restaurants' | 'dishes';
@@ -123,12 +124,16 @@ export default function UnifiedFiltersModal({
                   onDietTypeChange={onDietTypeChange}
                 />
               ) : (
-                <DishDietFilter
-                  selectedDietTypes={selectedDishDietTypes}
-                  selectedSpiceLevels={selectedSpiceLevels}
-                  onDietTypeChange={onDishDietTypeChange}
-                  onSpiceLevelChange={onSpiceLevelChange}
-                />
+                <div className="space-y-6">
+                  <DishDietFilter
+                    selectedDishDietTypes={selectedDishDietTypes}
+                    onDishDietTypeChange={onDishDietTypeChange}
+                  />
+                  <SpiceFilter
+                    selectedSpiceLevels={selectedSpiceLevels}
+                    onSpiceLevelChange={onSpiceLevelChange}
+                  />
+                </div>
               )}
             </div>
           </TabsContent>

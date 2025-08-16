@@ -1,4 +1,4 @@
-import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Tags } from 'lucide-react';
+import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Tags, Flame } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -11,6 +11,7 @@ import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import DietFilter from './DietFilter';
 import CustomTagsFilter from './CustomTagsFilter';
 import DishDietFilter from './DishDietFilter';
+import SpiceFilter from './SpiceFilter';
 import { useState } from 'react';
 
 interface FilterTagsProps {
@@ -82,6 +83,7 @@ export default function FilterTags({
       case 'establishment': return Store;
       case 'diet': return Utensils;
       case 'customTags': return Tags;
+      case 'spice': return Flame;
       default: return null;
     }
   };
@@ -92,6 +94,7 @@ export default function FilterTags({
       case 'establishment': return 'Tipo de Comercio';
       case 'diet': return 'Dieta';
       case 'customTags': return 'Etiquetas';
+      case 'spice': return 'Picante';
       default: return 'Filtro';
     }
   };
@@ -100,8 +103,9 @@ export default function FilterTags({
     switch (filterKey) {
       case 'price': return selectedPriceRanges.length;
       case 'establishment': return selectedEstablishmentTypes.length;
-      case 'diet': return activeTab === 'restaurants' ? selectedDietTypes.length : selectedDishDietTypes.length + selectedSpiceLevels.length;
+      case 'diet': return activeTab === 'restaurants' ? selectedDietTypes.length : selectedDishDietTypes.length;
       case 'customTags': return selectedCustomTags.length;
+      case 'spice': return selectedSpiceLevels.length;
       default: return 0;
     }
   };
@@ -140,10 +144,8 @@ export default function FilterTags({
               />
             ) : (
               <DishDietFilter
-                selectedDietTypes={selectedDishDietTypes}
-                selectedSpiceLevels={selectedSpiceLevels}
-                onDietTypeChange={onDishDietTypeChange}
-                onSpiceLevelChange={onSpiceLevelChange}
+                selectedDishDietTypes={selectedDishDietTypes}
+                onDishDietTypeChange={onDishDietTypeChange}
               />
             )}
           </div>
@@ -154,6 +156,15 @@ export default function FilterTags({
             <CustomTagsFilter
               selectedCustomTags={selectedCustomTags}
               onCustomTagsChange={onCustomTagsChange}
+            />
+          </div>
+        );
+      case 'spice':
+        return (
+          <div className="[&_label]:text-base space-y-4">
+            <SpiceFilter
+              selectedSpiceLevels={selectedSpiceLevels}
+              onSpiceLevelChange={onSpiceLevelChange}
             />
           </div>
         );
@@ -203,7 +214,10 @@ export default function FilterTags({
     { key: 'price', label: 'Precio' },
     ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
     { key: 'diet', label: 'Dieta' },
-    ...(activeTab === 'dishes' ? [{ key: 'customTags', label: 'Etiquetas' }] : []),
+    ...(activeTab === 'dishes' ? [
+      { key: 'spice', label: 'Picante' },
+      { key: 'customTags', label: 'Etiquetas' }
+    ] : []),
   ];
 
   const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
