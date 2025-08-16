@@ -185,8 +185,8 @@ export default function FilterTags({
           size="sm"
           className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
-              ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
-              : 'text-black hover:bg-[#EAEAEA]'
+              ? 'bg-red-500 text-white hover:bg-black hover:text-white' 
+              : 'text-black hover:bg-gray-400 hover:text-black'
           }`}
           style={isActive ? { 
             backgroundColor: '#ef4444',
@@ -234,8 +234,8 @@ export default function FilterTags({
             size="sm"
             className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isHighRated 
-                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
-                : 'text-black hover:bg-[#EAEAEA]'
+                ? 'bg-red-500 text-white hover:bg-black hover:text-white' 
+                : 'text-black hover:bg-gray-400 hover:text-black'
             }`}
             style={isHighRated ? { 
               backgroundColor: '#ef4444',
@@ -260,8 +260,8 @@ export default function FilterTags({
             size="sm"
             className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isOpenNow 
-                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
-                : 'text-black hover:bg-[#EAEAEA]'
+                ? 'bg-red-500 text-white hover:bg-black hover:text-white' 
+                : 'text-black hover:bg-gray-400 hover:text-black'
             }`}
             style={isOpenNow ? { 
               backgroundColor: '#ef4444',
@@ -286,8 +286,8 @@ export default function FilterTags({
             size="sm"
             className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
               isBudgetFriendly 
-                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
-                : 'text-black hover:bg-[#EAEAEA]'
+                ? 'bg-red-500 text-white hover:bg-black hover:text-white' 
+                : 'text-black hover:bg-gray-400 hover:text-black'
             }`}
             style={isBudgetFriendly ? { 
               backgroundColor: '#ef4444',
@@ -342,8 +342,14 @@ export default function FilterTags({
 
           /* Force disable hover on active filter buttons */
           .bg-red-500:hover {
-            background-color: #ef4444 !important;
+            background-color: #000000 !important;
             color: white !important;
+          }
+
+          /* Gray hover for inactive buttons */
+          .hover\\:bg-gray-400:hover {
+            background-color: #9ca3af !important;
+            color: black !important;
           }
 
           /* Improve touch targets for mobile */
