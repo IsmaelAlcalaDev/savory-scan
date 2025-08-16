@@ -241,8 +241,8 @@ const Restaurants = () => {
               description={restaurant.description}
               priceRange={restaurant.price_range}
               googleRating={restaurant.google_rating}
-              googleRatingCount={restaurant.google_rating_count}
-              distance={restaurant.distance}
+              googleRatingCount={undefined}
+              distance={restaurant.distance_km}
               cuisineTypes={restaurant.cuisine_types || []}
               establishmentType={restaurant.establishment_type}
               services={restaurant.services || []}
