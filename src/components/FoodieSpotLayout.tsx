@@ -22,12 +22,16 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
-  const [selectedServices, setSelectedServices] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
+  const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [selectedSort, setSelectedSort] = useState<string>('nearest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
+  const [isOpenNow, setIsOpenNow] = useState(false);
+  const [isHighRated, setIsHighRated] = useState(false);
+  const [isBudgetFriendly, setIsBudgetFriendly] = useState(false);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const { restaurants, loading, error } = useRestaurants({
@@ -35,17 +39,62 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
     cuisineTypeIds: selectedCuisines,
     priceRanges: selectedPriceRanges,
     selectedEstablishmentTypes: selectedEstablishmentTypes,
+    selectedDietTypes: selectedDietTypes,
+    isOpenNow: isOpenNow,
+    isHighRated: isHighRated,
+    isBudgetFriendly: isBudgetFriendly,
   });
 
   const filteredRestaurants = restaurants;
 
   const resetFilters = () => {
-    setSelectedServices([]);
     setSelectedCuisines([]);
     setSelectedPriceRanges([]);
     setSelectedEstablishmentTypes([]);
+    setSelectedAllergens([]);
+    setSelectedDietTypes([]);
     setSelectedSort('nearest');
     setSearchQuery('');
+    setIsOpenNow(false);
+    setIsHighRated(false);
+    setIsBudgetFriendly(false);
+  };
+
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'establishment' | 'diet' | 'openNow' | 'highRated' | 'budgetFriendly' | 'all', id?: number) => {
+    switch (type) {
+      case 'cuisine':
+        if (id !== undefined) {
+          setSelectedCuisines(prev => prev.filter(cuisineId => cuisineId !== id));
+        }
+        break;
+      case 'price':
+        if (id !== undefined) {
+          setSelectedPriceRanges(prev => prev.filter(priceId => priceId !== id.toString()));
+        }
+        break;
+      case 'establishment':
+        if (id !== undefined) {
+          setSelectedEstablishmentTypes(prev => prev.filter(typeId => typeId !== id));
+        }
+        break;
+      case 'diet':
+        if (id !== undefined) {
+          setSelectedDietTypes(prev => prev.filter(dietId => dietId !== id));
+        }
+        break;
+      case 'openNow':
+        setIsOpenNow(false);
+        break;
+      case 'highRated':
+        setIsHighRated(false);
+        break;
+      case 'budgetFriendly':
+        setIsBudgetFriendly(false);
+        break;
+      case 'all':
+        resetFilters();
+        break;
+    }
   };
 
   useEffect(() => {
@@ -53,16 +102,17 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
       activeTab,
       searchQuery,
       selectedCuisines,
-      selectedServices,
       selectedPriceRanges,
       selectedEstablishmentTypes,
+      selectedAllergens,
+      selectedDietTypes,
       selectedSort,
       viewMode,
       restaurants,
       loading,
       error,
     });
-  }, [activeTab, searchQuery, selectedCuisines, selectedServices, selectedPriceRanges, selectedEstablishmentTypes, selectedSort, viewMode, restaurants, loading, error]);
+  }, [activeTab, searchQuery, selectedCuisines, selectedPriceRanges, selectedEstablishmentTypes, selectedAllergens, selectedDietTypes, selectedSort, viewMode, restaurants, loading, error]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -113,10 +163,11 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                     <h2 className="text-lg font-semibold text-foreground">
                       {filteredRestaurants.length} restaurante{filteredRestaurants.length !== 1 ? 's' : ''} cerca de ti
                     </h2>
-                    {(selectedServices.length > 0 || selectedCuisines.length > 0 || selectedPriceRanges.length > 0 || selectedEstablishmentTypes.length > 0 || searchQuery) && (
+                    {(selectedCuisines.length > 0 || selectedPriceRanges.length > 0 || selectedEstablishmentTypes.length > 0 || selectedDietTypes.length > 0 || isOpenNow || isHighRated || isBudgetFriendly || searchQuery) && (
                       <button
                         onClick={resetFilters}
-                        className="text-sm text-black"
+                        className="text-sm text-black hover:text-black"
+                        style={{ background: 'none', border: 'none', padding: 0 }}
                       >
                         Restablecer
                       </button>
@@ -125,29 +176,31 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                   
                   {/* Active filters */}
                   <FilterTags
-                    selectedServices={selectedServices}
+                    activeTab="restaurants"
                     selectedCuisines={selectedCuisines}
+                    selectedFoodTypes={[]}
                     selectedPriceRanges={selectedPriceRanges}
                     selectedEstablishmentTypes={selectedEstablishmentTypes}
-                    onRemoveService={(serviceId) => setSelectedServices(prev => prev.filter(id => id !== serviceId))}
-                    onRemoveCuisine={(cuisineId) => setSelectedCuisines(prev => prev.filter(id => id !== cuisineId))}
-                    onRemovePriceRange={(priceId) => setSelectedPriceRanges(prev => prev.filter(id => id !== priceId))}
-                    onRemoveEstablishmentType={(typeId) => setSelectedEstablishmentTypes(prev => prev.filter(id => id !== typeId))}
+                    selectedDietTypes={selectedDietTypes}
+                    isOpenNow={isOpenNow}
+                    isHighRated={isHighRated}
+                    isBudgetFriendly={isBudgetFriendly}
+                    onClearFilter={handleClearFilter}
+                    onPriceRangeChange={setSelectedPriceRanges}
+                    onEstablishmentTypeChange={setSelectedEstablishmentTypes}
+                    onDietTypeChange={setSelectedDietTypes}
+                    onOpenNowChange={setIsOpenNow}
+                    onHighRatedChange={setIsHighRated}
+                    onBudgetFriendlyChange={setIsBudgetFriendly}
                   />
                 </div>
 
                 <div className="flex items-center gap-2">
                   <UnifiedFiltersModal
-                    selectedCuisines={selectedCuisines}
-                    selectedPriceRanges={selectedPriceRanges}
-                    selectedEstablishmentTypes={selectedEstablishmentTypes}
-                    selectedSort={selectedSort}
-                    onCuisinesChange={setSelectedCuisines}
-                    onPriceRangesChange={setSelectedPriceRanges}
-                    onEstablishmentTypesChange={setSelectedEstablishmentTypes}
-                    onSortChange={setSelectedSort}
-                    isOpen={isFiltersModalOpen}
-                    onOpenChange={setIsFiltersModalOpen}
+                    selectedAllergens={selectedAllergens}
+                    selectedDietTypes={selectedDietTypes}
+                    onAllergenChange={setSelectedAllergens}
+                    onDietTypeChange={setSelectedDietTypes}
                   />
                   <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
                 </div>
@@ -180,7 +233,7 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
                       description={restaurant.description}
                       priceRange={restaurant.price_range}
                       googleRating={restaurant.google_rating}
-                      googleRatingCount={restaurant.google_rating_count}
+                      googleRatingCount={restaurant.google_rating || 0}
                       distance={restaurant.distance_km}
                       cuisineTypes={restaurant.cuisine_types}
                       establishmentType={restaurant.establishment_type}
