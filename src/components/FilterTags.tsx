@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -59,11 +58,11 @@ export default function FilterTags({
   onOpenNowChange,
   onBudgetFriendlyChange
 }: FilterTagsProps) {
-  const { data: cuisineTypes = [] } = useCuisineTypes();
-  const { data: foodTypes = [] } = useFoodTypes();
-  const { data: establishmentTypes = [] } = useEstablishmentTypes();
-  const { data: dietTypes = [] } = useDietTypes();
-  const { data: customTags = [] } = useCustomTags();
+  const { cuisineTypes = [] } = useCuisineTypes();
+  const { foodTypes = [] } = useFoodTypes();
+  const { establishmentTypes = [] } = useEstablishmentTypes();
+  const { dietTypes = [] } = useDietTypes();
+  const { customTags = [] } = useCustomTags();
 
   // Map diet type names for dishes
   const dishDietTypeNames: { [key: string]: string } = {
