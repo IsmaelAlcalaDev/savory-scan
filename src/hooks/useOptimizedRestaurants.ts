@@ -75,51 +75,109 @@ export const useOptimizedRestaurants = ({
     try {
       console.log('useOptimizedRestaurants: Starting optimized fetch');
       
-      // Use the new optimized search function
-      const { data, error: fetchError } = await supabase
-        .rpc('search_restaurants', {
-          search_query: searchQuery || null,
-          user_lat: userLat || null,
-          user_lng: userLng || null,
-          max_distance_km: maxDistance,
-          cuisine_type_ids: cuisineTypeIds?.length ? cuisineTypeIds : null,
-          price_ranges: priceRanges?.length ? priceRanges : null,
-          is_high_rated: isHighRated,
-          establishment_type_ids: selectedEstablishmentTypes?.length ? selectedEstablishmentTypes : null,
-          diet_type_ids: selectedDietTypes?.length ? selectedDietTypes : null,
-          is_open_now: isOpenNow,
-          is_budget_friendly: isBudgetFriendly,
-          limit_count: 50
-        })
-        .abortSignal(signal);
+      // Use direct query instead of RPC for now until the function is properly registered
+      let query = supabase
+        .from('restaurants')
+        .select(`
+          id,
+          name,
+          slug,
+          description,
+          price_range,
+          google_rating,
+          google_rating_count,
+          latitude,
+          longitude,
+          favorites_count,
+          cover_image_url,
+          logo_url,
+          establishment_types!inner(name),
+          restaurant_cuisines!inner(
+            cuisine_types!inner(name)
+          ),
+          restaurant_services(
+            services!inner(name)
+          )
+        `)
+        .eq('is_active', true)
+        .eq('is_published', true)
+        .is('deleted_at', null);
+
+      // Apply filters
+      if (searchQuery) {
+        query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      }
+
+      if (isHighRated) {
+        query = query.gte('google_rating', 4.5);
+      }
+
+      if (isBudgetFriendly) {
+        query = query.eq('price_range', '€');
+      } else if (priceRanges?.length) {
+        query = query.in('price_range', priceRanges);
+      }
+
+      if (selectedEstablishmentTypes?.length) {
+        query = query.in('establishment_type_id', selectedEstablishmentTypes);
+      }
+
+      if (cuisineTypeIds?.length) {
+        query = query.in('restaurant_cuisines.cuisine_type_id', cuisineTypeIds);
+      }
+
+      // Limit results
+      query = query.limit(50);
+
+      const { data, error: fetchError } = await query.abortSignal(signal);
 
       if (signal.aborted) return;
 
       if (fetchError) {
-        console.error('useOptimizedRestaurants: RPC error:', fetchError);
+        console.error('useOptimizedRestaurants: Query error:', fetchError);
         throw fetchError;
       }
 
       console.log('useOptimizedRestaurants: Received', data?.length || 0, 'restaurants');
 
-      const formattedRestaurants: Restaurant[] = (data || []).map((restaurant: any) => ({
-        id: restaurant.id,
-        name: restaurant.name,
-        slug: restaurant.slug,
-        description: restaurant.description,
-        price_range: restaurant.price_range,
-        google_rating: restaurant.google_rating,
-        google_rating_count: restaurant.google_rating_count,
-        latitude: restaurant.latitude,
-        longitude: restaurant.longitude,
-        distance_km: restaurant.distance_km,
-        cuisine_types: restaurant.cuisine_types || [],
-        establishment_type_name: restaurant.establishment_type_name,
-        services: restaurant.services || [],
-        favorites_count: restaurant.favorites_count || 0,
-        cover_image_url: restaurant.cover_image_url,
-        logo_url: restaurant.logo_url
-      }));
+      const formattedRestaurants: Restaurant[] = (data || []).map((restaurant: any) => {
+        // Calculate distance if user location is provided
+        let distance_km: number | undefined;
+        if (userLat && userLng && restaurant.latitude && restaurant.longitude) {
+          const R = 6371; // Earth's radius in km
+          const dLat = (restaurant.latitude - userLat) * Math.PI / 180;
+          const dLon = (restaurant.longitude - userLng) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                   Math.cos(userLat * Math.PI / 180) * Math.cos(restaurant.latitude * Math.PI / 180) *
+                   Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          distance_km = Math.round((R * c) * 100) / 100;
+        }
+
+        // Filter by distance if needed
+        if (userLat && userLng && distance_km && distance_km > maxDistance) {
+          return null;
+        }
+
+        return {
+          id: restaurant.id,
+          name: restaurant.name,
+          slug: restaurant.slug,
+          description: restaurant.description,
+          price_range: restaurant.price_range,
+          google_rating: restaurant.google_rating,
+          google_rating_count: restaurant.google_rating_count,
+          latitude: restaurant.latitude,
+          longitude: restaurant.longitude,
+          distance_km,
+          cuisine_types: restaurant.restaurant_cuisines?.map((rc: any) => rc.cuisine_types?.name).filter(Boolean) || [],
+          establishment_type_name: restaurant.establishment_types?.name,
+          services: restaurant.restaurant_services?.map((rs: any) => rs.services?.name).filter(Boolean) || [],
+          favorites_count: restaurant.favorites_count || 0,
+          cover_image_url: restaurant.cover_image_url,
+          logo_url: restaurant.logo_url
+        };
+      }).filter(Boolean);
 
       if (!signal.aborted) {
         setRestaurants(formattedRestaurants);
