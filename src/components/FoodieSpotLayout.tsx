@@ -51,6 +51,9 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
   // Max distance state
   const [maxDistance, setMaxDistance] = useState<number>(50);
 
+  // Dish card state for expanded functionality
+  const [expandedDishId, setExpandedDishId] = useState<number | null>(null);
+
   // Update search params
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
@@ -298,7 +301,23 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
         ) : restaurants.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {restaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} {...restaurant} />
+              <RestaurantCard 
+                key={restaurant.id} 
+                id={restaurant.id}
+                name={restaurant.name}
+                slug={restaurant.slug}
+                description={restaurant.description}
+                priceRange={restaurant.price_range}
+                googleRating={restaurant.google_rating}
+                googleRatingCount={restaurant.google_rating_count}
+                distance={restaurant.distance_km}
+                cuisineTypes={restaurant.cuisine_types}
+                establishmentType={restaurant.establishment_type}
+                services={restaurant.services}
+                favoritesCount={restaurant.favorites_count}
+                coverImageUrl={restaurant.cover_image_url}
+                logoUrl={restaurant.logo_url}
+              />
             ))}
           </div>
         ) : (
@@ -318,11 +337,10 @@ export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieS
             {dishes.map((dish) => (
               <DishCard 
                 key={dish.id} 
-                dish={{
-                  ...dish,
-                  is_lactose_free: dish.is_lactose_free || false,
-                  variants: dish.variants || []
-                }} 
+                dish={dish}
+                restaurantId={dish.restaurant_id || 0}
+                expandedDishId={expandedDishId}
+                onExpandedChange={setExpandedDishId}
               />
             ))}
           </div>
