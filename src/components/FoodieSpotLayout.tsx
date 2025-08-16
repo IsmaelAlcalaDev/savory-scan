@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -171,7 +171,32 @@ export default function FoodieSpotLayout({
     }
   }, []);
 
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'budgetFriendly' | 'all', id?: number) => {
+  // Memoized handlers for filters to prevent unnecessary re-renders
+  const handlePriceRangeChange = useCallback((ranges: string[]) => {
+    setSelectedPriceRanges(ranges);
+  }, []);
+
+  const handleEstablishmentTypeChange = useCallback((types: number[]) => {
+    setSelectedEstablishmentTypes(types);
+  }, []);
+
+  const handleDietTypeChange = useCallback((types: number[]) => {
+    setSelectedDietTypes(types);
+  }, []);
+
+  const handleHighRatedChange = useCallback((isHighRated: boolean) => {
+    setIsHighRated(isHighRated);
+  }, []);
+
+  const handleOpenNowChange = useCallback((isOpen: boolean) => {
+    setIsOpenNow(isOpen);
+  }, []);
+
+  const handleBudgetFriendlyChange = useCallback((isBudgetFriendly: boolean) => {
+    setIsBudgetFriendly(isBudgetFriendly);
+  }, []);
+
+  const handleClearFilter = useCallback((type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'budgetFriendly' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':
         setSelectedCuisines([]);
@@ -208,7 +233,7 @@ export default function FoodieSpotLayout({
         setIsBudgetFriendly(false);
         break;
     }
-  };
+  }, [isOpenNow]);
 
   // Get current search query based on active tab
   const getCurrentSearchQuery = () => {
@@ -368,12 +393,12 @@ export default function FoodieSpotLayout({
             isOpenNow={isOpenNow}
             isBudgetFriendly={isBudgetFriendly}
             onClearFilter={handleClearFilter}
-            onPriceRangeChange={setSelectedPriceRanges}
-            onHighRatedChange={setIsHighRated}
-            onEstablishmentTypeChange={setSelectedEstablishmentTypes}
-            onDietTypeChange={setSelectedDietTypes}
-            onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
-            onBudgetFriendlyChange={setIsBudgetFriendly}
+            onPriceRangeChange={handlePriceRangeChange}
+            onHighRatedChange={handleHighRatedChange}
+            onEstablishmentTypeChange={handleEstablishmentTypeChange}
+            onDietTypeChange={handleDietTypeChange}
+            onOpenNowChange={handleOpenNowChange}
+            onBudgetFriendlyChange={handleBudgetFriendlyChange}
           />
 
           {/* Results Header with adjusted spacing */}
@@ -408,12 +433,12 @@ export default function FoodieSpotLayout({
           isOpenNow={isOpenNow}
           isBudgetFriendly={isBudgetFriendly}
           onClearFilter={handleClearFilter}
-          onPriceRangeChange={setSelectedPriceRanges}
-          onHighRatedChange={setIsHighRated}
-          onEstablishmentTypeChange={setSelectedEstablishmentTypes}
-          onDietTypeChange={setSelectedDietTypes}
-          onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
-          onBudgetFriendlyChange={setIsBudgetFriendly}
+          onPriceRangeChange={handlePriceRangeChange}
+          onHighRatedChange={handleHighRatedChange}
+          onEstablishmentTypeChange={handleEstablishmentTypeChange}
+          onDietTypeChange={handleDietTypeChange}
+          onOpenNowChange={handleOpenNowChange}
+          onBudgetFriendlyChange={handleBudgetFriendlyChange}
         />
 
         {/* Results Header with adjusted spacing */}

@@ -1,3 +1,4 @@
+
 import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import {
 import PriceFilter from './PriceFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import DietFilter from './DietFilter';
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 interface FilterTagsProps {
   activeTab: 'restaurants' | 'dishes';
@@ -53,16 +54,6 @@ export default function FilterTags({
 }: FilterTagsProps) {
   const isMobile = useIsMobile();
   const [activeFilterModal, setActiveFilterModal] = useState<string | null>(null);
-  
-  // Use refs to store the latest values to prevent stale closures
-  const selectedPriceRangesRef = useRef(selectedPriceRanges);
-  const selectedEstablishmentTypesRef = useRef(selectedEstablishmentTypes);
-  const selectedDietTypesRef = useRef(selectedDietTypes);
-  
-  // Update refs when props change
-  selectedPriceRangesRef.current = selectedPriceRanges;
-  selectedEstablishmentTypesRef.current = selectedEstablishmentTypes;
-  selectedDietTypesRef.current = selectedDietTypes;
   
   const hasActiveFilters = selectedCuisines.length > 0 || 
     selectedFoodTypes.length > 0 || 
@@ -111,28 +102,6 @@ export default function FilterTags({
     setActiveFilterModal(null);
   }, [onClearFilter]);
 
-  // Stable handlers that don't cause re-renders
-  const stablePriceRangeHandler = useCallback((ranges: string[]) => {
-    // Don't call the handler if the values haven't actually changed
-    if (JSON.stringify(ranges) !== JSON.stringify(selectedPriceRangesRef.current)) {
-      onPriceRangeChange(ranges);
-    }
-  }, [onPriceRangeChange]);
-
-  const stableEstablishmentTypeHandler = useCallback((types: number[]) => {
-    // Don't call the handler if the values haven't actually changed
-    if (JSON.stringify(types) !== JSON.stringify(selectedEstablishmentTypesRef.current)) {
-      onEstablishmentTypeChange(types);
-    }
-  }, [onEstablishmentTypeChange]);
-
-  const stableDietTypeHandler = useCallback((types: number[]) => {
-    // Don't call the handler if the values haven't actually changed
-    if (JSON.stringify(types) !== JSON.stringify(selectedDietTypesRef.current)) {
-      onDietTypeChange(types);
-    }
-  }, [onDietTypeChange]);
-
   const getFilterContent = useCallback((filterKey: string) => {
     switch (filterKey) {
       case 'price':
@@ -140,7 +109,7 @@ export default function FilterTags({
           <div className="[&_label]:text-base space-y-4">
             <PriceFilter
               selectedPriceRanges={selectedPriceRanges}
-              onPriceRangeChange={stablePriceRangeHandler}
+              onPriceRangeChange={onPriceRangeChange}
             />
           </div>
         );
@@ -149,7 +118,7 @@ export default function FilterTags({
           <div className="[&_label]:text-base space-y-4">
             <EstablishmentTypeFilter
               selectedEstablishmentTypes={selectedEstablishmentTypes}
-              onEstablishmentTypeChange={stableEstablishmentTypeHandler}
+              onEstablishmentTypeChange={onEstablishmentTypeChange}
             />
           </div>
         );
@@ -158,7 +127,7 @@ export default function FilterTags({
           <div className="[&_label]:text-base space-y-4">
             <DietFilter
               selectedDietTypes={selectedDietTypes}
-              onDietTypeChange={stableDietTypeHandler}
+              onDietTypeChange={onDietTypeChange}
             />
           </div>
         );
@@ -169,7 +138,7 @@ export default function FilterTags({
           </div>
         );
     }
-  }, [selectedPriceRanges, selectedEstablishmentTypes, selectedDietTypes, stablePriceRangeHandler, stableEstablishmentTypeHandler, stableDietTypeHandler]);
+  }, [selectedPriceRanges, selectedEstablishmentTypes, selectedDietTypes, onPriceRangeChange, onEstablishmentTypeChange, onDietTypeChange]);
 
   const FilterTrigger = useCallback(({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {
     const config = filterConfig[filterKey as keyof typeof filterConfig];
