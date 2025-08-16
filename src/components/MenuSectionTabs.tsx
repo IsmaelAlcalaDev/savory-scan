@@ -13,8 +13,10 @@ interface MenuSectionTabsProps {
   onSectionClick: (sectionId: number) => void;
   selectedAllergens: string[];
   selectedDietTypes: number[];
+  selectedCustomTags: string[];
   onAllergenChange: (allergens: string[]) => void;
   onDietTypeChange: (types: number[]) => void;
+  onCustomTagsChange: (tags: string[]) => void;
 }
 
 export default function MenuSectionTabs({ 
@@ -23,8 +25,10 @@ export default function MenuSectionTabs({
   onSectionClick,
   selectedAllergens,
   selectedDietTypes,
+  selectedCustomTags,
   onAllergenChange,
-  onDietTypeChange
+  onDietTypeChange,
+  onCustomTagsChange
 }: MenuSectionTabsProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const activeButtonRef = useRef<HTMLButtonElement>(null);
@@ -83,7 +87,7 @@ export default function MenuSectionTabs({
     return null;
   }
 
-  const activeFiltersCount = selectedAllergens.length + selectedDietTypes.length;
+  const activeFiltersCount = selectedAllergens.length + selectedDietTypes.length + selectedCustomTags.length;
 
   console.log('MenuSectionTabs render - activeSection:', activeSection, 'sections:', sections.map(s => ({ id: s.id, name: s.name })));
 
@@ -95,8 +99,10 @@ export default function MenuSectionTabs({
           <UnifiedFiltersModal
             selectedAllergens={selectedAllergens}
             selectedDietTypes={selectedDietTypes}
+            selectedCustomTags={selectedCustomTags}
             onAllergenChange={onAllergenChange}
             onDietTypeChange={onDietTypeChange}
+            onCustomTagsChange={onCustomTagsChange}
             trigger={
               <Button
                 variant="ghost"

@@ -26,6 +26,7 @@ interface DishData {
   restaurant_google_rating?: number;
   distance_km?: number;
   formatted_price: string;
+  custom_tags?: string[];
 }
 
 interface UseDishesParams {
@@ -186,7 +187,8 @@ export const useDishes = (params: UseDishesParams = {}) => {
             restaurant_price_range: restaurant.price_range,
             restaurant_google_rating: restaurant.google_rating,
             distance_km,
-            formatted_price: formatPrice(dish.base_price)
+            formatted_price: formatPrice(dish.base_price),
+            custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags : []
           };
         });
 
@@ -229,7 +231,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       // Custom tags filter
       if (selectedCustomTags.length > 0) {
         filteredDishes = filteredDishes.filter(dish => {
-          const dishCustomTags = Array.isArray(dish.custom_tags) ? dish.custom_tags : [];
+          const dishCustomTags = dish.custom_tags || [];
           return selectedCustomTags.some(tag => dishCustomTags.includes(tag));
         });
       }
