@@ -23,7 +23,7 @@ export default function OptimizedFoodieSpotLayout({
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedCuisineTypes, setSelectedCuisineTypes] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
-  const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState<("€" | "€€" | "€€€" | "€€€€")[]>([]);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [isHighRated, setIsHighRated] = useState(false);
   const [isOpenNow, setIsOpenNow] = useState(false);

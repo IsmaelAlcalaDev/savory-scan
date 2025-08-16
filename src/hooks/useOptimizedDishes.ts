@@ -8,6 +8,7 @@ interface Dish {
   description?: string;
   image_url?: string;
   base_price: number;
+  formatted_price: string;
   restaurant_id: number;
   restaurant_name: string;
   restaurant_slug: string;
@@ -29,7 +30,7 @@ interface UseOptimizedDishesProps {
   userLat?: number;
   userLng?: number;
   selectedDietTypes?: number[];
-  selectedPriceRanges?: string[];
+  selectedPriceRanges?: readonly ("€" | "€€" | "€€€" | "€€€€")[];
 }
 
 export const useOptimizedDishes = ({
@@ -122,7 +123,7 @@ export const useOptimizedDishes = ({
 
       // Apply price range filter
       if (selectedPriceRanges?.length) {
-        query = query.in('restaurants.price_range', selectedPriceRanges);
+        query = query.in('restaurants.price_range', selectedPriceRanges as string[]);
       }
 
       // Limit results
@@ -159,6 +160,7 @@ export const useOptimizedDishes = ({
           description: dish.description,
           image_url: dish.image_url,
           base_price: dish.base_price,
+          formatted_price: `${dish.base_price.toFixed(2)}€`,
           restaurant_id: dish.restaurant_id,
           restaurant_name: dish.restaurants?.name || '',
           restaurant_slug: dish.restaurants?.slug || '',

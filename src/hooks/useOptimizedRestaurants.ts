@@ -27,7 +27,7 @@ interface UseOptimizedRestaurantsProps {
   userLng?: number;
   maxDistance?: number;
   cuisineTypeIds?: number[];
-  priceRanges?: string[];
+  priceRanges?: readonly ("€" | "€€" | "€€€" | "€€€€")[];
   isHighRated?: boolean;
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
@@ -115,7 +115,7 @@ export const useOptimizedRestaurants = ({
       if (isBudgetFriendly) {
         query = query.eq('price_range', '€');
       } else if (priceRanges?.length) {
-        query = query.in('price_range', priceRanges);
+        query = query.in('price_range', priceRanges as string[]);
       }
 
       if (selectedEstablishmentTypes?.length) {
