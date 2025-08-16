@@ -1,5 +1,5 @@
 
-import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign } from 'lucide-react';
+import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Tags } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -10,6 +10,7 @@ import {
 import PriceFilter from './PriceFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import DietFilter from './DietFilter';
+import CustomTagsFilter from './CustomTagsFilter';
 import { useState } from 'react';
 
 interface FilterTagsProps {
@@ -19,13 +20,15 @@ interface FilterTagsProps {
   selectedPriceRanges?: string[];
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
+  selectedCustomTags?: string[];
   isOpenNow?: boolean;
   isHighRated?: boolean;
   isBudgetFriendly?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'establishment' | 'diet' | 'openNow' | 'highRated' | 'budgetFriendly' | 'all', id?: number) => void;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'establishment' | 'diet' | 'customTags' | 'openNow' | 'highRated' | 'budgetFriendly' | 'all', id?: number) => void;
   onPriceRangeChange?: (ranges: string[]) => void;
   onEstablishmentTypeChange?: (types: number[]) => void;
   onDietTypeChange?: (types: number[]) => void;
+  onCustomTagsChange?: (tags: string[]) => void;
   onOpenNowChange?: (isOpen: boolean) => void;
   onHighRatedChange?: (isHighRated: boolean) => void;
   onBudgetFriendlyChange?: (isBudgetFriendly: boolean) => void;
@@ -38,6 +41,7 @@ export default function FilterTags({
   selectedPriceRanges = [],
   selectedEstablishmentTypes = [],
   selectedDietTypes = [],
+  selectedCustomTags = [],
   isOpenNow = false,
   isHighRated = false,
   isBudgetFriendly = false,
@@ -45,6 +49,7 @@ export default function FilterTags({
   onPriceRangeChange = () => {},
   onEstablishmentTypeChange = () => {},
   onDietTypeChange = () => {},
+  onCustomTagsChange = () => {},
   onOpenNowChange = () => {},
   onHighRatedChange = () => {},
   onBudgetFriendlyChange = () => {}
@@ -57,6 +62,7 @@ export default function FilterTags({
     selectedPriceRanges.length > 0 || 
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
+    selectedCustomTags.length > 0 ||
     isOpenNow ||
     isHighRated ||
     isBudgetFriendly;
@@ -66,6 +72,7 @@ export default function FilterTags({
       case 'price': return Euro;
       case 'establishment': return Store;
       case 'diet': return Utensils;
+      case 'customTags': return Tags;
       default: return null;
     }
   };
@@ -75,6 +82,7 @@ export default function FilterTags({
       case 'price': return 'Precio';
       case 'establishment': return 'Tipo de Comercio';
       case 'diet': return 'Dieta';
+      case 'customTags': return 'Etiquetas';
       default: return 'Filtro';
     }
   };
@@ -84,6 +92,7 @@ export default function FilterTags({
       case 'price': return selectedPriceRanges.length;
       case 'establishment': return selectedEstablishmentTypes.length;
       case 'diet': return selectedDietTypes.length;
+      case 'customTags': return selectedCustomTags.length;
       default: return 0;
     }
   };
@@ -118,6 +127,15 @@ export default function FilterTags({
             <DietFilter
               selectedDietTypes={selectedDietTypes}
               onDietTypeChange={onDietTypeChange}
+            />
+          </div>
+        );
+      case 'customTags':
+        return (
+          <div className="[&_label]:text-base space-y-4">
+            <CustomTagsFilter
+              selectedCustomTags={selectedCustomTags}
+              onCustomTagsChange={onCustomTagsChange}
             />
           </div>
         );
@@ -167,6 +185,7 @@ export default function FilterTags({
     { key: 'price', label: 'Precio' },
     ...(activeTab === 'restaurants' ? [{ key: 'establishment', label: 'Tipo' }] : []),
     { key: 'diet', label: 'Dieta' },
+    ...(activeTab === 'dishes' ? [{ key: 'customTags', label: 'Etiquetas' }] : []),
   ];
 
   const FilterTrigger = ({ children, filterKey }: { children: React.ReactNode, filterKey: string }) => {

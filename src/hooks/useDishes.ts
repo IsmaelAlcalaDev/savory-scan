@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,6 +26,7 @@ interface DishData {
   restaurant_google_rating?: number;
   distance_km?: number;
   formatted_price: string;
+  custom_tags: string[];
 }
 
 interface UseDishesParams {
@@ -37,6 +37,7 @@ interface UseDishesParams {
   selectedDietTypes?: number[];
   selectedPriceRanges?: string[];
   selectedFoodTypes?: number[];
+  selectedCustomTags?: string[];
   spiceLevels?: number[];
   prepTimeRanges?: number[];
 }
@@ -74,6 +75,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedDietTypes = [],
     selectedPriceRanges = [],
     selectedFoodTypes = [],
+    selectedCustomTags = [],
     spiceLevels = [],
     prepTimeRanges = []
   } = params;
@@ -86,6 +88,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedDietTypes,
     selectedPriceRanges,
     selectedFoodTypes,
+    selectedCustomTags,
     spiceLevels,
     prepTimeRanges
   });
@@ -111,6 +114,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
           spice_level,
           preparation_time_minutes,
           favorites_count,
+          custom_tags,
           restaurants!inner (
             id,
             name,
@@ -159,6 +163,14 @@ export const useDishes = (params: UseDishesParams = {}) => {
             distance_km = haversineDistance(userLat, userLng, restaurant.latitude, restaurant.longitude);
           }
 
+          // Process custom_tags to ensure it's a string array
+          let customTags: string[] = [];
+          if (dish.custom_tags && Array.isArray(dish.custom_tags)) {
+            customTags = dish.custom_tags
+              .filter((tag: any) => typeof tag === 'string' && tag.trim())
+              .map((tag: any) => tag.trim());
+          }
+
           return {
             id: dish.id,
             name: dish.name,
@@ -183,7 +195,8 @@ export const useDishes = (params: UseDishesParams = {}) => {
             restaurant_price_range: restaurant.price_range,
             restaurant_google_rating: restaurant.google_rating,
             distance_km,
-            formatted_price: formatPrice(dish.base_price)
+            formatted_price: formatPrice(dish.base_price),
+            custom_tags: customTags
           };
         });
 
@@ -196,7 +209,8 @@ export const useDishes = (params: UseDishesParams = {}) => {
         filteredDishes = filteredDishes.filter(dish =>
           dish.name.toLowerCase().includes(query) ||
           dish.description?.toLowerCase().includes(query) ||
-          dish.restaurant_name.toLowerCase().includes(query)
+          dish.restaurant_name.toLowerCase().includes(query) ||
+          dish.custom_tags.some(tag => tag.toLowerCase().includes(query))
         );
       }
 
@@ -234,6 +248,17 @@ export const useDishes = (params: UseDishesParams = {}) => {
               default: return true;
             }
           });
+        });
+      }
+
+      // Custom tags filter - OR logic (dish must have at least one of the selected tags)
+      if (selectedCustomTags.length > 0) {
+        filteredDishes = filteredDishes.filter(dish => {
+          return selectedCustomTags.some(selectedTag =>
+            dish.custom_tags.some(dishTag => 
+              dishTag.toLowerCase() === selectedTag.toLowerCase()
+            )
+          );
         });
       }
 
@@ -286,7 +311,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       setDishes([]);
       setLoading(false);
     }
-  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, spiceLevels, prepTimeRanges]);
+  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels, prepTimeRanges]);
 
   useEffect(() => {
     // Skip if the fetch key hasn't changed (prevents infinite loops)

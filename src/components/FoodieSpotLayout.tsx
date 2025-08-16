@@ -49,6 +49,7 @@ export default function FoodieSpotLayout({
   const [isHighRated, setIsHighRated] = useState(false);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
+  const [selectedCustomTags, setSelectedCustomTags] = useState<string[]>([]);
   const [isOpenNow, setIsOpenNow] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
@@ -174,7 +175,7 @@ export default function FoodieSpotLayout({
     }
   }, []);
 
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'budgetFriendly' | 'all', id?: number) => {
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'price' | 'highRated' | 'establishment' | 'diet' | 'customTags' | 'openNow' | 'budgetFriendly' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':
         setSelectedCuisines([]);
@@ -194,6 +195,9 @@ export default function FoodieSpotLayout({
       case 'diet':
         setSelectedDietTypes([]);
         break;
+      case 'customTags':
+        setSelectedCustomTags([]);
+        break;
       case 'openNow':
         setIsOpenNow(!isOpenNow);
         break;
@@ -207,6 +211,7 @@ export default function FoodieSpotLayout({
         setIsHighRated(false);
         setSelectedEstablishmentTypes([]);
         setSelectedDietTypes([]);
+        setSelectedCustomTags([]);
         setIsOpenNow(false);
         setIsBudgetFriendly(false);
         break;
@@ -256,6 +261,7 @@ export default function FoodieSpotLayout({
     maxDistance: 1000, // Also increased for dishes
     selectedFoodTypes,
     selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
+    selectedCustomTags: selectedCustomTags.length > 0 ? selectedCustomTags : undefined,
     spiceLevels: [],
     prepTimeRanges: []
   });
@@ -361,6 +367,7 @@ export default function FoodieSpotLayout({
     isHighRated || 
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
+    selectedCustomTags.length > 0 ||
     isOpenNow ||
     isBudgetFriendly;
 
@@ -395,6 +402,7 @@ export default function FoodieSpotLayout({
             isHighRated={isHighRated} 
             selectedEstablishmentTypes={selectedEstablishmentTypes} 
             selectedDietTypes={selectedDietTypes} 
+            selectedCustomTags={selectedCustomTags}
             isOpenNow={isOpenNow}
             isBudgetFriendly={isBudgetFriendly}
             onClearFilter={handleClearFilter}
@@ -402,6 +410,7 @@ export default function FoodieSpotLayout({
             onHighRatedChange={setIsHighRated}
             onEstablishmentTypeChange={setSelectedEstablishmentTypes}
             onDietTypeChange={setSelectedDietTypes}
+            onCustomTagsChange={setSelectedCustomTags}
             onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
             onBudgetFriendlyChange={setIsBudgetFriendly}
           />
