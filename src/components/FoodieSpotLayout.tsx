@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDebounce } from 'use-debounce';
 import { usePosition } from 'use-position';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,9 +15,13 @@ import { useDishes } from '@/hooks/useDishes';
 import { Separator } from "@/components/ui/separator"
 import { useIsMobile } from '@/hooks/use-mobile';
 
-export default function FoodieSpotLayout() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+interface FoodieSpotLayoutProps {
+  initialTab?: 'restaurants' | 'dishes';
+}
+
+export default function FoodieSpotLayout({ initialTab = 'restaurants' }: FoodieSpotLayoutProps) {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   // Local search query state
@@ -36,7 +40,7 @@ export default function FoodieSpotLayout() {
   const [isVegetarianVegan, setIsVegetarianVegan] = useState<boolean>(false);
 
   // Active tab state
-  const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes'>('restaurants');
+  const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes'>(initialTab);
 
   // Location state
   const { latitude, longitude, error } = usePosition(true, {
@@ -57,8 +61,8 @@ export default function FoodieSpotLayout() {
     }
 
     // Update URL without reloading the page
-    router.push(`/?${params.toString()}`, { scroll: false });
-  }, [debouncedSearchQuery, router, searchParams]);
+    navigate(`/?${params.toString()}`, { replace: true });
+  }, [debouncedSearchQuery, navigate, searchParams]);
 
   // Handlers to update filter states
   const handleCuisineSelect = (id: number) => {
@@ -156,7 +160,7 @@ export default function FoodieSpotLayout() {
 
   const handleClearAllFilters = useCallback(() => {
     handleClearFilter('all');
-  }, [handleClearFilter]);
+  }, []);
 
   const hasActiveFilters = selectedCuisines.length > 0 ||
     selectedFoodTypes.length > 0 ||
@@ -294,7 +298,7 @@ export default function FoodieSpotLayout() {
         ) : restaurants.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {restaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+              <RestaurantCard key={restaurant.id} {...restaurant} />
             ))}
           </div>
         ) : (
@@ -312,7 +316,14 @@ export default function FoodieSpotLayout() {
         ) : dishes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {dishes.map((dish) => (
-              <DishCard key={dish.id} dish={dish} />
+              <DishCard 
+                key={dish.id} 
+                dish={{
+                  ...dish,
+                  is_lactose_free: dish.is_lactose_free || false,
+                  variants: dish.variants || []
+                }} 
+              />
             ))}
           </div>
         ) : (
