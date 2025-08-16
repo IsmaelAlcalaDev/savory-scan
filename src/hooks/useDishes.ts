@@ -12,7 +12,6 @@ interface DishData {
   is_vegetarian: boolean;
   is_vegan: boolean;
   is_gluten_free: boolean;
-  is_lactose_free: boolean;
   is_healthy: boolean;
   spice_level: number;
   preparation_time_minutes?: number;
@@ -28,8 +27,6 @@ interface DishData {
   distance_km?: number;
   formatted_price: string;
   custom_tags: string[];
-  allergens: string[];
-  variants?: any[];
 }
 
 interface UseDishesParams {
@@ -37,11 +34,10 @@ interface UseDishesParams {
   userLat?: number;
   userLng?: number;
   maxDistance?: number;
-  selectedDietTypes?: string[];
+  selectedDietTypes?: number[];
   selectedPriceRanges?: string[];
   selectedFoodTypes?: number[];
   selectedCustomTags?: string[];
-  selectedAllergens?: string[];
   spiceLevels?: number[];
   prepTimeRanges?: number[];
 }
@@ -80,7 +76,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedPriceRanges = [],
     selectedFoodTypes = [],
     selectedCustomTags = [],
-    selectedAllergens = [],
     spiceLevels = [],
     prepTimeRanges = []
   } = params;
@@ -94,7 +89,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     selectedPriceRanges,
     selectedFoodTypes,
     selectedCustomTags,
-    selectedAllergens,
     spiceLevels,
     prepTimeRanges
   });
@@ -116,13 +110,11 @@ export const useDishes = (params: UseDishesParams = {}) => {
           is_vegetarian,
           is_vegan,
           is_gluten_free,
-          is_lactose_free,
           is_healthy,
           spice_level,
           preparation_time_minutes,
           favorites_count,
           custom_tags,
-          allergens,
           restaurants!inner (
             id,
             name,
@@ -179,26 +171,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
               .map((tag: any) => tag.trim());
           }
 
-          // Process allergens to ensure it's a string array
-          let allergens: string[] = [];
-          if (dish.allergens) {
-            if (typeof dish.allergens === 'string') {
-              try {
-                const parsed = JSON.parse(dish.allergens);
-                if (Array.isArray(parsed)) {
-                  allergens = parsed.filter((allergen: any) => typeof allergen === 'string');
-                }
-              } catch {
-                // If it's not valid JSON, treat as single string
-                allergens = [dish.allergens];
-              }
-            } else if (Array.isArray(dish.allergens)) {
-              allergens = dish.allergens
-                .filter((allergen: any) => typeof allergen === 'string')
-                .map((allergen: any) => allergen.trim());
-            }
-          }
-
           return {
             id: dish.id,
             name: dish.name,
@@ -210,7 +182,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
             is_vegetarian: dish.is_vegetarian,
             is_vegan: dish.is_vegan,
             is_gluten_free: dish.is_gluten_free,
-            is_lactose_free: dish.is_lactose_free || false,
             is_healthy: dish.is_healthy,
             spice_level: dish.spice_level,
             preparation_time_minutes: dish.preparation_time_minutes,
@@ -225,9 +196,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
             restaurant_google_rating: restaurant.google_rating,
             distance_km,
             formatted_price: formatPrice(dish.base_price),
-            custom_tags: customTags,
-            allergens,
-            variants: []
+            custom_tags: customTags
           };
         });
 
@@ -245,38 +214,27 @@ export const useDishes = (params: UseDishesParams = {}) => {
         );
       }
 
-      // Diet type filters - Updated for dishes (simple boolean checks)
+      // Diet type filters - Updated to work with new percentage-based system
       if (selectedDietTypes.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => {
-          return selectedDietTypes.some((dietType: string) => {
-            switch (dietType) {
-              case 'vegetarian': return dish.is_vegetarian;
-              case 'vegan': return dish.is_vegan;
-              case 'gluten_free': return dish.is_gluten_free;
-              case 'healthy': return dish.is_healthy;
-              default: return false;
-            }
-          });
-        });
-      }
+        // Get diet types with their categories
+        const { data: dietTypesData, error: dietTypesError } = await supabase
+          .from('diet_types')
+          .select('*')
+          .in('id', selectedDietTypes);
 
-      // Allergen filters - Filter OUT dishes that contain selected allergens
-      if (selectedAllergens.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => {
-          // If the dish has allergen data, check if it contains any of the selected allergens
-          if (dish.allergens && Array.isArray(dish.allergens)) {
-            const dishAllergens = dish.allergens
-              .filter((allergen: any) => typeof allergen === 'string')
-              .map((allergen: any) => allergen.toLowerCase());
-            
-            // Return false if the dish contains any of the selected allergens (exclude it)
-            return !selectedAllergens.some(selectedAllergen => 
-              dishAllergens.includes(selectedAllergen.toLowerCase())
-            );
-          }
-          // If no allergen data, include the dish (but this might not show all dishes as warned)
-          return true;
-        });
+        if (!dietTypesError && dietTypesData) {
+          filteredDishes = filteredDishes.filter(dish => {
+            return dietTypesData.some((dietType: any) => {
+              switch (dietType.category) {
+                case 'vegetarian': return dish.is_vegetarian;
+                case 'vegan': return dish.is_vegan;
+                case 'gluten_free': return dish.is_gluten_free;
+                case 'healthy': return dish.is_healthy;
+                default: return false;
+              }
+            });
+          });
+        }
       }
 
       // Price range filters
@@ -353,7 +311,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       setDishes([]);
       setLoading(false);
     }
-  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, selectedAllergens, spiceLevels, prepTimeRanges]);
+  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels, prepTimeRanges]);
 
   useEffect(() => {
     // Skip if the fetch key hasn't changed (prevents infinite loops)

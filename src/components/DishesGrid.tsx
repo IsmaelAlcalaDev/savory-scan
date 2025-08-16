@@ -1,49 +1,39 @@
 
-import { useDishes } from '@/hooks/useDishes';
-import DishCard from './DishCard';
+import AllDishCard from './AllDishCard';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface DishesGridProps {
-  searchQuery?: string;
-  userLat?: number;
-  userLng?: number;
-  selectedDietTypes?: string[];
-  selectedPriceRanges?: string[];
-  selectedFoodTypes?: number[];
-  selectedCustomTags?: string[];
-  selectedAllergens?: string[];
+interface DishData {
+  id: number;
+  name: string;
+  description?: string;
+  base_price: number;
+  image_url?: string;
+  category_name?: string;
+  restaurant_id: number;
+  restaurant_name: string;
+  restaurant_slug: string;
+  restaurant_google_rating?: number;
+  distance_km?: number;
+  formatted_price: string;
 }
 
-export default function DishesGrid({
-  searchQuery,
-  userLat,
-  userLng,
-  selectedDietTypes,
-  selectedPriceRanges,
-  selectedFoodTypes,
-  selectedCustomTags,
-  selectedAllergens
-}: DishesGridProps) {
-  const { dishes, loading, error } = useDishes({
-    searchQuery,
-    userLat,
-    userLng,
-    selectedDietTypes,
-    selectedPriceRanges,
-    selectedFoodTypes,
-    selectedCustomTags,
-    selectedAllergens
-  });
+interface DishesGridProps {
+  dishes: DishData[];
+  loading: boolean;
+  error: string | null;
+}
 
+export default function DishesGrid({ dishes, loading, error }: DishesGridProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+        {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="space-y-3">
-            <Skeleton className="h-40 w-full rounded-md" />
-            <div className="space-y-2">
+            <Skeleton className="h-48 w-full rounded-lg" />
+            <div className="p-4 space-y-3">
               <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
             </div>
           </div>
         ))}
@@ -53,20 +43,41 @@ export default function DishesGrid({
 
   if (error) {
     return (
-      <div className="text-red-500">Error: {error}</div>
+      <div className="col-span-full text-center py-8">
+        <p className="text-muted-foreground">Error al cargar platos: {error}</p>
+      </div>
     );
   }
 
   if (dishes.length === 0) {
     return (
-      <div className="text-gray-500">No se encontraron platos con los filtros seleccionados.</div>
+      <div className="col-span-full text-center py-8">
+        <p className="text-muted-foreground">No se encontraron platos</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Intenta cambiar los filtros de búsqueda
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
       {dishes.map((dish) => (
-        <DishCard key={dish.id} dish={dish} />
+        <AllDishCard
+          key={dish.id}
+          id={dish.id}
+          name={dish.name}
+          description={dish.description}
+          basePrice={dish.base_price}
+          imageUrl={dish.image_url}
+          categoryName={dish.category_name}
+          restaurantName={dish.restaurant_name}
+          restaurantSlug={dish.restaurant_slug}
+          restaurantId={dish.restaurant_id}
+          restaurantRating={dish.restaurant_google_rating}
+          distance={dish.distance_km}
+          formattedPrice={dish.formatted_price}
+        />
       ))}
     </div>
   );
