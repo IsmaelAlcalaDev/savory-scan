@@ -434,41 +434,43 @@ export default function FilterTags({
             Abierto ahora
           </Button>
 
-          {/* Budget Friendly Quick Filter Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
-              isBudgetFriendly 
-                ? 'bg-black text-white hover:bg-black hover:text-white' 
-                : 'text-black hover:text-black'
-            }`}
-            style={isBudgetFriendly ? { 
-              backgroundColor: '#000000',
-              color: 'white',
-              fontSize: '14px',
-              fontWeight: '600'
-            } : { 
-              backgroundColor: '#F3F3F3',
-              color: 'black',
-              fontSize: '14px',
-              fontWeight: '600'
-            }}
-            onClick={() => onBudgetFriendlyChange(!isBudgetFriendly)}
-            onMouseEnter={(e) => {
-              if (!isBudgetFriendly) {
-                e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isBudgetFriendly) {
-                e.currentTarget.style.backgroundColor = '#F3F3F3';
-              }
-            }}
-          >
-            <CircleDollarSign className={`h-3 w-3 ${isBudgetFriendly ? 'text-white' : 'text-black'}`} />
-            Económico
-          </Button>
+          {/* Budget Friendly Quick Filter Button - Only show for restaurants tab */}
+          {activeTab === 'restaurants' && (
+            <Button
+              variant="outline"
+              size="sm"
+              className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
+                isBudgetFriendly 
+                  ? 'bg-black text-white hover:bg-black hover:text-white' 
+                  : 'text-black hover:text-black'
+              }`}
+              style={isBudgetFriendly ? { 
+                backgroundColor: '#000000',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: '600'
+              } : { 
+                backgroundColor: '#F3F3F3',
+                color: 'black',
+                fontSize: '14px',
+                fontWeight: '600'
+              }}
+              onClick={() => onBudgetFriendlyChange(!isBudgetFriendly)}
+              onMouseEnter={(e) => {
+                if (!isBudgetFriendly) {
+                  e.currentTarget.style.backgroundColor = 'rgb(248, 248, 248)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isBudgetFriendly) {
+                  e.currentTarget.style.backgroundColor = '#F3F3F3';
+                }
+              }}
+            >
+              <CircleDollarSign className={`h-3 w-3 ${isBudgetFriendly ? 'text-white' : 'text-black'}`} />
+              Económico
+            </Button>
+          )}
 
           {filterTags.map((filter) => (
             <FilterTrigger key={filter.key} filterKey={filter.key}>
