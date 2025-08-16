@@ -39,7 +39,7 @@ export const useInfiniteRestaurants = ({
   searchQuery = '',
   userLat,
   userLng,
-  maxDistance = 1000, // Increased default to 1000km to show all Spanish restaurants
+  maxDistance = 1000,
   cuisineTypeIds,
   priceRanges,
   isHighRated = false,
@@ -59,12 +59,13 @@ export const useInfiniteRestaurants = ({
   const abortControllerRef = useRef<AbortController | null>(null);
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastFetchRef = useRef<string>('');
+  const isInitialFetchDone = useRef(false);
 
-  // Create stable key for fetch parameters
+  // Create stable key that doesn't change with every location update
+  const hasLocation = Boolean(userLat && userLng);
   const fetchKey = JSON.stringify({
     searchQuery,
-    userLat,
-    userLng,
+    hasLocation,
     maxDistance,
     cuisineTypeIds,
     priceRanges,
@@ -74,6 +75,37 @@ export const useInfiniteRestaurants = ({
     isOpenNow,
     isBudgetFriendly
   });
+
+  // Calculate distances and reorder restaurants when location becomes available
+  const reorderRestaurantsWithLocation = useCallback((restaurants: Restaurant[]) => {
+    if (!userLat || !userLng) return restaurants;
+
+    console.log('📍 Reordering existing restaurants with new location data');
+    
+    return restaurants.map(restaurant => {
+      let distance_km: number | undefined;
+      if (restaurant.latitude && restaurant.longitude) {
+        const R = 6371; // Earth's radius in km
+        const dLat = (restaurant.latitude - userLat) * Math.PI / 180;
+        const dLon = (restaurant.longitude - userLng) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                 Math.cos(userLat * Math.PI / 180) * Math.cos(restaurant.latitude * Math.PI / 180) *
+                 Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        distance_km = Math.round((R * c) * 100) / 100;
+      }
+      return { ...restaurant, distance_km };
+    }).sort((a, b) => {
+      // Sort by distance when available
+      if (a.distance_km !== undefined && b.distance_km !== undefined) {
+        return a.distance_km - b.distance_km;
+      }
+      if (a.distance_km === undefined && b.distance_km === undefined) {
+        return (b.google_rating || 0) - (a.google_rating || 0);
+      }
+      return a.distance_km !== undefined ? -1 : 1;
+    });
+  }, [userLat, userLng]);
 
   const fetchRestaurants = useCallback(async (
     page: number, 
@@ -117,7 +149,7 @@ export const useInfiniteRestaurants = ({
 
       console.log('🎯 Base query created');
 
-      // Apply filters (NO distance filtering here - we filter by distance only for sorting)
+      // Apply filters
       if (searchQuery) {
         query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         console.log('🔍 Applied search filter:', searchQuery);
@@ -151,12 +183,10 @@ export const useInfiniteRestaurants = ({
         console.log('🍽️ Applied cuisine type filter:', cuisineTypeIds);
       }
 
-      // Order by popularity when no location, we'll sort by distance after fetching
-      if (!userLat || !userLng) {
-        query = query.order('google_rating', { ascending: false, nullsFirst: false })
-                    .order('favorites_count', { ascending: false });
-        console.log('⭐ Ordering by rating and popularity (no location)');
-      }
+      // Always order by popularity for consistent results
+      query = query.order('google_rating', { ascending: false, nullsFirst: false })
+                  .order('favorites_count', { ascending: false });
+      console.log('⭐ Ordering by rating and popularity');
 
       // Pagination
       query = query.range(offset, offset + itemsPerPage - 1);
@@ -212,31 +242,18 @@ export const useInfiniteRestaurants = ({
       // Sort restaurants based on location availability
       let sortedRestaurants = formattedRestaurants;
       if (userLat && userLng) {
-        // When we have user location, sort by distance (closest first)
         sortedRestaurants = formattedRestaurants.sort((a, b) => {
-          // Restaurants with distance first, sorted by distance
           if (a.distance_km !== undefined && b.distance_km !== undefined) {
             return a.distance_km - b.distance_km;
           }
-          // Restaurants without distance last, sorted by rating
           if (a.distance_km === undefined && b.distance_km === undefined) {
             return (b.google_rating || 0) - (a.google_rating || 0);
           }
-          // Restaurants with distance always before those without
           return a.distance_km !== undefined ? -1 : 1;
         });
-        console.log('📍 Sorted', sortedRestaurants.length, 'restaurants by distance');
-        
-        // Log distance info
-        const withDistance = sortedRestaurants.filter(r => r.distance_km !== undefined);
-        const withoutDistance = sortedRestaurants.filter(r => r.distance_km === undefined);
-        console.log(`📊 Distance breakdown: ${withDistance.length} with distance, ${withoutDistance.length} without`);
-        if (withDistance.length > 0) {
-          console.log(`📏 Distance range: ${withDistance[0].distance_km}km to ${withDistance[withDistance.length-1]?.distance_km}km`);
-        }
+        console.log('📍 Sorted by distance');
       } else {
-        // When no location, keep original order (by rating/popularity from query)
-        console.log('⭐ Keeping popularity order (no location available)');
+        console.log('⭐ Keeping popularity order (no location)');
       }
 
       console.log('✅ Final restaurants to display:', sortedRestaurants.length);
@@ -255,6 +272,7 @@ export const useInfiniteRestaurants = ({
           console.log('🔄 Setting', sortedRestaurants.length, 'restaurants (replacing previous)');
           setRestaurants(sortedRestaurants);
           setLoading(false);
+          isInitialFetchDone.current = true;
         }
         
         setError(null);
@@ -276,16 +294,16 @@ export const useInfiniteRestaurants = ({
     }
   }, [fetchKey, searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly, itemsPerPage]);
 
-  // Always fetch data - no waiting for location
+  // Initial fetch or when filters change
   useEffect(() => {
-    // Skip if parameters haven't changed and restaurants already loaded
+    // Skip if parameters haven't changed and we have data
     if (lastFetchRef.current === fetchKey && restaurants.length > 0) {
       console.log('⏭️ Skipping fetch - parameters unchanged and restaurants already loaded');
       return;
     }
 
-    console.log('🚀 useInfiniteRestaurants: Starting fetch');
-    console.log('📍 Location available:', { userLat, userLng });
+    console.log('🚀 useInfiniteRestaurants: Starting new fetch');
+    console.log('📍 Has location:', hasLocation);
 
     // Clear existing timeout
     if (fetchTimeoutRef.current) {
@@ -305,12 +323,12 @@ export const useInfiniteRestaurants = ({
     abortControllerRef.current = new AbortController();
     const currentController = abortControllerRef.current;
 
-    // Reduced debounce time for faster initial load
+    // Fast initial load
     fetchTimeoutRef.current = setTimeout(() => {
       if (!currentController.signal.aborted) {
         fetchRestaurants(0, currentController.signal, false);
       }
-    }, 100); // Reduced from 300ms to 100ms
+    }, 50); // Very fast for immediate display
 
     return () => {
       if (fetchTimeoutRef.current) {
@@ -321,6 +339,15 @@ export const useInfiniteRestaurants = ({
       }
     };
   }, [fetchKey, fetchRestaurants]);
+
+  // Handle location change for existing restaurants (reorder without refetch)
+  useEffect(() => {
+    if (isInitialFetchDone.current && restaurants.length > 0 && userLat && userLng) {
+      console.log('📍 Location detected, reordering existing restaurants');
+      const reorderedRestaurants = reorderRestaurantsWithLocation(restaurants);
+      setRestaurants(reorderedRestaurants);
+    }
+  }, [userLat, userLng, reorderRestaurantsWithLocation, restaurants.length]);
 
   // Load more function
   const loadMore = useCallback(() => {
