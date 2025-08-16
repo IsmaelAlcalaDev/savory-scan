@@ -36,7 +36,7 @@ export default function DesktopHeader({
   onSearchBlur
 }: DesktopHeaderProps) {
   return (
-    <div className="flex items-center justify-between py-1.5 px-4 lg:py-2 xl:py-2.5">
+    <div className="flex items-center justify-between py-1.5 px-4 lg:py-2 xl:py-2.5 bg-white shadow-sm border-b border-gray-100">
       {/* Left Section: Logo - Responsive sizing */}
       <div className="flex items-center flex-shrink-0 relative">
         <button onClick={onLogoClick} className="flex items-center">
