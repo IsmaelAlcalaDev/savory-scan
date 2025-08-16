@@ -19,7 +19,8 @@ import {
   FileText,
   HelpCircle,
   Users,
-  Languages
+  Languages,
+  Check
 } from 'lucide-react';
 import { useLanguages } from '@/hooks/useLanguages';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -51,10 +52,10 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
     window.open(url, '_blank');
   };
 
-  const renderFlag = (language: any, size = 24) => {
+  const renderFlag = (language: any, size = 20) => {
     if (language.flag_url) {
       return (
-        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+        <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
           <img
             src={language.flag_url}
             alt={`${language.name} flag`}
@@ -66,34 +67,39 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
       );
     }
     return (
-      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0">
+      <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium flex-shrink-0">
         {language.code.toUpperCase()}
       </div>
     );
   };
 
   const MenuContent = (
-    <div className="p-4 space-y-4 sm:space-y-6">
-      {/* Selector de idioma - Mejorado para móviles */}
+    <div className="p-4 space-y-4 sm:space-y-6 h-full">
+      {/* Selector de idioma - Rediseñado */}
       <div>
         <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
           <Languages className="h-4 w-4 sm:h-5 sm:w-5" />
           Idioma
         </h3>
         {!isLoading && languages.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+          <div className="space-y-2">
             {languages.map((language: any) => (
               <button
                 key={language.id}
                 onClick={() => handleLanguageChange(language)}
-                className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border transition-all text-left ${
+                className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all text-left ${
                   selectedLanguage?.id === language.id
-                    ? 'border-primary bg-primary/10'
+                    ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                {renderFlag(language, 24)}
-                <span className="text-sm font-medium truncate">{language.name}</span>
+                <div className="flex items-center gap-3">
+                  {renderFlag(language, 20)}
+                  <span className="text-sm font-medium">{language.name}</span>
+                </div>
+                {selectedLanguage?.id === language.id && (
+                  <Check className="h-4 w-4 text-primary" />
+                )}
               </button>
             ))}
           </div>
@@ -221,7 +227,7 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
 
   return isMobile ? (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
+      <SheetContent side="bottom" className="h-screen overflow-y-auto p-0">
         {MenuContent}
       </SheetContent>
     </Sheet>
