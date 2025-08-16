@@ -457,33 +457,30 @@ export default function FoodieSpotLayout({
   };
 
   return <div className="min-h-screen bg-white pb-20">
-      {/* Header - Full width */}
+      {/* Header - Only the navigation is sticky */}
       <header className="sticky top-0 z-50 bg-white">
         <div className="px-2">
           {renderHeader()}
-        </div>
-
-        {/* Content wrapper with larger desktop margins */}
-        <div className="px-4 md:px-6 lg:px-24 xl:px-32 2xl:px-48">
-          {/* Tipos de Cocina / Tipos de Comida */}
-          <div className="pb-2 pt-0">
-            {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
-          </div>
-
-          {/* Search bar for mobile - Full width below cuisine types with doubled spacing */}
-          {isMobile && <div className="pb-4">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10 text-black" />
-                <input type="text" placeholder={getSearchPlaceholder()} value={getCurrentSearchQuery()} onChange={e => setCurrentSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 text-black placeholder:text-black" style={{
-              backgroundColor: 'rgb(243, 243, 243)'
-            }} />
-              </div>
-            </div>}
         </div>
       </header>
 
       {/* Main Content with desktop margins */}
       <div className="w-full px-4 md:px-6 lg:px-24 xl:px-32 2xl:px-48">
+        {/* Tipos de Cocina / Tipos de Comida - Now in scrollable content */}
+        <div className="pb-2 pt-4">
+          {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
+        </div>
+
+        {/* Search bar for mobile - Full width below cuisine types with doubled spacing */}
+        {isMobile && <div className="pb-4">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10 text-black" />
+              <input type="text" placeholder={getSearchPlaceholder()} value={getCurrentSearchQuery()} onChange={e => setCurrentSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 text-black placeholder:text-black" style={{
+            backgroundColor: 'rgb(243, 243, 243)'
+          }} />
+            </div>
+          </div>}
+
         <div className="p-0 md:p-4">
           {renderContent()}
         </div>
