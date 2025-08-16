@@ -37,8 +37,8 @@ export default function MobileHeader({
 
       {/* Location */}
       <div className="flex-1 flex justify-center px-4">
-        <Button variant="ghost" onClick={onLocationClick} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary hover:bg-transparent max-w-48">
-          <MapPin className="h-4 w-4 flex-shrink-0" />
+        <Button variant="ghost" onClick={onLocationClick} className="flex items-center gap-2 text-sm text-black hover:text-black hover:bg-transparent max-w-48">
+          <MapPin className="h-4 w-4 flex-shrink-0 text-black" />
           <span className="truncate">
             {isLoadingLocation ? 'Detectando...' : currentLocationName}
           </span>
@@ -48,7 +48,7 @@ export default function MobileHeader({
       {/* Menu */}
       <div className="flex items-center flex-shrink-0">
         <button className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors" onClick={onMenuClick}>
-          <Menu className="h-6 w-6" strokeWidth={2} />
+          <Menu className="h-7 w-7" strokeWidth={2.5} />
         </button>
       </div>
     </div>

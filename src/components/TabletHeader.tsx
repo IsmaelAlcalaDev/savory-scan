@@ -54,9 +54,9 @@ export default function TabletHeader({
         <Button
           variant="ghost"
           onClick={onLocationClick}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary hover:bg-transparent whitespace-nowrap"
+          className="flex items-center gap-2 text-sm text-black hover:text-black hover:bg-transparent whitespace-nowrap"
         >
-          <MapPin className="h-4 w-4" />
+          <MapPin className="h-4 w-4 text-black" />
           <span className="max-w-32 truncate">
             {isLoadingLocation ? 'Detectando...' : currentLocationName}
           </span>
@@ -89,7 +89,7 @@ export default function TabletHeader({
           className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
           onClick={onMenuClick}
         >
-          <Menu className="h-7 w-7" strokeWidth={2} />
+          <Menu className="h-8 w-8" strokeWidth={2.5} />
         </button>
       </div>
     </div>
