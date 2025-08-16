@@ -80,25 +80,20 @@ export default function FilterTags({
     isBudgetFriendly;
 
   const getHighRatedButtonText = () => {
-    // Only apply dynamic text logic for restaurants tab
-    if (activeTab !== 'restaurants') {
-      return '+4.5';
-    }
-
-    // If no establishment types are selected, default to "Restaurante"
+    // If no establishment types are selected, default to "+4.5"
     if (selectedEstablishmentTypes.length === 0) {
-      return 'Restaurante +4.5';
+      return '+4.5';
     }
 
     // If one establishment type is selected, use its name
     if (selectedEstablishmentTypes.length === 1) {
       const selectedType = establishmentTypes.find(type => type.id === selectedEstablishmentTypes[0]);
-      return selectedType ? `${selectedType.name} +4.5` : 'Restaurante +4.5';
+      return selectedType ? `${selectedType.name} +4.5` : '+4.5';
     }
 
     // If multiple types are selected, use the first one
     const firstType = establishmentTypes.find(type => type.id === selectedEstablishmentTypes[0]);
-    return firstType ? `${firstType.name} +4.5` : 'Restaurante +4.5';
+    return firstType ? `${firstType.name} +4.5` : '+4.5';
   };
 
   const getFilterIcon = (filterKey: string) => {
