@@ -13,7 +13,7 @@ export default function BookingPlatformsSection() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Button
           variant="outline"
-          className="p-4 h-auto justify-between transition-all duration-200"
+          className="p-4 h-auto justify-between hover:bg-primary hover:text-primary-foreground transition-all duration-200"
           asChild
         >
           <a href="#" target="_blank" rel="noopener noreferrer">
@@ -27,7 +27,7 @@ export default function BookingPlatformsSection() {
         
         <Button
           variant="outline"
-          className="p-4 h-auto justify-between transition-all duration-200"
+          className="p-4 h-auto justify-between hover:bg-primary hover:text-primary-foreground transition-all duration-200"
           asChild
         >
           <a href="#" target="_blank" rel="noopener noreferrer">

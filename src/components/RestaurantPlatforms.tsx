@@ -77,7 +77,7 @@ export default function RestaurantPlatforms({
               key={platform.id}
               variant="outline"
               size="sm"
-              className="rounded-full px-4 py-2 h-10 gap-2 transition-all border-2"
+              className="rounded-full px-4 py-2 h-10 gap-2 hover:scale-105 transition-all border-2"
               style={{
                 borderColor: platform.icon_color || 'currentColor'
               }}

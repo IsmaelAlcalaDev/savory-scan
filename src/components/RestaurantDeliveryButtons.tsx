@@ -32,32 +32,32 @@ const getDeliveryStyles = (platform: string) => {
   switch (platform.toLowerCase()) {
     case 'glovo':
       return {
-        bg: 'bg-yellow-500',
+        bg: 'bg-yellow-500 hover:bg-yellow-600',
         text: 'text-black',
         name: 'Glovo'
       };
     case 'ubereats':
       return {
-        bg: 'bg-green-600',
+        bg: 'bg-green-600 hover:bg-green-700',
         text: 'text-white',
         name: 'Uber Eats'
       };
     case 'justeat':
     case 'just-eat':
       return {
-        bg: 'bg-orange-500',
+        bg: 'bg-orange-500 hover:bg-orange-600',
         text: 'text-white',
         name: 'Just Eat'
       };
     case 'deliveroo':
       return {
-        bg: 'bg-cyan-500',
+        bg: 'bg-cyan-500 hover:bg-cyan-600',
         text: 'text-white',
         name: 'Deliveroo'
       };
     default:
       return {
-        bg: 'bg-primary',
+        bg: 'bg-primary hover:bg-primary/90',
         text: 'text-primary-foreground',
         name: platform.charAt(0).toUpperCase() + platform.slice(1)
       };
@@ -86,7 +86,7 @@ export default function RestaurantDeliveryButtons({ deliveryLinks }: RestaurantD
             <Button
               key={platform}
               size="sm"
-              className={`${styles.bg} ${styles.text} transition-all duration-200 px-3 py-2 gap-2`}
+              className={`${styles.bg} ${styles.text} hover:scale-105 transition-all duration-200 px-3 py-2 gap-2`}
               asChild
             >
               <a href={url} target="_blank" rel="noopener noreferrer">

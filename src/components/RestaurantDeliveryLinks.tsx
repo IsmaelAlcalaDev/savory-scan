@@ -42,7 +42,7 @@ export default function RestaurantDeliveryLinks({ deliveryLinks = {} }: Restaura
           <Button
             key={platform}
             variant="outline"
-            className="w-full justify-between p-3 h-auto transition-all duration-200"
+            className="w-full justify-between p-3 h-auto hover:scale-[1.02] transition-all duration-200"
             asChild
           >
             <a href={url} target="_blank" rel="noopener noreferrer">

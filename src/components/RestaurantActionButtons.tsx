@@ -29,7 +29,7 @@ export default function RestaurantActionButtons({
         <Button
           size="lg"
           variant="outline"
-          className="rounded-full w-16 h-16 p-0 border-2 transition-all"
+          className="rounded-full w-16 h-16 p-0 border-2 hover:scale-110 transition-all"
           asChild
         >
           <a href={`tel:${phone}`}>
@@ -41,7 +41,7 @@ export default function RestaurantActionButtons({
       <Button
         size="lg"
         variant="outline"
-        className="rounded-full w-16 h-16 p-0 border-2 transition-all"
+        className="rounded-full w-16 h-16 p-0 border-2 hover:scale-110 transition-all"
         onClick={() => {
           // Implementar navegación con geolocalización
           console.log('Abrir direcciones');
@@ -54,7 +54,7 @@ export default function RestaurantActionButtons({
         <Button
           size="lg"
           variant="outline"
-          className="rounded-full w-16 h-16 p-0 border-2 transition-all"
+          className="rounded-full w-16 h-16 p-0 border-2 hover:scale-110 transition-all"
           asChild
         >
           <a href={website} target="_blank" rel="noopener noreferrer">
@@ -66,7 +66,7 @@ export default function RestaurantActionButtons({
       <Button
         size="lg"
         variant="outline"
-        className="rounded-full w-16 h-16 p-0 border-2 transition-all"
+        className="rounded-full w-16 h-16 p-0 border-2 hover:scale-110 transition-all"
         onClick={() => {
           // Implementar reservas
           console.log('Hacer reserva');
@@ -79,7 +79,7 @@ export default function RestaurantActionButtons({
         <Button
           size="lg"
           variant="outline"
-          className="rounded-full w-16 h-16 p-0 border-2 transition-all"
+          className="rounded-full w-16 h-16 p-0 border-2 hover:scale-110 transition-all"
           asChild
         >
           <a href={`mailto:${email}`}>

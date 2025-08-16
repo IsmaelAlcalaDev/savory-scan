@@ -68,7 +68,7 @@ export default function RestaurantCard({
     return (
       <div 
         className={cn(
-          "group cursor-pointer transition-all duration-300 flex items-center gap-4 p-4 rounded-lg border bg-card",
+          "group cursor-pointer transition-all duration-300 hover:scale-[1.01] flex items-center gap-4 p-4 rounded-lg border bg-card",
           className
         )}
         onClick={handleClick}
@@ -78,7 +78,7 @@ export default function RestaurantCard({
             <img 
               src={displayImage} 
               alt={name}
-              className="w-full h-full object-cover transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
@@ -87,7 +87,7 @@ export default function RestaurantCard({
           ) : null}
           <div className={cn(
             "absolute inset-0 transition-smooth",
-            displayImage ? "bg-black/20" : "bg-gradient-hero"
+            displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
           )} />
           
           <div className="absolute top-2 left-2">
@@ -123,7 +123,7 @@ export default function RestaurantCard({
               </div>
             )}
             
-            <h3 className="font-semibold text-base line-clamp-1 transition-smooth">
+            <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-smooth">
               {name}
             </h3>
             {googleRating && (
@@ -158,7 +158,7 @@ export default function RestaurantCard({
   return (
     <div 
       className={cn(
-        "group cursor-pointer transition-all duration-300",
+        "group cursor-pointer transition-all duration-300 hover:scale-[1.02]",
         className
       )}
       onClick={handleClick}
@@ -168,7 +168,7 @@ export default function RestaurantCard({
           <img 
             src={displayImage} 
             alt={name}
-            className="w-full h-full object-cover transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -177,7 +177,7 @@ export default function RestaurantCard({
         ) : null}
         <div className={cn(
           "absolute inset-0 transition-smooth",
-          displayImage ? "bg-black/20" : "bg-gradient-hero"
+          displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
         )} />
         
         <div className="absolute top-3 left-3">
@@ -213,7 +213,7 @@ export default function RestaurantCard({
             </div>
           )}
           
-          <h3 className="font-semibold text-base line-clamp-2 transition-smooth">
+          <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-smooth">
             {name}
           </h3>
           {googleRating && (

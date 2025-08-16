@@ -45,7 +45,7 @@ export default function DeliveryIcons({ restaurantLinks = {} }: DeliveryIconsPro
           <button
             key={platform.id}
             onClick={() => window.open(url, '_blank', 'noopener noreferrer')}
-            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 transition-all flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 hover:scale-110 transition-all flex items-center justify-center"
             title={`Pedir en ${platform.platform_name}`}
           >
             <IconComponent 

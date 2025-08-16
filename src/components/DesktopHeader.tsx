@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Menu, MapPin } from 'lucide-react';
+import { Search, MapPin, Menu } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import InlineSearchBar from './InlineSearchBar';
 
 interface DesktopHeaderProps {
   appName: string;
@@ -15,7 +15,7 @@ interface DesktopHeaderProps {
   onLogoClick: () => void;
   onLocationClick: () => void;
   onMenuClick: () => void;
-  onSearchChange: (query: string) => void;
+  onSearchChange: (value: string) => void;
   onSearchFocus: () => void;
   onSearchBlur: () => void;
 }
@@ -27,6 +27,7 @@ export default function DesktopHeader({
   isLoadingLocation,
   searchQuery,
   searchPlaceholder,
+  isSearchFocused,
   onLogoClick,
   onLocationClick,
   onMenuClick,
@@ -35,43 +36,61 @@ export default function DesktopHeader({
   onSearchBlur
 }: DesktopHeaderProps) {
   return (
-    <div className="hidden lg:flex items-center justify-between gap-8">
-      <div className="flex items-center gap-6">
-        <button onClick={onLogoClick} className="flex items-center gap-2">
-          <img src={appLogoUrl} alt={`${appName} logo`} className="h-10 w-10 rounded-full" />
-          <h1 className="text-2xl font-bold text-foreground">
-            {appName}
-          </h1>
-        </button>
-        
-        <div className="w-80">
-          <InlineSearchBar
-            isOpen={false}
-            onClose={() => {}}
-            searchQuery={searchQuery}
-            onSearchChange={onSearchChange}
-            placeholder={searchPlaceholder}
-            restaurantName=""
-            onGoBack={() => {}}
-            onSearchToggle={() => {}}
+    <div className="flex items-center justify-between py-3 px-4">
+      {/* Left Section: Logo - Increased size */}
+      <div className="flex items-center flex-shrink-0 relative">
+        <button onClick={onLogoClick} className="flex items-center">
+          <img 
+            src={appLogoUrl}
+            alt={`${appName} Logo`} 
+            className="w-28 h-28 bg-transparent object-contain absolute top-1/2 left-0 transform -translate-y-1/2 z-10 cursor-pointer"
           />
+        </button>
+        {/* Spacer to maintain layout */}
+        <div className="w-28 h-8" />
+      </div>
+
+      {/* Center Section: Location and Search */}
+      <div className="flex items-center gap-4 flex-1 justify-center max-w-2xl mx-8">
+        {/* Location Section */}
+        <div className="flex justify-start">
+          <Button
+            variant="ghost"
+            onClick={onLocationClick}
+            className="flex items-center gap-2 text-sm text-black hover:text-black hover:bg-transparent whitespace-nowrap"
+          >
+            <MapPin className="h-4 w-4 text-black" />
+            <span className="max-w-40 truncate">
+              {isLoadingLocation ? 'Detectando...' : currentLocationName}
+            </span>
+          </Button>
+        </div>
+
+        {/* Search Section */}
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10" style={{ color: '#4B4B4B' }} />
+            <Input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              onFocus={onSearchFocus}
+              onBlur={onSearchBlur}
+              className="pl-10 pr-4 h-10 text-base rounded-full border-0 placeholder:text-[#4B4B4B]"
+              style={{ 
+                backgroundColor: '#F3F3F3',
+                color: '#4B4B4B'
+              }}
+            />
+          </div>
         </div>
       </div>
-      
-      <div className="flex items-center gap-6">
-        <Button
-          variant="ghost"
-          onClick={onLocationClick}
-          className="flex items-center gap-2 text-sm text-black whitespace-nowrap"
-        >
-          <MapPin className="h-4 w-4 text-black" />
-          <span className="max-w-40 truncate">
-            {isLoadingLocation ? 'Detectando...' : currentLocationName}
-          </span>
-        </Button>
-        
-        <button
-          className="p-0 border-0 bg-transparent text-gray-800 transition-colors"
+
+      {/* Right Section: Menu */}
+      <div className="flex items-center gap-4 flex-shrink-0">
+        <button 
+          className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
           onClick={onMenuClick}
         >
           <Menu className="h-9 w-9" strokeWidth={2.5} />

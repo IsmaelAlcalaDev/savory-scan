@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Menu, MapPin } from 'lucide-react';
+import { MapPin, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import InlineSearchBar from './InlineSearchBar';
 
 interface MobileHeaderProps {
   appName: string;
@@ -24,27 +23,33 @@ export default function MobileHeader({
   onMenuClick
 }: MobileHeaderProps) {
   return (
-    <div className="md:hidden">
-      {/* Top row: Logo and menu */}
-      <div className="flex items-center justify-between mb-3">
-        <button onClick={onLogoClick} className="flex items-center gap-2">
-          <img src={appLogoUrl} alt={`${appName} logo`} className="h-8 w-8 rounded-full" />
-          <h1 className="text-xl font-bold text-foreground">{appName}</h1>
-        </button>
-        
-        <button className="p-0 border-0 bg-transparent text-gray-800 transition-colors" onClick={onMenuClick}>
-          <Menu className="h-7 w-7" strokeWidth={2.5} />
+    <div className="flex items-center justify-between p-0">
+      {/* Logo - Increased size */}
+      <div className="flex items-center flex-shrink-0">
+        <button onClick={onLogoClick} className="flex items-center">
+          <img 
+            src={appLogoUrl} 
+            alt={`${appName} Logo`} 
+            className="w-20 h-20 bg-transparent object-contain cursor-pointer" 
+          />
         </button>
       </div>
 
       {/* Location */}
       <div className="flex-1 flex justify-center px-4">
-        <Button variant="ghost" onClick={onLocationClick} className="flex items-center gap-2 text-sm text-black max-w-48">
+        <Button variant="ghost" onClick={onLocationClick} className="flex items-center gap-2 text-sm text-black hover:text-black hover:bg-transparent max-w-48">
           <MapPin className="h-4 w-4 flex-shrink-0 text-black" />
           <span className="truncate">
             {isLoadingLocation ? 'Detectando...' : currentLocationName}
           </span>
         </Button>
+      </div>
+
+      {/* Menu */}
+      <div className="flex items-center flex-shrink-0">
+        <button className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors" onClick={onMenuClick}>
+          <Menu className="h-7 w-7" strokeWidth={2.5} />
+        </button>
       </div>
     </div>
   );
