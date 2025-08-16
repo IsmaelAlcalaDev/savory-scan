@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Search, MapPin, Navigation, Clock } from 'lucide-react';
 import {
@@ -9,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useLocationSuggestions } from '@/hooks/useLocationSuggestions';
+import { useIntelligentLocationSuggestions } from '@/hooks/useIntelligentLocationSuggestions';
 import { useLocationHistory } from '@/hooks/useLocationHistory';
 import { useNearestLocation } from '@/hooks/useNearestLocation';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,7 +28,7 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
   const [showLocationInfo, setShowLocationInfo] = useState<any>(null);
   const [isLoadingGPS, setIsLoadingGPS] = useState(false);
   const [detectedLocation, setDetectedLocation] = useState<string>('');
-  const { suggestions, loading: loadingSuggestions } = useLocationSuggestions(searchQuery);
+  const { suggestions, loading: loadingSuggestions } = useIntelligentLocationSuggestions(searchQuery);
   const { history, addToHistory, clearHistory } = useLocationHistory();
   const { findNearestLocation } = useNearestLocation();
   const { reverseGeocode } = useReverseGeocoding();
@@ -203,7 +204,7 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
             )}
           </div>
 
-          {/* Suggestions */}
+          {/* Suggestions with intelligent search */}
           {searchQuery.length >= 2 && (
             <div className="border rounded-md bg-background max-h-48 overflow-hidden">
               <ScrollArea className="max-h-48">
@@ -223,7 +224,19 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
                           onClick={() => handleSuggestionSelect(suggestion)}
                         >
                           <div className="w-full">
-                            <div className="font-medium">{suggestion.name}</div>
+                            <div className="font-medium flex items-center gap-2">
+                              {suggestion.name}
+                              {suggestion.is_famous && (
+                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                                  ⭐
+                                </span>
+                              )}
+                              {suggestion.similarity_score && suggestion.similarity_score < 0.7 && (
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                  ¿Esto?
+                                </span>
+                              )}
+                            </div>
                             {suggestion.parent && (
                               <div className="text-xs text-muted-foreground">
                                 {suggestion.parent}
@@ -248,7 +261,10 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
                   </div>
                 ) : (
                   <div className="p-3 text-center text-sm text-muted-foreground">
-                    No se encontraron ubicaciones
+                    <div>No se encontraron ubicaciones</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Intenta con otra palabra o revisa la ortografía
+                    </div>
                   </div>
                 )}
               </ScrollArea>

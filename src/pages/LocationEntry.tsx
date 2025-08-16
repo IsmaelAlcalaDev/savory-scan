@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Navigation, Utensils, Heart, Star } from 'lucide-react';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useLocationSuggestions } from '@/hooks/useLocationSuggestions';
+import { useIntelligentLocationSuggestions } from '@/hooks/useIntelligentLocationSuggestions';
 import { useNearestLocation } from '@/hooks/useNearestLocation';
 
 export default function LocationEntry() {
@@ -14,7 +15,7 @@ export default function LocationEntry() {
   const [isLoadingGPS, setIsLoadingGPS] = useState(false);
   const navigate = useNavigate();
   
-  const { suggestions, loading: loadingSuggestions } = useLocationSuggestions(searchQuery);
+  const { suggestions, loading: loadingSuggestions } = useIntelligentLocationSuggestions(searchQuery);
   const { findNearestLocation } = useNearestLocation();
 
   const handleLocationSelect = (location: any) => {
@@ -176,7 +177,7 @@ export default function LocationEntry() {
                       </div>
                     </button>
 
-                    {/* Sugerencias de búsqueda */}
+                    {/* Sugerencias de búsqueda inteligente */}
                     {searchQuery.length >= 2 && (
                       <>
                         {loadingSuggestions ? (
@@ -196,10 +197,27 @@ export default function LocationEntry() {
                                 <div className="flex items-center gap-3">
                                   <MapPin className="h-4 w-4 text-gray-400" />
                                   <div>
-                                    <div className="font-medium text-gray-900">{suggestion.name}</div>
+                                    <div className="font-medium text-gray-900 flex items-center gap-2">
+                                      {suggestion.name}
+                                      {suggestion.is_famous && (
+                                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                                          ⭐ Famoso
+                                        </span>
+                                      )}
+                                      {suggestion.similarity_score && suggestion.similarity_score < 0.7 && (
+                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                          ¿Buscabas esto?
+                                        </span>
+                                      )}
+                                    </div>
                                     {suggestion.parent && (
                                       <div className="text-sm text-gray-500">
                                         {suggestion.parent}
+                                      </div>
+                                    )}
+                                    {suggestion.description && (
+                                      <div className="text-xs text-gray-400 mt-1">
+                                        {suggestion.description}
                                       </div>
                                     )}
                                   </div>
@@ -209,7 +227,10 @@ export default function LocationEntry() {
                           </>
                         ) : (
                           <div className="p-4 text-center text-gray-500">
-                            No se encontraron ubicaciones
+                            <div className="text-sm">No se encontraron ubicaciones</div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Intenta con una palabra diferente o revisa la ortografía
+                            </div>
                           </div>
                         )}
                       </>
