@@ -79,25 +79,27 @@ export default function FilterTags({
     isHighRated ||
     isBudgetFriendly;
 
-  // Helper function to get the next price sort state for dishes
+  // Helper function to get the next price sort state for dishes - start with descending
   const getNextPriceSortState = (currentRanges: string[]): string[] => {
-    if (currentRanges.includes('price_asc')) {
-      return ['price_desc']; // Switch to descending
+    if (currentRanges.length === 0) {
+      return ['price_desc']; // Start with descending (arrow down)
     } else if (currentRanges.includes('price_desc')) {
+      return ['price_asc']; // Switch to ascending (arrow up)
+    } else if (currentRanges.includes('price_asc')) {
       return []; // Clear sorting
     } else {
-      return ['price_asc']; // Start with ascending
+      return ['price_desc']; // Fallback to descending
     }
   };
 
   // Helper function to get price button text and icon for dishes
   const getPriceButtonContent = () => {
-    if (selectedPriceRanges.includes('price_asc')) {
-      return { text: 'Precio', icon: ArrowUp };
-    } else if (selectedPriceRanges.includes('price_desc')) {
+    if (selectedPriceRanges.includes('price_desc')) {
       return { text: 'Precio', icon: ArrowDown };
+    } else if (selectedPriceRanges.includes('price_asc')) {
+      return { text: 'Precio', icon: ArrowUp };
     } else {
-      return { text: 'Ordenar', icon: null };
+      return { text: 'Precio', icon: ArrowDown }; // Default shows arrow down
     }
   };
 
@@ -290,7 +292,7 @@ export default function FilterTags({
   );
 
   const filterTags = [
-    { key: 'price', label: activeTab === 'dishes' ? 'Ordenar' : 'Precio' },
+    { key: 'price', label: activeTab === 'dishes' ? 'Precio' : 'Precio' },
     { key: 'establishment', label: 'Tipo' },
     { key: 'diet', label: 'Dieta' },
     ...(activeTab === 'dishes' ? [
@@ -345,11 +347,7 @@ export default function FilterTags({
             }
           }}
         >
-          {PriceIcon ? (
-            <PriceIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
-          ) : (
-            FilterIcon && <FilterIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
-          )}
+          <PriceIcon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-black'}`} />
           {priceContent.text}
         </Button>
       );
