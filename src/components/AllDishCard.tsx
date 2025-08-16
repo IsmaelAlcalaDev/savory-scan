@@ -102,22 +102,26 @@ export default function AllDishCard({
         </div>
 
         <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-base line-clamp-1 transition-smooth">
               {name}
             </h3>
-            {restaurantRating && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                <span className="font-medium text-foreground text-sm">{restaurantRating}</span>
-              </div>
-            )}
+            <div className="text-foreground font-semibold text-base flex-shrink-0">
+              {formattedPrice}
+            </div>
           </div>
           
           <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
             <span className="line-clamp-1">{restaurantName}</span>
-            <span>•</span>
-            <span className="text-foreground font-medium">{formattedPrice}</span>
+            {restaurantRating && (
+              <>
+                <span>•</span>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  <span className="font-medium text-foreground text-sm">{restaurantRating}</span>
+                </div>
+              </>
+            )}
             {distance && (
               <>
                 <span>•</span>
@@ -176,22 +180,26 @@ export default function AllDishCard({
       </div>
 
       <div className="space-y-1">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-base line-clamp-2 transition-smooth">
             {name}
           </h3>
-          {restaurantRating && (
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              <span className="font-medium text-foreground text-sm">{restaurantRating}</span>
-            </div>
-          )}
+          <div className="text-foreground font-semibold text-base flex-shrink-0">
+            {formattedPrice}
+          </div>
         </div>
         
         <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
           <span className="line-clamp-1">{restaurantName}</span>
-          <span>•</span>
-          <span className="text-foreground font-medium">{formattedPrice}</span>
+          {restaurantRating && (
+            <>
+              <span>•</span>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <span className="font-medium text-foreground text-sm">{restaurantRating}</span>
+              </div>
+            </>
+          )}
           {distance && (
             <>
               <span>•</span>
