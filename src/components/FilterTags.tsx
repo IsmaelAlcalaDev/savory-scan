@@ -183,17 +183,19 @@ export default function FilterTags({
         <Button
           variant="outline"
           size="sm"
-          className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 relative ${
+          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative font-normal ${
             isActive 
               ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
-              : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
+              : 'text-black hover:bg-[#EAEAEA]'
           }`}
           style={isActive ? { 
             backgroundColor: '#ef4444',
-            color: 'white'
+            color: 'white',
+            fontSize: '14px'
           } : { 
             backgroundColor: '#F3F3F3',
-            color: '#4B4B4B'
+            color: 'black',
+            fontSize: '14px'
           }}
           onClick={() => handleOpenChange(true)}
         >
@@ -228,17 +230,19 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
+            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-normal ${
               isHighRated 
                 ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
-                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
+                : 'text-black hover:bg-[#EAEAEA]'
             }`}
             style={isHighRated ? { 
               backgroundColor: '#ef4444',
-              color: 'white'
+              color: 'white',
+              fontSize: '14px'
             } : { 
               backgroundColor: '#F3F3F3',
-              color: '#4B4B4B'
+              color: 'black',
+              fontSize: '14px'
             }}
             onClick={() => onHighRatedChange(!isHighRated)}
           >
@@ -250,17 +254,19 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
+            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-normal ${
               isOpenNow 
                 ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
-                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
+                : 'text-black hover:bg-[#EAEAEA]'
             }`}
             style={isOpenNow ? { 
               backgroundColor: '#ef4444',
-              color: 'white'
+              color: 'white',
+              fontSize: '14px'
             } : { 
               backgroundColor: '#F3F3F3',
-              color: '#4B4B4B'
+              color: 'black',
+              fontSize: '14px'
             }}
             onClick={() => onOpenNowChange(!isOpenNow)}
           >
@@ -272,17 +278,19 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
+            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-normal ${
               isBudgetFriendly 
                 ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
-                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
+                : 'text-black hover:bg-[#EAEAEA]'
             }`}
             style={isBudgetFriendly ? { 
               backgroundColor: '#ef4444',
-              color: 'white'
+              color: 'white',
+              fontSize: '14px'
             } : { 
               backgroundColor: '#F3F3F3',
-              color: '#4B4B4B'
+              color: 'black',
+              fontSize: '14px'
             }}
             onClick={() => onBudgetFriendlyChange(!isBudgetFriendly)}
           >
