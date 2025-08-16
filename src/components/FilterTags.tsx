@@ -1,4 +1,3 @@
-
 import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -183,7 +182,7 @@ export default function FilterTags({
         <Button
           variant="outline"
           size="sm"
-          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative font-normal ${
+          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative font-bold ${
             isActive 
               ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
               : 'text-black hover:bg-[#EAEAEA]'
@@ -230,7 +229,7 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-normal ${
+            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-bold ${
               isHighRated 
                 ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
                 : 'text-black hover:bg-[#EAEAEA]'
@@ -254,7 +253,7 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-normal ${
+            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-bold ${
               isOpenNow 
                 ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
                 : 'text-black hover:bg-[#EAEAEA]'
@@ -278,7 +277,7 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-normal ${
+            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 font-bold ${
               isBudgetFriendly 
                 ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
                 : 'text-black hover:bg-[#EAEAEA]'
