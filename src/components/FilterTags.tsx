@@ -1,7 +1,8 @@
+
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import QuickActionTags from './QuickActionTags';
+import QuickFilterTags from './QuickFilterTags';
 import UnifiedFiltersModal from './UnifiedFiltersModal';
 
 interface FilterTagsProps {
@@ -67,7 +68,7 @@ export default function FilterTags({
   return (
     <div className="space-y-3">
       {/* Quick Action Tags */}
-      <QuickActionTags
+      <QuickFilterTags
         activeTab={activeTab}
         selectedPriceRanges={selectedPriceRanges}
         isHighRated={isHighRated}
