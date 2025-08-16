@@ -29,7 +29,7 @@ export default function DietFilter({ selectedDietTypes, onDietTypeChange }: Diet
           <div key={i} className="space-y-2">
             <Skeleton className="h-4 w-24" />
             <div className="space-y-2 ml-4">
-              {Array.from({ length: 2 }).map((_, j) => (
+              {Array.from({ length: 3 }).map((_, j) => (
                 <Skeleton key={j} className="h-5 w-full" />
               ))}
             </div>
@@ -64,20 +64,21 @@ export default function DietFilter({ selectedDietTypes, onDietTypeChange }: Diet
       {dietCategories.map((category, categoryIndex) => (
         <div key={category.category} className="space-y-3">
           <h4 className="font-medium text-sm text-gray-900">{category.displayName}</h4>
-          <div className="space-y-2 ml-2">
+          <div className="space-y-3 ml-2">
             {category.options.map((diet) => (
-              <div key={diet.id} className="flex items-center space-x-2">
+              <div key={diet.id} className="flex items-start space-x-3">
                 <Checkbox 
                   id={`diet-${diet.id}`}
                   checked={selectedDietTypes.includes(diet.id)}
                   onCheckedChange={() => handleDietToggle(diet.id)}
+                  className="mt-0.5"
                 />
                 <label 
                   htmlFor={`diet-${diet.id}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
+                  className="text-sm font-medium leading-relaxed peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-start gap-2 flex-1"
                 >
-                  {diet.icon && <span>{diet.icon}</span>}
-                  {diet.name}
+                  {diet.icon && <span className="text-base">{diet.icon}</span>}
+                  <span className="flex-1">{diet.name}</span>
                 </label>
               </div>
             ))}

@@ -93,7 +93,7 @@ export const useDietTypes = () => {
 const getCategoryDisplayName = (category: string): string => {
   const displayNames: Record<string, string> = {
     vegetarian: 'Vegetariano',
-    vegan: 'Vegano',
+    vegan: 'Vegano', 
     gluten_free: 'Sin Gluten',
     healthy: 'Saludable'
   };
