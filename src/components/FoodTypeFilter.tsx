@@ -1,4 +1,3 @@
-
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFoodTypes } from '@/hooks/useFoodTypes';
 import { useRef, useState, useEffect } from 'react';
@@ -72,9 +71,9 @@ export default function FoodTypeFilter({
   if (loading) {
     return (
       <div className="relative w-full">
-        <div className="flex gap-2 pb-1 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 pb-1 px-1 overflow-x-auto scrollbar-hide">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-1 flex-shrink-0">
+            <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
               <Skeleton className="h-16 w-16" />
               <Skeleton className="h-3 w-12" />
             </div>
@@ -115,7 +114,7 @@ export default function FoodTypeFilter({
       
       <div 
         ref={scrollRef}
-        className="flex gap-2 pb-1 overflow-x-auto scrollbar-hide -ml-2"
+        className="flex gap-2 pb-1 px-2 overflow-x-auto scrollbar-hide"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none'
@@ -128,7 +127,7 @@ export default function FoodTypeFilter({
           return (
             <div
               key={foodType.id}
-              className="flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0 min-w-[70px]"
+              className="flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 hover:scale-110 flex-shrink-0 min-w-[60px]"
               onClick={() => handleFoodTypeClick(foodType.id)}
             >
               <div className="flex items-center justify-center w-16 h-16 text-4xl transition-all duration-200">
@@ -144,13 +143,14 @@ export default function FoodTypeFilter({
                   {icon}
                 </span>
               </div>
-              <span className={`
-                text-xs font-medium text-center whitespace-nowrap transition-colors text-black max-w-[70px] truncate
-                ${selectedFoodTypes.includes(foodType.id) 
-                  ? 'text-primary' 
-                  : 'text-black'
-                }
-              `}>
+              <span 
+                className={`font-medium text-center whitespace-nowrap transition-colors text-black max-w-[60px] truncate ${
+                  selectedFoodTypes.includes(foodType.id) 
+                    ? 'text-primary' 
+                    : 'text-black'
+                }`}
+                style={{ fontSize: '12px' }}
+              >
                 {foodType.name}
               </span>
             </div>
