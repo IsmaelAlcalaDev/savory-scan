@@ -293,8 +293,8 @@ export default function FilterTags({
 
   const filterTags = [
     { key: 'price', label: activeTab === 'dishes' ? 'Precio' : 'Precio' },
-    { key: 'establishment', label: 'Tipo' },
     { key: 'diet', label: 'Dieta' },
+    { key: 'establishment', label: 'Tipo' },
     ...(activeTab === 'dishes' ? [
       { key: 'spice', label: 'Picante' },
       { key: 'customTags', label: 'Etiquetas' }
@@ -414,7 +414,9 @@ export default function FilterTags({
     <>
       <div className="w-full py-0">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-          {/* High Rating Quick Filter Button */}
+          {/* Quick filters primero - ordenados por relevancia */}
+          
+          {/* Top es el más popular - usuarios buscan calidad */}
           <Button
             variant="outline"
             size="sm"
@@ -450,7 +452,7 @@ export default function FilterTags({
             Top
           </Button>
 
-          {/* Open Now Quick Filter Button */}
+          {/* Abierto ahora - muy práctico para usuarios que quieren pedir ya */}
           <Button
             variant="outline"
             size="sm"
@@ -486,7 +488,7 @@ export default function FilterTags({
             Abierto ahora
           </Button>
 
-          {/* Budget Friendly Quick Filter Button - Only show for restaurants tab */}
+          {/* Económico solo para restaurantes - importante para presupuesto */}
           {activeTab === 'restaurants' && (
             <Button
               variant="outline"
@@ -524,6 +526,7 @@ export default function FilterTags({
             </Button>
           )}
 
+          {/* Filtros detallados después de los quick filters */}
           {filterTags.map((filter) => (
             <FilterTrigger key={filter.key} filterKey={filter.key}>
               {filter.label}
