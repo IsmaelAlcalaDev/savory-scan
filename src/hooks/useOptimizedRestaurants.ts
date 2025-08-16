@@ -115,8 +115,12 @@ export const useOptimizedRestaurants = ({
       if (isBudgetFriendly) {
         query = query.eq('price_range', '€');
       } else if (priceRanges?.length) {
-        const priceRangeArray = [...priceRanges] as string[];
-        query = query.in('price_range', priceRangeArray);
+        const priceRangeArray = priceRanges.filter((range): range is "€" | "€€" | "€€€" | "€€€€" => 
+          range === "€" || range === "€€" || range === "€€€" || range === "€€€€"
+        );
+        if (priceRangeArray.length > 0) {
+          query = query.in('price_range', priceRangeArray);
+        }
       }
 
       if (selectedEstablishmentTypes?.length) {

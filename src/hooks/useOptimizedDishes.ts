@@ -123,8 +123,12 @@ export const useOptimizedDishes = ({
 
       // Apply price range filter
       if (selectedPriceRanges?.length) {
-        const priceRanges = [...selectedPriceRanges] as string[];
-        query = query.in('restaurants.price_range', priceRanges);
+        const priceRanges = selectedPriceRanges.filter((range): range is "€" | "€€" | "€€€" | "€€€€" => 
+          range === "€" || range === "€€" || range === "€€€" || range === "€€€€"
+        );
+        if (priceRanges.length > 0) {
+          query = query.in('restaurants.price_range', priceRanges);
+        }
       }
 
       // Limit results
