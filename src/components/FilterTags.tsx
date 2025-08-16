@@ -1,5 +1,4 @@
-
-import { X, ChevronDown, MapPin, Euro, Star, Store, Utensils, Clock, RotateCcw } from 'lucide-react';
+import { X, ChevronDown, MapPin, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Leaf } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -25,7 +24,9 @@ interface FilterTagsProps {
   selectedTimeRanges?: number[];
   isOpenNow?: boolean;
   isHighRated?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'establishment' | 'diet' | 'openNow' | 'timeRange' | 'highRated' | 'all', id?: number) => void;
+  isBudgetFriendly?: boolean;
+  isVegetarianVegan?: boolean;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'establishment' | 'diet' | 'openNow' | 'timeRange' | 'highRated' | 'budgetFriendly' | 'vegetarianVegan' | 'all', id?: number) => void;
   onDistanceChange?: (distances: number[]) => void;
   onPriceRangeChange?: (ranges: string[]) => void;
   onEstablishmentTypeChange?: (types: number[]) => void;
@@ -33,6 +34,8 @@ interface FilterTagsProps {
   onTimeRangeChange?: (ranges: number[]) => void;
   onOpenNowChange?: (isOpen: boolean) => void;
   onHighRatedChange?: (isHighRated: boolean) => void;
+  onBudgetFriendlyChange?: (isBudgetFriendly: boolean) => void;
+  onVegetarianVeganChange?: (isVegetarianVegan: boolean) => void;
 }
 
 export default function FilterTags({ 
@@ -46,6 +49,8 @@ export default function FilterTags({
   selectedTimeRanges = [],
   isOpenNow = false,
   isHighRated = false,
+  isBudgetFriendly = false,
+  isVegetarianVegan = false,
   onClearFilter,
   onDistanceChange = () => {},
   onPriceRangeChange = () => {},
@@ -53,7 +58,9 @@ export default function FilterTags({
   onDietTypeChange = () => {},
   onTimeRangeChange = () => {},
   onOpenNowChange = () => {},
-  onHighRatedChange = () => {}
+  onHighRatedChange = () => {},
+  onBudgetFriendlyChange = () => {},
+  onVegetarianVeganChange = () => {}
 }: FilterTagsProps) {
   const isMobile = useIsMobile();
   const [activeFilterModal, setActiveFilterModal] = useState<string | null>(null);
@@ -66,7 +73,9 @@ export default function FilterTags({
     selectedDietTypes.length > 0 || 
     selectedTimeRanges.length > 0 ||
     isOpenNow ||
-    isHighRated;
+    isHighRated ||
+    isBudgetFriendly ||
+    isVegetarianVegan;
 
   const getFilterIcon = (filterKey: string) => {
     switch (filterKey) {
@@ -280,6 +289,72 @@ export default function FilterTags({
           >
             <Star className={`h-3 w-3 ${isHighRated ? 'text-white fill-white' : 'text-black'}`} />
             +4.5
+          </Button>
+
+          {/* Open Now Quick Filter Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
+              isOpenNow 
+                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
+                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
+            }`}
+            style={isOpenNow ? { 
+              backgroundColor: '#ef4444',
+              color: 'white'
+            } : { 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
+            onClick={() => onOpenNowChange(!isOpenNow)}
+          >
+            <Clock className={`h-3 w-3 ${isOpenNow ? 'text-white' : 'text-black'}`} />
+            Abierto ahora
+          </Button>
+
+          {/* Budget Friendly Quick Filter Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
+              isBudgetFriendly 
+                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
+                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
+            }`}
+            style={isBudgetFriendly ? { 
+              backgroundColor: '#ef4444',
+              color: 'white'
+            } : { 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
+            onClick={() => onBudgetFriendlyChange(!isBudgetFriendly)}
+          >
+            <CircleDollarSign className={`h-3 w-3 ${isBudgetFriendly ? 'text-white' : 'text-black'}`} />
+            Económico
+          </Button>
+
+          {/* Vegetarian/Vegan Quick Filter Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className={`flex-shrink-0 h-8 px-4 text-xs rounded-full border-0 flex items-center gap-2 ${
+              isVegetarianVegan 
+                ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white' 
+                : 'text-[#4B4B4B] hover:bg-[#EAEAEA]'
+            }`}
+            style={isVegetarianVegan ? { 
+              backgroundColor: '#ef4444',
+              color: 'white'
+            } : { 
+              backgroundColor: '#F3F3F3',
+              color: '#4B4B4B'
+            }}
+            onClick={() => onVegetarianVeganChange(!isVegetarianVegan)}
+          >
+            <Leaf className={`h-3 w-3 ${isVegetarianVegan ? 'text-white' : 'text-black'}`} />
+            Vegetariano/Vegano
           </Button>
 
           {filterTags.map((filter) => (

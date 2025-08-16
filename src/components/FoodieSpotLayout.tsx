@@ -14,7 +14,6 @@ import MenuModal from './MenuModal';
 import MobileHeader from './MobileHeader';
 import TabletHeader from './TabletHeader';
 import DesktopHeader from './DesktopHeader';
-import QuickFilters from './QuickFilters';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
@@ -59,6 +58,10 @@ export default function FoodieSpotLayout({
   const [currentLocationName, setCurrentLocationName] = useState('Selecciona ubicación');
   const [menuModalOpen, setMenuModalOpen] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+
+  // Add new states for quick filters
+  const [isBudgetFriendly, setIsBudgetFriendly] = useState(false);
+  const [isVegetarianVegan, setIsVegetarianVegan] = useState(false);
 
   // Determine active tab based on current route
   const getActiveTabFromRoute = (): 'restaurants' | 'dishes' | 'account' => {
@@ -170,7 +173,7 @@ export default function FoodieSpotLayout({
     }
   }, []);
 
-  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'timeRange' | 'all', id?: number) => {
+  const handleClearFilter = (type: 'cuisine' | 'foodType' | 'distance' | 'price' | 'highRated' | 'establishment' | 'diet' | 'openNow' | 'timeRange' | 'budgetFriendly' | 'vegetarianVegan' | 'all', id?: number) => {
     switch (type) {
       case 'cuisine':
         setSelectedCuisines([]);
@@ -199,6 +202,12 @@ export default function FoodieSpotLayout({
       case 'openNow':
         setIsOpenNow(!isOpenNow);
         break;
+      case 'budgetFriendly':
+        setIsBudgetFriendly(false);
+        break;
+      case 'vegetarianVegan':
+        setIsVegetarianVegan(false);
+        break;
       case 'all':
         setSelectedCuisines([]);
         setSelectedFoodTypes([]);
@@ -209,6 +218,8 @@ export default function FoodieSpotLayout({
         setSelectedDietTypes([]);
         setSelectedTimeRanges([]);
         setIsOpenNow(false);
+        setIsBudgetFriendly(false);
+        setIsVegetarianVegan(false);
         break;
     }
   };
@@ -355,7 +366,9 @@ export default function FoodieSpotLayout({
     selectedEstablishmentTypes.length > 0 || 
     selectedDietTypes.length > 0 || 
     selectedTimeRanges.length > 0 ||
-    isOpenNow;
+    isOpenNow ||
+    isBudgetFriendly ||
+    isVegetarianVegan;
 
     if (activeBottomTab === 'dishes') {
       return <>
@@ -370,7 +383,9 @@ export default function FoodieSpotLayout({
             selectedEstablishmentTypes={selectedEstablishmentTypes} 
             selectedDietTypes={selectedDietTypes} 
             selectedTimeRanges={selectedTimeRanges}
-            isOpenNow={isOpenNow} 
+            isOpenNow={isOpenNow}
+            isBudgetFriendly={isBudgetFriendly}
+            isVegetarianVegan={isVegetarianVegan}
             onClearFilter={handleClearFilter}
             onDistanceChange={setSelectedDistance}
             onPriceRangeChange={setSelectedPriceRanges}
@@ -379,6 +394,8 @@ export default function FoodieSpotLayout({
             onDietTypeChange={setSelectedDietTypes}
             onTimeRangeChange={setSelectedTimeRanges}
             onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
+            onBudgetFriendlyChange={setIsBudgetFriendly}
+            onVegetarianVeganChange={setIsVegetarianVegan}
           />
 
           {/* Results Header with adjusted spacing */}
@@ -412,7 +429,9 @@ export default function FoodieSpotLayout({
           selectedEstablishmentTypes={selectedEstablishmentTypes} 
           selectedDietTypes={selectedDietTypes} 
           selectedTimeRanges={selectedTimeRanges}
-          isOpenNow={isOpenNow} 
+          isOpenNow={isOpenNow}
+          isBudgetFriendly={isBudgetFriendly}
+          isVegetarianVegan={isVegetarianVegan}
           onClearFilter={handleClearFilter}
           onDistanceChange={setSelectedDistance}
           onPriceRangeChange={setSelectedPriceRanges}
@@ -421,6 +440,8 @@ export default function FoodieSpotLayout({
           onDietTypeChange={setSelectedDietTypes}
           onTimeRangeChange={setSelectedTimeRanges}
           onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
+          onBudgetFriendlyChange={setIsBudgetFriendly}
+          onVegetarianVeganChange={setIsVegetarianVegan}
         />
 
         {/* Results Header with adjusted spacing */}
