@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -32,6 +31,7 @@ interface UseRestaurantsProps {
   selectedDietTypes?: number[];
   isOpenNow?: boolean;
   isBudgetFriendly?: boolean;
+  isVegetarianVegan?: boolean;
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -72,7 +72,8 @@ export const useRestaurants = ({
   selectedEstablishmentTypes,
   selectedDietTypes,
   isOpenNow = false,
-  isBudgetFriendly = false
+  isBudgetFriendly = false,
+  isVegetarianVegan = false
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,7 +95,8 @@ export const useRestaurants = ({
           selectedEstablishmentTypes,
           selectedDietTypes,
           isOpenNow,
-          isBudgetFriendly
+          isBudgetFriendly,
+          isVegetarianVegan
         });
 
         // Handle budget-friendly filter - override price ranges if active
@@ -226,6 +228,41 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
+        // Apply vegetarian/vegan filter - find restaurants with at least one vegetarian or vegan dish
+        if (isVegetarianVegan) {
+          console.log('Applying vegetarian/vegan filter');
+          
+          const restaurantIds = formattedData.map(r => r.id);
+          
+          if (restaurantIds.length > 0) {
+            const { data: dishesData, error: dishesError } = await supabase
+              .from('dishes')
+              .select('restaurant_id, is_vegetarian, is_vegan')
+              .in('restaurant_id', restaurantIds)
+              .eq('is_active', true)
+              .is('deleted_at', null)
+              .or('is_vegetarian.eq.true,is_vegan.eq.true');
+
+            if (dishesError) {
+              console.error('Error fetching vegetarian/vegan dishes:', dishesError);
+            } else if (dishesData && dishesData.length > 0) {
+              // Get unique restaurant IDs that have vegetarian or vegan dishes
+              const restaurantsWithVegOptions = new Set(
+                dishesData.map(dish => dish.restaurant_id)
+              );
+              
+              formattedData = formattedData.filter(restaurant => 
+                restaurantsWithVegOptions.has(restaurant.id)
+              );
+              
+              console.log('Restaurants after vegetarian/vegan filtering:', formattedData.length);
+            } else {
+              // No vegetarian/vegan dishes found, return empty array
+              formattedData = [];
+            }
+          }
+        }
+
         if (selectedDietTypes && selectedDietTypes.length > 0) {
           console.log('Applying diet type filter for IDs:', selectedDietTypes);
           
@@ -352,7 +389,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly, isVegetarianVegan]);
 
   return { restaurants, loading, error };
 };
