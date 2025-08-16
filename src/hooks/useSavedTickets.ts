@@ -46,7 +46,7 @@ export const useSavedTickets = (restaurantId: number) => {
 
       const { data, error: fetchError } = await supabase
         .from('ticket_simulations')
-        .select('id, code, total, items_count, diners_count, created_at')
+        .select('id, code, total, diners_count, created_at')
         .eq('restaurant_id', restaurantId)
         .eq('created_by', user.id)
         .order('created_at', { ascending: false });
@@ -57,7 +57,7 @@ export const useSavedTickets = (restaurantId: number) => {
         id: ticket.id,
         code: ticket.code,
         total_amount: ticket.total || 0,
-        total_items: ticket.items_count || 0,
+        total_items: 0, // We'll calculate this from ticket items if needed
         diner_count: ticket.diners_count || 0,
         created_at: ticket.created_at
       }));
@@ -91,10 +91,8 @@ export const useSavedTickets = (restaurantId: number) => {
           restaurant_id: restaurantId,
           created_by: user.id,
           total: totalAmount,
-          items_count: orderItems.reduce((sum, item) => sum + item.quantity, 0),
           diners_count: diners.length,
-          diner_names: diners.map(d => ({ name: d.name })),
-          currency: 'EUR'
+          diner_names: diners.map(d => ({ name: d.name }))
         })
         .select('id')
         .single();
@@ -104,10 +102,9 @@ export const useSavedTickets = (restaurantId: number) => {
       // Create ticket items with the correct column names
       const ticketItems = orderItems.map(item => {
         const price = item.selectedVariant?.price || item.dish.base_price;
-        const diner = diners.find(d => d.id === item.dinerId);
         
         return {
-          ticket_id: ticketData.id,
+          ticket_simulation_id: ticketData.id,
           dish_id: item.dish.id,
           dish_name: item.dish.name,
           variant_id: item.selectedVariant?.id,
@@ -155,7 +152,7 @@ export const useSavedTickets = (restaurantId: number) => {
       const { data: itemsData, error: itemsError } = await supabase
         .from('ticket_items')
         .select('*')
-        .eq('ticket_id', ticketId);
+        .eq('ticket_simulation_id', ticketId);
 
       if (itemsError) throw itemsError;
 
@@ -177,7 +174,7 @@ export const useSavedTickets = (restaurantId: number) => {
         id: ticketData.id,
         code: ticketData.code,
         total_amount: ticketData.total || 0,
-        total_items: ticketData.items_count || 0,
+        total_items: formattedItems.reduce((sum, item) => sum + item.quantity, 0),
         diner_count: ticketData.diners_count || 0,
         created_at: ticketData.created_at,
         items: formattedItems,
