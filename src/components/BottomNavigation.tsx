@@ -1,10 +1,10 @@
 
-import { Home, UtensilsCrossed, User } from 'lucide-react';
+import { Home, UtensilsCrossed } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BottomNavigationProps {
-  activeTab: 'restaurants' | 'dishes' | 'account';
-  onTabChange: (tab: 'restaurants' | 'dishes' | 'account') => void;
+  activeTab: 'restaurants' | 'dishes';
+  onTabChange: (tab: 'restaurants' | 'dishes') => void;
 }
 
 const navigationItems = [
@@ -17,11 +17,6 @@ const navigationItems = [
     id: 'dishes' as const,  
     label: 'Platos',
     icon: UtensilsCrossed,
-  },
-  {
-    id: 'account' as const,
-    label: 'Mi Cuenta',
-    icon: User,
   },
 ];
 
