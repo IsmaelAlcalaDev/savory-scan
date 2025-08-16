@@ -37,13 +37,13 @@ export default function TabletHeader({
 }: TabletHeaderProps) {
   return (
     <div className="flex items-center justify-between py-1 px-2 gap-2">
-      {/* Logo - Increased size */}
+      {/* Logo - Smaller size */}
       <div className="flex items-center flex-shrink-0">
         <button onClick={onLogoClick} className="flex items-center">
           <img 
             src={appLogoUrl}
             alt={`${appName} Logo`} 
-            className="w-24 h-24 bg-transparent object-contain cursor-pointer"
+            className="w-14 h-14 bg-transparent object-contain cursor-pointer"
           />
         </button>
       </div>
@@ -54,7 +54,7 @@ export default function TabletHeader({
         <Button
           variant="ghost"
           onClick={onLocationClick}
-          className="flex items-center gap-2 text-sm text-black hover:text-black hover:bg-transparent whitespace-nowrap"
+          className="flex items-center gap-2 text-sm text-black hover:text-black hover:bg-transparent whitespace-nowrap h-8 px-2"
         >
           <MapPin className="h-4 w-4 text-black" />
           <span className="max-w-32 truncate">
@@ -65,7 +65,7 @@ export default function TabletHeader({
         {/* Search */}
         <div className="flex-1 max-w-md">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10 text-black" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 z-10 text-black" />
             <Input
               type="text"
               placeholder={searchPlaceholder}
@@ -73,7 +73,7 @@ export default function TabletHeader({
               onChange={(e) => onSearchChange(e.target.value)}
               onFocus={onSearchFocus}
               onBlur={onSearchBlur}
-              className="pl-10 pr-4 h-10 text-base rounded-full border-0 text-black placeholder:text-black focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
+              className="pl-10 pr-4 h-8 text-sm rounded-full border-0 text-black placeholder:text-black focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
               style={{ 
                 backgroundColor: 'rgb(243, 243, 243)'
               }}
@@ -85,10 +85,10 @@ export default function TabletHeader({
       {/* Menu */}
       <div className="flex items-center gap-4 flex-shrink-0">
         <button 
-          className="p-0 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
+          className="p-1 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors"
           onClick={onMenuClick}
         >
-          <Menu className="h-8 w-8" strokeWidth={2.5} />
+          <Menu className="h-5 w-5" strokeWidth={2.5} />
         </button>
       </div>
     </div>
