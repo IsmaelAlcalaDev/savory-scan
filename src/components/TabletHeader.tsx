@@ -36,7 +36,7 @@ export default function TabletHeader({
   onSearchBlur
 }: TabletHeaderProps) {
   return (
-    <div className="flex items-center justify-between py-3 px-4 gap-4">
+    <div className="flex items-center justify-between py-1 px-2 gap-2">
       {/* Logo - Increased size */}
       <div className="flex items-center flex-shrink-0">
         <button onClick={onLogoClick} className="flex items-center">
