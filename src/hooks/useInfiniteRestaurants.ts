@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -34,7 +33,6 @@ interface UseInfiniteRestaurantsProps {
   isOpenNow?: boolean;
   isBudgetFriendly?: boolean;
   itemsPerPage?: number;
-  enabled?: boolean;
 }
 
 export const useInfiniteRestaurants = ({
@@ -49,21 +47,20 @@ export const useInfiniteRestaurants = ({
   selectedDietTypes,
   isOpenNow = false,
   isBudgetFriendly = false,
-  itemsPerPage = 20,
-  enabled = true
+  itemsPerPage = 20
 }: UseInfiniteRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [loading, setLoading] = useState(false); // Cambiar a false inicialmente
+  const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(false); // Cambiar a false inicialmente
+  const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   
   const abortControllerRef = useRef<AbortController | null>(null);
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastFetchRef = useRef<string>('');
 
-  // Create stable key for fetch parameters including enabled flag
+  // Create stable key for fetch parameters (removed enabled)
   const fetchKey = JSON.stringify({
     searchQuery,
     userLat,
@@ -75,8 +72,7 @@ export const useInfiniteRestaurants = ({
     selectedEstablishmentTypes,
     selectedDietTypes,
     isOpenNow,
-    isBudgetFriendly,
-    enabled
+    isBudgetFriendly
   });
 
   const fetchRestaurants = useCallback(async (
@@ -85,7 +81,7 @@ export const useInfiniteRestaurants = ({
     append: boolean = false
   ) => {
     try {
-      console.log('useInfiniteRestaurants: Fetching page', page, 'append:', append);
+      console.log('useInfiniteRestaurants: Fetching page', page, 'append:', append, 'hasLocation:', !!userLat);
       
       const offset = page * itemsPerPage;
       
@@ -116,7 +112,7 @@ export const useInfiniteRestaurants = ({
         .eq('is_published', true)
         .is('deleted_at', null);
 
-      // Apply filters (same as useOptimizedRestaurants)
+      // Apply filters
       if (searchQuery) {
         query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
       }
@@ -142,6 +138,17 @@ export const useInfiniteRestaurants = ({
 
       if (cuisineTypeIds?.length) {
         query = query.in('restaurant_cuisines.cuisine_type_id', cuisineTypeIds);
+      }
+
+      // Order by location if available, otherwise by rating/popularity
+      if (userLat && userLng) {
+        // When we have location, we'll calculate distance and sort by it
+        console.log('useInfiniteRestaurants: Ordering by distance from user location');
+      } else {
+        // When no location, order by rating and popularity
+        query = query.order('google_rating', { ascending: false, nullsLast: true })
+                    .order('favorites_count', { ascending: false });
+        console.log('useInfiniteRestaurants: Ordering by rating and popularity (no location)');
       }
 
       // Pagination
@@ -172,11 +179,7 @@ export const useInfiniteRestaurants = ({
           distance_km = Math.round((R * c) * 100) / 100;
         }
 
-        // Filter by distance if needed
-        if (userLat && userLng && distance_km && distance_km > maxDistance) {
-          return null;
-        }
-
+        // NO LONGER FILTER BY DISTANCE - keep all restaurants
         return {
           id: restaurant.id,
           name: restaurant.name,
@@ -195,17 +198,34 @@ export const useInfiniteRestaurants = ({
           cover_image_url: restaurant.cover_image_url,
           logo_url: restaurant.logo_url
         };
-      }).filter(Boolean);
+      });
+
+      // If we have user location, sort by distance after formatting
+      let sortedRestaurants = formattedRestaurants;
+      if (userLat && userLng) {
+        sortedRestaurants = formattedRestaurants.sort((a, b) => {
+          // Restaurants with distance first, sorted by distance
+          if (a.distance_km !== undefined && b.distance_km !== undefined) {
+            return a.distance_km - b.distance_km;
+          }
+          // Restaurants without distance last, sorted by rating
+          if (a.distance_km === undefined && b.distance_km === undefined) {
+            return (b.google_rating || 0) - (a.google_rating || 0);
+          }
+          // Restaurants with distance always before those without
+          return a.distance_km !== undefined ? -1 : 1;
+        });
+      }
 
       if (!signal.aborted) {
-        const newHasMore = formattedRestaurants.length === itemsPerPage;
+        const newHasMore = sortedRestaurants.length === itemsPerPage;
         setHasMore(newHasMore);
         
         if (append) {
-          setRestaurants(prev => [...prev, ...formattedRestaurants]);
+          setRestaurants(prev => [...prev, ...sortedRestaurants]);
           setLoadingMore(false);
         } else {
-          setRestaurants(formattedRestaurants);
+          setRestaurants(sortedRestaurants);
           setLoading(false);
         }
         
@@ -228,33 +248,14 @@ export const useInfiniteRestaurants = ({
     }
   }, [fetchKey, searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly, itemsPerPage]);
 
-  // Reset state when enabled changes from false to true or when location changes
+  // Always fetch data - no longer conditional on enabled
   useEffect(() => {
-    if (!enabled) {
-      console.log('useInfiniteRestaurants: Disabled, clearing data...');
-      setRestaurants([]);
-      setLoading(false);
-      setError(null);
-      setHasMore(false);
-      setCurrentPage(0);
-      lastFetchRef.current = '';
-      
-      // Cancel any ongoing requests
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
-      return;
-    }
-
-    // Only fetch if enabled and parameters have changed
+    // Skip if parameters haven't changed
     if (lastFetchRef.current === fetchKey && restaurants.length > 0) {
       return;
     }
 
-    console.log('useInfiniteRestaurants: Starting fetch with location:', { userLat, userLng, enabled });
+    console.log('useInfiniteRestaurants: Starting fetch, location:', { userLat, userLng });
 
     // Clear existing timeout
     if (fetchTimeoutRef.current) {
@@ -269,7 +270,6 @@ export const useInfiniteRestaurants = ({
     setLoading(true);
     setError(null);
     setCurrentPage(0);
-    setRestaurants([]); // Clear restaurants immediately
 
     // Create new abort controller
     abortControllerRef.current = new AbortController();
@@ -290,11 +290,11 @@ export const useInfiniteRestaurants = ({
         currentController.abort();
       }
     };
-  }, [fetchKey, fetchRestaurants, enabled]);
+  }, [fetchKey, fetchRestaurants]);
 
   // Load more function
   const loadMore = useCallback(() => {
-    if (loadingMore || !hasMore || loading || !enabled) return;
+    if (loadingMore || !hasMore || loading) return;
 
     setLoadingMore(true);
     const nextPage = currentPage + 1;
@@ -310,9 +310,9 @@ export const useInfiniteRestaurants = ({
     const currentController = abortControllerRef.current;
 
     fetchRestaurants(nextPage, currentController.signal, true);
-  }, [currentPage, hasMore, loading, loadingMore, fetchRestaurants, enabled]);
+  }, [currentPage, hasMore, loading, loadingMore, fetchRestaurants]);
 
-  // Handle favorites updates (same as useOptimizedRestaurants)
+  // Handle favorites updates
   useEffect(() => {
     const handleFavoriteToggled = (event: CustomEvent) => {
       const { restaurantId, newCount } = event.detail;
@@ -370,10 +370,10 @@ export const useInfiniteRestaurants = ({
 
   return { 
     restaurants, 
-    loading: enabled ? loading : false, 
-    loadingMore: enabled ? loadingMore : false,
-    error: enabled ? error : null, 
-    hasMore: enabled ? hasMore : false,
+    loading, 
+    loadingMore,
+    error, 
+    hasMore,
     loadMore,
     totalLoaded: restaurants.length
   };

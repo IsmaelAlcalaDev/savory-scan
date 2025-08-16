@@ -27,7 +27,6 @@ export default function OptimizedFoodieSpotLayout({
     location,
     loading: locationLoading,
     error: locationError,
-    locationReady,
     requestGPSLocation,
     setManualLocation
   } = useSmartLocation();
@@ -39,7 +38,7 @@ export default function OptimizedFoodieSpotLayout({
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        {/* Location Detector */}
+        {/* Location Detector - now non-blocking */}
         <LocationDetector
           loading={locationLoading}
           location={location}
@@ -48,95 +47,90 @@ export default function OptimizedFoodieSpotLayout({
           onManualLocation={setManualLocation}
         />
 
-        {/* Only show content when location is ready */}
-        {locationReady && location && (
-          <>
-            {/* Search Bar */}
-            <div className="mb-8">
-              <input
-                type="text"
-                placeholder="Buscar platos o restaurantes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full p-4 border border-gray-200 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
+        {/* Search Bar - always visible */}
+        <div className="mb-8">
+          <input
+            type="text"
+            placeholder="Buscar platos o restaurantes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-4 border border-gray-200 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
 
-            {/* Quick Filters */}
-            <div className="mb-8 flex flex-wrap gap-2">
-              <button
-                onClick={() => setIsHighRated(!isHighRated)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  isHighRated 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Alta puntuación (4.5+)
-              </button>
-              <button
-                onClick={() => setIsOpenNow(!isOpenNow)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  isOpenNow 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Abierto ahora
-              </button>
-              <button
-                onClick={() => setIsBudgetFriendly(!isBudgetFriendly)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  isBudgetFriendly 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Económico (€)
-              </button>
-            </div>
+        {/* Quick Filters - always visible */}
+        <div className="mb-8 flex flex-wrap gap-2">
+          <button
+            onClick={() => setIsHighRated(!isHighRated)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              isHighRated 
+                ? 'bg-primary text-primary-foreground' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Alta puntuación (4.5+)
+          </button>
+          <button
+            onClick={() => setIsOpenNow(!isOpenNow)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              isOpenNow 
+                ? 'bg-primary text-primary-foreground' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Abierto ahora
+          </button>
+          <button
+            onClick={() => setIsBudgetFriendly(!isBudgetFriendly)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              isBudgetFriendly 
+                ? 'bg-primary text-primary-foreground' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Económico (€)
+          </button>
+        </div>
 
-            {/* Tabs with Virtualized Components */}
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dishes' | 'restaurants')}>
-              <TabsList className="grid w-full grid-cols-2 mb-8">
-                <TabsTrigger value="dishes">
-                  Platos
-                </TabsTrigger>
-                <TabsTrigger value="restaurants">
-                  Restaurantes
-                </TabsTrigger>
-              </TabsList>
+        {/* Tabs with Virtualized Components - always active */}
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dishes' | 'restaurants')}>
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="dishes">
+              Platos
+            </TabsTrigger>
+            <TabsTrigger value="restaurants">
+              Restaurantes
+            </TabsTrigger>
+          </TabsList>
 
-              <TabsContent value="dishes">
-                <VirtualizedDishesGrid
-                  searchQuery={searchQuery}
-                  userLat={location.latitude}
-                  userLng={location.longitude}
-                  selectedDietTypes={selectedDietTypes}
-                  selectedPriceRanges={selectedPriceRanges}
-                  locationReady={locationReady}
-                />
-              </TabsContent>
+          <TabsContent value="dishes">
+            <VirtualizedDishesGrid
+              searchQuery={searchQuery}
+              userLat={location?.latitude}
+              userLng={location?.longitude}
+              selectedDietTypes={selectedDietTypes}
+              selectedPriceRanges={selectedPriceRanges}
+              locationReady={true} // Always ready now
+            />
+          </TabsContent>
 
-              <TabsContent value="restaurants">
-                <VirtualizedRestaurantGrid
-                  searchQuery={searchQuery}
-                  userLat={location.latitude}
-                  userLng={location.longitude}
-                  cuisineTypeIds={selectedCuisineTypes}
-                  priceRanges={selectedPriceRanges}
-                  isHighRated={isHighRated}
-                  selectedEstablishmentTypes={selectedEstablishmentTypes}
-                  selectedDietTypes={selectedDietTypes}
-                  isOpenNow={isOpenNow}
-                  isBudgetFriendly={isBudgetFriendly}
-                  locationReady={locationReady}
-                  onLoginRequired={handleLoginRequired}
-                />
-              </TabsContent>
-            </Tabs>
-          </>
-        )}
+          <TabsContent value="restaurants">
+            <VirtualizedRestaurantGrid
+              searchQuery={searchQuery}
+              userLat={location?.latitude}
+              userLng={location?.longitude}
+              cuisineTypeIds={selectedCuisineTypes}
+              priceRanges={selectedPriceRanges}
+              isHighRated={isHighRated}
+              selectedEstablishmentTypes={selectedEstablishmentTypes}
+              selectedDietTypes={selectedDietTypes}
+              isOpenNow={isOpenNow}
+              isBudgetFriendly={isBudgetFriendly}
+              userLocationName={location?.name}
+              onLoginRequired={handleLoginRequired}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
