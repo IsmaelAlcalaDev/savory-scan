@@ -24,7 +24,6 @@ export default function OrderSimulatorModal() {
     diners, 
     updateItemQuantity, 
     removeDishFromOrder,
-    getGrandTotal,
     clearSimulator
   } = useOrderSimulator();
   

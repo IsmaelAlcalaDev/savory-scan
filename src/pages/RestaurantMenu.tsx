@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -320,11 +319,8 @@ function RestaurantMenuContent() {
         {/* Order Simulator Components */}
         <OrderSimulatorSummary />
         
-        <OrderSimulatorModal 
-          isOpen={isSimulatorOpen} 
-          onClose={closeSimulator} 
-          restaurantId={restaurant.id}
-        />
+        {/* Order Simulator Modal - No props needed since it gets state from context */}
+        <OrderSimulatorModal />
         
         <AddDinersModal isOpen={isDinersModalOpen} onClose={closeDinersModal} />
       </div>
