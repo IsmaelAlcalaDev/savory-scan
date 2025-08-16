@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useInfiniteRestaurants } from '@/hooks/useInfiniteRestaurants';
+import { useImageCache } from '@/hooks/useImageCache';
 import RestaurantCard from './RestaurantCard';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -56,6 +57,9 @@ export default function VirtualizedRestaurantGrid({
     isBudgetFriendly
   });
 
+  const { preloadImages } = useImageCache({ enabled: true, preloadNextBatch: true });
+  const preloadedBatches = useRef(new Set<number>());
+
   // Setup infinite scroll - trigger when user reaches 50% of current viewport
   const { lastElementRef, shouldLoadMore } = useInfiniteScroll({
     threshold: 0.5,
@@ -70,6 +74,26 @@ export default function VirtualizedRestaurantGrid({
       loadMore();
     }
   }, [shouldLoadMore, hasMore, loading, loadingMore, loadMore]);
+
+  // Preload images for next batch
+  useEffect(() => {
+    if (restaurants.length > 0) {
+      const currentBatch = Math.floor(restaurants.length / 20);
+      
+      if (!preloadedBatches.current.has(currentBatch)) {
+        const imageUrls = restaurants
+          .slice(currentBatch * 20, (currentBatch + 1) * 20)
+          .map(restaurant => [restaurant.cover_image_url, restaurant.logo_url])
+          .flat()
+          .filter(Boolean) as string[];
+        
+        if (imageUrls.length > 0) {
+          preloadImages(imageUrls);
+          preloadedBatches.current.add(currentBatch);
+        }
+      }
+    }
+  }, [restaurants, preloadImages]);
 
   // Calculate the trigger point (50% through the list)
   const triggerIndex = Math.max(0, Math.floor(restaurants.length * 0.5));

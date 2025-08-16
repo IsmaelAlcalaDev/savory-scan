@@ -12,6 +12,8 @@ interface LazyImageProps {
   onLoad?: () => void;
   onError?: () => void;
   priority?: boolean;
+  quality?: 'low' | 'medium' | 'high';
+  sizes?: string;
 }
 
 export default function LazyImage({
@@ -23,14 +25,46 @@ export default function LazyImage({
   placeholder,
   onLoad,
   onError,
-  priority = false
+  priority = false,
+  quality = 'medium',
+  sizes
 }: LazyImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(priority);
   const [hasError, setHasError] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string>('');
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Generate optimized image URL based on quality
+  const getOptimizedSrc = (originalSrc: string, quality: string) => {
+    if (!originalSrc) return '';
+    
+    // If it's a Supabase storage URL, we can add transform parameters
+    if (originalSrc.includes('supabase')) {
+      const url = new URL(originalSrc);
+      switch (quality) {
+        case 'low':
+          url.searchParams.set('quality', '60');
+          url.searchParams.set('format', 'webp');
+          break;
+        case 'medium':
+          url.searchParams.set('quality', '80');
+          url.searchParams.set('format', 'webp');
+          break;
+        case 'high':
+          url.searchParams.set('quality', '95');
+          break;
+      }
+      if (width) url.searchParams.set('width', width.toString());
+      if (height) url.searchParams.set('height', height.toString());
+      return url.toString();
+    }
+    
+    return originalSrc;
+  };
+
+  // Intersection Observer for lazy loading
   useEffect(() => {
     if (priority) return;
 
@@ -53,6 +87,14 @@ export default function LazyImage({
 
     return () => observer.disconnect();
   }, [priority]);
+
+  // Set image source when in view
+  useEffect(() => {
+    if (isInView && src && !imageSrc) {
+      const optimizedSrc = getOptimizedSrc(src, quality);
+      setImageSrc(optimizedSrc);
+    }
+  }, [isInView, src, quality, imageSrc]);
 
   const handleLoad = () => {
     setIsLoaded(true);
@@ -98,10 +140,10 @@ export default function LazyImage({
       />
       
       {/* Actual image */}
-      {isInView && !hasError && (
+      {isInView && !hasError && imageSrc && (
         <img
           ref={imgRef}
-          src={src}
+          src={imageSrc}
           alt={alt}
           className={cn(
             "absolute inset-0 w-full h-full object-cover transition-opacity duration-300",
@@ -110,6 +152,7 @@ export default function LazyImage({
           onLoad={handleLoad}
           onError={handleError}
           loading={priority ? "eager" : "lazy"}
+          sizes={sizes}
         />
       )}
       
@@ -128,7 +171,7 @@ export default function LazyImage({
       )}
       
       {/* Loading animation */}
-      {isInView && !isLoaded && !hasError && (
+      {isInView && !isLoaded && !hasError && imageSrc && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>

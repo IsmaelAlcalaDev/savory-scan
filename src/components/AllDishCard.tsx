@@ -3,6 +3,7 @@ import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import DishFavoriteButton from './DishFavoriteButton';
+import LazyImage from './LazyImage';
 
 interface AllDishCardProps {
   id: number;
@@ -66,20 +67,17 @@ export default function AllDishCard({
       >
         <div className="w-24 h-24 relative overflow-hidden rounded-lg flex-shrink-0">
           {imageUrl ? (
-            <img 
+            <LazyImage 
               src={imageUrl} 
               alt={name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
+              className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+              width={96}
+              height={96}
+              quality="medium"
             />
-          ) : null}
-          <div className={cn(
-            "absolute inset-0 transition-smooth",
-            imageUrl ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
-          )} />
+          ) : (
+            <div className="w-full h-full bg-gradient-hero" />
+          )}
           
           {categoryName && (
             <div className="absolute top-2 left-2">
@@ -140,20 +138,17 @@ export default function AllDishCard({
     >
       <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
         {imageUrl ? (
-          <img 
+          <LazyImage 
             src={imageUrl} 
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-            }}
+            width={400}
+            height={240}
+            quality="medium"
           />
-        ) : null}
-        <div className={cn(
-          "absolute inset-0 transition-smooth",
-          imageUrl ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
-        )} />
+        ) : (
+          <div className="w-full h-full bg-gradient-hero" />
+        )}
         
         {categoryName && (
           <div className="absolute top-3 left-3">

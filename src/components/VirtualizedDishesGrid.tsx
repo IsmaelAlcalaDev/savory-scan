@@ -1,7 +1,8 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useInfiniteDishes } from '@/hooks/useInfiniteDishes';
+import { useImageCache } from '@/hooks/useImageCache';
 import AllDishCard from './AllDishCard';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -36,6 +37,9 @@ export default function VirtualizedDishesGrid({
     selectedPriceRanges
   });
 
+  const { preloadImages } = useImageCache({ enabled: true, preloadNextBatch: true });
+  const preloadedBatches = useRef(new Set<number>());
+
   // Setup infinite scroll - trigger when user reaches 50% of current viewport
   const { lastElementRef, shouldLoadMore } = useInfiniteScroll({
     threshold: 0.5,
@@ -50,6 +54,25 @@ export default function VirtualizedDishesGrid({
       loadMore();
     }
   }, [shouldLoadMore, hasMore, loading, loadingMore, loadMore]);
+
+  // Preload images for next batch
+  useEffect(() => {
+    if (dishes.length > 0) {
+      const currentBatch = Math.floor(dishes.length / 20);
+      
+      if (!preloadedBatches.current.has(currentBatch)) {
+        const imageUrls = dishes
+          .slice(currentBatch * 20, (currentBatch + 1) * 20)
+          .map(dish => dish.image_url)
+          .filter(Boolean) as string[];
+        
+        if (imageUrls.length > 0) {
+          preloadImages(imageUrls);
+          preloadedBatches.current.add(currentBatch);
+        }
+      }
+    }
+  }, [dishes, preloadImages]);
 
   // Calculate the trigger point (50% through the list)
   const triggerIndex = Math.max(0, Math.floor(dishes.length * 0.5));
