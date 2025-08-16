@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,7 @@ import Auth from "./pages/Auth";
 import LocationEntry from "./pages/LocationEntry";
 import Restaurants from "./pages/Restaurants";
 import Dishes from "./pages/Dishes";
+import Account from "./pages/Account";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { OrderSimulatorProvider } from "./contexts/OrderSimulatorContext";
 
@@ -50,6 +52,7 @@ const App = () => {
                         <Route path="/" element={<LocationEntry />} />
                         <Route path="/restaurantes" element={<Restaurants />} />
                         <Route path="/platos" element={<Dishes />} />
+                        <Route path="/account" element={<Account />} />
                         <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
                         <Route path="/carta/:slug" element={<RestaurantMenu />} />
                         <Route 

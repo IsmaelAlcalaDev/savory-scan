@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
 import CuisineFilter from './CuisineFilter';
 import FoodTypeFilter from './FoodTypeFilter';
 import RestaurantCard from './RestaurantCard';
@@ -33,6 +34,7 @@ export default function FoodieSpotLayout({
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   
   // Separate search states for each tab
   const [searchQueryRestaurants, setSearchQueryRestaurants] = useState('');
@@ -65,6 +67,7 @@ export default function FoodieSpotLayout({
   const getActiveTabFromRoute = (): 'restaurants' | 'dishes' | 'account' => {
     if (location.pathname === '/platos') return 'dishes';
     if (location.pathname === '/restaurantes' || location.pathname === '/') return 'restaurants';
+    if (location.pathname === '/account') return 'account';
     return 'restaurants';
   };
   const [activeBottomTab, setActiveBottomTab] = useState<'restaurants' | 'dishes' | 'account'>(getActiveTabFromRoute());
@@ -309,7 +312,14 @@ export default function FoodieSpotLayout({
   const handleBottomTabChange = (tab: 'restaurants' | 'dishes' | 'account') => {
     console.log('Bottom tab change requested to:', tab);
     if (tab === 'account') {
-      setAccountModalOpen(true);
+      if (user) {
+        // If user is authenticated, navigate to account page
+        setActiveBottomTab('account');
+        navigate('/account', { replace: true });
+      } else {
+        // If user is not authenticated, open the account modal
+        setAccountModalOpen(true);
+      }
       return;
     }
     if (tab === 'dishes') {
@@ -354,6 +364,26 @@ export default function FoodieSpotLayout({
     isOpenNow ||
     isBudgetFriendly;
 
+    if (activeBottomTab === 'account') {
+      // Show account content directly when authenticated and on account tab
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Mi Cuenta</h2>
+            <p className="text-muted-foreground">Contenido de la cuenta del usuario</p>
+            {user && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <p className="font-medium">{user.email}</p>
+                {user.user_metadata?.full_name && (
+                  <p className="text-sm text-gray-600">{user.user_metadata.full_name}</p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     if (activeBottomTab === 'dishes') {
       return <>
           {/* Filter Tags with Quick Filters integrated */}
@@ -394,7 +424,7 @@ export default function FoodieSpotLayout({
         </>;
     }
 
-    // Default restaurants content (siempre mostrar cuando no sea 'dishes')
+    // Default restaurants content (siempre mostrar cuando no sea 'dishes' ni 'account')
     return <>
         {/* Filter Tags with Quick Filters integrated */}
         <FilterTags 
@@ -458,21 +488,25 @@ export default function FoodieSpotLayout({
 
   return <div className="min-h-screen bg-white pb-20">
       {/* Header - Only the navigation is sticky */}
-      <header className="sticky top-0 z-50 bg-white">
-        <div className="px-2">
-          {renderHeader()}
-        </div>
-      </header>
+      {activeBottomTab !== 'account' && (
+        <header className="sticky top-0 z-50 bg-white">
+          <div className="px-2">
+            {renderHeader()}
+          </div>
+        </header>
+      )}
 
       {/* Main Content with desktop margins */}
       <div className="w-full px-4 md:px-6 lg:px-24 xl:px-32 2xl:px-48">
         {/* Tipos de Cocina / Tipos de Comida - Now in scrollable content */}
-        <div className="pb-2 pt-4">
-          {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
-        </div>
+        {activeBottomTab !== 'account' && (
+          <div className="pb-2 pt-4">
+            {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
+          </div>
+        )}
 
         {/* Search bar for mobile - Full width below cuisine types with doubled spacing */}
-        {isMobile && <div className="pb-4">
+        {isMobile && activeBottomTab !== 'account' && <div className="pb-4">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10 text-black" />
               <input type="text" placeholder={getSearchPlaceholder()} value={getCurrentSearchQuery()} onChange={e => setCurrentSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 text-black placeholder:text-black" style={{
