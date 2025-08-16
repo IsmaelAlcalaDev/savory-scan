@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -32,6 +31,7 @@ interface UseInfiniteDishesProps {
   selectedDietTypes?: number[];
   selectedPriceRanges?: readonly ("€" | "€€" | "€€€" | "€€€€")[];
   itemsPerPage?: number;
+  enabled?: boolean;
 }
 
 export const useInfiniteDishes = ({
@@ -40,7 +40,8 @@ export const useInfiniteDishes = ({
   userLng,
   selectedDietTypes,
   selectedPriceRanges,
-  itemsPerPage = 20
+  itemsPerPage = 20,
+  enabled = true
 }: UseInfiniteDishesProps) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +60,8 @@ export const useInfiniteDishes = ({
     userLat,
     userLng,
     selectedDietTypes,
-    selectedPriceRanges
+    selectedPriceRanges,
+    enabled
   });
 
   const fetchDishes = useCallback(async (
@@ -235,6 +237,15 @@ export const useInfiniteDishes = ({
 
   // Initial fetch or when filters change
   useEffect(() => {
+    // Don't fetch if disabled
+    if (!enabled) {
+      setLoading(false);
+      setDishes([]);
+      setError(null);
+      setHasMore(false);
+      return;
+    }
+
     // Skip if parameters haven't changed
     if (lastFetchRef.current === fetchKey && dishes.length > 0) {
       return;
@@ -273,7 +284,7 @@ export const useInfiniteDishes = ({
         currentController.abort();
       }
     };
-  }, [fetchKey, fetchDishes]);
+  }, [fetchKey, fetchDishes, enabled]);
 
   // Load more function
   const loadMore = useCallback(() => {

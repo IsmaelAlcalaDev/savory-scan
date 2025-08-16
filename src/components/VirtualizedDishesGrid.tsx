@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useInfiniteDishes } from '@/hooks/useInfiniteDishes';
@@ -12,6 +11,7 @@ interface VirtualizedDishesGridProps {
   userLng?: number;
   selectedDietTypes?: number[];
   selectedPriceRanges?: readonly ("€" | "€€" | "€€€" | "€€€€")[];
+  locationReady?: boolean;
 }
 
 export default function VirtualizedDishesGrid({
@@ -19,7 +19,8 @@ export default function VirtualizedDishesGrid({
   userLat,
   userLng,
   selectedDietTypes,
-  selectedPriceRanges
+  selectedPriceRanges,
+  locationReady = true
 }: VirtualizedDishesGridProps) {
   const {
     dishes,
@@ -34,7 +35,8 @@ export default function VirtualizedDishesGrid({
     userLat,
     userLng,
     selectedDietTypes,
-    selectedPriceRanges
+    selectedPriceRanges,
+    enabled: locationReady
   });
 
   const { preloadImages } = useImageCache({ enabled: true, preloadNextBatch: true });
