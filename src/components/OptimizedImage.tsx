@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { imageOptimizer } from '@/utils/imageOptimizer';
 
 interface OptimizedImageProps {
   src: string;
@@ -13,6 +14,7 @@ interface OptimizedImageProps {
   placeholder?: 'blur' | 'empty';
   blurDataURL?: string;
   sizes?: string;
+  context?: 'dish' | 'restaurant' | 'gallery' | 'hero' | 'avatar';
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -24,10 +26,11 @@ export default function OptimizedImage({
   width,
   height,
   priority = false,
-  quality = 75,
+  quality,
   placeholder = 'blur',
   blurDataURL,
   sizes,
+  context = 'dish',
   onLoad,
   onError
 }: OptimizedImageProps) {
@@ -37,34 +40,16 @@ export default function OptimizedImage({
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Generate optimized sources for Supabase Storage
-  const generateOptimizedSrc = (originalSrc: string, format: 'webp' | 'avif' | 'original' = 'original') => {
-    if (!originalSrc || originalSrc.includes('data:')) return originalSrc;
-    
-    // If it's a Supabase Storage URL, we can add transformation parameters
-    if (originalSrc.includes('supabase.co/storage')) {
-      const url = new URL(originalSrc);
-      const params = new URLSearchParams();
-      
-      if (width) params.set('width', width.toString());
-      if (height) params.set('height', height.toString());
-      params.set('quality', quality.toString());
-      params.set('resize', 'contain');
-      
-      // Add format parameter for WebP/AVIF if supported
-      if (format === 'webp') params.set('format', 'webp');
-      if (format === 'avif') params.set('format', 'avif');
-      
-      url.search = params.toString();
-      return url.toString();
-    }
-    
-    return originalSrc;
-  };
+  // Generate optimized image data using our optimizer
+  const optimizedData = imageOptimizer.optimize(src, {
+    width,
+    height,
+    quality,
+    context
+  });
 
-  const webpSrc = generateOptimizedSrc(src, 'webp');
-  const avifSrc = generateOptimizedSrc(src, 'avif');
-  const originalSrc = generateOptimizedSrc(src);
+  // Use provided sizes or context-based sizes from optimizer
+  const responsiveSizes = sizes || optimizedData.sizes;
 
   // Intersection Observer for lazy loading
   useEffect(() => {
@@ -94,14 +79,14 @@ export default function OptimizedImage({
 
   // Preload critical images for LCP
   useEffect(() => {
-    if (priority && src) {
+    if (priority && optimizedData.webp) {
       const link = document.createElement('link');
       link.rel = 'preload';
       link.as = 'image';
-      link.href = webpSrc; // Preload WebP as it has good support
+      link.href = optimizedData.webp;
       
-      if (sizes) {
-        link.imageSizes = sizes;
+      if (responsiveSizes) {
+        link.imageSizes = responsiveSizes;
       }
       
       document.head.appendChild(link);
@@ -112,7 +97,7 @@ export default function OptimizedImage({
         }
       };
     }
-  }, [priority, webpSrc, sizes]);
+  }, [priority, optimizedData.webp, responsiveSizes]);
 
   const handleLoad = () => {
     setIsLoaded(true);
@@ -129,8 +114,17 @@ export default function OptimizedImage({
   const generateBlurPlaceholder = () => {
     if (blurDataURL) return blurDataURL;
     
-    // Simple 1x1 pixel blur placeholder with better compression
-    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjNmNGY2Ii8+Cjwvc3ZnPgo=';
+    // Simple 1x1 pixel blur placeholder optimized for the context
+    const contextColors = {
+      dish: '#f8fafc',
+      restaurant: '#f1f5f9',
+      gallery: '#f8fafc',
+      hero: '#e2e8f0',
+      avatar: '#f1f5f9'
+    };
+    
+    const bgColor = contextColors[context] || '#f3f4f6';
+    return `data:image/svg+xml;base64,${btoa(`<svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${bgColor}"/></svg>`)}`;
   };
 
   if (!isInView && !priority) {
@@ -165,15 +159,19 @@ export default function OptimizedImage({
 
       {/* Main image with progressive enhancement */}
       <picture>
-        {/* AVIF - best compression */}
-        <source srcSet={avifSrc} type="image/avif" sizes={sizes} />
+        {/* AVIF - best compression (only if we have a different AVIF URL) */}
+        {optimizedData.avif !== optimizedData.original && (
+          <source srcSet={optimizedData.avif} type="image/avif" sizes={responsiveSizes} />
+        )}
         
         {/* WebP - good compression, wide support */}
-        <source srcSet={webpSrc} type="image/webp" sizes={sizes} />
+        {optimizedData.webp !== optimizedData.original && (
+          <source srcSet={optimizedData.webp} type="image/webp" sizes={responsiveSizes} />
+        )}
         
         {/* Fallback to original format */}
         <img
-          src={originalSrc}
+          src={optimizedData.original}
           alt={alt}
           width={width}
           height={height}
@@ -186,7 +184,7 @@ export default function OptimizedImage({
           onError={handleError}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
-          sizes={sizes}
+          sizes={responsiveSizes}
         />
       </picture>
 
