@@ -28,155 +28,35 @@ export const useLocationSuggestions = (query: string) => {
       try {
         console.log('Searching locations for query:', query);
 
-        // Buscar en ciudades
-        const { data: cities } = await supabase
-          .from('cities')
-          .select(`
-            id,
-            name,
-            latitude,
-            longitude,
-            provinces!inner(
-              name,
-              countries!inner(name)
-            )
-          `)
-          .ilike('name', `%${query}%`)
-          .limit(5);
-
-        // Buscar en municipios
-        const { data: municipalities } = await supabase
-          .from('municipalities')
-          .select(`
-            id,
-            name,
-            latitude,
-            longitude,
-            provinces!inner(
-              name,
-              countries!inner(name)
-            )
-          `)
-          .ilike('name', `%${query}%`)
-          .limit(5);
-
-        // Buscar en distritos (incluyendo barrios famosos)
-        const { data: districts } = await supabase
-          .from('districts')
-          .select(`
-            id,
-            name,
-            latitude,
-            longitude,
-            description,
-            is_famous,
-            cities!inner(
-              name,
-              provinces!inner(
-                name,
-                countries!inner(name)
-              )
-            )
-          `)
-          .ilike('name', `%${query}%`)
-          .limit(5);
-
-        // Buscar en puntos de interés gastronómico (filtrado por tipo)
-        const { data: pois } = await supabase
-          .from('points_of_interest')
-          .select(`
-            id,
-            name,
-            latitude,
-            longitude,
-            description,
-            type,
-            cities(
-              name,
-              provinces!inner(
-                name,
-                countries!inner(name)
-              )
-            )
-          `)
-          .ilike('name', `%${query}%`)
-          .in('type', ['gastronomic_area', 'food_district', 'culinary_zone', 'restaurant_cluster'])
-          .eq('is_active', true)
-          .limit(5);
-
-        const allSuggestions: LocationSuggestion[] = [];
-
-        // Formatear ciudades
-        cities?.forEach(city => {
-          allSuggestions.push({
-            id: city.id,
-            name: city.name,
-            type: 'city',
-            latitude: city.latitude,
-            longitude: city.longitude,
-            parent: `${city.provinces?.name}, ${city.provinces?.countries?.name}`
+        // Use the intelligent location search RPC for better performance
+        const { data, error } = await supabase
+          .rpc('intelligent_location_search', {
+            search_query: query.trim(),
+            search_limit: 8
           });
-        });
 
-        // Formatear municipios
-        municipalities?.forEach(municipality => {
-          allSuggestions.push({
-            id: municipality.id,
-            name: municipality.name,
-            type: 'municipality',
-            latitude: municipality.latitude,
-            longitude: municipality.longitude,
-            parent: `${municipality.provinces?.name}, ${municipality.provinces?.countries?.name}`
-          });
-        });
+        if (error) {
+          console.error('Error in location search:', error);
+          throw error;
+        }
 
-        // Formatear distritos
-        districts?.forEach(district => {
-          allSuggestions.push({
-            id: district.id,
-            name: district.name,
-            type: 'district',
-            latitude: district.latitude,
-            longitude: district.longitude,
-            parent: `${district.cities?.name}, ${district.cities?.provinces?.name}`,
-            description: district.description,
-            is_famous: district.is_famous
-          });
-        });
+        if (data && Array.isArray(data)) {
+          const formattedSuggestions: LocationSuggestion[] = data.map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            type: item.type as 'city' | 'municipality' | 'district' | 'poi',
+            latitude: parseFloat(item.latitude),
+            longitude: parseFloat(item.longitude),
+            parent: item.parent || undefined,
+            description: item.description || undefined,
+            is_famous: item.is_famous || false
+          }));
 
-        // Formatear puntos de interés gastronómico
-        pois?.forEach(poi => {
-          allSuggestions.push({
-            id: poi.id,
-            name: poi.name,
-            type: 'poi',
-            latitude: poi.latitude,
-            longitude: poi.longitude,
-            parent: poi.cities ? `${poi.cities.name}, ${poi.cities.provinces?.name}` : undefined,
-            description: poi.description
-          });
-        });
-
-        // Ordenar por relevancia: primero ciudades, luego distritos famosos, etc.
-        const sortedSuggestions = allSuggestions.sort((a, b) => {
-          // Prioridad por tipo
-          const typeOrder = { city: 1, district: 2, municipality: 3, poi: 4 };
-          if (typeOrder[a.type] !== typeOrder[b.type]) {
-            return typeOrder[a.type] - typeOrder[b.type];
-          }
-          
-          // Dentro del mismo tipo, priorizar barrios famosos
-          if (a.type === 'district' && b.type === 'district') {
-            if (a.is_famous && !b.is_famous) return -1;
-            if (!a.is_famous && b.is_famous) return 1;
-          }
-          
-          // Ordenar alfabéticamente
-          return a.name.localeCompare(b.name);
-        });
-
-        setSuggestions(sortedSuggestions.slice(0, 8));
-        console.log('Location suggestions found:', sortedSuggestions.slice(0, 8));
+          setSuggestions(formattedSuggestions);
+          console.log('Location search results:', formattedSuggestions.length, 'found');
+        } else {
+          setSuggestions([]);
+        }
       } catch (error) {
         console.error('Error searching locations:', error);
         setSuggestions([]);
@@ -185,6 +65,7 @@ export const useLocationSuggestions = (query: string) => {
       }
     };
 
+    // Optimal debounce for location search
     const debounceTimer = setTimeout(searchLocations, 300);
     return () => clearTimeout(debounceTimer);
   }, [query]);
