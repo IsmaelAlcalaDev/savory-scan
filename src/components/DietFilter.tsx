@@ -1,5 +1,5 @@
 
-import SimpleDietFilter from './SimpleDietFilter';
+import RestaurantDietFilter from './RestaurantDietFilter';
 
 interface DietFilterProps {
   selectedDietTypes: number[];
@@ -10,15 +10,17 @@ interface DietFilterProps {
 }
 
 export default function DietFilter({ 
+  selectedDietTypes,
+  onDietTypeChange,
   selectedDietCategories = [],
   onDietCategoryChange = () => {},
-  useSimpleMode = true
+  useSimpleMode = false
 }: DietFilterProps) {
-  // Always use SimpleDietFilter since we removed the complex diet filtering
+  // Use the new RestaurantDietFilter for restaurant filtering
   return (
-    <SimpleDietFilter
-      selectedDietCategories={selectedDietCategories}
-      onDietCategoryChange={onDietCategoryChange}
+    <RestaurantDietFilter
+      selectedDietTypes={selectedDietTypes}
+      onDietTypeChange={onDietTypeChange}
     />
   );
 }

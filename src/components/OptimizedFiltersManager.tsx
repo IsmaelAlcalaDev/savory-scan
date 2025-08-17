@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +5,7 @@ import { Filter, X } from 'lucide-react';
 import CuisineFilterWithCounts from './CuisineFilterWithCounts';
 import PriceFilterWithCounts from './PriceFilterWithCounts';
 import EstablishmentTypeFilterWithCounts from './EstablishmentTypeFilterWithCounts';
-import SimpleDietFilter from './SimpleDietFilter';
+import DietFilter from './DietFilter';
 import { useFacetCounts } from '@/hooks/useFacetCounts';
 
 interface OptimizedFiltersManagerProps {
@@ -72,13 +71,6 @@ export default function OptimizedFiltersManager({
       setShowFilters(false);
     }
   }, [hasActiveFilters]);
-
-  // Convert selectedDietTypes to selectedDietCategories for SimpleDietFilter
-  const selectedDietCategories: string[] = [];
-  const onDietCategoryChange = (categories: string[]) => {
-    // This is a simplified mapping - in a real app you'd want proper conversion
-    // For now, we'll just use empty arrays since the diet filter logic was removed
-  };
 
   return (
     <div className="space-y-4">
@@ -164,9 +156,9 @@ export default function OptimizedFiltersManager({
                 userLng={userLng}
               />
 
-              <SimpleDietFilter
-                selectedDietCategories={selectedDietCategories}
-                onDietCategoryChange={onDietCategoryChange}
+              <DietFilter
+                selectedDietTypes={selectedDietTypes}
+                onDietTypeChange={onDietTypeChange}
               />
 
               <div className="flex flex-wrap gap-2">
