@@ -100,8 +100,28 @@ export default function UnifiedRestaurantsGrid(props: UnifiedRestaurantsGridProp
       {process.env.NODE_ENV === 'development' && (
         <div className="space-y-2">
           <PerformanceMetrics serverTiming={serverTiming} />
-          <div className="text-xs text-muted-foreground">
-            Sistema activo: {systemType === 'rpc' ? 'RPC Feed' : 'Sistema Unificado'}
+          <div className="text-xs text-muted-foreground space-y-1">
+            <div>
+              Sistema activo: {
+                systemType === 'rpc-optimized' ? '🚀 RPC OPTIMIZADO (search_feed)' :
+                systemType === 'legacy' ? '📊 Sistema Legacy' : 
+                systemType === 'loading' ? 'Cargando...' :
+                'Sistema Unificado'
+              }
+            </div>
+            {systemType === 'rpc-optimized' && (
+              <div className="flex items-center gap-2">
+                <span className="text-green-600">
+                  ⚡ PostGIS KNN + ST_DWithin
+                </span>
+                <span className="text-blue-600">
+                  📊 Pre-calculated stats
+                </span>
+                <span className="text-purple-600">
+                  🔍 Trigram + unaccent
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}

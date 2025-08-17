@@ -1,6 +1,7 @@
 
 import { useRestaurantFeed } from './useRestaurantFeed';
-import { useRestaurantFeedRpc } from './useFeatureFlags';
+import { useSearchFeedRpc } from './useSearchFeedRpc';
+import { useRestaurantsRpcFeed } from './useFeatureFlags';
 
 interface UnifiedRestaurantFeedProps {
   searchQuery?: string;
@@ -43,10 +44,25 @@ const normalizeRestaurantData = (restaurant: any) => {
 };
 
 export const useUnifiedRestaurantFeed = (props: UnifiedRestaurantFeedProps) => {
-  const { enabled: useRpcFeed, loading: flagLoading } = useRestaurantFeedRpc();
+  const { enabled: useNewRpcFeed, loading: flagLoading } = useRestaurantsRpcFeed();
   
-  // Use RPC system (the current active system)
-  const rpcFeedResult = useRestaurantFeed({
+  // Use new optimized RPC system when enabled
+  const rpcFeedResult = useSearchFeedRpc({
+    searchQuery: props.searchQuery,
+    userLat: props.userLat,
+    userLng: props.userLng,
+    maxDistance: props.maxDistance,
+    cuisineTypeIds: props.cuisineTypeIds,
+    priceRanges: props.priceRanges,
+    selectedEstablishmentTypes: props.selectedEstablishmentTypes,
+    selectedDietCategories: props.selectedDietCategories,
+    minRating: props.isHighRated ? 4.5 : undefined,
+    isOpenNow: props.isOpenNow,
+    maxResults: 50
+  });
+
+  // Use legacy system as fallback
+  const legacyFeedResult = useRestaurantFeed({
     searchQuery: props.searchQuery,
     userLat: props.userLat,
     userLng: props.userLng,
@@ -60,7 +76,7 @@ export const useUnifiedRestaurantFeed = (props: UnifiedRestaurantFeedProps) => {
     sortBy: props.sortBy,
   });
 
-  console.log('useUnifiedRestaurantFeed: Using RPC system');
+  console.log(`useUnifiedRestaurantFeed: Using ${useNewRpcFeed ? 'NEW OPTIMIZED RPC' : 'LEGACY'} system`);
 
   if (flagLoading) {
     return {
@@ -75,15 +91,29 @@ export const useUnifiedRestaurantFeed = (props: UnifiedRestaurantFeedProps) => {
     };
   }
 
-  // Always return RPC system results (simplified)
-  return {
-    restaurants: rpcFeedResult.restaurants.map(normalizeRestaurantData),
-    loading: rpcFeedResult.loading,
-    error: rpcFeedResult.error,
-    hasMore: false, // RPC system doesn't use pagination
-    loadMore: () => {}, // No-op for RPC system
-    refetch: rpcFeedResult.refetch,
-    serverTiming: rpcFeedResult.serverTiming,
-    systemType: 'rpc' as const
-  };
+  if (useNewRpcFeed) {
+    // Return new RPC system results
+    return {
+      restaurants: rpcFeedResult.restaurants.map(normalizeRestaurantData),
+      loading: rpcFeedResult.loading,
+      error: rpcFeedResult.error,
+      hasMore: false, // New RPC system doesn't use pagination yet
+      loadMore: () => {}, // No-op for new RPC system
+      refetch: rpcFeedResult.refetch,
+      serverTiming: rpcFeedResult.serverTiming,
+      systemType: 'rpc-optimized' as const
+    };
+  } else {
+    // Return legacy system results (existing behavior)
+    return {
+      restaurants: legacyFeedResult.restaurants.map(normalizeRestaurantData),
+      loading: legacyFeedResult.loading,
+      error: legacyFeedResult.error,
+      hasMore: false, // Legacy system doesn't use pagination
+      loadMore: () => {}, // No-op for legacy system
+      refetch: legacyFeedResult.refetch,
+      serverTiming: legacyFeedResult.serverTiming,
+      systemType: 'legacy' as const
+    };
+  }
 };

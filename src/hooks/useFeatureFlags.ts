@@ -72,6 +72,37 @@ export const useHomeRpcFeed = () => {
   return { enabled, loading };
 };
 
+// New restaurants RPC feed feature flag hook
+export const useRestaurantsRpcFeed = () => {
+  const [enabled, setEnabled] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeatureFlag = async () => {
+      try {
+        const { data } = await supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'FF_RESTAURANTES_RPC_FEED')
+          .single();
+
+        if (data?.value && isFeatureFlagValue(data.value)) {
+          setEnabled(data.value.enabled === true);
+        }
+      } catch (error) {
+        console.error('Error fetching FF_RESTAURANTES_RPC_FEED:', error);
+        setEnabled(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeatureFlag();
+  }, []);
+
+  return { enabled, loading };
+};
+
 // New audit feature flag hook
 export const useRestaurantsAuditRpc = () => {
   const [enabled, setEnabled] = useState(false);
