@@ -1,14 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-interface DietType {
-  id: number;
-  name: string;
-  slug: string;
-  icon?: string;
-  category: 'vegetarian' | 'vegan' | 'gluten_free' | 'healthy';
-}
+import { DietType } from '@/types/dietType';
 
 export const useDietTypes = () => {
   const [dietTypes, setDietTypes] = useState<DietType[]>([]);
@@ -30,7 +23,13 @@ export const useDietTypes = () => {
           throw error;
         }
 
-        setDietTypes(data || []);
+        // Type assertion to ensure category matches our DietType interface
+        const typedData: DietType[] = (data || []).map(item => ({
+          ...item,
+          category: item.category as 'vegetarian' | 'vegan' | 'gluten_free' | 'healthy'
+        }));
+
+        setDietTypes(typedData);
       } catch (err) {
         console.error('Error fetching diet types:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar tipos de dieta');
