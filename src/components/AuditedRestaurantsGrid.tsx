@@ -109,8 +109,8 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
               Sistema activo: {
                 systemType === 'audit' ? 'AUDIT (Optimizado con MV + RPC)' :
                 systemType === 'rpc' ? 'RPC Feed (Nuevo)' : 
-                systemType === 'paginated' ? 'Paginated Feed (Antiguo)' :
-                'Cargando...'
+                systemType === 'loading' ? 'Cargando...' :
+                'Sistema Unificado'
               }
             </div>
             {systemType === 'audit' && (

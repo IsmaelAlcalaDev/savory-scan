@@ -1,6 +1,6 @@
 
 import { useEffect, useRef } from 'react'
-import { usePaginatedRestaurants } from '@/hooks/usePaginatedRestaurants'
+import { useUnifiedRestaurantFeed } from '@/hooks/useUnifiedRestaurantFeed'
 import InstrumentedRestaurantCard from './InstrumentedRestaurantCard'
 import LoadMoreButton from './LoadMoreButton'
 import PerformanceMetrics from './PerformanceMetrics'
@@ -28,12 +28,11 @@ export default function InstrumentedPaginatedRestaurantsGrid(props: Instrumented
   const { 
     restaurants, 
     loading, 
-    loadingMore, 
     error, 
     hasMore, 
     loadMore,
     serverTiming
-  } = usePaginatedRestaurants(props)
+  } = useUnifiedRestaurantFeed(props)
 
   // Preload first batch of images for better LCP
   useEffect(() => {
@@ -122,7 +121,7 @@ export default function InstrumentedPaginatedRestaurantsGrid(props: Instrumented
       
       <LoadMoreButton
         onLoadMore={loadMore}
-        loading={loadingMore}
+        loading={false}
         hasMore={hasMore}
         className="mt-8"
       />
