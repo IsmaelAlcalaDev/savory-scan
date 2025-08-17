@@ -97,9 +97,16 @@ export const useSearchFeedRpc = (props: UseSearchFeedRpcProps) => {
       const duration = endTime - startTime;
       setServerTiming(duration);
 
-      // Log performance to the server
+      // Log performance using direct insert to avoid RPC type issues
       try {
-        await supabase.rpc('log_search_feed_performance', { duration_ms: duration });
+        await supabase.from('analytics_events').insert({
+          event_type: 'performance',
+          event_name: 'search_feed_rpc',
+          properties: {
+            duration_ms: duration,
+            timestamp: Date.now()
+          }
+        });
       } catch (logError) {
         // Ignore logging errors
         console.warn('Failed to log performance:', logError);
