@@ -8,6 +8,8 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
 import { DishFavoritesProvider } from "./contexts/DishFavoritesContext";
+import { OrderSimulatorProvider } from "./contexts/OrderSimulatorContext";
+import AnalyticsProvider from "./components/AnalyticsProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RestaurantProfile from "./pages/RestaurantProfile";
 import RestaurantMenu from "./pages/RestaurantMenu";
@@ -21,7 +23,6 @@ import Restaurants from "./pages/Restaurants";
 import Dishes from "./pages/Dishes";
 import Account from "./pages/Account";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { OrderSimulatorProvider } from "./contexts/OrderSimulatorContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,7 +35,7 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  console.log('App: Starting application with enhanced security');
+  console.log('App: Starting application with enhanced security and analytics');
 
   return (
     <ErrorBoundary>
@@ -48,40 +49,42 @@ const App = () => {
                     <Toaster />
                     <Sonner />
                     <BrowserRouter>
-                      <Routes>
-                        <Route path="/" element={<LocationEntry />} />
-                        <Route path="/restaurantes" element={<Restaurants />} />
-                        <Route path="/platos" element={<Dishes />} />
-                        <Route path="/account" element={<Account />} />
-                        <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
-                        <Route path="/carta/:slug" element={<RestaurantMenu />} />
-                        <Route 
-                          path="/admin" 
-                          element={
-                            <ProtectedRoute requiredRole="admin">
-                              <SecureAdminPanel />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/superadmin" 
-                          element={
-                            <ProtectedRoute requiredRole="admin">
-                              <SuperAdminPanel />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        <Route 
-                          path="/security" 
-                          element={
-                            <ProtectedRoute requiredRole="admin">
-                              <SecurityDashboard />
-                            </ProtectedRoute>
-                          } 
-                        />
-                        <Route path="/auth" element={<Auth />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
+                      <AnalyticsProvider>
+                        <Routes>
+                          <Route path="/" element={<LocationEntry />} />
+                          <Route path="/restaurantes" element={<Restaurants />} />
+                          <Route path="/platos" element={<Dishes />} />
+                          <Route path="/account" element={<Account />} />
+                          <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
+                          <Route path="/carta/:slug" element={<RestaurantMenu />} />
+                          <Route 
+                            path="/admin" 
+                            element={
+                              <ProtectedRoute requiredRole="admin">
+                                <SecureAdminPanel />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          <Route 
+                            path="/superadmin" 
+                            element={
+                              <ProtectedRoute requiredRole="admin">
+                                <SuperAdminPanel />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          <Route 
+                            path="/security" 
+                            element={
+                              <ProtectedRoute requiredRole="admin">
+                                <SecurityDashboard />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          <Route path="/auth" element={<Auth />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </AnalyticsProvider>
                     </BrowserRouter>
                   </TooltipProvider>
                 </OrderSimulatorProvider>
