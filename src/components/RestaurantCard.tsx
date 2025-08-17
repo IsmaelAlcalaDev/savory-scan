@@ -1,20 +1,57 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Phone, MapPin, Star } from 'lucide-react';
 import FavoriteButton from './FavoriteButton';
-import { Restaurant } from '@/lib/types';
+import { Restaurant } from '@/types/restaurant';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface RestaurantCardProps {
-  restaurant: Restaurant;
-  distance?: number | null;
-  onCardClick?: (restaurant: Restaurant) => void;
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  priceRange: string;
+  googleRating?: number;
+  googleRatingCount?: number;
+  distance?: number;
+  cuisineTypes: string[];
+  establishmentType?: string;
+  services?: string[];
+  favoritesCount: number;
+  coverImageUrl?: string;
+  logoUrl?: string;
+  onClick?: () => void;
+  className?: string;
+  onLoginRequired?: () => void;
+  layout?: 'grid' | 'list';
+  onFavoriteChange?: (restaurantId: number, isFavorite: boolean) => void;
+  priority?: boolean;
 }
 
-export default function RestaurantCard({ restaurant, distance, onCardClick }: RestaurantCardProps) {
+export default function RestaurantCard({
+  id,
+  name,
+  slug,
+  description,
+  priceRange,
+  googleRating,
+  googleRatingCount,
+  distance,
+  cuisineTypes,
+  establishmentType,
+  services,
+  favoritesCount,
+  coverImageUrl,
+  logoUrl,
+  onClick,
+  className,
+  onLoginRequired,
+  priority = false
+}: RestaurantCardProps) {
   const { trackCardClick, trackActionClick, trackFeedImpression } = useAnalytics();
   const [hasBeenViewed, setHasBeenViewed] = useState(false);
 
@@ -25,7 +62,7 @@ export default function RestaurantCard({ restaurant, distance, onCardClick }: Re
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting && !hasBeenViewed) {
-              trackFeedImpression([restaurant.id]);
+              trackFeedImpression([id]);
               setHasBeenViewed(true);
               observer.disconnect();
             }
@@ -34,28 +71,28 @@ export default function RestaurantCard({ restaurant, distance, onCardClick }: Re
         { threshold: 0.5 }
       );
 
-      const cardElement = document.querySelector(`[data-restaurant-id="${restaurant.id}"]`);
+      const cardElement = document.querySelector(`[data-restaurant-id="${id}"]`);
       if (cardElement) {
         observer.observe(cardElement);
       }
 
       return () => observer.disconnect();
     }
-  }, [restaurant.id, hasBeenViewed, trackFeedImpression]);
+  }, [id, hasBeenViewed, trackFeedImpression]);
 
   const handleCardClick = () => {
-    trackCardClick('restaurant', restaurant.id);
-    onCardClick?.(restaurant);
+    trackCardClick('restaurant', id);
+    onClick?.();
   };
 
   const handleCallClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    trackActionClick('call', restaurant.id);
+    trackActionClick('call', id);
   };
 
   const handleDirectionsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    trackActionClick('directions', restaurant.id);
+    trackActionClick('directions', id);
   };
 
   const navigate = useNavigate();
@@ -78,15 +115,15 @@ export default function RestaurantCard({ restaurant, distance, onCardClick }: Re
 
   return (
     <Card 
-      className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
+      className={cn("overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group", className)}
       onClick={handleCardClick}
-      data-restaurant-id={restaurant.id}
+      data-restaurant-id={id}
       data-analytics-element="restaurant-card"
     >
       <div className="relative">
         <img
-          src={restaurant.cover_image_url || "/placeholder-restaurant.png"}
-          alt={restaurant.name}
+          src={coverImageUrl || "/placeholder-restaurant.png"}
+          alt={name}
           className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
           onError={handleImageError}
         />
@@ -97,54 +134,50 @@ export default function RestaurantCard({ restaurant, distance, onCardClick }: Re
       
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold line-clamp-1">{restaurant.name}</h3>
+          <h3 className="text-lg font-semibold line-clamp-1">{name}</h3>
           <div className="flex items-center space-x-1.5">
-            <Star className={cn("h-4 w-4", getRatingColor(restaurant.google_rating))} />
-            <span className={cn("text-sm font-medium", getRatingColor(restaurant.google_rating))}>
-              {restaurant.google_rating?.toFixed(1) || "N/A"}
+            <Star className={cn("h-4 w-4", getRatingColor(googleRating))} />
+            <span className={cn("text-sm font-medium", getRatingColor(googleRating))}>
+              {googleRating?.toFixed(1) || "N/A"}
             </span>
           </div>
         </div>
 
         <p className="text-sm text-muted-foreground line-clamp-2">
-          {restaurant.description || 'Sin descripción'}
+          {description || 'Sin descripción'}
         </p>
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-center gap-2">
-            {restaurant.phone && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-xs hover:bg-primary hover:text-primary-foreground"
-                onClick={handleCallClick}
-                data-analytics-action="call-click"
-                data-analytics-restaurant-id={restaurant.id}
-              >
-                <Phone className="h-3 w-3 mr-1" />
-                Llamar
-              </Button>
-            )}
-            {(restaurant.latitude && restaurant.longitude) && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-xs hover:bg-primary hover:text-primary-foreground"
-                onClick={handleDirectionsClick}
-                data-analytics-action="directions-click"
-                data-analytics-restaurant-id={restaurant.id}
-              >
-                <MapPin className="h-3 w-3 mr-1" />
-                Cómo llegar
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-xs hover:bg-primary hover:text-primary-foreground"
+              onClick={handleCallClick}
+              data-analytics-action="call-click"
+              data-analytics-restaurant-id={id}
+            >
+              <Phone className="h-3 w-3 mr-1" />
+              Llamar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-xs hover:bg-primary hover:text-primary-foreground"
+              onClick={handleDirectionsClick}
+              data-analytics-action="directions-click"
+              data-analytics-restaurant-id={id}
+            >
+              <MapPin className="h-3 w-3 mr-1" />
+              Cómo llegar
+            </Button>
           </div>
           
           <FavoriteButton 
-            restaurantId={restaurant.id}
-            restaurantSlug={restaurant.slug}
-            favoritesCount={restaurant.favorites_count || 0}
+            restaurantId={id}
+            restaurantSlug={slug}
+            favoritesCount={favoritesCount || 0}
           />
         </div>
       </CardContent>

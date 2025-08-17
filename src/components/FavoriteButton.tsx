@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Heart, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -51,7 +52,7 @@ export default function FavoriteButton({
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
 
-    await toggleFavorite(restaurantId, restaurantSlug, savedFrom, handleLoginRequired);
+    await toggleFavorite(restaurantId, savedFrom, handleLoginRequired);
   };
 
   const liked = isFavorite(restaurantId);
