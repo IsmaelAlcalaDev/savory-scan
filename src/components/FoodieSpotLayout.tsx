@@ -8,7 +8,7 @@ import UnifiedRestaurantsTab from './UnifiedRestaurantsTab';
 import DishesGrid from './DishesGrid';
 import FilterTags from './FilterTags';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { LayoutStabilizer } from './LayoutStabilizer';
+import LayoutStabilizer from './LayoutStabilizer';
 
 export default function FoodieSpotLayout() {
   const { userLocation } = useUserPreferences();
@@ -62,8 +62,8 @@ export default function FoodieSpotLayout() {
           {/* Search Section */}
           <div className="mb-6">
             <SearchBar 
-              value={searchQuery}
-              onChange={setSearchQuery}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
               onFiltersClick={() => setIsFiltersModalOpen(true)}
               hasActiveFilters={hasActiveFilters}
             />
@@ -73,7 +73,7 @@ export default function FoodieSpotLayout() {
           {hasActiveFilters && (
             <div className="mb-6">
               <FilterTags
-                selectedCuisineTypes={selectedCuisineTypes}
+                selectedCuisines={selectedCuisineTypes}
                 selectedPriceRanges={selectedPriceRanges}
                 isHighRated={isHighRated}
                 selectedEstablishmentTypes={selectedEstablishmentTypes}
@@ -84,7 +84,7 @@ export default function FoodieSpotLayout() {
                 spiceLevels={spiceLevels}
                 isOpenNow={isOpenNow}
                 onClearAll={clearAllFilters}
-                onRemoveCuisineType={(id) => setSelectedCuisineTypes(prev => prev.filter(c => c !== id))}
+                onRemoveCuisine={(id) => setSelectedCuisineTypes(prev => prev.filter(c => c !== id))}
                 onRemovePriceRange={(range) => setSelectedPriceRanges(prev => prev.filter(p => p !== range))}
                 onRemoveHighRated={() => setIsHighRated(false)}
                 onRemoveEstablishmentType={(id) => setSelectedEstablishmentTypes(prev => prev.filter(e => e !== id))}
@@ -127,7 +127,7 @@ export default function FoodieSpotLayout() {
                     </div>
 
                     <DishesGrid
-                      searchQuery={searchQuery}
+                      query={searchQuery}
                       userLat={userLocation?.latitude}
                       userLng={userLocation?.longitude}
                       selectedDishDietTypes={selectedDishDietTypes}
@@ -144,32 +144,15 @@ export default function FoodieSpotLayout() {
 
           {/* Filters Modal */}
           <UnifiedFiltersModal
-            isOpen={isFiltersModalOpen}
-            onClose={() => setIsFiltersModalOpen(false)}
-            selectedCuisineTypes={selectedCuisineTypes}
-            selectedPriceRanges={selectedPriceRanges}
-            isHighRated={isHighRated}
-            selectedEstablishmentTypes={selectedEstablishmentTypes}
-            selectedDietCategories={selectedDietCategories}
+            activeTab={activeTab === 'restaurantes' ? 'restaurants' : 'dishes'}
+            selectedAllergens={[]} // placeholder for now
+            selectedDietTypes={[]} // legacy support
             selectedDishDietTypes={selectedDishDietTypes}
-            selectedFoodTypes={selectedFoodTypes}
-            selectedCustomTags={selectedCustomTags}
-            spiceLevels={spiceLevels}
-            maxDistance={maxDistance}
-            isOpenNow={isOpenNow}
-            onCuisineTypesChange={setSelectedCuisineTypes}
-            onPriceRangesChange={setSelectedPriceRanges}
-            onHighRatedChange={setIsHighRated}
-            onEstablishmentTypesChange={setSelectedEstablishmentTypes}
-            onDietCategoriesChange={setSelectedDietCategories}
-            onDishDietTypesChange={setSelectedDishDietTypes}
-            onFoodTypesChange={setSelectedFoodTypes}
-            onCustomTagsChange={setSelectedCustomTags}
-            onSpiceLevelsChange={setSpiceLevels}
-            onMaxDistanceChange={setMaxDistance}
-            onOpenNowChange={setIsOpenNow}
-            onClearAll={clearAllFilters}
-            currentTab={activeTab}
+            selectedSpiceLevels={spiceLevels}
+            onAllergenChange={() => {}} // placeholder for now
+            onDietTypeChange={() => {}} // legacy support
+            onDishDietTypeChange={setSelectedDishDietTypes}
+            onSpiceLevelChange={setSpiceLevels}
           />
         </div>
       </div>
