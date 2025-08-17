@@ -62,9 +62,9 @@ function App() {
           <AuthProvider>
             <FavoritesProvider>
               <DishFavoritesProvider>
-                <AnalyticsProvider>
-                  <TooltipProvider>
-                    <BrowserRouter>
+                <TooltipProvider>
+                  <BrowserRouter>
+                    <AnalyticsProvider>
                       <div className="min-h-screen bg-background font-sans antialiased">
                         <Routes>
                           <Route path="/" element={<FoodieSpot />} />
@@ -83,9 +83,9 @@ function App() {
                       </div>
                       <Toaster />
                       <Sonner />
-                    </BrowserRouter>
-                  </TooltipProvider>
-                </AnalyticsProvider>
+                    </AnalyticsProvider>
+                  </BrowserRouter>
+                </TooltipProvider>
               </DishFavoritesProvider>
             </FavoritesProvider>
           </AuthProvider>
