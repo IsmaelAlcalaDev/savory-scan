@@ -153,12 +153,12 @@ export const useRealUserMonitoring = (enabled: boolean = true) => {
       clsObserver.observe({ type: 'layout-shift', buffered: true });
       observersRef.current.push(clsObserver);
 
-      // Navigation timing
+      // Navigation timing - fix for navigationStart property
       const navigationEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
       if (navigationEntries.length > 0) {
         const nav = navigationEntries[0];
         metricsRef.current.pageLoad = nav.loadEventEnd - nav.loadEventStart;
-        metricsRef.current.timeToInteractive = nav.domInteractive - nav.navigationStart;
+        metricsRef.current.timeToInteractive = nav.domInteractive - nav.fetchStart; // Use fetchStart instead of navigationStart
       }
 
     } catch (error) {

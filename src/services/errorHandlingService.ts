@@ -1,202 +1,175 @@
 
-interface RetryConfig {
-  maxRetries: number;
-  initialDelay: number;
-  maxDelay: number;
-  backoffFactor: number;
-}
-
 interface ErrorContext {
   component?: string;
   action?: string;
   userId?: string;
-  sessionId?: string;
   metadata?: Record<string, any>;
+  sessionId?: string;
+  url?: string;
+  userAgent?: string;
+  [key: string]: any; // Allow additional properties
 }
 
-export class ErrorHandlingService {
-  private static instance: ErrorHandlingService;
-  private retryConfigs: Map<string, RetryConfig> = new Map();
-  private errorQueue: Array<{error: Error; context: ErrorContext; timestamp: number}> = [];
-  private processingQueue = false;
+interface ErrorLogEntry {
+  id: string;
+  timestamp: number;
+  error: string;
+  stack?: string;
+  context: ErrorContext;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  resolved: boolean;
+}
 
-  static getInstance(): ErrorHandlingService {
-    if (!ErrorHandlingService.instance) {
-      ErrorHandlingService.instance = new ErrorHandlingService();
-    }
-    return ErrorHandlingService.instance;
-  }
-
+class ErrorHandlingService {
+  private errorLog: ErrorLogEntry[] = [];
+  private maxLogSize = 1000;
+  
   constructor() {
-    // Default retry configurations
-    this.retryConfigs.set('api', {
-      maxRetries: 3,
-      initialDelay: 1000,
-      maxDelay: 10000,
-      backoffFactor: 2
-    });
-
-    this.retryConfigs.set('database', {
-      maxRetries: 2,
-      initialDelay: 500,
-      maxDelay: 5000,
-      backoffFactor: 2
-    });
-
-    this.retryConfigs.set('image', {
-      maxRetries: 2,
-      initialDelay: 200,
-      maxDelay: 2000,
-      backoffFactor: 1.5
-    });
-
-    // Process error queue periodically
-    setInterval(() => this.processErrorQueue(), 5000);
+    // Initialize error boundaries
+    this.setupGlobalErrorHandlers();
   }
 
-  async withRetry<T>(
-    operation: () => Promise<T>,
-    operationType: string = 'api',
-    context?: ErrorContext
-  ): Promise<T> {
-    const config = this.retryConfigs.get(operationType) || this.retryConfigs.get('api')!;
-    let lastError: Error;
-    let delay = config.initialDelay;
+  private setupGlobalErrorHandlers() {
+    // Catch unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+      this.logError(new Error(event.reason), {
+        component: 'Global',
+        action: 'unhandledRejection'
+      });
+    });
 
-    for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
-      try {
-        return await operation();
-      } catch (error) {
-        lastError = error as Error;
-        
-        // Log attempt
-        console.warn(`Attempt ${attempt + 1}/${config.maxRetries + 1} failed:`, {
-          error: lastError.message,
-          context,
-          operationType
-        });
-
-        // Don't retry on final attempt
-        if (attempt === config.maxRetries) {
-          break;
+    // Catch global errors
+    window.addEventListener('error', (event) => {
+      this.logError(event.error || new Error(event.message), {
+        component: 'Global',
+        action: 'globalError',
+        url: event.filename,
+        metadata: {
+          lineno: event.lineno,
+          colno: event.colno
         }
-
-        // Don't retry certain error types
-        if (this.isNonRetryableError(lastError)) {
-          break;
-        }
-
-        // Wait before retry with exponential backoff
-        await this.delay(Math.min(delay, config.maxDelay));
-        delay *= config.backoffFactor;
-      }
-    }
-
-    // Final failure - log and throw
-    this.logError(lastError!, context);
-    throw lastError!;
+      });
+    });
   }
 
-  logError(error: Error, context?: ErrorContext): void {
-    const errorData = {
-      error,
+  logError(error: Error, context: ErrorContext = {}) {
+    const errorEntry: ErrorLogEntry = {
+      id: `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: Date.now(),
+      error: error.message,
+      stack: error.stack,
       context: {
         ...context,
-        timestamp: Date.now(),
-        userAgent: navigator.userAgent,
-        url: window.location.href
+        timestamp: Date.now(), // Add timestamp to context
+        url: context.url || window.location.href,
+        userAgent: context.userAgent || navigator.userAgent
       },
-      timestamp: Date.now()
+      severity: this.determineSeverity(error, context),
+      resolved: false
     };
 
-    // Add to queue for batch processing
-    this.errorQueue.push(errorData);
+    // Add to local log
+    this.errorLog.push(errorEntry);
+    
+    // Trim log if too large
+    if (this.errorLog.length > this.maxLogSize) {
+      this.errorLog = this.errorLog.slice(-this.maxLogSize / 2);
+    }
 
-    // Immediate console logging for development
+    // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.error('🚨 Error logged:', errorData);
+      console.error('🚨 Error logged:', errorEntry);
     }
+
+    // Send to remote logging service
+    this.sendErrorToRemote(errorEntry).catch(console.warn);
+
+    return errorEntry.id;
   }
 
-  private async processErrorQueue(): Promise<void> {
-    if (this.processingQueue || this.errorQueue.length === 0) {
-      return;
+  private determineSeverity(error: Error, context: ErrorContext): 'low' | 'medium' | 'high' | 'critical' {
+    // Critical: Authentication, payment, security issues
+    if (context.component?.toLowerCase().includes('auth') || 
+        context.component?.toLowerCase().includes('security') ||
+        error.message.toLowerCase().includes('unauthorized')) {
+      return 'critical';
     }
 
-    this.processingQueue = true;
+    // High: Core functionality failures
+    if (context.component?.toLowerCase().includes('restaurant') ||
+        context.component?.toLowerCase().includes('dish') ||
+        error.message.toLowerCase().includes('network')) {
+      return 'high';
+    }
 
+    // Medium: UI/UX issues
+    if (context.component?.toLowerCase().includes('modal') ||
+        context.component?.toLowerCase().includes('form')) {
+      return 'medium';
+    }
+
+    return 'low';
+  }
+
+  private async sendErrorToRemote(errorEntry: ErrorLogEntry) {
     try {
-      const errors = [...this.errorQueue];
-      this.errorQueue = [];
-
       const { supabase } = await import('@/integrations/supabase/client');
-
-      // Batch insert errors
-      const errorEvents = errors.map(({error, context}) => ({
+      
+      await supabase.from('analytics_events').insert({
         event_type: 'error',
-        event_name: 'runtime_error',
+        event_name: 'error_logged',
         properties: {
-          error_message: error.message,
-          error_stack: error.stack?.substring(0, 1000),
-          component: context.component,
-          action: context.action,
-          user_id: context.userId,
-          session_id: context.sessionId,
-          metadata: context.metadata,
-          timestamp: context.timestamp,
-          user_agent: navigator.userAgent.substring(0, 200),
-          url: window.location.href
+          error_id: errorEntry.id,
+          error_message: errorEntry.error,
+          error_stack: errorEntry.stack?.substring(0, 1000), // Truncate to avoid size limits
+          severity: errorEntry.severity,
+          context: errorEntry.context,
+          timestamp: errorEntry.timestamp
         }
-      }));
-
-      if (errorEvents.length > 0) {
-        await supabase.from('analytics_events').insert(errorEvents);
-        console.log(`📊 Logged ${errorEvents.length} errors to analytics`);
-      }
+      });
     } catch (logError) {
-      console.warn('Failed to log errors to database:', logError);
-      // Don't re-add to queue to avoid infinite loop
-    } finally {
-      this.processingQueue = false;
+      console.warn('Failed to send error to remote logging:', logError);
     }
   }
 
-  private isNonRetryableError(error: Error): boolean {
-    const nonRetryablePatterns = [
-      /400/i, // Bad Request
-      /401/i, // Unauthorized
-      /403/i, // Forbidden
-      /404/i, // Not Found
-      /422/i, // Unprocessable Entity
-      /syntax error/i,
-      /permission denied/i
-    ];
+  // Get error statistics
+  getErrorStats() {
+    const now = Date.now();
+    const oneHour = 60 * 60 * 1000;
+    const oneDay = 24 * oneHour;
 
-    return nonRetryablePatterns.some(pattern => 
-      pattern.test(error.message) || pattern.test(error.name)
-    );
-  }
+    const recentErrors = this.errorLog.filter(e => now - e.timestamp < oneHour);
+    const dailyErrors = this.errorLog.filter(e => now - e.timestamp < oneDay);
 
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  // Fallback handlers for different error types
-  getFallbackData(errorType: string, context?: any): any {
-    const fallbacks = {
-      restaurants: [],
-      dishes: [],
-      user: null,
-      location: { lat: 40.4168, lng: -3.7038 }, // Madrid default
-      filters: {
-        cuisineTypes: [],
-        priceRanges: [],
-        establishmentTypes: []
-      }
+    return {
+      total: this.errorLog.length,
+      lastHour: recentErrors.length,
+      lastDay: dailyErrors.length,
+      critical: this.errorLog.filter(e => e.severity === 'critical').length,
+      high: this.errorLog.filter(e => e.severity === 'high').length,
+      resolved: this.errorLog.filter(e => e.resolved).length
     };
+  }
 
-    return fallbacks[errorType as keyof typeof fallbacks] || null;
+  // Mark error as resolved
+  resolveError(errorId: string) {
+    const error = this.errorLog.find(e => e.id === errorId);
+    if (error) {
+      error.resolved = true;
+    }
+  }
+
+  // Get recent errors
+  getRecentErrors(limit = 10) {
+    return this.errorLog
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, limit);
+  }
+
+  // Clear resolved errors
+  clearResolvedErrors() {
+    this.errorLog = this.errorLog.filter(e => !e.resolved);
   }
 }
 
-export const errorHandler = ErrorHandlingService.getInstance();
+export const errorHandler = new ErrorHandlingService();

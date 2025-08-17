@@ -83,12 +83,23 @@ export default function PerformanceBudgetMonitor({
       try {
         const { supabase } = await import('@/integrations/supabase/client');
         
+        // Convert complex objects to JSON-compatible format
+        const simplifiedBudgets = budgets
+          .filter(b => violations.includes(b.metric))
+          .map(b => ({
+            metric: b.metric,
+            budget: b.budget,
+            current: b.current,
+            unit: b.unit,
+            critical: b.critical
+          }));
+        
         await supabase.from('analytics_events').insert({
           event_type: 'performance',
           event_name: 'budget_violations',
           properties: {
             violations,
-            budgets: budgets.filter(b => violations.includes(b.metric)),
+            budgets: simplifiedBudgets,
             timestamp: Date.now(),
             url: window.location.pathname
           }
