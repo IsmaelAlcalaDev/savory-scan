@@ -90,7 +90,8 @@ export const useRestaurantFeed = (props: UseRestaurantFeedProps) => {
         max_results: 50
       };
 
-      const { data, error } = await supabase.rpc('search_restaurant_feed', rpcParams);
+      // Use the generic rpc method since the function isn't in types yet
+      const { data, error } = await supabase.rpc('search_restaurant_feed' as any, rpcParams);
 
       if (error) {
         console.error('useRestaurantFeed: RPC error:', error);

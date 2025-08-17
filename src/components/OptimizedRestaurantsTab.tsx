@@ -153,7 +153,7 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             googleRating={restaurant.google_rating}
             googleRatingCount={restaurant.google_rating_count}
             distance={restaurant.distance_km}
-            cuisineTypes={restaurant.cuisine_types}
+            cuisineTypes={restaurant.cuisine_types.map(ct => ct.name)} // Convert objects to string array
             establishmentType={restaurant.establishment_type}
             services={restaurant.services}
             favoritesCount={restaurant.favorites_count}
