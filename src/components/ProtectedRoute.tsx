@@ -9,7 +9,7 @@ import { AlertTriangle } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'admin' | 'moderator' | 'user' | 'security_admin' | 'super_admin';
+  requiredRole?: 'admin' | 'moderator' | 'user';
   requireAuth?: boolean;
 }
 
