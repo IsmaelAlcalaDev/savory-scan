@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react'
-import { useDebounce } from 'usehooks-ts'
+import { useDebounce } from '@/hooks/useDebounce'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
