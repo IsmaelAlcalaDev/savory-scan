@@ -110,12 +110,11 @@ export default function OptimizedFiltersManager({
         )}
       </div>
 
-      {/* Diet filter is always visible */}
+      {/* Diet filter is always visible - remove cityId prop */}
       <div>
         <SimpleDietFilterWithCounts
           selectedDietCategories={selectedDietCategories}
           onDietCategoryChange={onDietCategoryChange}
-          cityId={cityId}
           userLat={userLat}
           userLng={userLng}
         />

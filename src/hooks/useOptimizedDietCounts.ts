@@ -49,7 +49,8 @@ export const useOptimizedDietCounts = (props: UseOptimizedDietCountsProps) => {
 
         console.log('useOptimizedDietCounts: Fetching diet filter counts');
 
-        const { data, error } = await supabase.rpc('get_diet_filter_counts', {
+        // Use .rpc() with proper type casting
+        const { data, error } = await supabase.rpc('get_diet_filter_counts' as any, {
           p_q: searchQuery.trim(),
           p_lat: userLat || null,
           p_lon: userLng || null,
@@ -65,8 +66,8 @@ export const useOptimizedDietCounts = (props: UseOptimizedDietCountsProps) => {
           throw error;
         }
 
-        if (data && data.length > 0) {
-          const counts = data[0];
+        if (data && Array.isArray(data) && data.length > 0) {
+          const counts = data[0] as any;
           setDietCounts({
             vegetarian: counts.vegetarian_count || 0,
             vegan: counts.vegan_count || 0,

@@ -82,7 +82,8 @@ export const useSearchFeedRpc = (props: UseSearchFeedRpcProps) => {
         ? selectedDietCategories.join(',') 
         : null;
 
-      const { data, error } = await supabase.rpc('search_restaurant_feed', {
+      // Use .rpc() with proper type casting
+      const { data, error } = await supabase.rpc('search_restaurant_feed' as any, {
         p_q: searchQuery.trim(),
         p_lat: userLat || null,
         p_lon: userLng || null,
@@ -107,7 +108,7 @@ export const useSearchFeedRpc = (props: UseSearchFeedRpcProps) => {
           properties: {
             duration_ms: duration,
             timestamp: Date.now(),
-            results_count: data?.length || 0,
+            results_count: Array.isArray(data) ? data.length : 0,
             has_diet_filter: !!dietString,
             diet_categories: selectedDietCategories || []
           }
