@@ -17,7 +17,7 @@ interface FeedParams {
   selectedEstablishmentTypes?: number[];
   selectedDietCategories?: string[];
   isHighRated?: boolean;
-  isOpenNow?: boolean;
+  sortBy?: 'distance' | 'rating' | 'favorites';
 }
 
 interface CacheHeaders {
@@ -33,27 +33,44 @@ class RedisCache {
   
   constructor() {
     this.redisUrl = Deno.env.get('REDIS_URL') || '';
+    console.log('Redis URL configured:', this.redisUrl ? 'YES' : 'NO');
   }
 
   private async makeRedisRequest(command: string[]): Promise<any> {
     if (!this.redisUrl) {
-      console.log('Redis not configured, skipping cache');
+      console.log('❌ Redis not configured, skipping cache');
       return null;
     }
 
     try {
-      // Simple Redis implementation using HTTP API
-      // In production, use a proper Redis client
-      const response = await fetch(`${this.redisUrl}/command`, {
+      // Parse Redis URL to get auth info
+      const url = new URL(this.redisUrl);
+      const auth = url.password;
+      const host = url.hostname;
+      const port = url.port || '6379';
+      
+      console.log(`📡 Redis request: ${command[0]} to ${host}:${port}`);
+      
+      // Use Upstash Redis HTTP API
+      const response = await fetch(`https://${host}/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${auth}`,
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(command)
       });
       
-      if (!response.ok) return null;
-      return await response.json();
+      if (!response.ok) {
+        console.error('❌ Redis request failed:', response.status, response.statusText);
+        return null;
+      }
+      
+      const result = await response.json();
+      console.log(`✅ Redis response:`, result);
+      return result.result;
     } catch (error) {
-      console.error('Redis error:', error);
+      console.error('❌ Redis error:', error);
       return null;
     }
   }
@@ -102,8 +119,8 @@ function generateCacheKey(params: FeedParams & { geohash: string }): string {
     selectedEstablishmentTypes = [],
     selectedDietCategories = [],
     isHighRated = false,
-    isOpenNow = false,
-    maxDistance = 50
+    maxDistance = 50,
+    sortBy = 'distance'
   } = params;
 
   const normalizedQuery = searchQuery.toLowerCase().trim();
@@ -112,19 +129,13 @@ function generateCacheKey(params: FeedParams & { geohash: string }): string {
   const sortedEstablishments = [...selectedEstablishmentTypes].sort().join(',');
   const sortedDiets = [...selectedDietCategories].sort().join(',');
   const rating = isHighRated ? '4.5+' : '';
-  const openNow = isOpenNow ? 'open' : '';
   const distance = Math.round(maxDistance);
 
-  return `feed:v2:${geohash}:${normalizedQuery}:${sortedCuisines}:${sortedPrices}:${sortedEstablishments}:${sortedDiets}:${rating}:${openNow}:${distance}km`;
-}
-
-function isCacheable(params: FeedParams): boolean {
-  // Simple heuristic: cache if no user-specific filters
-  return true; // For now, cache everything as we separate user data on client
+  return `feed:v2:${geohash}:${normalizedQuery}:${sortedCuisines}:${sortedPrices}:${sortedEstablishments}:${sortedDiets}:${rating}:${distance}km:${sortBy}`;
 }
 
 async function fetchFromDatabase(supabase: any, params: FeedParams): Promise<any> {
-  console.log('Fetching from database:', params);
+  console.log('🔍 Fetching from database:', params);
   
   const rpcParams = {
     search_query: params.searchQuery?.trim() || '',
@@ -136,17 +147,20 @@ async function fetchFromDatabase(supabase: any, params: FeedParams): Promise<any
     establishment_type_ids: params.selectedEstablishmentTypes && params.selectedEstablishmentTypes.length > 0 ? params.selectedEstablishmentTypes : null,
     diet_categories: params.selectedDietCategories && params.selectedDietCategories.length > 0 ? params.selectedDietCategories : null,
     min_rating: params.isHighRated ? 4.5 : null,
-    is_open_now: params.isOpenNow || false,
+    is_open_now: false,
     max_results: 50
   };
+
+  console.log('📊 RPC Params:', rpcParams);
 
   const { data, error } = await supabase.rpc('search_restaurant_feed', rpcParams);
   
   if (error) {
-    console.error('Database error:', error);
+    console.error('❌ Database error:', error);
     throw error;
   }
 
+  console.log(`✅ Database returned ${data?.length || 0} restaurants`);
   return data || [];
 }
 
@@ -163,12 +177,17 @@ serve(async (req) => {
   let ttlRemaining = '0';
 
   try {
+    console.log(`🚀 Processing ${req.method} request to cached-restaurant-feed`);
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    const { searchParams } = new URL(req.url);
+    // ✅ FIX: Parse query parameters from URL
+    const url = new URL(req.url);
+    const { searchParams } = url;
+    
     const params: FeedParams = {
       searchQuery: searchParams.get('searchQuery') || undefined,
       userLat: searchParams.get('userLat') ? parseFloat(searchParams.get('userLat')!) : undefined,
@@ -179,78 +198,82 @@ serve(async (req) => {
       selectedEstablishmentTypes: searchParams.get('selectedEstablishmentTypes') ? JSON.parse(searchParams.get('selectedEstablishmentTypes')!) : undefined,
       selectedDietCategories: searchParams.get('selectedDietCategories') ? JSON.parse(searchParams.get('selectedDietCategories')!) : undefined,
       isHighRated: searchParams.get('isHighRated') === 'true',
-      isOpenNow: searchParams.get('isOpenNow') === 'true'
+      sortBy: (searchParams.get('sortBy') as 'distance' | 'rating' | 'favorites') || 'distance'
     };
 
-    console.log('Cached feed request params:', params);
+    console.log('📋 Parsed parameters:', params);
 
     // Generate geohash and cache key
     if (params.userLat && params.userLng) {
       geohash = generateGeohash(params.userLat, params.userLng, 7);
       cacheKey = generateCacheKey({ ...params, geohash });
+      console.log('🔑 Cache key:', cacheKey);
     }
 
     let data: any[] = [];
     const redis = new RedisCache();
-    const cacheable = isCacheable(params);
 
-    // Try Redis cache first
-    if (cacheable && cacheKey) {
+    // ✅ Try Redis cache first
+    if (cacheKey) {
+      console.log('🔍 Checking Redis cache...');
       const cached = await redis.get(cacheKey);
       if (cached) {
-        console.log('Redis cache hit:', cacheKey);
+        console.log('🎯 Redis cache HIT!');
         data = cached.data || cached;
         cacheStatus = 'redis-hit';
-        ttlRemaining = '60'; // Approximate, would need actual TTL check
+        ttlRemaining = '60'; // Approximate
+      } else {
+        console.log('❌ Redis cache MISS');
       }
     }
 
-    // Fallback to database
+    // ✅ Fallback to database
     if (data.length === 0) {
-      console.log('Cache miss, fetching from database');
+      console.log('📊 Fetching from database...');
       const dbStartTime = performance.now();
       
       data = await fetchFromDatabase(supabase, params);
       cacheStatus = 'db-fallback';
       
       const dbTime = performance.now() - dbStartTime;
-      console.log(`Database query took ${dbTime.toFixed(2)}ms`);
+      console.log(`⏱️ Database query took ${dbTime.toFixed(2)}ms`);
 
-      // Cache the result if cacheable
-      if (cacheable && cacheKey && data.length > 0) {
-        await redis.set(cacheKey, { data, timestamp: Date.now() }, 60);
-        console.log('Cached result:', cacheKey);
+      // ✅ Cache the result
+      if (cacheKey && data.length > 0) {
+        console.log('💾 Caching result in Redis...');
+        const cached = await redis.set(cacheKey, { data, timestamp: Date.now() }, 60);
+        if (cached) {
+          console.log('✅ Successfully cached in Redis');
+        } else {
+          console.log('❌ Failed to cache in Redis');
+        }
       }
     }
 
     const totalTime = performance.now() - startTime;
-    console.log(`Total request time: ${totalTime.toFixed(2)}ms`);
+    console.log(`🏁 Total request time: ${totalTime.toFixed(2)}ms`);
 
-    // Prepare response headers
-    const cacheHeaders: Partial<CacheHeaders> = {
+    // ✅ Response headers
+    const responseHeaders = {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
       'x-cache': cacheStatus,
       'x-cache-key': cacheKey,
       'x-geohash': geohash,
       'x-ttl-remaining': ttlRemaining,
-      'Server-Timing': `total;dur=${totalTime.toFixed(2)}`
+      'Server-Timing': `total;dur=${totalTime.toFixed(2)}`,
+      // Cache control headers
+      'Cache-Control': cacheStatus === 'redis-hit' 
+        ? 'public, max-age=30, stale-while-revalidate=60'
+        : 'private, no-cache'
     };
 
-    // Add cache control headers
-    const cacheControlHeaders = cacheable 
-      ? { 'Cache-Control': 'public, max-age=30, stale-while-revalidate=60' }
-      : { 'Cache-Control': 'private, no-cache' };
-
     return new Response(JSON.stringify(data), {
-      headers: {
-        ...corsHeaders,
-        ...cacheControlHeaders,
-        ...cacheHeaders,
-        'Content-Type': 'application/json'
-      }
+      headers: responseHeaders
     });
 
   } catch (error) {
-    console.error('Error in cached-restaurant-feed:', error);
+    console.error('💥 Error in cached-restaurant-feed:', error);
     
     const totalTime = performance.now() - startTime;
     

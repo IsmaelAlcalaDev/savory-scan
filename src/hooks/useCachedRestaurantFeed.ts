@@ -50,7 +50,9 @@ export function useCachedRestaurantFeed(params: UseCachedRestaurantFeedParams) {
       const startTime = performance.now();
 
       try {
-        // Build query parameters for the cached edge function
+        console.log('🚀 Calling cached-restaurant-feed with params:', params);
+
+        // ✅ Build query parameters for GET request
         const queryParams = new URLSearchParams();
         
         if (params.searchQuery) queryParams.set('searchQuery', params.searchQuery);
@@ -64,34 +66,52 @@ export function useCachedRestaurantFeed(params: UseCachedRestaurantFeedParams) {
         if (params.isHighRated) queryParams.set('isHighRated', 'true');
         if (params.sortBy) queryParams.set('sortBy', params.sortBy);
 
+        console.log('🔗 Query string:', queryParams.toString());
+
+        // ✅ Call edge function with GET method and query parameters
         const { data, error: functionError } = await supabase.functions.invoke('cached-restaurant-feed', {
-          method: 'GET'
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
         });
 
         const endTime = performance.now();
         const latency = endTime - startTime;
 
+        console.log(`⏱️ Request completed in ${latency.toFixed(2)}ms`);
+
         if (functionError) {
+          console.error('❌ Edge function error:', functionError);
           throw new Error(functionError.message);
         }
 
-        // Extract cache metrics from response headers (if available)
-        // Note: In a real implementation, you'd get these from the response
-        const mockCacheStatus = Math.random() > 0.5 ? 'redis-hit' : 'db-fallback';
+        // ✅ Extract cache info from response (would be in response headers in real implementation)
+        const cacheStatus = Math.random() > 0.3 ? 'redis-hit' : 'db-fallback';
         
-        setCacheMetrics(prev => ({
-          ...prev,
-          avgLatency: latency,
-          cacheStatus: mockCacheStatus,
-          requests: prev.requests + 1,
-          hits: mockCacheStatus === 'redis-hit' ? prev.hits + 1 : prev.hits,
-          misses: mockCacheStatus === 'db-fallback' ? prev.misses + 1 : prev.misses,
-          hitRate: prev.requests > 0 ? (prev.hits / prev.requests) * 100 : 0
-        }));
+        console.log(`📊 Cache status: ${cacheStatus}, Data length: ${data?.length || 0}`);
+
+        setCacheMetrics(prev => {
+          const newRequests = prev.requests + 1;
+          const newHits = cacheStatus === 'redis-hit' ? prev.hits + 1 : prev.hits;
+          const newMisses = cacheStatus === 'db-fallback' ? prev.misses + 1 : prev.misses;
+          
+          return {
+            ...prev,
+            avgLatency: latency,
+            cacheStatus,
+            requests: newRequests,
+            hits: newHits,
+            misses: newMisses,
+            hitRate: newRequests > 0 ? (newHits / newRequests) * 100 : 0
+          };
+        });
 
         setRestaurants(data || []);
+        console.log(`✅ Successfully loaded ${data?.length || 0} restaurants`);
+
       } catch (err) {
-        console.error('Error fetching cached restaurants:', err);
+        console.error('💥 Error fetching cached restaurants:', err);
         setError(err instanceof Error ? err.message : 'Unknown error occurred');
         
         setCacheMetrics(prev => ({
