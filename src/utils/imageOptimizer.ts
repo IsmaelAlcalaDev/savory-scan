@@ -5,7 +5,6 @@ interface OptimizationOptions {
   quality?: number;
   format?: 'webp' | 'avif' | 'jpeg' | 'png' | 'auto';
   context?: 'dish' | 'restaurant' | 'gallery' | 'hero' | 'avatar';
-  sizes?: string; // Add sizes to the interface
 }
 
 interface OptimizedImageData {
@@ -14,11 +13,6 @@ interface OptimizedImageData {
   original: string;
   sizes: string;
   quality: number;
-}
-
-interface ContextSettings {
-  quality: number;
-  sizes: string;
 }
 
 class ImageOptimizer {
@@ -35,8 +29,8 @@ class ImageOptimizer {
   /**
    * Get optimal settings based on context
    */
-  private getContextSettings(context: string): ContextSettings {
-    const settings: Record<string, ContextSettings> = {
+  private getContextSettings(context: string): Partial<OptimizationOptions> {
+    const settings = {
       dish: {
         quality: 82,
         sizes: "(max-width: 768px) 320px, 480px"
@@ -59,7 +53,7 @@ class ImageOptimizer {
       }
     };
 
-    return settings[context] || { quality: 80, sizes: "100vw" };
+    return settings[context as keyof typeof settings] || { quality: 80, sizes: "100vw" };
   }
 
   /**
@@ -79,8 +73,8 @@ class ImageOptimizer {
         webp: url,
         avif: url,
         original: url,
-        sizes: options.sizes || contextSettings.sizes,
-        quality: options.quality || contextSettings.quality
+        sizes: contextSettings.sizes || "100vw",
+        quality: options.quality || contextSettings.quality || 80
       };
       this.optimizedCache.set(cacheKey, result);
       return result;
@@ -88,7 +82,7 @@ class ImageOptimizer {
 
     const baseUrl = url.split('?')[0];
     const contextSettings = this.getContextSettings(options.context || 'dish');
-    const quality = options.quality || contextSettings.quality;
+    const quality = options.quality || contextSettings.quality || 80;
     
     // Generate different format URLs
     const params = new URLSearchParams();
@@ -114,7 +108,7 @@ class ImageOptimizer {
       webp: webpUrl,
       avif: avifUrl,
       original: originalUrl,
-      sizes: options.sizes || contextSettings.sizes,
+      sizes: contextSettings.sizes || "100vw",
       quality
     };
 
@@ -142,7 +136,7 @@ class ImageOptimizer {
   /**
    * Generate responsive srcSet for multiple breakpoints
    */
-  generateResponsiveSrcSet(url: string, breakpoints: number[], context?: OptimizationOptions['context']): string {
+  generateResponsiveSrcSet(url: string, breakpoints: number[], context?: string): string {
     if (!url) return '';
 
     const srcSetEntries = breakpoints.map(width => {
