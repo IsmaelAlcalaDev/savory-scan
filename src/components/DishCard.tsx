@@ -5,6 +5,7 @@ import DishFavoriteButton from './DishFavoriteButton';
 import DinerSelector from './DinerSelector';
 import DishVariantsModal from './DishVariantsModal';
 import DishInfoModal from './DishInfoModal';
+import OptimizedImage from './OptimizedImage';
 import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import { useState } from 'react';
@@ -159,10 +160,14 @@ export default function DishCard({
             {hasImage && (
               <div className="flex-shrink-0">
                 <div className="w-20 h-20 rounded-lg overflow-hidden relative">
-                  <img
-                    src={dish.image_url}
+                  <OptimizedImage
+                    src={dish.image_url!}
                     alt={dish.image_alt || dish.name}
+                    width={80}
+                    height={80}
+                    context="dish"
                     className="w-full h-full object-cover"
+                    sizes="80px"
                   />
                   {dish.is_featured && (
                     <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs px-1 py-0">
