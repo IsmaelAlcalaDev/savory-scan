@@ -5,7 +5,7 @@ import { useRestaurantFeed } from '@/hooks/useRestaurantFeed';
 import RestaurantCard from './RestaurantCard';
 import RestaurantSortSelector from './RestaurantSortSelector';
 import { Skeleton } from '@/components/ui/skeleton';
-import SimpleDietFilter from './SimpleDietFilter';
+import SimpleDietFilterWithCounts from './SimpleDietFilterWithCounts';
 
 interface OptimizedRestaurantsTabProps {
   searchQuery?: string;
@@ -39,15 +39,22 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
     sortBy
   });
 
+  // Extract city ID from user location for facet queries
+  // This would typically come from a reverse geocoding service or user preferences
+  const cityId = userLocation?.cityId; // Assuming this exists in userLocation
+
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Restaurantes</h2>
           <div className="flex gap-2">
-            <SimpleDietFilter
+            <SimpleDietFilterWithCounts
               selectedDietCategories={selectedDietCategories}
               onDietCategoryChange={setSelectedDietCategories}
+              cityId={cityId}
+              userLat={userLocation?.latitude}
+              userLng={userLocation?.longitude}
             />
             <RestaurantSortSelector
               value={sortBy}
@@ -79,9 +86,12 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Restaurantes</h2>
           <div className="flex gap-2">
-            <SimpleDietFilter
+            <SimpleDietFilterWithCounts
               selectedDietCategories={selectedDietCategories}
               onDietCategoryChange={setSelectedDietCategories}
+              cityId={cityId}
+              userLat={userLocation?.latitude}
+              userLng={userLocation?.longitude}
             />
             <RestaurantSortSelector
               value={sortBy}
@@ -103,9 +113,12 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Restaurantes</h2>
           <div className="flex gap-2">
-            <SimpleDietFilter
+            <SimpleDietFilterWithCounts
               selectedDietCategories={selectedDietCategories}
               onDietCategoryChange={setSelectedDietCategories}
+              cityId={cityId}
+              userLat={userLocation?.latitude}
+              userLng={userLocation?.longitude}
             />
             <RestaurantSortSelector
               value={sortBy}
@@ -129,9 +142,12 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Restaurantes</h2>
         <div className="flex gap-2">
-          <SimpleDietFilter
+          <SimpleDietFilterWithCounts
             selectedDietCategories={selectedDietCategories}
             onDietCategoryChange={setSelectedDietCategories}
+            cityId={cityId}
+            userLat={userLocation?.latitude}
+            userLng={userLocation?.longitude}
           />
           <RestaurantSortSelector
             value={sortBy}
