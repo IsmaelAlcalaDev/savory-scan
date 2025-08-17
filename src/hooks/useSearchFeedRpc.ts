@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -79,18 +78,18 @@ export const useSearchFeedRpc = (props: UseSearchFeedRpcProps) => {
         maxResults
       });
 
+      // Use the parameter names that match the TypeScript types
       const { data, error } = await supabase.rpc('search_feed', {
-        search_query: searchQuery.trim(),
-        user_lat: userLat || null,
-        user_lon: userLng || null,
-        max_distance_km: maxDistance,
-        cuisine_type_ids: cuisineTypeIds && cuisineTypeIds.length > 0 ? cuisineTypeIds : null,
-        price_ranges: priceRanges && priceRanges.length > 0 ? priceRanges : null,
-        establishment_type_ids: selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : null,
-        diet_categories: selectedDietCategories && selectedDietCategories.length > 0 ? selectedDietCategories : null,
-        min_rating: minRating || null,
-        is_open_now: isOpenNow,
-        max_results: maxResults
+        p_q: searchQuery.trim(),
+        p_lat: userLat || null,
+        p_lon: userLng || null,
+        p_max_km: maxDistance,
+        p_cuisines: cuisineTypeIds && cuisineTypeIds.length > 0 ? cuisineTypeIds : null,
+        p_price_bands: priceRanges && priceRanges.length > 0 ? priceRanges : null,
+        p_est_types: selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : null,
+        p_diet: selectedDietCategories && selectedDietCategories.length > 0 ? selectedDietCategories.join(',') : null,
+        p_min_rating: minRating || null,
+        p_limit: maxResults
       });
 
       const endTime = performance.now();
