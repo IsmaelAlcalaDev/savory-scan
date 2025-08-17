@@ -1,15 +1,19 @@
+
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { useDebounce } from 'usehooks-ts'
 import { useGeolocation } from '@/hooks/useGeolocation'
-import { track } from '@vercel/analytics'
-import { Select } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import UnifiedRestaurantsGrid from './UnifiedRestaurantsGrid'
 import OptimizedFiltersManager from './OptimizedFiltersManager'
 import SearchBar from './SearchBar'
+
+// Simple track function replacement
+const track = (event: string, data?: any) => {
+  console.log('Analytics event:', event, data);
+}
 
 interface UnifiedRestaurantsTabProps {
   searchQuery?: string
@@ -28,7 +32,6 @@ export default function UnifiedRestaurantsTab({
   onLocationChange,
   filterKey = 'unified'
 }: UnifiedRestaurantsTabProps) {
-  const searchParams = useSearchParams()
   const [isHighRated, setIsHighRated] = useState(false)
   const [isOpenNow, setIsOpenNow] = useState(false)
   const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'favorites'>('distance')
@@ -109,12 +112,17 @@ export default function UnifiedRestaurantsTab({
     filterKey
   ])
 
+  const handleSearch = (query: string, location?: string) => {
+    console.log('Search:', query, location);
+    // Handle search logic here
+  }
+
   return (
     <div className="space-y-6">
       {/* Search and filters section */}
       <div className="space-y-4">
         {/* Search bar */}
-        <SearchBar />
+        <SearchBar onSearch={handleSearch} />
 
         {/* Unified Filters Manager */}
         <OptimizedFiltersManager
@@ -133,16 +141,19 @@ export default function UnifiedRestaurantsTab({
         {/* Additional filters row */}
         <div className="flex flex-wrap items-center gap-4">
           {/* Sort selector */}
-          <Select
-            label="Ordenar por"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'distance' | 'rating' | 'favorites')}
-            options={[
-              { value: 'distance', label: 'Distancia' },
-              { value: 'rating', label: 'Rating' },
-              { value: 'favorites', label: 'Favoritos' }
-            ]}
-          />
+          <div className="flex flex-col space-y-2">
+            <Label className="text-sm font-medium">Ordenar por</Label>
+            <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'distance' | 'rating' | 'favorites')}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="distance">Distancia</SelectItem>
+                <SelectItem value="rating">Rating</SelectItem>
+                <SelectItem value="favorites">Favoritos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* High rated filter */}
           <div className="flex items-center space-x-2">
