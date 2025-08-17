@@ -143,7 +143,7 @@ export class SpatialService {
             specializes_in_diet: restaurant.specializes_in_diet || [],
             diet_certifications: restaurant.diet_certifications || [],
             diet_percentages: restaurant.diet_percentages || {}
-          } satisfies SpatialRestaurant;
+          } as SpatialRestaurant;
         })
         .filter((r): r is SpatialRestaurant => r !== null)
         .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0))
@@ -248,7 +248,7 @@ export class SpatialService {
             specializes_in_diet: restaurant.specializes_in_diet || [],
             diet_certifications: restaurant.diet_certifications || [],
             diet_percentages: restaurant.diet_percentages || {}
-          } satisfies SpatialRestaurant;
+          } as SpatialRestaurant;
         })
         .sort((a, b) => a.distance_km - b.distance_km)
         .slice(0, limit);
