@@ -124,7 +124,7 @@ export default function UnifiedRestaurantsTab({
         {/* Search bar */}
         <SearchBar onSearch={handleSearch} />
 
-        {/* Unified Filters Manager */}
+        {/* Unified Filters Manager with all required props */}
         <OptimizedFiltersManager
           selectedCuisines={selectedCuisines}
           onCuisineChange={setSelectedCuisines}
@@ -134,8 +134,13 @@ export default function UnifiedRestaurantsTab({
           onEstablishmentTypeChange={setSelectedEstablishmentTypes}
           selectedDietCategories={selectedDietCategories}
           onDietCategoryChange={setSelectedDietCategories}
+          searchQuery={searchQuery}
           userLat={userLat}
           userLng={userLng}
+          maxDistance={maxDistance}
+          cuisineTypeIds={selectedCuisines}
+          priceRanges={selectedPriceRanges}
+          minRating={isHighRated ? 4.5 : undefined}
         />
 
         {/* Additional filters row */}
