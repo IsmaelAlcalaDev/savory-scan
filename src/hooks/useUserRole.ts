@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-type UserRole = 'admin' | 'moderator' | 'user' | null;
+type UserRole = 'admin' | 'moderator' | 'user' | 'security_admin' | 'super_admin' | null;
 
 export const useUserRole = () => {
   const [role, setRole] = useState<UserRole>(null);
@@ -67,13 +67,15 @@ export const useUserRole = () => {
     fetchUserRole();
   }, [user]);
 
-  const isAdmin = role === 'admin';
-  const isModerator = role === 'moderator' || role === 'admin';
+  const isAdmin = role === 'admin' || role === 'super_admin';
+  const isModerator = role === 'moderator' || role === 'admin' || role === 'super_admin';
   const hasRole = (requiredRole: UserRole) => {
     if (!role) return false;
     if (requiredRole === 'user') return true;
-    if (requiredRole === 'moderator') return role === 'moderator' || role === 'admin';
-    if (requiredRole === 'admin') return role === 'admin';
+    if (requiredRole === 'moderator') return role === 'moderator' || role === 'admin' || role === 'super_admin';
+    if (requiredRole === 'admin') return role === 'admin' || role === 'super_admin';
+    if (requiredRole === 'security_admin') return role === 'security_admin' || role === 'super_admin';
+    if (requiredRole === 'super_admin') return role === 'super_admin';
     return false;
   };
 
