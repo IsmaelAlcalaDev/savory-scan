@@ -2088,84 +2088,6 @@ export type Database = {
           },
         ]
       }
-      restaurant_diet_stats: {
-        Row: {
-          glutenfree_pct: number | null
-          glutenfree_total: number | null
-          healthy_pct: number | null
-          healthy_total: number | null
-          items_total: number | null
-          restaurant_id: number
-          updated_at: string | null
-          vegan_pct: number | null
-          vegan_total: number | null
-          vegetarian_pct: number | null
-          vegetarian_total: number | null
-        }
-        Insert: {
-          glutenfree_pct?: number | null
-          glutenfree_total?: number | null
-          healthy_pct?: number | null
-          healthy_total?: number | null
-          items_total?: number | null
-          restaurant_id: number
-          updated_at?: string | null
-          vegan_pct?: number | null
-          vegan_total?: number | null
-          vegetarian_pct?: number | null
-          vegetarian_total?: number | null
-        }
-        Update: {
-          glutenfree_pct?: number | null
-          glutenfree_total?: number | null
-          healthy_pct?: number | null
-          healthy_total?: number | null
-          items_total?: number | null
-          restaurant_id?: number
-          updated_at?: string | null
-          vegan_pct?: number | null
-          vegan_total?: number | null
-          vegetarian_pct?: number | null
-          vegetarian_total?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: true
-            referencedRelation: "restaurant_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: true
-            referencedRelation: "restaurants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: true
-            referencedRelation: "restaurants_full"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: true
-            referencedRelation: "restaurants_with_counters"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: true
-            referencedRelation: "v_restaurants_with_images"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       restaurant_gallery: {
         Row: {
           alt_text: string | null
@@ -5357,9 +5279,61 @@ export type Database = {
         Args: { "": string }
         Returns: unknown
       }
+      get_diet_category_counts: {
+        Args: {
+          city_id?: number
+          radius_km?: number
+          user_lat?: number
+          user_lng?: number
+        }
+        Returns: {
+          gluten_free_count: number
+          healthy_count: number
+          vegan_count: number
+          vegetarian_count: number
+        }[]
+      }
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
+      }
+      get_restaurants_by_diet_categories: {
+        Args: {
+          cuisine_type_ids?: number[]
+          diet_categories?: string[]
+          establishment_type_ids?: number[]
+          is_budget_friendly?: boolean
+          is_high_rated?: boolean
+          is_open_now?: boolean
+          max_distance_km?: number
+          price_ranges?: string[]
+          search_query?: string
+          user_lat?: number
+          user_lng?: number
+        }
+        Returns: {
+          cover_image_url: string
+          cuisine_types: Json
+          description: string
+          distance_km: number
+          establishment_type: string
+          favorites_count: number
+          gluten_free_pct: number
+          google_rating: number
+          google_rating_count: number
+          healthy_pct: number
+          latitude: number
+          logo_url: string
+          longitude: number
+          name: string
+          price_range: string
+          restaurant_id: number
+          services: Json
+          slug: string
+          total_dishes: number
+          vegan_pct: number
+          vegetarian_pct: number
+        }[]
       }
       get_stale_rating_cache: {
         Args: Record<PropertyKey, never>

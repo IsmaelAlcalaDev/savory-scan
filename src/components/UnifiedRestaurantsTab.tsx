@@ -11,7 +11,6 @@ interface UnifiedRestaurantsTabProps {
   isHighRated?: boolean;
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
-  selectedDietCategories?: string[];
   maxDistance?: number;
   isOpenNow?: boolean;
 }
@@ -45,7 +44,6 @@ export default function UnifiedRestaurantsTab(props: UnifiedRestaurantsTabProps)
         isHighRated={props.isHighRated}
         selectedEstablishmentTypes={props.selectedEstablishmentTypes}
         selectedDietTypes={props.selectedDietTypes}
-        selectedDietCategories={props.selectedDietCategories}
         isOpenNow={props.isOpenNow}
         sortBy={sortBy}
       />
