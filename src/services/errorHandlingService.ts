@@ -203,18 +203,20 @@ class ErrorHandlingService {
     try {
       const { supabase } = await import('@/integrations/supabase/client');
       
+      // Properly serialize the error data to be compatible with Supabase Json type
       const analyticsEvents = errorsToSend.map(error => ({
         event_type: 'error',
         event_name: 'error_report',
         properties: {
           message: error.message,
-          stack: error.stack?.substring(0, 2000), // Truncate long stacks
-          filename: error.filename,
-          lineno: error.lineno,
-          colno: error.colno,
+          stack: error.stack?.substring(0, 2000) || null, // Truncate long stacks
+          filename: error.filename || null,
+          lineno: error.lineno || null,
+          colno: error.colno || null,
           error_type: error.type,
           severity: error.severity,
-          context: error.context,
+          // Serialize context as a flat object to be compatible with Json type
+          context: JSON.parse(JSON.stringify(error.context)), // Ensure deep serialization
           session_id: this.sessionId
         }
       }));
