@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -59,6 +58,7 @@ export const usePaginatedRestaurants = (props: UsePaginatedRestaurantsProps) => 
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<Cursor | null>(null);
+  const [serverTiming, setServerTiming] = useState<number | null>(null);
 
   const {
     searchQuery = '',
@@ -76,6 +76,8 @@ export const usePaginatedRestaurants = (props: UsePaginatedRestaurantsProps) => 
 
   const fetchRestaurants = useCallback(async (isLoadMore = false) => {
     try {
+      const startTime = performance.now();
+      
       if (isLoadMore) {
         setLoadingMore(true);
       } else {
@@ -84,6 +86,7 @@ export const usePaginatedRestaurants = (props: UsePaginatedRestaurantsProps) => 
         setHasMore(true);
       }
       setError(null);
+      setServerTiming(null);
 
       let query = supabase
         .from('restaurants_full')
@@ -144,6 +147,10 @@ export const usePaginatedRestaurants = (props: UsePaginatedRestaurantsProps) => 
       query = query.limit(pageSize + 1); // +1 to check if there are more results
 
       const { data, error } = await query;
+      
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+      setServerTiming(duration);
 
       if (error) {
         throw error;
@@ -339,6 +346,7 @@ export const usePaginatedRestaurants = (props: UsePaginatedRestaurantsProps) => 
     error, 
     hasMore, 
     loadMore, 
-    refresh 
+    refresh,
+    serverTiming
   };
 };
