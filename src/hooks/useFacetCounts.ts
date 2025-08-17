@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useDietCategoryCounts } from './useDietCategoryCounts';
 
 interface FacetData {
   cuisines: Array<{
@@ -40,6 +41,14 @@ export const useFacetCounts = ({ cityId, userLat, userLng, radiusKm = 10 }: UseF
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Use the new diet category counts hook
+  const { counts: dietCounts, loading: dietLoading, error: dietError } = useDietCategoryCounts({
+    cityId,
+    userLat,
+    userLng,
+    radiusKm
+  });
+
   useEffect(() => {
     const fetchFacetCounts = async () => {
       try {
@@ -48,6 +57,7 @@ export const useFacetCounts = ({ cityId, userLat, userLng, radiusKm = 10 }: UseF
 
         console.log('Fetching facet counts for:', { cityId, userLat, userLng, radiusKm });
 
+        // Try to get facet data from the existing RPC function
         const { data, error } = await supabase.rpc('get_facets_for_location' as any, {
           target_city_id: cityId || null,
           user_lat: userLat || null,
@@ -57,25 +67,57 @@ export const useFacetCounts = ({ cityId, userLat, userLng, radiusKm = 10 }: UseF
 
         if (error) {
           console.error('Error fetching facet counts:', error);
-          throw error;
+          // If RPC doesn't exist, create a basic structure
+          setFacetData({
+            cuisines: [],
+            price_ranges: [],
+            establishment_types: [],
+            diet_categories: dietCounts,
+            last_updated: new Date().toISOString()
+          });
+        } else if (data) {
+          // Use data from RPC but override diet_categories with new counts
+          setFacetData({
+            ...data,
+            diet_categories: dietCounts
+          });
+        } else {
+          setFacetData({
+            cuisines: [],
+            price_ranges: [],
+            establishment_types: [],
+            diet_categories: dietCounts,
+            last_updated: new Date().toISOString()
+          });
         }
 
-        console.log('Facet counts received:', data);
-        setFacetData(data || null);
+        console.log('Facet counts received with new diet categories:', { ...facetData, diet_categories: dietCounts });
 
       } catch (err) {
         console.error('Error in useFacetCounts:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar contadores de filtros');
-        setFacetData(null);
+        setFacetData({
+          cuisines: [],
+          price_ranges: [],
+          establishment_types: [],
+          diet_categories: dietCounts,
+          last_updated: new Date().toISOString()
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    // Debounce the request slightly
-    const timeoutId = setTimeout(fetchFacetCounts, 100);
-    return () => clearTimeout(timeoutId);
-  }, [cityId, userLat, userLng, radiusKm]);
+    // Wait for diet counts to load
+    if (!dietLoading) {
+      const timeoutId = setTimeout(fetchFacetCounts, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [cityId, userLat, userLng, radiusKm, dietLoading, JSON.stringify(dietCounts)]);
 
-  return { facetData, loading, error };
+  // Combine loading states and errors
+  const combinedLoading = loading || dietLoading;
+  const combinedError = error || dietError;
+
+  return { facetData, loading: combinedLoading, error: combinedError };
 };

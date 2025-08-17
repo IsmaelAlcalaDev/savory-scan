@@ -5357,9 +5357,61 @@ export type Database = {
         Args: { "": string }
         Returns: unknown
       }
+      get_diet_category_counts: {
+        Args: {
+          city_id?: number
+          radius_km?: number
+          user_lat?: number
+          user_lng?: number
+        }
+        Returns: {
+          gluten_free_count: number
+          healthy_count: number
+          vegan_count: number
+          vegetarian_count: number
+        }[]
+      }
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
+      }
+      get_restaurants_by_diet_categories: {
+        Args: {
+          cuisine_type_ids?: number[]
+          diet_categories?: string[]
+          establishment_type_ids?: number[]
+          is_budget_friendly?: boolean
+          is_high_rated?: boolean
+          is_open_now?: boolean
+          max_distance_km?: number
+          price_ranges?: string[]
+          search_query?: string
+          user_lat?: number
+          user_lng?: number
+        }
+        Returns: {
+          cover_image_url: string
+          cuisine_types: Json
+          description: string
+          distance_km: number
+          establishment_type: string
+          favorites_count: number
+          gluten_free_pct: number
+          google_rating: number
+          google_rating_count: number
+          healthy_pct: number
+          latitude: number
+          logo_url: string
+          longitude: number
+          name: string
+          price_range: string
+          restaurant_id: number
+          services: Json
+          slug: string
+          total_dishes: number
+          vegan_pct: number
+          vegetarian_pct: number
+        }[]
       }
       get_stale_rating_cache: {
         Args: Record<PropertyKey, never>

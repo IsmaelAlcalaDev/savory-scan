@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useDietCategoryRestaurants } from './useDietCategoryRestaurants';
 
 interface Restaurant {
   id: number;
@@ -29,6 +30,7 @@ interface UseRestaurantsProps {
   isHighRated?: boolean;
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
+  selectedDietCategories?: string[];
   isOpenNow?: boolean;
   isBudgetFriendly?: boolean;
 }
@@ -64,15 +66,57 @@ export const useRestaurants = ({
   searchQuery = '',
   userLat,
   userLng,
-  maxDistance = 1000, // Increased default to 1000km to cover all of Spain
+  maxDistance = 1000,
   cuisineTypeIds,
   priceRanges,
   isHighRated = false,
   selectedEstablishmentTypes,
   selectedDietTypes,
+  selectedDietCategories,
   isOpenNow = false,
   isBudgetFriendly = false
 }: UseRestaurantsProps) => {
+  
+  // Use new diet categories system if selectedDietCategories is provided
+  if (selectedDietCategories && selectedDietCategories.length > 0) {
+    const dietCategoryResult = useDietCategoryRestaurants({
+      searchQuery,
+      userLat,
+      userLng,
+      maxDistance,
+      cuisineTypeIds,
+      priceRanges,
+      isHighRated,
+      selectedEstablishmentTypes,
+      selectedDietCategories,
+      isOpenNow,
+      isBudgetFriendly
+    });
+
+    // Transform diet category results to match Restaurant interface
+    const transformedRestaurants: Restaurant[] = dietCategoryResult.restaurants.map(r => ({
+      id: r.restaurant_id,
+      name: r.name,
+      slug: r.slug,
+      description: r.description,
+      price_range: r.price_range,
+      google_rating: r.google_rating,
+      distance_km: r.distance_km,
+      cuisine_types: r.cuisine_types,
+      establishment_type: r.establishment_type,
+      services: r.services,
+      favorites_count: r.favorites_count,
+      cover_image_url: r.cover_image_url,
+      logo_url: r.logo_url
+    }));
+
+    return {
+      restaurants: transformedRestaurants,
+      loading: dietCategoryResult.loading,
+      error: dietCategoryResult.error
+    };
+  }
+
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +126,7 @@ export const useRestaurants = ({
       try {
         setLoading(true);
         setError(null);
-        console.log('Fetching restaurants with params:', {
+        console.log('Fetching restaurants with legacy system (diet types):', {
           searchQuery,
           userLat,
           userLng,
@@ -96,7 +140,6 @@ export const useRestaurants = ({
           isBudgetFriendly
         });
 
-        // Handle budget-friendly filter - override price ranges if active
         let effectivePriceRanges = priceRanges;
         if (isBudgetFriendly) {
           effectivePriceRanges = ['€'];
@@ -223,9 +266,9 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        // Apply diet type filters
+        // Apply legacy diet type filters
         if (selectedDietTypes && selectedDietTypes.length > 0) {
-          console.log('Applying diet type filter for IDs:', selectedDietTypes);
+          console.log('Applying legacy diet type filter for IDs:', selectedDietTypes);
           
           // Get diet types data to understand the filtering criteria
           const { data: dietTypesData, error: dietTypesError } = await supabase
