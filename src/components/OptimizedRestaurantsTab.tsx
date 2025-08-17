@@ -159,7 +159,7 @@ export default function OptimizedRestaurantsTab({
             coverImageUrl={restaurant.cover_image_url}
             cuisineTypes={restaurant.cuisine_types}
             priceRange={restaurant.price_range}
-            rating={restaurant.google_rating}
+            googleRating={restaurant.google_rating}
             distance={restaurant.distance_km}
             establishmentType={restaurant.establishment_type}
             slug={restaurant.slug}
