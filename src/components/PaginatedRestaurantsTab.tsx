@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import PaginatedRestaurantsGrid from './PaginatedRestaurantsGrid';
 import RestaurantSortSelector from './RestaurantSortSelector';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 interface PaginatedRestaurantsTabProps {
   searchQuery?: string;
@@ -12,15 +11,16 @@ interface PaginatedRestaurantsTabProps {
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
   maxDistance?: number;
+  userLat?: number;
+  userLng?: number;
 }
 
 export default function PaginatedRestaurantsTab(props: PaginatedRestaurantsTabProps) {
-  const { userLocation } = useUserPreferences();
   const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'favorites'>(
-    userLocation ? 'distance' : 'favorites'
+    (props.userLat && props.userLng) ? 'distance' : 'favorites'
   );
 
-  const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
+  const hasLocation = Boolean(props.userLat && props.userLng);
 
   return (
     <div className="space-y-6">
@@ -35,8 +35,8 @@ export default function PaginatedRestaurantsTab(props: PaginatedRestaurantsTabPr
 
       <PaginatedRestaurantsGrid
         searchQuery={props.searchQuery}
-        userLat={userLocation?.latitude}
-        userLng={userLocation?.longitude}
+        userLat={props.userLat}
+        userLng={props.userLng}
         maxDistance={props.maxDistance}
         cuisineTypeIds={props.cuisineTypeIds}
         priceRanges={props.priceRanges}
