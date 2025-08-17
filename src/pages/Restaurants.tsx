@@ -2,5 +2,5 @@
 import FoodieSpotLayout from '@/components/FoodieSpotLayout';
 
 export default function Restaurants() {
-  return <FoodieSpotLayout initialTab="restaurants" />;
+  return <FoodieSpotLayout initialTab="restaurantes" />;
 }

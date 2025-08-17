@@ -10,7 +10,11 @@ import FilterTags from './FilterTags';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import LayoutStabilizer from './LayoutStabilizer';
 
-export default function FoodieSpotLayout() {
+interface FoodieSpotLayoutProps {
+  initialTab?: string;
+}
+
+export default function FoodieSpotLayout({ initialTab = 'restaurantes' }: FoodieSpotLayoutProps) {
   const { userLocation } = useUserPreferences();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCuisineTypes, setSelectedCuisineTypes] = useState<number[]>([]);
@@ -24,7 +28,7 @@ export default function FoodieSpotLayout() {
   const [spiceLevels, setSpiceLevels] = useState<number[]>([]);
   const [maxDistance, setMaxDistance] = useState<number>(50);
   const [isOpenNow, setIsOpenNow] = useState(false);
-  const [activeTab, setActiveTab] = useState('restaurantes');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
 
   // Clear all filters
@@ -62,8 +66,8 @@ export default function FoodieSpotLayout() {
           {/* Search Section */}
           <div className="mb-6">
             <SearchBar 
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
+              value={searchQuery}
+              onChange={setSearchQuery}
               onFiltersClick={() => setIsFiltersModalOpen(true)}
               hasActiveFilters={hasActiveFilters}
             />
@@ -77,7 +81,6 @@ export default function FoodieSpotLayout() {
                 selectedPriceRanges={selectedPriceRanges}
                 isHighRated={isHighRated}
                 selectedEstablishmentTypes={selectedEstablishmentTypes}
-                selectedDietCategories={selectedDietCategories}
                 selectedDishDietTypes={selectedDishDietTypes}
                 selectedFoodTypes={selectedFoodTypes}
                 selectedCustomTags={selectedCustomTags}
@@ -88,7 +91,6 @@ export default function FoodieSpotLayout() {
                 onRemovePriceRange={(range) => setSelectedPriceRanges(prev => prev.filter(p => p !== range))}
                 onRemoveHighRated={() => setIsHighRated(false)}
                 onRemoveEstablishmentType={(id) => setSelectedEstablishmentTypes(prev => prev.filter(e => e !== id))}
-                onRemoveDietCategory={(category) => setSelectedDietCategories(prev => prev.filter(d => d !== category))}
                 onRemoveDishDietType={(type) => setSelectedDishDietTypes(prev => prev.filter(d => d !== type))}
                 onRemoveFoodType={(id) => setSelectedFoodTypes(prev => prev.filter(f => f !== id))}
                 onRemoveCustomTag={(tag) => setSelectedCustomTags(prev => prev.filter(t => t !== tag))}
@@ -127,7 +129,7 @@ export default function FoodieSpotLayout() {
                     </div>
 
                     <DishesGrid
-                      query={searchQuery}
+                      searchQuery={searchQuery}
                       userLat={userLocation?.latitude}
                       userLng={userLocation?.longitude}
                       selectedDishDietTypes={selectedDishDietTypes}

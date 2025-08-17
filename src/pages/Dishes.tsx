@@ -13,7 +13,7 @@ export default function Dishes() {
         <meta property="og:type" content="website" />
       </Helmet>
       
-      <FoodieSpotLayout initialTab="dishes" />
+      <FoodieSpotLayout initialTab="platos" />
     </>
   );
 }
