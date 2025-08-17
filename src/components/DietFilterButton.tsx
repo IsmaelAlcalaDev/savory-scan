@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Leaf } from 'lucide-react';
 import { useState } from 'react';
 import DietFilter from './DietFilter';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface DietFilterButtonProps {
   selectedDietTypes: number[];
@@ -13,6 +14,21 @@ interface DietFilterButtonProps {
 
 export default function DietFilterButton({ selectedDietTypes, onDietTypeChange }: DietFilterButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { trackFilterToggle } = useAnalytics();
+
+  const handleDietTypeChange = (types: number[]) => {
+    // Track filter changes
+    const previousCount = selectedDietTypes.length;
+    const newCount = types.length;
+    
+    if (newCount > previousCount) {
+      trackFilterToggle('diet_filter', 'diet_types', true);
+    } else if (newCount < previousCount) {
+      trackFilterToggle('diet_filter', 'diet_types', false);
+    }
+    
+    onDietTypeChange(types);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -25,6 +41,8 @@ export default function DietFilterButton({ selectedDietTypes, onDietTypeChange }
               ? 'bg-red-500 hover:bg-red-600 text-white' 
               : 'bg-gray-100 hover:bg-red-500 hover:text-white text-gray-700'
           }`}
+          data-analytics-action="filter-open"
+          data-analytics-filter="diet"
         >
           <Leaf className="h-3 w-3 mr-1" />
           Dieta
@@ -48,7 +66,7 @@ export default function DietFilterButton({ selectedDietTypes, onDietTypeChange }
           </p>
           <DietFilter
             selectedDietTypes={selectedDietTypes}
-            onDietTypeChange={onDietTypeChange}
+            onDietTypeChange={handleDietTypeChange}
           />
         </div>
       </DialogContent>

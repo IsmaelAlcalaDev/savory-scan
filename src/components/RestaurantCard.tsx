@@ -1,259 +1,153 @@
-
-import { Star } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Phone, MapPin, Star } from 'lucide-react';
 import FavoriteButton from './FavoriteButton';
-import OptimizedImage from './OptimizedImage';
+import { Restaurant } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface RestaurantCardProps {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  priceRange: string;
-  googleRating?: number;
-  googleRatingCount?: number;
-  distance?: number;
-  cuisineTypes: string[];
-  establishmentType?: string;
-  services?: string[];
-  favoritesCount?: number;
-  coverImageUrl?: string;
-  logoUrl?: string;
-  onClick?: () => void;
-  className?: string;
-  onLoginRequired?: () => void;
-  layout?: 'grid' | 'list';
-  onFavoriteChange?: (restaurantId: number, isFavorite: boolean) => void;
-  priority?: boolean;
+  restaurant: Restaurant;
+  distance?: number | null;
+  onCardClick?: (restaurant: Restaurant) => void;
 }
 
-export default function RestaurantCard({
-  id,
-  name,
-  slug,
-  description,
-  priceRange,
-  googleRating,
-  googleRatingCount,
-  distance,
-  cuisineTypes,
-  establishmentType,
-  services = [],
-  favoritesCount = 0,
-  coverImageUrl,
-  logoUrl,
-  onClick,
-  className,
-  onLoginRequired = () => {},
-  layout = 'grid',
-  onFavoriteChange,
-  priority = false
-}: RestaurantCardProps) {
-  const handleClick = () => {
-    if (onClick) {
-      onClick();
-    } else {
-      window.location.href = `/restaurant/${slug}`;
+export default function RestaurantCard({ restaurant, distance, onCardClick }: RestaurantCardProps) {
+  const { trackCardClick, trackActionClick, trackFeedImpression } = useAnalytics();
+  const [hasBeenViewed, setHasBeenViewed] = useState(false);
+
+  // Track impression when card becomes visible
+  useEffect(() => {
+    if (!hasBeenViewed) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && !hasBeenViewed) {
+              trackFeedImpression([restaurant.id]);
+              setHasBeenViewed(true);
+              observer.disconnect();
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+
+      const cardElement = document.querySelector(`[data-restaurant-id="${restaurant.id}"]`);
+      if (cardElement) {
+        observer.observe(cardElement);
+      }
+
+      return () => observer.disconnect();
     }
+  }, [restaurant.id, hasBeenViewed, trackFeedImpression]);
+
+  const handleCardClick = () => {
+    trackCardClick('restaurant', restaurant.id);
+    onCardClick?.(restaurant);
   };
 
-  const displayImage = coverImageUrl || logoUrl;
-
-  const formatDistance = (distanceKm: number) => {
-    if (distanceKm < 1) {
-      return `${Math.round(distanceKm * 1000)}m`;
-    }
-    return `${distanceKm.toFixed(1)}km`;
+  const handleCallClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    trackActionClick('call', restaurant.id);
   };
 
-  if (layout === 'list') {
-    return (
-      <div 
-        className={cn(
-          "group cursor-pointer transition-all duration-300 hover:scale-[1.01] flex items-center gap-4 p-4 rounded-lg border bg-card",
-          className
-        )}
-        onClick={handleClick}
-      >
-        <div className="w-24 h-24 relative overflow-hidden rounded-lg flex-shrink-0">
-          {displayImage && (
-            <OptimizedImage
-              src={displayImage}
-              alt={name}
-              width={96}
-              height={96}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              priority={priority}
-              sizes="96px"
-            />
-          )}
-          <div className={cn(
-            "absolute inset-0 transition-smooth",
-            displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
-          )} />
-          
-          <div className="absolute top-2 left-2">
-            <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
-              {establishmentType}
-            </Badge>
-          </div>
-          
-          <div className="absolute bottom-2 right-2">
-            <FavoriteButton
-              restaurantId={id}
-              favoritesCount={favoritesCount}
-              onLoginRequired={onLoginRequired}
-              savedFrom="list_card"
-              size="sm"
-            />
-          </div>
-        </div>
+  const handleDirectionsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    trackActionClick('directions', restaurant.id);
+  };
 
-        <div className="flex-1 space-y-2">
-          {/* Logo and name row */}
-          <div className="flex items-center gap-3">
-            {logoUrl && (
-              <div className="flex-shrink-0 flex items-center">
-                <OptimizedImage
-                  src={logoUrl}
-                  alt={`${name} logo`}
-                  width={48}
-                  height={48}
-                  className="w-12 h-12 rounded object-cover"
-                  sizes="48px"
-                />
-              </div>
-            )}
-            
-            {/* Name and rating container - aligned with content below */}
-            <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base line-clamp-1 text-black font-medium">
-                  {name}
-                </h3>
-                
-                {googleRating && typeof googleRating === 'number' && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                    <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
-                    {googleRatingCount && typeof googleRatingCount === 'number' && (
-                      <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
-                    )}
-                  </div>
-                )}
-              </div>
-              
-              {/* Second line - aligned with name, not logo */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-                <span className="line-clamp-1">
-                  {cuisineTypes.slice(0, 2).join(', ')}
-                </span>
-                <span>•</span>
-                <span className="text-muted-foreground font-medium">{priceRange}</span>
-                {distance && typeof distance === 'number' && (
-                  <>
-                    <span>•</span>
-                    <span className="flex-shrink-0 text-black font-medium">{formatDistance(distance)}</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const navigate = useNavigate();
+
+  const getRatingColor = (rating: number | null | undefined) => {
+    if (!rating) return 'text-gray-500';
+    if (rating >= 4.0) return 'text-green-500';
+    if (rating >= 3.0) return 'text-yellow-500';
+    return 'text-red-500';
+  };
+
+  const formattedDistance = distance !== null && distance !== undefined
+    ? `${distance.toFixed(1)} km`
+    : 'No disponible';
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.onerror = null; // prevent infinite loop
+    e.currentTarget.src = "/placeholder-restaurant.png";
+  };
 
   return (
-    <div 
-      className={cn(
-        "group cursor-pointer transition-all duration-300 hover:scale-[1.02]",
-        className
-      )}
-      onClick={handleClick}
+    <Card 
+      className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
+      onClick={handleCardClick}
+      data-restaurant-id={restaurant.id}
+      data-analytics-element="restaurant-card"
     >
-      <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
-        {displayImage && (
-          <OptimizedImage
-            src={displayImage}
-            alt={name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            priority={priority}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        )}
-        <div className={cn(
-          "absolute inset-0 transition-smooth",
-          displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
-        )} />
-        
-        <div className="absolute top-3 left-3">
-          <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
-            {establishmentType}
-          </Badge>
-        </div>
-        
-        <div className="absolute bottom-3 right-3">
-          <FavoriteButton
-            restaurantId={id}
-            favoritesCount={favoritesCount}
-            onLoginRequired={onLoginRequired}
-            savedFrom="grid_card"
-            size="md"
-          />
+      <div className="relative">
+        <img
+          src={restaurant.cover_image_url || "/placeholder-restaurant.png"}
+          alt={restaurant.name}
+          className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          onError={handleImageError}
+        />
+        <div className="absolute top-2 left-2 bg-black/60 text-white text-xs py-1 px-2 rounded-md">
+          {formattedDistance}
         </div>
       </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          {logoUrl && (
-            <div className="flex-shrink-0 flex items-center">
-              <OptimizedImage
-                src={logoUrl}
-                alt={`${name} logo`}
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded object-cover"
-                sizes="48px"
-              />
-            </div>
-          )}
-          
-          {/* Name and rating container - aligned with content below */}
-          <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-base line-clamp-1 text-black font-medium">
-                {name}
-              </h3>
-              {googleRating && typeof googleRating === 'number' && (
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                  <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
-                  {googleRatingCount && typeof googleRatingCount === 'number' && (
-                    <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {/* Second line - aligned with name, not logo */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-              <span className="line-clamp-1">
-                {cuisineTypes.slice(0, 2).join(', ')}
-              </span>
-              <span>•</span>
-              <span className="text-muted-foreground font-medium">{priceRange}</span>
-              {distance && typeof distance === 'number' && (
-                <>
-                  <span>•</span>
-                  <span className="flex-shrink-0 text-black font-medium">{formatDistance(distance)}</span>
-                </>
-              )}
-            </div>
+      
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold line-clamp-1">{restaurant.name}</h3>
+          <div className="flex items-center space-x-1.5">
+            <Star className={cn("h-4 w-4", getRatingColor(restaurant.google_rating))} />
+            <span className={cn("text-sm font-medium", getRatingColor(restaurant.google_rating))}>
+              {restaurant.google_rating?.toFixed(1) || "N/A"}
+            </span>
           </div>
         </div>
-      </div>
-    </div>
+
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          {restaurant.description || 'Sin descripción'}
+        </p>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center gap-2">
+            {restaurant.phone && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs hover:bg-primary hover:text-primary-foreground"
+                onClick={handleCallClick}
+                data-analytics-action="call-click"
+                data-analytics-restaurant-id={restaurant.id}
+              >
+                <Phone className="h-3 w-3 mr-1" />
+                Llamar
+              </Button>
+            )}
+            {(restaurant.latitude && restaurant.longitude) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs hover:bg-primary hover:text-primary-foreground"
+                onClick={handleDirectionsClick}
+                data-analytics-action="directions-click"
+                data-analytics-restaurant-id={restaurant.id}
+              >
+                <MapPin className="h-3 w-3 mr-1" />
+                Cómo llegar
+              </Button>
+            )}
+          </div>
+          
+          <FavoriteButton 
+            restaurantId={restaurant.id}
+            restaurantSlug={restaurant.slug}
+            favoritesCount={restaurant.favorites_count || 0}
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 }

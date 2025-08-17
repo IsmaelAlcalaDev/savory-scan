@@ -1,11 +1,12 @@
-
 import { useState } from 'react';
 import { Heart, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface FavoriteButtonProps {
   restaurantId: number;
+  restaurantSlug: string;
   favoritesCount: number;
   savedFrom?: string;
   size?: 'sm' | 'md' | 'lg';
@@ -16,6 +17,7 @@ interface FavoriteButtonProps {
 
 export default function FavoriteButton({
   restaurantId,
+  restaurantSlug,
   favoritesCount,
   savedFrom = 'button',
   size = 'md',
@@ -24,6 +26,7 @@ export default function FavoriteButton({
   showCount = false,
 }: FavoriteButtonProps) {
   const { isFavorite, isToggling, toggleFavorite } = useFavorites();
+  const { trackFavorite } = useAnalytics();
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleLoginRequired = () => {
@@ -39,11 +42,16 @@ export default function FavoriteButton({
 
     if (isToggling(restaurantId)) return;
 
+    const currentlyFavorited = isFavorite(restaurantId);
+    const action = currentlyFavorited ? 'remove' : 'add';
+    
+    // Track analytics
+    trackFavorite(action, 'restaurant', restaurantId);
+
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
 
-    // Call toggle; do not touch local counts here
-    await toggleFavorite(restaurantId, savedFrom, handleLoginRequired);
+    await toggleFavorite(restaurantId, restaurantSlug, savedFrom, handleLoginRequired);
   };
 
   const liked = isFavorite(restaurantId);
@@ -66,7 +74,7 @@ export default function FavoriteButton({
   };
 
   if (showCount) {
-    // Original version with counter
+    // Version with counter
     return (
       <button
         type="button"
@@ -81,6 +89,8 @@ export default function FavoriteButton({
         )}
         aria-pressed={liked}
         aria-label={liked ? "Quitar de favoritos" : "Añadir a favoritos"}
+        data-analytics-action="favorite-toggle"
+        data-analytics-restaurant-id={restaurantId}
       >
         {loading ? (
           <Loader2 className={cn("animate-spin", getIconSize())} />
@@ -120,6 +130,8 @@ export default function FavoriteButton({
       )}
       aria-pressed={liked}
       aria-label={liked ? "Quitar de favoritos" : "Añadir a favoritos"}
+      data-analytics-action="favorite-toggle"
+      data-analytics-restaurant-id={restaurantId}
     >
       {loading ? (
         <Loader2 className={cn("animate-spin", getIconSize())} />

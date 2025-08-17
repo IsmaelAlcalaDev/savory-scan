@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Heart, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDishFavorites } from '@/contexts/DishFavoritesContext';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface DishFavoriteButtonProps {
   dishId: number;
@@ -26,6 +27,7 @@ export default function DishFavoriteButton({
   showCount = false,
 }: DishFavoriteButtonProps) {
   const { isDishFavorite, isToggling, toggleDishFavorite } = useDishFavorites();
+  const { trackFavorite } = useAnalytics();
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleLoginRequired = () => {
@@ -40,6 +42,12 @@ export default function DishFavoriteButton({
     }
 
     if (isToggling(dishId)) return;
+
+    const currentlyFavorited = isDishFavorite(dishId);
+    const action = currentlyFavorited ? 'remove' : 'add';
+    
+    // Track analytics
+    trackFavorite(action, 'dish', dishId);
 
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
@@ -83,6 +91,9 @@ export default function DishFavoriteButton({
         )}
         aria-pressed={liked}
         aria-label={liked ? "Quitar de favoritos" : "Añadir a favoritos"}
+        data-analytics-action="dish-favorite-toggle"
+        data-analytics-dish-id={dishId}
+        data-analytics-restaurant-id={restaurantId}
       >
         {loading ? (
           <Loader2 className={cn("animate-spin", getIconSize())} />
@@ -122,6 +133,9 @@ export default function DishFavoriteButton({
       )}
       aria-pressed={liked}
       aria-label={liked ? "Quitar de favoritos" : "Añadir a favoritos"}
+      data-analytics-action="dish-favorite-toggle"
+      data-analytics-dish-id={dishId}
+      data-analytics-restaurant-id={restaurantId}
     >
       {loading ? (
         <Loader2 className={cn("animate-spin", getIconSize())} />
