@@ -6,9 +6,9 @@ import RestaurantCard from './RestaurantCard';
 import RestaurantSortSelector from './RestaurantSortSelector';
 import { Skeleton } from '@/components/ui/skeleton';
 import SimpleDietFilterWithCounts from './SimpleDietFilterWithCounts';
-import CacheDebugPanel from './CacheDebugPanel';
+import { Badge } from '@/components/ui/badge';
 
-interface OptimizedRestaurantsTabProps {
+interface CacheOptimizedRestaurantsTabProps {
   searchQuery?: string;
   cuisineTypeIds?: number[];
   priceRanges?: string[];
@@ -18,13 +18,12 @@ interface OptimizedRestaurantsTabProps {
   maxDistance?: number;
 }
 
-export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabProps) {
+export default function CacheOptimizedRestaurantsTab(props: CacheOptimizedRestaurantsTabProps) {
   const { userLocation } = useUserPreferences();
   const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'favorites'>(
     userLocation ? 'distance' : 'favorites'
   );
   const [selectedDietCategories, setSelectedDietCategories] = useState<string[]>([]);
-  const [showCacheDebug, setShowCacheDebug] = useState(false);
 
   const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
 
@@ -40,9 +39,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
     selectedDietCategories,
     sortBy
   });
-
-  // Show debug panel in development or when cache metrics are available
-  const shouldShowDebug = process.env.NODE_ENV === 'development' || cacheMetrics.cacheStatus !== 'unknown';
 
   if (loading) {
     return (
@@ -63,10 +59,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             />
           </div>
         </div>
-
-        {shouldShowDebug && (
-          <CacheDebugPanel metrics={cacheMetrics} />
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {Array.from({ length: 12 }).map((_, i) => (
@@ -103,11 +95,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             />
           </div>
         </div>
-        
-        {shouldShowDebug && (
-          <CacheDebugPanel metrics={cacheMetrics} />
-        )}
-        
         <div className="text-center py-8">
           <p className="text-muted-foreground">Error al cargar restaurantes: {error}</p>
         </div>
@@ -134,11 +121,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             />
           </div>
         </div>
-        
-        {shouldShowDebug && (
-          <CacheDebugPanel metrics={cacheMetrics} />
-        )}
-        
         <div className="text-center py-8">
           <p className="text-muted-foreground">No se encontraron restaurantes</p>
           <p className="text-sm text-muted-foreground mt-2">
@@ -152,7 +134,24 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">Restaurantes</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-semibold">Restaurantes</h2>
+          {/* Cache status indicators */}
+          <div className="flex gap-2">
+            <Badge 
+              variant={cacheMetrics.cacheStatus === 'redis-hit' ? 'default' : 'secondary'}
+              className="text-xs"
+            >
+              {cacheMetrics.cacheStatus === 'redis-hit' ? '⚡ Cache' : 
+               cacheMetrics.cacheStatus === 'db-fallback' ? '🔄 DB' : '❓ Unknown'}
+            </Badge>
+            {cacheMetrics.avgLatency > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {Math.round(cacheMetrics.avgLatency)}ms
+              </Badge>
+            )}
+          </div>
+        </div>
         <div className="flex gap-2">
           <SimpleDietFilterWithCounts
             selectedDietCategories={selectedDietCategories}
@@ -167,10 +166,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
           />
         </div>
       </div>
-
-      {shouldShowDebug && (
-        <CacheDebugPanel metrics={cacheMetrics} />
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
         {restaurants.map((restaurant, index) => (
