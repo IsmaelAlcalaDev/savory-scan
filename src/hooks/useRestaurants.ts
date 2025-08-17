@@ -28,7 +28,8 @@ interface UseRestaurantsProps {
   priceRanges?: string[];
   isHighRated?: boolean;
   selectedEstablishmentTypes?: number[];
-  selectedDietTypes?: number[];
+  selectedDietTypes?: number[]; // Keep for backward compatibility
+  selectedDietCategories?: string[]; // New string-based diet categories
   isOpenNow?: boolean;
   isBudgetFriendly?: boolean;
 }
@@ -70,6 +71,7 @@ export const useRestaurants = ({
   isHighRated = false,
   selectedEstablishmentTypes,
   selectedDietTypes,
+  selectedDietCategories, // New parameter
   isOpenNow = false,
   isBudgetFriendly = false
 }: UseRestaurantsProps) => {
@@ -92,6 +94,7 @@ export const useRestaurants = ({
           isHighRated,
           selectedEstablishmentTypes,
           selectedDietTypes,
+          selectedDietCategories,
           isOpenNow,
           isBudgetFriendly
         });
@@ -223,9 +226,71 @@ export const useRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        // Apply diet type filters
-        if (selectedDietTypes && selectedDietTypes.length > 0) {
-          console.log('Applying diet type filter for IDs:', selectedDietTypes);
+        // Apply diet category filters (new string-based system)
+        if (selectedDietCategories && selectedDietCategories.length > 0) {
+          console.log('Applying diet category filter:', selectedDietCategories);
+          
+          const restaurantIds = formattedData.map(r => r.id);
+          
+          if (restaurantIds.length > 0) {
+            // Get all dishes for these restaurants
+            const { data: dishesData, error: dishesError } = await supabase
+              .from('dishes')
+              .select('restaurant_id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
+              .in('restaurant_id', restaurantIds)
+              .eq('is_active', true)
+              .is('deleted_at', null);
+
+            if (dishesError) {
+              console.error('Error fetching dishes for diet filtering:', dishesError);
+            } else if (dishesData) {
+              console.log('Dishes data for diet filtering:', dishesData.length, 'dishes found');
+              
+              // Group dishes by restaurant
+              const dishesByRestaurant: Record<number, any[]> = {};
+              dishesData.forEach(dish => {
+                if (!dishesByRestaurant[dish.restaurant_id]) {
+                  dishesByRestaurant[dish.restaurant_id] = [];
+                }
+                dishesByRestaurant[dish.restaurant_id].push(dish);
+              });
+
+              console.log('Dishes grouped by restaurant:', Object.keys(dishesByRestaurant).length, 'restaurants have dishes');
+
+              // Filter restaurants that meet ANY selected diet category with >= 20% threshold
+              const validRestaurantIds = new Set<number>();
+
+              Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
+                const restaurantId = parseInt(restaurantIdStr);
+                
+                // Check if restaurant meets ANY of the selected diet categories with 20% minimum
+                const meetsAnyCriteria = selectedDietCategories.some(category => {
+                  const percentage = calculateDietPercentage(dishes, category);
+                  console.log(`Restaurant ${restaurantId} - ${category}: ${percentage}% (need >= 20%)`);
+                  return percentage >= 20;
+                });
+
+                if (meetsAnyCriteria) {
+                  validRestaurantIds.add(restaurantId);
+                  console.log(`Restaurant ${restaurantId} meets diet criteria`);
+                }
+              });
+
+              console.log('Valid restaurants after diet filtering:', validRestaurantIds.size, 'out of', formattedData.length);
+
+              // Filter the restaurants array
+              formattedData = formattedData.filter(restaurant => 
+                validRestaurantIds.has(restaurant.id)
+              );
+              
+              console.log('Final restaurants after diet filtering:', formattedData.length);
+            }
+          }
+        }
+
+        // Apply legacy diet type filters (for backward compatibility)
+        else if (selectedDietTypes && selectedDietTypes.length > 0) {
+          console.log('Applying legacy diet type filter for IDs:', selectedDietTypes);
           
           // Get diet types data to understand the filtering criteria
           const { data: dietTypesData, error: dietTypesError } = await supabase
@@ -387,7 +452,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, selectedDietCategories, isOpenNow, isBudgetFriendly]);
 
   return { restaurants, loading, error };
 };
