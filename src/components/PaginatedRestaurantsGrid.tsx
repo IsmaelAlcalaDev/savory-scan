@@ -87,8 +87,8 @@ export default function PaginatedRestaurantsGrid(props: PaginatedRestaurantsGrid
               slug={restaurant.slug}
               description={restaurant.description}
               priceRange={restaurant.price_range}
-              googleRating={restaurant.google_rating}
-              googleRatingCount={restaurant.google_rating_count}
+              rating={restaurant.google_rating}
+              ratingCount={restaurant.google_rating_count}
               distance={restaurant.distance_km}
               cuisineTypes={restaurant.cuisine_types}
               establishmentType={restaurant.establishment_type}
