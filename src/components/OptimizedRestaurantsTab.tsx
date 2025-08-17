@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import RestaurantCard from './RestaurantCard';
@@ -156,12 +156,12 @@ export default function OptimizedRestaurantsTab({
             id={restaurant.id}
             name={restaurant.name}
             description={restaurant.description}
-            imageUrl={restaurant.image_url}
+            coverImageUrl={restaurant.cover_image_url}
             cuisineTypes={restaurant.cuisine_types}
             priceRange={restaurant.price_range}
             rating={restaurant.google_rating}
             distance={restaurant.distance_km}
-            establishmentTypes={restaurant.establishment_types}
+            establishmentType={restaurant.establishment_type}
             slug={restaurant.slug}
             favoritesCount={restaurant.favorites_count}
           />
