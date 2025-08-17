@@ -12,7 +12,7 @@ interface NormalizedPaginatedRestaurantsTabProps {
   priceRanges?: string[];
   isHighRated?: boolean;
   selectedEstablishmentTypes?: number[];
-  selectedDietTypes?: number[];
+  selectedDietTypes?: string[]; // Changed from number[] to string[]
   maxDistance?: number;
 }
 
@@ -34,7 +34,7 @@ export default function NormalizedPaginatedRestaurantsTab(props: NormalizedPagin
     priceRanges: props.priceRanges,
     isHighRated: props.isHighRated,
     selectedEstablishmentTypes: props.selectedEstablishmentTypes,
-    selectedDietCategories: props.selectedDietTypes,
+    selectedDietCategories: props.selectedDietTypes, // Now correctly matches string[] type
     isOpenNow: false
   });
 
