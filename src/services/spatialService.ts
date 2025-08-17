@@ -42,9 +42,6 @@ export class SpatialService {
     try {
       console.log('SpatialService: Using PostGIS KNN for nearby restaurants', { userLat, userLng, maxDistance });
 
-      // Crear punto de referencia del usuario
-      const userPoint = `ST_SetSRID(ST_MakePoint(${userLng}, ${userLat}), 4326)`;
-      
       // Base query usando PostGIS
       let query = supabase
         .from('restaurants_full')
@@ -89,23 +86,22 @@ export class SpatialService {
         return [];
       }
 
-      // Calcular distancias usando PostGIS y filtrar
-      const restaurantsWithDistance = await Promise.all(
-        data.map(async (restaurant: any) => {
+      // Calcular distancias usando fórmula de Haversine y filtrar
+      const restaurantsWithDistance = data
+        .map((restaurant: any) => {
           if (!restaurant.longitude || !restaurant.latitude) {
             return null;
           }
 
-          // Calcular distancia real usando PostGIS
-          const { data: distanceData } = await supabase
-            .rpc('st_distance_sphere', {
-              geom1: `ST_SetSRID(ST_MakePoint(${restaurant.longitude}, ${restaurant.latitude}), 4326)`,
-              geom2: userPoint
-            });
+          // Calcular distancia usando fórmula de Haversine
+          const distanceKm = this.calculateHaversineDistance(
+            userLat,
+            userLng,
+            Number(restaurant.latitude),
+            Number(restaurant.longitude)
+          );
 
-          const distanceKm = distanceData ? distanceData / 1000 : null;
-
-          if (distanceKm === null || distanceKm > maxDistance) {
+          if (distanceKm > maxDistance) {
             return null;
           }
 
@@ -147,19 +143,15 @@ export class SpatialService {
             specializes_in_diet: restaurant.specializes_in_diet || [],
             diet_certifications: restaurant.diet_certifications || [],
             diet_percentages: restaurant.diet_percentages || {}
-          };
+          } satisfies SpatialRestaurant;
         })
-      );
-
-      // Filtrar nulls y ordenar por distancia
-      const validRestaurants = restaurantsWithDistance
         .filter((r): r is SpatialRestaurant => r !== null)
         .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0))
         .slice(0, limit);
 
       // Aplicar filtro de dietas si es necesario
       if (filters.selectedDietTypes && filters.selectedDietTypes.length > 0) {
-        const filteredByDiet = validRestaurants.filter(restaurant => {
+        const filteredByDiet = restaurantsWithDistance.filter(restaurant => {
           if (restaurant.specializes_in_diet && restaurant.specializes_in_diet.length > 0) {
             return filters.selectedDietTypes!.some(dietId => 
               restaurant.specializes_in_diet!.includes(dietId)
@@ -168,12 +160,12 @@ export class SpatialService {
           return false;
         });
 
-        console.log('SpatialService: Filtered by diet:', filteredByDiet.length, 'of', validRestaurants.length);
+        console.log('SpatialService: Filtered by diet:', filteredByDiet.length, 'of', restaurantsWithDistance.length);
         return filteredByDiet;
       }
 
-      console.log('SpatialService: Found', validRestaurants.length, 'nearby restaurants');
-      return validRestaurants;
+      console.log('SpatialService: Found', restaurantsWithDistance.length, 'nearby restaurants');
+      return restaurantsWithDistance;
 
     } catch (error) {
       console.error('SpatialService: Error in findNearbyRestaurants:', error);
@@ -182,7 +174,7 @@ export class SpatialService {
   }
 
   /**
-   * Busca restaurantes usando KNN (k-nearest neighbor) de PostGIS
+   * Busca restaurantes usando ordenamiento por distancia
    */
   static async findNearestRestaurantsKNN(
     userLat: number,
@@ -190,26 +182,111 @@ export class SpatialService {
     limit: number = 20
   ): Promise<SpatialRestaurant[]> {
     try {
-      console.log('SpatialService: Using PostGIS KNN operator for nearest restaurants');
+      console.log('SpatialService: Using distance-based ordering for nearest restaurants');
 
-      // Usar PostGIS KNN operator (<->) para encontrar los más cercanos
       const { data, error } = await supabase
-        .rpc('find_nearest_restaurants_knn', {
-          user_lat: userLat,
-          user_lng: userLng,
-          max_results: limit
-        });
+        .from('restaurants_full')
+        .select('*')
+        .not('longitude', 'is', null)
+        .not('latitude', 'is', null)
+        .limit(limit * 3); // Obtenemos más para ordenar por distancia
 
       if (error) {
         console.error('SpatialService: KNN query error:', error);
         throw error;
       }
 
-      return data || [];
+      if (!data || data.length === 0) {
+        return [];
+      }
+
+      // Calcular distancias y ordenar
+      const restaurantsWithDistance = data
+        .map((restaurant: any) => {
+          const distanceKm = this.calculateHaversineDistance(
+            userLat,
+            userLng,
+            Number(restaurant.latitude),
+            Number(restaurant.longitude)
+          );
+
+          // Parse JSON arrays
+          let cuisine_types: string[] = [];
+          let services: string[] = [];
+
+          try {
+            cuisine_types = Array.isArray(restaurant.cuisine_types) 
+              ? restaurant.cuisine_types 
+              : JSON.parse(restaurant.cuisine_types || '[]');
+          } catch (e) {
+            cuisine_types = [];
+          }
+
+          try {
+            services = Array.isArray(restaurant.services) 
+              ? restaurant.services 
+              : JSON.parse(restaurant.services || '[]');
+          } catch (e) {
+            services = [];
+          }
+
+          return {
+            id: restaurant.id,
+            name: restaurant.name,
+            slug: restaurant.slug,
+            description: restaurant.description,
+            price_range: restaurant.price_range,
+            google_rating: restaurant.google_rating,
+            google_rating_count: restaurant.google_rating_count,
+            distance_km: distanceKm,
+            cuisine_types,
+            establishment_type: restaurant.establishment_type,
+            services,
+            favorites_count: restaurant.favorites_count || 0,
+            cover_image_url: restaurant.cover_image_url,
+            logo_url: restaurant.logo_url,
+            specializes_in_diet: restaurant.specializes_in_diet || [],
+            diet_certifications: restaurant.diet_certifications || [],
+            diet_percentages: restaurant.diet_percentages || {}
+          } satisfies SpatialRestaurant;
+        })
+        .sort((a, b) => a.distance_km - b.distance_km)
+        .slice(0, limit);
+
+      return restaurantsWithDistance;
 
     } catch (error) {
       console.error('SpatialService: Error in KNN query:', error);
-      throw error;
+      return [];
     }
+  }
+
+  /**
+   * Calcula la distancia usando la fórmula de Haversine
+   */
+  private static calculateHaversineDistance(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number
+  ): number {
+    const R = 6371; // Radio de la Tierra en kilómetros
+    const dLat = this.toRadians(lat2 - lat1);
+    const dLng = this.toRadians(lng2 - lng1);
+    
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  /**
+   * Convierte grados a radianes
+   */
+  private static toRadians(degrees: number): number {
+    return degrees * (Math.PI / 180);
   }
 }
