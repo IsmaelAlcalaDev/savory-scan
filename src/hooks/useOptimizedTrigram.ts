@@ -17,7 +17,7 @@ interface TrigramResult {
 
 /**
  * Hook optimizado para búsqueda trigram ultrarrápida
- * Ideal para autocompletado con <50ms
+ * Ideal para autocompletado con <100ms
  */
 export const useOptimizedTrigram = ({ 
   query, 
@@ -43,7 +43,7 @@ export const useOptimizedTrigram = ({
       const startTime = performance.now();
 
       try {
-        console.log('Optimized trigram search starting for:', query);
+        console.log('Ultra-optimized trigram search starting for:', query);
 
         const { data, error } = await supabase
           .rpc('fast_restaurant_autocomplete', {
@@ -56,7 +56,7 @@ export const useOptimizedTrigram = ({
         setSearchTime(duration);
 
         if (error) {
-          console.error('Trigram search error:', error);
+          console.error('Optimized trigram search error:', error);
           throw error;
         }
 
@@ -72,12 +72,12 @@ export const useOptimizedTrigram = ({
             }));
 
           setResults(filteredResults);
-          console.log(`Trigram search completed in ${duration.toFixed(2)}ms, found ${filteredResults.length} results`);
+          console.log(`Ultra-optimized trigram search completed in ${duration.toFixed(2)}ms, found ${filteredResults.length} results`);
         } else {
           setResults([]);
         }
       } catch (err) {
-        console.error('Trigram search failed:', err);
+        console.error('Optimized trigram search failed:', err);
         setError(err instanceof Error ? err.message : 'Error en búsqueda trigram');
         setResults([]);
         setSearchTime(performance.now() - startTime);
@@ -86,8 +86,8 @@ export const useOptimizedTrigram = ({
       }
     };
 
-    // Minimal debounce for ultra-fast trigram search
-    const debounceTimer = setTimeout(searchWithTrigram, 25);
+    // Optimize debounce for ultra-fast trigram search while reducing server load
+    const debounceTimer = setTimeout(searchWithTrigram, 250);
     return () => clearTimeout(debounceTimer);
   }, [query, limit, minSimilarity]);
 
@@ -96,6 +96,6 @@ export const useOptimizedTrigram = ({
     loading, 
     error, 
     searchTime,
-    isUltraFast: searchTime > 0 && searchTime < 50 
+    isUltraFast: searchTime > 0 && searchTime < 100 
   };
 };

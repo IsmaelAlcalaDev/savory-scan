@@ -31,12 +31,12 @@ export const useIntelligentDishSearch = (query: string) => {
       setError(null);
 
       try {
-        console.log('Fulltext tsvector dish search for query:', query);
+        console.log('Optimized fulltext tsvector dish search for query:', query);
 
         // Prepare query for tsvector search - convert spaces to & for AND search
         const tsQuery = query.trim().split(/\s+/).join(' & ');
 
-        // Use the new tsvector-optimized RPC function
+        // Use the existing tsvector-optimized RPC function
         const { data, error } = await supabase
           .rpc('search_dishes_fulltext', {
             search_query: tsQuery,
@@ -44,7 +44,7 @@ export const useIntelligentDishSearch = (query: string) => {
           });
 
         if (error) {
-          console.error('Error in fulltext dish search:', error);
+          console.error('Error in optimized fulltext dish search:', error);
           throw error;
         }
 
@@ -63,12 +63,12 @@ export const useIntelligentDishSearch = (query: string) => {
           }));
 
           setResults(formattedResults);
-          console.log('Fulltext dish search results:', formattedResults.length, 'found');
+          console.log('Optimized fulltext dish search results:', formattedResults.length, 'found');
         } else {
           setResults([]);
         }
       } catch (err) {
-        console.error('Error in fulltext dish search:', err);
+        console.error('Error in optimized fulltext dish search:', err);
         setError(err instanceof Error ? err.message : 'Error en búsqueda de platos');
         setResults([]);
       } finally {
@@ -76,8 +76,8 @@ export const useIntelligentDishSearch = (query: string) => {
       }
     };
 
-    // Reduced debounce time since tsvector search is much faster
-    const debounceTimer = setTimeout(searchDishes, 100);
+    // Increase debounce to 250ms for consistency and reduced server load
+    const debounceTimer = setTimeout(searchDishes, 250);
     return () => clearTimeout(debounceTimer);
   }, [query]);
 

@@ -5343,6 +5343,20 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      intelligent_location_search: {
+        Args: { search_limit?: number; search_query: string }
+        Returns: {
+          description: string
+          id: number
+          is_famous: boolean
+          latitude: number
+          longitude: number
+          name: string
+          parent: string
+          similarity_score: number
+          type: string
+        }[]
+      }
       json: {
         Args: { "": unknown }
         Returns: Json
@@ -5562,6 +5576,64 @@ export type Database = {
           restaurant_name: string
           restaurant_slug: string
           ts_rank: number
+        }[]
+      }
+      search_feed: {
+        Args: {
+          p_cuisines?: number[]
+          p_diet?: string
+          p_diet_pct_min?: number
+          p_est_types?: number[]
+          p_lat?: number
+          p_limit?: number
+          p_lon?: number
+          p_max_km?: number
+          p_min_rating?: number
+          p_price_bands?: string[]
+          p_q?: string
+        }
+        Returns: {
+          cover_image_url: string
+          cuisine_types: string[]
+          description: string
+          diet_pct: number
+          distance_km: number
+          establishment_type: string
+          favorites_count: number
+          id: number
+          logo_url: string
+          name: string
+          price_range: string
+          rating: number
+          rating_count: number
+          services: string[]
+          slug: string
+        }[]
+      }
+      search_restaurants: {
+        Args: {
+          max_distance_km?: number
+          max_results?: number
+          search_query: string
+          user_lat: number
+          user_lon: number
+        }
+        Returns: {
+          cover_image_url: string
+          cuisine_types: Json
+          description: string
+          distance_km: number
+          establishment_type: string
+          favorites_count: number
+          google_rating: number
+          google_rating_count: number
+          id: number
+          logo_url: string
+          name: string
+          price_range: string
+          services: Json
+          similarity_score: number
+          slug: string
         }[]
       }
       set_limit: {

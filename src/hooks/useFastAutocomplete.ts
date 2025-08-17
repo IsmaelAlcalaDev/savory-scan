@@ -25,9 +25,9 @@ export const useFastAutocomplete = (query: string, limit: number = 10) => {
       setError(null);
 
       try {
-        console.log('Fast trigram autocomplete search for query:', query);
+        console.log('Optimized trigram autocomplete search for query:', query);
 
-        // Use the new trigram-optimized RPC function
+        // Use the existing trigram-optimized RPC function
         const { data, error } = await supabase
           .rpc('fast_restaurant_autocomplete', {
             search_query: query.trim(),
@@ -35,7 +35,7 @@ export const useFastAutocomplete = (query: string, limit: number = 10) => {
           });
 
         if (error) {
-          console.error('Error in fast trigram autocomplete:', error);
+          console.error('Error in optimized trigram autocomplete:', error);
           throw error;
         }
 
@@ -48,12 +48,12 @@ export const useFastAutocomplete = (query: string, limit: number = 10) => {
           }));
 
           setResults(formattedResults);
-          console.log('Fast trigram autocomplete results:', formattedResults.length, 'found');
+          console.log('Optimized trigram autocomplete results:', formattedResults.length, 'found');
         } else {
           setResults([]);
         }
       } catch (err) {
-        console.error('Error in fast trigram autocomplete:', err);
+        console.error('Error in optimized trigram autocomplete:', err);
         setError(err instanceof Error ? err.message : 'Error en autocompletado');
         setResults([]);
       } finally {
@@ -61,8 +61,8 @@ export const useFastAutocomplete = (query: string, limit: number = 10) => {
       }
     };
 
-    // Reduced debounce time since trigram search is much faster
-    const debounceTimer = setTimeout(searchAutocomplete, 50);
+    // Increase debounce to 250ms to reduce server requests while maintaining responsiveness
+    const debounceTimer = setTimeout(searchAutocomplete, 250);
     return () => clearTimeout(debounceTimer);
   }, [query, limit]);
 
