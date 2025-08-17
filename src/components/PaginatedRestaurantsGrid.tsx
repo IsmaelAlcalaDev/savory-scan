@@ -3,7 +3,6 @@ import { usePaginatedRestaurants } from '@/hooks/usePaginatedRestaurants';
 import RestaurantCard from './RestaurantCard';
 import LoadMoreButton from './LoadMoreButton';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useConsolidatedRestaurantsRealtime } from '@/hooks/useConsolidatedRestaurantsRealtime';
 import { useEffect, useRef } from 'react';
 import { preloadRestaurantImages } from '@/utils/imagePreloader';
 
@@ -21,7 +20,6 @@ interface PaginatedRestaurantsGridProps {
 }
 
 export default function PaginatedRestaurantsGrid(props: PaginatedRestaurantsGridProps) {
-  const { observeRestaurantElements } = useConsolidatedRestaurantsRealtime();
   const containerRef = useRef<HTMLDivElement>(null);
   
   const { 
@@ -39,14 +37,6 @@ export default function PaginatedRestaurantsGrid(props: PaginatedRestaurantsGrid
       preloadRestaurantImages(restaurants.slice(0, 6));
     }
   }, [restaurants]);
-
-  // Observe restaurant elements for realtime updates
-  useEffect(() => {
-    if (containerRef.current && restaurants.length > 0) {
-      const restaurantElements = containerRef.current.querySelectorAll('[data-restaurant-id]');
-      observeRestaurantElements(Array.from(restaurantElements));
-    }
-  }, [restaurants, observeRestaurantElements]);
 
   if (loading) {
     return (
