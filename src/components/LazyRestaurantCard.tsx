@@ -16,7 +16,7 @@ interface LazyRestaurantCardProps {
   cuisineTypes: string[];
   establishmentType?: string;
   services?: string[];
-  favoritesCount: number; // Make this required to match RestaurantCard
+  favoritesCount?: number;
   coverImageUrl?: string;
   logoUrl?: string;
   onClick?: () => void;

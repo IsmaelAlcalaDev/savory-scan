@@ -357,7 +357,6 @@ export default function RestaurantProfile() {
           <div className="absolute bottom-6 right-6 flex gap-3 lg:flex hidden">
             <FavoriteButton
               restaurantId={restaurant.id}
-              restaurantSlug={restaurant.slug}
               favoritesCount={restaurant.favorites_count}
               size="sm"
               className="rounded-full w-10 h-10 p-0 bg-white border-white shadow-lg hover:bg-gray-50 hover:scale-110 transition-all"
@@ -376,7 +375,6 @@ export default function RestaurantProfile() {
           <div className="absolute bottom-6 right-6 flex gap-2 lg:hidden">
             <FavoriteButton
               restaurantId={restaurant.id}
-              restaurantSlug={restaurant.slug}
               favoritesCount={restaurant.favorites_count}
               size="sm"
               className="rounded-full w-10 h-10 p-0 bg-white border-white shadow-lg hover:bg-gray-50 hover:scale-110 transition-all"

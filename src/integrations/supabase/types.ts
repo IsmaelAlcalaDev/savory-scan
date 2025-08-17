@@ -42,15 +42,11 @@ export type Database = {
         Row: {
           city_id: number | null
           created_at: string | null
-          dish_id: number | null
           entity_id: number | null
           entity_type: string | null
-          event_name: string | null
           event_type: string
-          event_value: Json | null
           id: string
           properties: Json | null
-          restaurant_id: number | null
           session_id: string | null
           user_agent: string | null
           user_id: string | null
@@ -58,15 +54,11 @@ export type Database = {
         Insert: {
           city_id?: number | null
           created_at?: string | null
-          dish_id?: number | null
           entity_id?: number | null
           entity_type?: string | null
-          event_name?: string | null
           event_type: string
-          event_value?: Json | null
           id?: string
           properties?: Json | null
-          restaurant_id?: number | null
           session_id?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -74,15 +66,11 @@ export type Database = {
         Update: {
           city_id?: number | null
           created_at?: string | null
-          dish_id?: number | null
           entity_id?: number | null
           entity_type?: string | null
-          event_name?: string | null
           event_type?: string
-          event_value?: Json | null
           id?: string
           properties?: Json | null
-          restaurant_id?: number | null
           session_id?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -103,36 +91,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      analytics_sessions: {
-        Row: {
-          created_at: string
-          geo_city: string | null
-          id: string
-          referrer: string | null
-          started_at: string
-          timezone: string | null
-          user_agent: string | null
-        }
-        Insert: {
-          created_at?: string
-          geo_city?: string | null
-          id?: string
-          referrer?: string | null
-          started_at?: string
-          timezone?: string | null
-          user_agent?: string | null
-        }
-        Update: {
-          created_at?: string
-          geo_city?: string | null
-          id?: string
-          referrer?: string | null
-          started_at?: string
-          timezone?: string | null
-          user_agent?: string | null
-        }
-        Relationships: []
       }
       app_config: {
         Row: {
@@ -5073,22 +5031,9 @@ export type Database = {
         Args: { "": unknown } | { "": unknown }
         Returns: string
       }
-      cleanup_old_analytics_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       cleanup_rating_cache: {
         Args: Record<PropertyKey, never>
         Returns: number
-      }
-      create_analytics_session: {
-        Args: {
-          p_geo_city?: string
-          p_referrer?: string
-          p_timezone?: string
-          p_user_agent?: string
-        }
-        Returns: string
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>

@@ -1,7 +1,6 @@
 
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface DishSearchBarProps {
   searchQuery: string;
@@ -14,33 +13,16 @@ export default function DishSearchBar({
   onSearchChange, 
   placeholder = "Buscar platos..." 
 }: DishSearchBarProps) {
-  const { trackSearch } = useAnalytics();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      trackSearch(searchQuery.trim(), { search_type: 'dishes' });
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
-      trackSearch(searchQuery.trim(), { search_type: 'dishes' });
-    }
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="relative">
+    <div className="relative">
       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" />
       <Input
         type="text"
         placeholder={placeholder}
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
-        onKeyPress={handleKeyPress}
         className="pl-10 bg-gray-100 border-0 rounded-full text-gray-900 placeholder:text-gray-600 focus:bg-gray-100 focus:border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-        data-analytics-element="dish-search"
       />
-    </form>
+    </div>
   );
 }

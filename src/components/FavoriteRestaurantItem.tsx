@@ -61,7 +61,6 @@ export default function FavoriteRestaurantItem({
           {/* Corazón fuera de la imagen */}
           <FavoriteButton
             restaurantId={id}
-            restaurantSlug={slug}
             favoritesCount={favoritesCount}
             savedFrom="favorites_page"
             size="sm"
