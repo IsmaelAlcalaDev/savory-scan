@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -13,8 +12,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/hooks/use-toast';
 import { 
   Loader2, 
-  User, 
-  LogOut, 
   Eye, 
   EyeOff, 
   Mail, 
@@ -26,10 +23,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useSecureAuthFlow } from '@/hooks/useSecureAuthFlow';
-import ProfileSection from './ProfileSection';
-import FavoritesSection from './FavoritesSection';
-import ReservationsSection from './ReservationsSection';
-import SettingsSection from './SettingsSection';
+import FullScreenProfileModal from './FullScreenProfileModal';
 
 interface AccountModalProps {
   open: boolean;
@@ -37,7 +31,7 @@ interface AccountModalProps {
 }
 
 export default function AccountModal({ open, onOpenChange }: AccountModalProps) {
-  const { user, signOut, loading } = useAuth();
+  const { user, loading } = useAuth();
   const { secureRegister, secureLogin, googleLogin, validatePassword, checkEmailExists, isLoading: authFlowLoading } = useSecureAuthFlow();
   const isMobile = useIsMobile();
   
@@ -55,6 +49,16 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
 
   const isLoading = loading || authFlowLoading;
   const passwordValidation = validatePassword(password);
+
+  // Si el usuario está logueado, mostrar la modal de perfil completa
+  if (user) {
+    return (
+      <FullScreenProfileModal 
+        open={open} 
+        onOpenChange={onOpenChange} 
+      />
+    );
+  }
 
   const handleInputChange = (field: string, value: string) => {
     switch (field) {
@@ -218,24 +222,6 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
     await googleLogin();
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión correctamente"
-      });
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Sign out error:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo cerrar la sesión",
-        variant: "destructive"
-      });
-    }
-  };
-
   const renderPasswordStrength = () => {
     if (!password) return null;
 
@@ -292,84 +278,6 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-lg">
           {LoadingContent}
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  if (user) {
-    const ProfileContent = (
-      <>
-        <DialogHeader className="pb-4">
-          <DialogTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Mi Perfil
-            </div>
-            <Button 
-              variant="outline"
-              size={isMobile ? "sm" : "sm"}
-              onClick={handleSignOut}
-              className="ml-auto"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              {isMobile ? "Salir" : "Cerrar Sesión"}
-            </Button>
-          </DialogTitle>
-          <DialogDescription className="text-sm">
-            Gestiona tu perfil, favoritos y configuración
-          </DialogDescription>
-        </DialogHeader>
-
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2 text-xs' : 'grid-cols-4 text-sm'}`}>
-            <TabsTrigger value="profile" className={isMobile ? "px-2 py-1.5 text-xs" : ""}>
-              {isMobile ? "Perfil" : "Perfil"}
-            </TabsTrigger>
-            <TabsTrigger value="favorites" className={isMobile ? "px-2 py-1.5 text-xs" : ""}>
-              {isMobile ? "Favoritos" : "Favoritos"}
-            </TabsTrigger>
-            {!isMobile && (
-              <>
-                <TabsTrigger value="reservations">Reservas</TabsTrigger>
-                <TabsTrigger value="settings">Configuración</TabsTrigger>
-              </>
-            )}
-          </TabsList>
-
-          <TabsContent value="profile" className="mt-4">
-            <ProfileSection />
-          </TabsContent>
-
-          <TabsContent value="favorites" className="mt-4">
-            <FavoritesSection />
-          </TabsContent>
-
-          {!isMobile && (
-            <>
-              <TabsContent value="reservations" className="mt-4">
-                <ReservationsSection />
-              </TabsContent>
-
-              <TabsContent value="settings" className="mt-4">
-                <SettingsSection />
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-      </>
-    );
-
-    return isMobile ? (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[95vh] overflow-y-auto p-4">
-          {ProfileContent}
-        </SheetContent>
-      </Sheet>
-    ) : (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
-          {ProfileContent}
         </DialogContent>
       </Dialog>
     );
@@ -434,6 +342,7 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
         </TabsList>
 
         <TabsContent value="signin" className={`space-y-3 ${isMobile ? "" : "space-y-4"}`}>
+          
           <form onSubmit={handleSignIn} className={`space-y-3 ${isMobile ? "" : "space-y-4"}`}>
             <div className="space-y-2">
               <Label htmlFor="signin-email" className={isMobile ? "text-sm" : ""}>Email</Label>
@@ -503,8 +412,8 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
         </TabsContent>
 
         <TabsContent value="signup" className={`space-y-3 ${isMobile ? "" : "space-y-4"}`}>
+          
           <form onSubmit={handleSignUp} className={`space-y-3 ${isMobile ? "" : "space-y-4"}`}>
-            {/* Nombre y Apellido */}
             <div className={`grid grid-cols-2 gap-3 ${isMobile ? "" : "gap-4"}`}>
               <div className="space-y-2">
                 <Label htmlFor="signup-firstname" className={isMobile ? "text-sm" : ""}>Nombre *</Label>
@@ -553,7 +462,6 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
               </div>
             </div>
 
-            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="signup-email" className={isMobile ? "text-sm" : ""}>Email *</Label>
               <div className="relative">
@@ -581,7 +489,6 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
               )}
             </div>
 
-            {/* Ciudad */}
             <div className="space-y-2">
               <Label htmlFor="signup-city" className={isMobile ? "text-sm" : ""}>Ciudad *</Label>
               <div className="relative">
@@ -605,7 +512,6 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
               )}
             </div>
 
-            {/* Teléfono */}
             <div className="space-y-2">
               <Label htmlFor="signup-phone" className={isMobile ? "text-sm" : ""}>Teléfono (opcional)</Label>
               <div className="relative">
@@ -628,7 +534,6 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
               )}
             </div>
 
-            {/* Contraseña */}
             <div className="space-y-2">
               <Label htmlFor="signup-password" className={isMobile ? "text-sm" : ""}>Contraseña *</Label>
               <div className="relative">
@@ -661,7 +566,6 @@ export default function AccountModal({ open, onOpenChange }: AccountModalProps) 
               {renderPasswordStrength()}
             </div>
 
-            {/* Confirmar Contraseña */}
             <div className="space-y-2">
               <Label htmlFor="signup-confirm-password" className={isMobile ? "text-sm" : ""}>Confirmar Contraseña *</Label>
               <div className="relative">
