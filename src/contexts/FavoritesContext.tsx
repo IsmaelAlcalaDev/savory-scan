@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useSecurityLogger } from '@/hooks/useSecurityLogger';
 import { FavoritesService } from '@/services/favoritesService';
+import { broadcastFavoritesManager } from '@/services/broadcastFavoritesManager';
 
 interface FavoritesContextType {
   isFavorite: (restaurantId: number) => boolean;
@@ -31,7 +31,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const { logSecurityEvent } = useSecurityLogger();
   const [favoritesSet, setFavoritesSet] = useState<Set<number>>(new Set());
   const [loadingMap, setLoadingMap] = useState<Record<number, boolean>>({});
-  const channelRef = useRef<any>(null);
 
   // Load user favorites using the service
   const loadUserFavorites = async () => {
@@ -59,73 +58,18 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  // Setup real-time subscription for multi-tab sync
+  // Load favorites on user change
   useEffect(() => {
     if (!user) {
       setFavoritesSet(new Set());
       return;
     }
 
-    console.log('FavoritesProvider: Setting up realtime for user', user.id);
+    console.log('FavoritesProvider: Loading favorites for user', user.id);
     loadUserFavorites();
-
-    // Cleanup previous channel
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-    }
-
-    // Create new channel for this user with realtime updates
-    const channel = supabase
-      .channel(`user-favorites-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_saved_restaurants',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('FavoritesProvider: Realtime change detected:', payload);
-          
-          if (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) {
-            const restaurantId = payload.new.restaurant_id;
-            const isActive = payload.new.is_active;
-            
-            setFavoritesSet(prev => {
-              const newSet = new Set(prev);
-              if (isActive) {
-                newSet.add(restaurantId);
-              } else {
-                newSet.delete(restaurantId);
-              }
-              return newSet;
-            });
-            
-          } else if (payload.old && typeof payload.old === 'object' && 'restaurant_id' in payload.old) {
-            const restaurantId = payload.old.restaurant_id;
-            
-            setFavoritesSet(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(restaurantId);
-              return newSet;
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    channelRef.current = channel;
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
   }, [user]);
 
-  // Listen for custom favoriteToggled events
+  // Listen for custom favoriteToggled events (from broadcast sync)
   useEffect(() => {
     const handleFavoriteToggled = (event: CustomEvent) => {
       const { restaurantId, isFavorite } = event.detail;
@@ -202,6 +146,12 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
 
       console.log('FavoritesProvider: Service result:', result);
+
+      // Update local state immediately
+      setFavoriteState(restaurantId, result.isFavorite);
+
+      // Broadcast to other tabs via broadcast channel (secure cross-tab sync)
+      broadcastFavoritesManager.broadcastRestaurantFavorite(user.id, restaurantId, result.isFavorite);
 
       // Log security event
       try {
