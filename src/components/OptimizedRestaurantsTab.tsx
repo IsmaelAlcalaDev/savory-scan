@@ -39,10 +39,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
     sortBy
   });
 
-  // Extract city ID from user location for facet queries
-  // This would typically come from a reverse geocoding service or user preferences
-  const cityId = userLocation?.cityId; // Assuming this exists in userLocation
-
   if (loading) {
     return (
       <div className="space-y-6">
@@ -52,7 +48,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             <SimpleDietFilterWithCounts
               selectedDietCategories={selectedDietCategories}
               onDietCategoryChange={setSelectedDietCategories}
-              cityId={cityId}
               userLat={userLocation?.latitude}
               userLng={userLocation?.longitude}
             />
@@ -89,7 +84,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             <SimpleDietFilterWithCounts
               selectedDietCategories={selectedDietCategories}
               onDietCategoryChange={setSelectedDietCategories}
-              cityId={cityId}
               userLat={userLocation?.latitude}
               userLng={userLocation?.longitude}
             />
@@ -116,7 +110,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             <SimpleDietFilterWithCounts
               selectedDietCategories={selectedDietCategories}
               onDietCategoryChange={setSelectedDietCategories}
-              cityId={cityId}
               userLat={userLocation?.latitude}
               userLng={userLocation?.longitude}
             />
@@ -145,7 +138,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
           <SimpleDietFilterWithCounts
             selectedDietCategories={selectedDietCategories}
             onDietCategoryChange={setSelectedDietCategories}
-            cityId={cityId}
             userLat={userLocation?.latitude}
             userLng={userLocation?.longitude}
           />
