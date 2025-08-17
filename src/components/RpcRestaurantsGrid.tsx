@@ -76,22 +76,20 @@ export default function RpcRestaurantsGrid(props: RpcRestaurantsGridProps) {
         {restaurants.map((restaurant) => (
           <LazyRestaurantCard
             key={restaurant.id}
-            restaurant={{
-              id: restaurant.id,
-              name: restaurant.name,
-              slug: restaurant.slug,
-              description: restaurant.description,
-              price_range: restaurant.price_range,
-              google_rating: restaurant.rating,
-              google_rating_count: restaurant.rating_count,
-              distance_km: restaurant.distance_km,
-              cuisine_types: restaurant.cuisine_types,
-              establishment_type: restaurant.establishment_type,
-              services: restaurant.services,
-              favorites_count: restaurant.favorites_count,
-              cover_image_url: restaurant.cover_image_url,
-              logo_url: restaurant.logo_url,
-            }}
+            id={restaurant.id}
+            name={restaurant.name}
+            slug={restaurant.slug}
+            description={restaurant.description}
+            priceRange={restaurant.price_range}
+            googleRating={restaurant.rating}
+            googleRatingCount={restaurant.rating_count}
+            distance={restaurant.distance_km}
+            cuisineTypes={restaurant.cuisine_types}
+            establishmentType={restaurant.establishment_type}
+            services={restaurant.services}
+            favoritesCount={restaurant.favorites_count}
+            coverImageUrl={restaurant.cover_image_url}
+            logoUrl={restaurant.logo_url}
           />
         ))}
       </div>

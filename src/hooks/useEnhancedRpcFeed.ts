@@ -23,7 +23,6 @@ export const useEnhancedRpcFeed = (props: UseEnhancedRpcFeedProps) => {
   // Usar RPC feed si está habilitado el feature flag
   const rpcResults = useRpcFeed({
     ...props,
-    // Solo activar cuando el flag esté habilitado
   });
 
   // Hook tradicional como fallback
@@ -32,9 +31,9 @@ export const useEnhancedRpcFeed = (props: UseEnhancedRpcFeedProps) => {
   });
 
   // Determinar qué resultados usar basado en feature flag
-  const useRpcFeed = flags?.FF_HOME_RPC_FEED;
+  const shouldUseRpcFeed = flags?.FF_HOME_RPC_FEED;
 
-  if (useRpcFeed) {
+  if (shouldUseRpcFeed) {
     console.log('useEnhancedRpcFeed: Using RPC feed (feature flag enabled)');
     return rpcResults;
   }

@@ -1,15 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
-import { CuisineTypeSelector } from './CuisineTypeSelector';
-import { PriceRangeSelector } from './PriceRangeSelector';
-import { EstablishmentTypeSelector } from './EstablishmentTypeSelector';
-import RestaurantsGrid from './RestaurantsGrid';
+import { CuisineTypeSelector } from './CuisineFilter';
+import { PriceRangeSelector } from './PriceFilter';
+import { EstablishmentTypeSelector } from './EstablishmentTypeFilter';
+import RestaurantsGrid from './PaginatedRestaurantsGrid';
 import DishesGrid from './DishesGrid';
 import PaginatedRestaurantsTab from './PaginatedRestaurantsTab';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { DietTypeSelector } from './DietTypeSelector';
+import { DietTypeSelector } from './DietFilter';
 import RpcRestaurantsGrid from './RpcRestaurantsGrid';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
@@ -27,15 +28,15 @@ export default function FoodieSpotLayout({ initialTab = "home" }: FoodieSpotLayo
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [minDietPercentages, setMinDietPercentages] = useState<{ [key: string]: number }>({});
-  const { userLocation, updateUserPreferences } = useUserPreferences();
+  const { userLocation, updatePreferences } = useUserPreferences();
   const { flags } = useFeatureFlags();
 
   useEffect(() => {
     // Update user preferences when location changes
     if (userLocation) {
-      updateUserPreferences({ userLocation });
+      updatePreferences({ userLocation });
     }
-  }, [userLocation, updateUserPreferences]);
+  }, [userLocation, updatePreferences]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -186,7 +187,7 @@ export default function FoodieSpotLayout({ initialTab = "home" }: FoodieSpotLayo
                 className="mb-4"
               />
             </div>
-            <DishesGrid searchQuery={searchQuery} />
+            <DishesGrid />
           </div>
         );
 
@@ -197,7 +198,7 @@ export default function FoodieSpotLayout({ initialTab = "home" }: FoodieSpotLayo
 
   return (
     <div className="container mx-auto py-10">
-      <Tabs defaultValue={activeTab} className="w-full space-y-4" onValueChange={setActiveTab}>
+      <Tabs defaultValue={activeTab} className="w-full space-y-4" onValueChange={(value) => setActiveTab(value as "home" | "restaurants" | "dishes")}>
         <TabsList>
           <TabsTrigger value="home">Inicio</TabsTrigger>
           <TabsTrigger value="restaurants">Restaurantes</TabsTrigger>
