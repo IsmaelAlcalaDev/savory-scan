@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useSecureAuthFlow } from '@/hooks/useSecureAuthFlow';
 import FullScreenProfileModal from './FullScreenProfileModal';
+import { User } from '@supabase/supabase-js';
 
 interface AccountModalProps {
   open: boolean;
