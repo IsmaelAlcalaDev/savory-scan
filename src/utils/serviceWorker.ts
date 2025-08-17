@@ -206,6 +206,6 @@ export const getPerformanceMetrics = () => {
     response: navigation.responseEnd - navigation.responseStart,
     
     // Resource timing
-    totalLoadTime: navigation.loadEventEnd - navigation.navigationStart
+    totalLoadTime: navigation.loadEventEnd - navigation.startTime
   };
 };
