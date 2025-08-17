@@ -23,11 +23,6 @@ import DishesGrid from './DishesGrid';
 import FilterTags, { ResetFiltersButton } from './FilterTags';
 import type { Restaurant } from '@/types/restaurant';
 
-// Simple track function replacement
-const track = (event: string, data?: any) => {
-  console.log('Analytics event:', event, data);
-}
-
 interface FoodieSpotLayoutProps {
   initialTab?: 'restaurants' | 'dishes' | 'account';
 }
@@ -49,11 +44,11 @@ export default function FoodieSpotLayout({
   const [selectedCuisines, setSelectedCuisines] = useState<number[]>([]);
   const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
 
-  // Estados para filtros - CHANGED: selectedDietTypes to selectedDietCategories
+  // Estados para filtros
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [isHighRated, setIsHighRated] = useState(false);
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
-  const [selectedDietCategories, setSelectedDietCategories] = useState<string[]>([]); // Changed from selectedDietTypes (number[])
+  const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [selectedCustomTags, setSelectedCustomTags] = useState<string[]>([]);
   const [isOpenNow, setIsOpenNow] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
@@ -198,7 +193,7 @@ export default function FoodieSpotLayout({
         setSelectedEstablishmentTypes([]);
         break;
       case 'diet':
-        setSelectedDietCategories([]); // Changed from setSelectedDietTypes
+        setSelectedDietTypes([]);
         break;
       case 'customTags':
         setSelectedCustomTags([]);
@@ -215,7 +210,7 @@ export default function FoodieSpotLayout({
         setSelectedPriceRanges([]);
         setIsHighRated(false);
         setSelectedEstablishmentTypes([]);
-        setSelectedDietCategories([]); // Changed from setSelectedDietTypes
+        setSelectedDietTypes([]);
         setSelectedCustomTags([]);
         setIsOpenNow(false);
         setIsBudgetFriendly(false);
@@ -285,7 +280,7 @@ export default function FoodieSpotLayout({
     priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
     isHighRated: isHighRated,
     selectedEstablishmentTypes: selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined,
-    selectedDietCategories: selectedDietCategories.length > 0 ? selectedDietCategories : undefined, // Changed from selectedDietTypes
+    selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
     isOpenNow: isOpenNow,
     isBudgetFriendly: isBudgetFriendly
   });
@@ -300,7 +295,7 @@ export default function FoodieSpotLayout({
     userLng: userLocation?.lng,
     maxDistance: 1000, // Also increased for dishes
     selectedFoodTypes,
-    selectedDietCategories: selectedDietCategories.length > 0 ? selectedDietCategories : undefined, // Changed from selectedDietTypes
+    selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
     selectedCustomTags: selectedCustomTags.length > 0 ? selectedCustomTags : undefined,
     spiceLevels: []
   });
@@ -405,7 +400,7 @@ export default function FoodieSpotLayout({
     selectedPriceRanges.length > 0 || 
     isHighRated || 
     selectedEstablishmentTypes.length > 0 || 
-    selectedDietCategories.length > 0 || // Changed from selectedDietTypes
+    selectedDietTypes.length > 0 || 
     selectedCustomTags.length > 0 ||
     isOpenNow ||
     isBudgetFriendly;
@@ -432,7 +427,7 @@ export default function FoodieSpotLayout({
 
     if (activeBottomTab === 'dishes') {
       return <>
-          {/* Filter Tags with Quick Filters integrated - Updated props */}
+          {/* Filter Tags with Quick Filters integrated */}
           <FilterTags 
             activeTab="dishes" 
             selectedCuisines={selectedCuisines} 
@@ -440,7 +435,7 @@ export default function FoodieSpotLayout({
             selectedPriceRanges={selectedPriceRanges} 
             isHighRated={isHighRated} 
             selectedEstablishmentTypes={selectedEstablishmentTypes} 
-            selectedDietCategories={selectedDietCategories} // Changed from selectedDietTypes
+            selectedDietTypes={selectedDietTypes} 
             selectedCustomTags={selectedCustomTags}
             isOpenNow={isOpenNow}
             isBudgetFriendly={isBudgetFriendly}
@@ -448,17 +443,10 @@ export default function FoodieSpotLayout({
             onPriceRangeChange={setSelectedPriceRanges}
             onHighRatedChange={setIsHighRated}
             onEstablishmentTypeChange={setSelectedEstablishmentTypes}
-            onDietCategoryChange={setSelectedDietCategories} // Changed from onDietTypeChange
+            onDietTypeChange={setSelectedDietTypes}
             onCustomTagsChange={setSelectedCustomTags}
             onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
             onBudgetFriendlyChange={setIsBudgetFriendly}
-            searchQuery={searchQueryDishes}
-            userLat={userLocation?.lat}
-            userLng={userLocation?.lng}
-            maxDistance={1000}
-            cuisineTypeIds={selectedCuisines}
-            priceRanges={selectedPriceRanges}
-            minRating={isHighRated ? 4.5 : undefined}
           />
 
           {/* Results Header with adjusted spacing */}
@@ -479,9 +467,9 @@ export default function FoodieSpotLayout({
         </>;
     }
 
-    // Default restaurants content - Updated props
+    // Default restaurants content (siempre mostrar cuando no sea 'dishes' ni 'account')
     return <>
-        {/* Filter Tags with Quick Filters integrated - Updated props */}
+        {/* Filter Tags with Quick Filters integrated */}
         <FilterTags 
           activeTab="restaurants" 
           selectedCuisines={selectedCuisines} 
@@ -489,23 +477,16 @@ export default function FoodieSpotLayout({
           selectedPriceRanges={selectedPriceRanges} 
           isHighRated={isHighRated} 
           selectedEstablishmentTypes={selectedEstablishmentTypes} 
-          selectedDietCategories={selectedDietCategories} // Changed from selectedDietTypes
+          selectedDietTypes={selectedDietTypes} 
           isOpenNow={isOpenNow}
           isBudgetFriendly={isBudgetFriendly}
           onClearFilter={handleClearFilter}
           onPriceRangeChange={setSelectedPriceRanges}
           onHighRatedChange={setIsHighRated}
           onEstablishmentTypeChange={setSelectedEstablishmentTypes}
-          onDietCategoryChange={setSelectedDietCategories} // Changed from onDietTypeChange
+          onDietTypeChange={setSelectedDietTypes}
           onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
           onBudgetFriendlyChange={setIsBudgetFriendly}
-          searchQuery={searchQueryRestaurants}
-          userLat={userLocation?.lat}
-          userLng={userLocation?.lng}
-          maxDistance={1000}
-          cuisineTypeIds={selectedCuisines}
-          priceRanges={selectedPriceRanges}
-          minRating={isHighRated ? 4.5 : undefined}
         />
 
         {/* Results Header with adjusted spacing */}

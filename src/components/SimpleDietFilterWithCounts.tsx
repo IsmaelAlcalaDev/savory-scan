@@ -1,70 +1,30 @@
 
 import { Badge } from '@/components/ui/badge';
-import { useOptimizedDietCounts } from '@/hooks/useOptimizedDietCounts';
+import { useFacetCounts } from '@/hooks/useFacetCounts';
 
 interface SimpleDietFilterWithCountsProps {
   selectedDietCategories: string[];
   onDietCategoryChange: (categories: string[]) => void;
-  searchQuery?: string;
+  cityId?: number;
   userLat?: number;
   userLng?: number;
-  maxDistance?: number;
-  cuisineTypeIds?: number[];
-  priceRanges?: string[];
-  selectedEstablishmentTypes?: number[];
-  minRating?: number;
 }
 
 const dietConfig = {
-  vegetarian: { 
-    label: 'Vegetariano', 
-    icon: '🥬', 
-    key: 'vegetarian' as const,
-    description: 'Al menos 20% de platos vegetarianos'
-  },
-  vegan: { 
-    label: 'Vegano', 
-    icon: '🌱', 
-    key: 'vegan' as const,
-    description: 'Al menos 20% de platos veganos'
-  },
-  gluten_free: { 
-    label: 'Sin Gluten', 
-    icon: '🌾', 
-    key: 'gluten_free' as const,
-    description: 'Al menos 20% de platos sin gluten'
-  },
-  healthy: { 
-    label: 'Saludable', 
-    icon: '💚', 
-    key: 'healthy' as const,
-    description: 'Al menos 20% de platos saludables'
-  }
+  vegetarian: { label: 'Vegetariano', icon: '🥬', key: 'vegetarian' as const },
+  vegan: { label: 'Vegano', icon: '🌱', key: 'vegan' as const },
+  gluten_free: { label: 'Sin Gluten', icon: '🌾', key: 'gluten_free' as const },
+  healthy: { label: 'Saludable', icon: '💚', key: 'healthy' as const }
 };
 
 export default function SimpleDietFilterWithCounts({ 
   selectedDietCategories, 
   onDietCategoryChange,
-  searchQuery,
+  cityId,
   userLat,
-  userLng,
-  maxDistance,
-  cuisineTypeIds,
-  priceRanges,
-  selectedEstablishmentTypes,
-  minRating
+  userLng
 }: SimpleDietFilterWithCountsProps) {
-  
-  const { dietCounts, loading, error } = useOptimizedDietCounts({
-    searchQuery,
-    userLat,
-    userLng,
-    maxDistance,
-    cuisineTypeIds,
-    priceRanges,
-    selectedEstablishmentTypes,
-    minRating
-  });
+  const { facetData, loading, error } = useFacetCounts({ cityId, userLat, userLng });
 
   const handleDietToggle = (dietKey: string) => {
     const newSelected = selectedDietCategories.includes(dietKey)
@@ -86,29 +46,16 @@ export default function SimpleDietFilterWithCounts({
   }
 
   if (error) {
-    console.error('Error loading diet filter counts:', error);
-    // Show filters without counts on error
-    return (
-      <div className="flex gap-2 flex-wrap">
-        {Object.entries(dietConfig).map(([key, config]) => {
-          const isSelected = selectedDietCategories.includes(key);
-          
-          return (
-            <Badge
-              key={key}
-              variant={isSelected ? "default" : "outline"}
-              className="cursor-pointer hover:bg-primary/10 transition-colors"
-              onClick={() => handleDietToggle(key)}
-              title={config.description}
-            >
-              <span className="mr-1">{config.icon}</span>
-              {config.label}
-            </Badge>
-          );
-        })}
-      </div>
-    );
+    console.error('Error loading diet facets:', error);
+    return null;
   }
+
+  const dietCounts = facetData?.diet_categories || {
+    vegetarian: 0,
+    vegan: 0,
+    gluten_free: 0,
+    healthy: 0
+  };
 
   return (
     <div className="flex gap-2 flex-wrap">
@@ -116,8 +63,7 @@ export default function SimpleDietFilterWithCounts({
         const count = dietCounts[config.key] || 0;
         const isSelected = selectedDietCategories.includes(key);
         
-        // Don't show categories with zero restaurants unless selected
-        if (count === 0 && !isSelected) return null;
+        if (count === 0) return null; // Don't show categories with zero restaurants
         
         return (
           <Badge
@@ -125,7 +71,6 @@ export default function SimpleDietFilterWithCounts({
             variant={isSelected ? "default" : "outline"}
             className="cursor-pointer hover:bg-primary/10 transition-colors"
             onClick={() => handleDietToggle(key)}
-            title={config.description}
           >
             <span className="mr-1">{config.icon}</span>
             {config.label}

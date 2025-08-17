@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -53,6 +52,7 @@ export const useSearchFeedRpc = (props: UseSearchFeedRpcProps) => {
     selectedEstablishmentTypes,
     selectedDietCategories,
     minRating,
+    isOpenNow = false,
     maxResults = 50
   } = props;
 
@@ -64,7 +64,7 @@ export const useSearchFeedRpc = (props: UseSearchFeedRpcProps) => {
 
       const startTime = performance.now();
 
-      console.log('useSearchFeedRpc: Calling optimized search_restaurant_feed RPC', {
+      console.log('useSearchFeedRpc: Calling search_feed RPC', {
         searchQuery,
         userLat,
         userLng,
@@ -74,16 +74,12 @@ export const useSearchFeedRpc = (props: UseSearchFeedRpcProps) => {
         selectedEstablishmentTypes,
         selectedDietCategories,
         minRating,
+        isOpenNow,
         maxResults
       });
 
-      // Format diet categories for the new RPC function
-      const dietString = selectedDietCategories && selectedDietCategories.length > 0 
-        ? selectedDietCategories.join(',') 
-        : null;
-
-      // Use .rpc() with proper type casting
-      const { data, error } = await supabase.rpc('search_restaurant_feed' as any, {
+      // Use the parameter names that match the TypeScript types
+      const { data, error } = await supabase.rpc('search_feed', {
         p_q: searchQuery.trim(),
         p_lat: userLat || null,
         p_lon: userLng || null,
@@ -91,7 +87,7 @@ export const useSearchFeedRpc = (props: UseSearchFeedRpcProps) => {
         p_cuisines: cuisineTypeIds && cuisineTypeIds.length > 0 ? cuisineTypeIds : null,
         p_price_bands: priceRanges && priceRanges.length > 0 ? priceRanges : null,
         p_est_types: selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : null,
-        p_diet: dietString,
+        p_diet: selectedDietCategories && selectedDietCategories.length > 0 ? selectedDietCategories.join(',') : null,
         p_min_rating: minRating || null,
         p_limit: maxResults
       });
@@ -104,16 +100,14 @@ export const useSearchFeedRpc = (props: UseSearchFeedRpcProps) => {
       try {
         await supabase.from('analytics_events').insert({
           event_type: 'performance',
-          event_name: 'search_restaurant_feed_rpc',
+          event_name: 'search_feed_rpc',
           properties: {
             duration_ms: duration,
-            timestamp: Date.now(),
-            results_count: Array.isArray(data) ? data.length : 0,
-            has_diet_filter: !!dietString,
-            diet_categories: selectedDietCategories || []
+            timestamp: Date.now()
           }
         });
       } catch (logError) {
+        // Ignore logging errors
         console.warn('Failed to log performance:', logError);
       }
 
@@ -189,6 +183,7 @@ export const useSearchFeedRpc = (props: UseSearchFeedRpcProps) => {
     JSON.stringify(selectedEstablishmentTypes),
     JSON.stringify(selectedDietCategories),
     minRating,
+    isOpenNow,
     maxResults
   ]);
 

@@ -16,14 +16,9 @@ interface OptimizedFiltersManagerProps {
   onEstablishmentTypeChange: (types: number[]) => void;
   selectedDietCategories: string[];
   onDietCategoryChange: (categories: string[]) => void;
-  searchQuery?: string;
   cityId?: number;
   userLat?: number;
   userLng?: number;
-  maxDistance?: number;
-  cuisineTypeIds?: number[];
-  priceRanges?: string[];
-  minRating?: number;
 }
 
 export default function OptimizedFiltersManager({
@@ -35,14 +30,9 @@ export default function OptimizedFiltersManager({
   onEstablishmentTypeChange,
   selectedDietCategories,
   onDietCategoryChange,
-  searchQuery,
   cityId,
   userLat,
-  userLng,
-  maxDistance = 50,
-  cuisineTypeIds,
-  priceRanges,
-  minRating
+  userLng
 }: OptimizedFiltersManagerProps) {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
@@ -120,19 +110,14 @@ export default function OptimizedFiltersManager({
         )}
       </div>
 
-      {/* Diet filter is always visible with all required props */}
+      {/* Diet filter is always visible */}
       <div>
         <SimpleDietFilterWithCounts
           selectedDietCategories={selectedDietCategories}
           onDietCategoryChange={onDietCategoryChange}
-          searchQuery={searchQuery}
+          cityId={cityId}
           userLat={userLat}
           userLng={userLng}
-          maxDistance={maxDistance}
-          cuisineTypeIds={cuisineTypeIds || selectedCuisines}
-          priceRanges={priceRanges || selectedPriceRanges}
-          selectedEstablishmentTypes={selectedEstablishmentTypes}
-          minRating={minRating}
         />
       </div>
 

@@ -1,4 +1,3 @@
-
 import SimpleDietFilter from './SimpleDietFilter';
 import DietFilterWithPercentages from './DietFilterWithPercentages';
 
@@ -15,7 +14,7 @@ export default function DietFilter({
   onDietTypeChange,
   selectedDietCategories = [],
   onDietCategoryChange = () => {},
-  useSimpleMode = true // Changed default to true
+  useSimpleMode = false
 }: DietFilterProps) {
   // If simple mode is enabled, use the new SimpleDietFilter
   if (useSimpleMode) {

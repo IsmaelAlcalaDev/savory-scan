@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useIntelligentDishes } from './useIntelligentDishes';
@@ -38,7 +37,6 @@ interface UseDishesParams {
   maxDistance?: number;
   selectedDietTypes?: number[];
   selectedDishDietTypes?: string[];
-  selectedDietCategories?: string[]; // New parameter
   selectedPriceRanges?: string[];
   selectedFoodTypes?: number[];
   selectedCustomTags?: string[];
@@ -82,7 +80,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     userLng,
     selectedDietTypes = [],
     selectedDishDietTypes = [],
-    selectedDietCategories = [], // New parameter
     selectedPriceRanges = [],
     selectedFoodTypes = [],
     selectedCustomTags = [],
@@ -96,7 +93,6 @@ export const useDishes = (params: UseDishesParams = {}) => {
     userLng,
     selectedDietTypes,
     selectedDishDietTypes,
-    selectedDietCategories,
     selectedPriceRanges,
     selectedFoodTypes,
     selectedCustomTags,
@@ -224,22 +220,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
         );
       }
 
-      // Diet category filters (new string-based system)
-      if (selectedDietCategories.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => {
-          return selectedDietCategories.some(dietCategory => {
-            switch (dietCategory) {
-              case 'vegetarian': return dish.is_vegetarian;
-              case 'vegan': return dish.is_vegan;
-              case 'gluten_free': return dish.is_gluten_free;
-              case 'healthy': return dish.is_healthy;
-              default: return false;
-            }
-          });
-        });
-      }
-
-      // Diet type filters - Use direct boolean checks for dishes (legacy compatibility)
+      // Diet type filters - Use direct boolean checks for dishes
       if (selectedDishDietTypes.length > 0) {
         filteredDishes = filteredDishes.filter(dish => {
           return selectedDishDietTypes.some(dietType => {
@@ -335,7 +316,7 @@ export const useDishes = (params: UseDishesParams = {}) => {
       setDishes([]);
       setLoading(false);
     }
-  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedDietCategories, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels]);
+  }, [fetchKey, searchQuery, userLat, userLng, selectedDietTypes, selectedDishDietTypes, selectedPriceRanges, selectedFoodTypes, selectedCustomTags, spiceLevels]);
 
   useEffect(() => {
     // Skip if the fetch key hasn't changed (prevents infinite loops)
