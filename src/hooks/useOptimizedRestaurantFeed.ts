@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -162,7 +161,7 @@ export const useOptimizedRestaurantFeed = (props: UseOptimizedRestaurantFeedProp
         setRestaurants(formattedData);
 
         // Track analytics event (non-blocking)
-        const analyticsPromise = supabase.from('analytics_events').insert({
+        supabase.from('analytics_events').insert({
           event_type: 'feed_search',
           event_name: 'optimized_restaurant_feed',
           properties: {
@@ -182,10 +181,7 @@ export const useOptimizedRestaurantFeed = (props: UseOptimizedRestaurantFeedProp
               cache_key: cacheKey
             }
           }
-        });
-
-        // Handle analytics promise without blocking
-        analyticsPromise.then(() => {
+        }).then(() => {
           console.log('Analytics event tracked for optimized feed');
         }).catch(err => {
           console.warn('Failed to track analytics event:', err);

@@ -6,6 +6,11 @@ interface FeatureFlagValue {
   enabled: boolean;
 }
 
+// Type guard to check if the value is a valid feature flag
+const isFeatureFlagValue = (value: any): value is FeatureFlagValue => {
+  return value && typeof value === 'object' && typeof value.enabled === 'boolean';
+};
+
 export const useRestaurantFeedRpc = () => {
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -19,9 +24,8 @@ export const useRestaurantFeedRpc = () => {
           .eq('key', 'FF_HOME_RPC_FEED')
           .single();
 
-        if (data?.value) {
-          const flagValue = data.value as FeatureFlagValue;
-          setEnabled(flagValue.enabled === true);
+        if (data?.value && isFeatureFlagValue(data.value)) {
+          setEnabled(data.value.enabled === true);
         }
       } catch (error) {
         console.error('Error fetching FF_HOME_RPC_FEED:', error);
@@ -51,9 +55,8 @@ export const useHomeRpcFeed = () => {
           .eq('key', 'FF_HOME_RPC_FEED')
           .single();
 
-        if (data?.value) {
-          const flagValue = data.value as FeatureFlagValue;
-          setEnabled(flagValue.enabled === true);
+        if (data?.value && isFeatureFlagValue(data.value)) {
+          setEnabled(data.value.enabled === true);
         }
       } catch (error) {
         console.error('Error fetching FF_HOME_RPC_FEED:', error);
@@ -83,9 +86,8 @@ export const useRestaurantsAuditRpc = () => {
           .eq('key', 'FF_RESTAURANTES_RPC')
           .single();
 
-        if (data?.value) {
-          const flagValue = data.value as FeatureFlagValue;
-          setEnabled(flagValue.enabled === true);
+        if (data?.value && isFeatureFlagValue(data.value)) {
+          setEnabled(data.value.enabled === true);
         }
       } catch (error) {
         console.error('Error fetching FF_RESTAURANTES_RPC:', error);
