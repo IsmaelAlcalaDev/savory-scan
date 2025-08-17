@@ -22,13 +22,15 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     // Optimize build for performance
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production',
+    minify: mode === 'production' ? 'terser' : false,
+    ...(mode === 'production' && {
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
       },
-    },
+    }),
     // Optimize chunk splitting
     rollupOptions: {
       output: {
