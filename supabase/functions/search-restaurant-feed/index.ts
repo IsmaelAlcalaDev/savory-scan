@@ -33,7 +33,7 @@ serve(async (req) => {
       min_rating,
       is_open_now = false,
       max_results = 50,
-      bypass_rpc = false // New parameter for rollback
+      bypass_rpc = false // Parameter for rollback
     } = await req.json()
 
     console.log('Search restaurant feed request:', {
@@ -72,26 +72,44 @@ serve(async (req) => {
       )
     }
 
-    // Call the existing RPC function
+    // Format diet categories for the new RPC function
+    const dietString = diet_categories && Array.isArray(diet_categories) && diet_categories.length > 0 
+      ? diet_categories.join(',') 
+      : null;
+
+    // Call the new optimized RPC function
     const { data, error } = await supabase.rpc('search_restaurant_feed', {
-      search_query,
-      user_lat,
-      user_lon,
-      max_distance_km,
-      cuisine_type_ids,
-      price_ranges,
-      establishment_type_ids,
-      diet_categories,
-      min_rating,
-      is_open_now,
-      max_results
+      p_q: search_query,
+      p_lat: user_lat || null,
+      p_lon: user_lon || null,
+      p_max_km: max_distance_km,
+      p_cuisines: cuisine_type_ids && cuisine_type_ids.length > 0 ? cuisine_type_ids : null,
+      p_price_bands: price_ranges && price_ranges.length > 0 ? price_ranges : null,
+      p_est_types: establishment_type_ids && establishment_type_ids.length > 0 ? establishment_type_ids : null,
+      p_diet: dietString,
+      p_min_rating: min_rating || null,
+      p_limit: max_results
     })
 
     const endTime = performance.now()
     const duration = endTime - startTime
 
     // Log performance sample to database
-    await supabase.rpc('log_feed_performance', { duration_ms: duration })
+    try {
+      await supabase.from('analytics_events').insert({
+        event_type: 'performance',
+        event_name: 'search_restaurant_feed_edge',
+        properties: {
+          duration_ms: duration,
+          results_count: data?.length || 0,
+          has_diet_filter: !!dietString,
+          diet_categories: diet_categories || [],
+          timestamp: Date.now()
+        }
+      });
+    } catch (logError) {
+      console.warn('Failed to log performance:', logError);
+    }
 
     if (error) {
       console.error('RPC error:', error)
@@ -109,7 +127,7 @@ serve(async (req) => {
       )
     }
 
-    console.log(`Feed search completed in ${duration.toFixed(3)}ms, found ${data?.length || 0} restaurants`)
+    console.log(`Optimized feed search completed in ${duration.toFixed(3)}ms, found ${data?.length || 0} restaurants`)
 
     return new Response(
       JSON.stringify({ data }),
@@ -119,7 +137,7 @@ serve(async (req) => {
           ...corsHeaders,
           'Content-Type': 'application/json',
           'Server-Timing': `feed;dur=${duration.toFixed(3)}`,
-          'X-System-Type': 'rpc-success'
+          'X-System-Type': 'rpc-optimized'
         }
       }
     )
