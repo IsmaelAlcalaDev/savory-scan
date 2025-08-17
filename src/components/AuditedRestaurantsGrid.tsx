@@ -1,12 +1,14 @@
-
 import { useEffect, useRef } from 'react'
 import { useAuditedRestaurantFeed } from '@/hooks/useAuditedRestaurantFeed'
 import InstrumentedRestaurantCard from './InstrumentedRestaurantCard'
 import LoadMoreButton from './LoadMoreButton'
 import OptimizedPerformanceMonitor from './OptimizedPerformanceMonitor'
+import PerformanceBudgetMonitor from './PerformanceBudgetMonitor'
+import RobustErrorBoundary from './RobustErrorBoundary'
 import { Skeleton } from '@/components/ui/skeleton'
 import { optimizedImagePreloader } from '@/utils/optimizedImagePreloader'
 import { useAnalytics } from '@/hooks/useAnalytics'
+import { useRealUserMonitoring } from '@/hooks/useRealUserMonitoring'
 
 interface AuditedRestaurantsGridProps {
   searchQuery?: string
@@ -26,6 +28,7 @@ interface AuditedRestaurantsGridProps {
 export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { trackFeedImpression } = useAnalytics()
+  const { trackInteraction } = useRealUserMonitoring(process.env.NODE_ENV === 'development')
   
   const { 
     restaurants, 
@@ -57,6 +60,26 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
       trackFeedImpression(restaurantIds)
     }
   }, [restaurants, loading, trackFeedImpression])
+
+  // Track user interactions for RUM
+  useEffect(() => {
+    const handleRestaurantClick = () => {
+      trackInteraction('restaurant_card_click');
+    };
+
+    const handleFilterChange = () => {
+      trackInteraction('filter_change');
+    };
+
+    // Add event listeners for tracking
+    document.addEventListener('restaurant-card-click', handleRestaurantClick);
+    document.addEventListener('filter-change', handleFilterChange);
+
+    return () => {
+      document.removeEventListener('restaurant-card-click', handleRestaurantClick);
+      document.removeEventListener('filter-change', handleFilterChange);
+    };
+  }, [trackInteraction]);
 
   if (loading) {
     return (
@@ -103,82 +126,110 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
   }
 
   return (
-    <div ref={containerRef} className="space-y-6">
-      {/* Enhanced performance metrics */}
-      {(process.env.NODE_ENV === 'development' || systemType?.includes('audit')) && (
-        <div className="space-y-2">
-          <OptimizedPerformanceMonitor />
-          <div className="text-xs text-muted-foreground space-y-1">
-            <div className="flex items-center gap-4">
-              <span>
-                Sistema: {
-                  systemType === 'audit-optimized' ? '🚀 AUDIT OPTIMIZADO (Cache + MV + RPC)' :
-                  systemType === 'rpc-optimized' ? '⚡ RPC OPTIMIZADO' : 
-                  systemType === 'loading' ? 'Cargando...' :
-                  'Sistema Unificado'
-                }
-              </span>
-              {serverTiming && (
-                <span className={`px-2 py-1 rounded text-xs ${
-                  serverTiming < 100 ? 'bg-green-100 text-green-800' :
-                  serverTiming < 300 ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {serverTiming.toFixed(1)}ms
+    <RobustErrorBoundary 
+      name="AuditedRestaurantsGrid"
+      enableRecovery={true}
+      maxRecoveryAttempts={2}
+    >
+      <div ref={containerRef} className="space-y-6">
+        {/* Enhanced performance metrics with budgets */}
+        {(process.env.NODE_ENV === 'development' || systemType?.includes('audit')) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <OptimizedPerformanceMonitor />
+            <PerformanceBudgetMonitor />
+            
+            <div className="md:col-span-2 text-xs text-muted-foreground space-y-1">
+              <div className="flex items-center gap-4">
+                <span>
+                  Sistema: {
+                    systemType === 'audit-optimized' ? '🚀 AUDIT OPTIMIZADO (Cache + MV + RPC)' :
+                    systemType === 'rpc-optimized' ? '⚡ RPC OPTIMIZADO' : 
+                    systemType === 'loading' ? 'Cargando...' :
+                    'Sistema Unificado'
+                  }
                 </span>
+                {serverTiming && (
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    serverTiming < 100 ? 'bg-green-100 text-green-800' :
+                    serverTiming < 300 ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {serverTiming.toFixed(1)}ms
+                  </span>
+                )}
+              </div>
+              {systemType === 'audit-optimized' && (
+                <div className="flex items-center gap-4 text-xs">
+                  <span className={cacheHit ? 'text-green-600' : 'text-orange-600'}>
+                    Cache: {cacheHit ? '✅ HIT' : '⚡ MISS'}
+                  </span>
+                  <span className="text-blue-600">
+                    📊 {restaurants.length} resultados
+                  </span>
+                  <span className="text-purple-600">
+                    🎯 PostGIS + Índices optimizados
+                  </span>
+                  <span className="text-green-600">
+                    🛡️ Error Handling + RUM
+                  </span>
+                </div>
               )}
             </div>
-            {systemType === 'audit-optimized' && (
-              <div className="flex items-center gap-4 text-xs">
-                <span className={cacheHit ? 'text-green-600' : 'text-orange-600'}>
-                  Cache: {cacheHit ? '✅ HIT' : '⚡ MISS'}
-                </span>
-                <span className="text-blue-600">
-                  📊 {restaurants.length} resultados
-                </span>
-                <span className="text-purple-600">
-                  🎯 PostGIS + Índices optimizados
-                </span>
-              </div>
-            )}
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="restaurants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-        {restaurants.map((restaurant, index) => (
-          <div key={restaurant.id} data-restaurant-id={restaurant.id}>
-            <InstrumentedRestaurantCard
-              id={restaurant.id}
-              name={restaurant.name}
-              slug={restaurant.slug}
-              description={restaurant.description}
-              priceRange={restaurant.price_range}
-              googleRating={restaurant.google_rating}
-              googleRatingCount={restaurant.google_rating_count}
-              distance={restaurant.distance_km}
-              cuisineTypes={restaurant.cuisine_types}
-              establishmentType={restaurant.establishment_type}
-              services={restaurant.services}
-              favoritesCount={restaurant.favorites_count}
-              coverImageUrl={restaurant.cover_image_url}
-              logoUrl={restaurant.logo_url}
-              priority={index < 4}
-              position={index}
+        <div className="restaurants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+          {restaurants.map((restaurant, index) => (
+            <div key={restaurant.id} data-restaurant-id={restaurant.id}>
+              <RobustErrorBoundary 
+                name={`RestaurantCard_${restaurant.id}`}
+                enableRecovery={false}
+              >
+                <InstrumentedRestaurantCard
+                  id={restaurant.id}
+                  name={restaurant.name}
+                  slug={restaurant.slug}
+                  description={restaurant.description}
+                  priceRange={restaurant.price_range}
+                  googleRating={restaurant.google_rating}
+                  googleRatingCount={restaurant.google_rating_count}
+                  distance={restaurant.distance_km}
+                  cuisineTypes={restaurant.cuisine_types}
+                  establishmentType={restaurant.establishment_type}
+                  services={restaurant.services}
+                  favoritesCount={restaurant.favorites_count}
+                  coverImageUrl={restaurant.cover_image_url}
+                  logoUrl={restaurant.logo_url}
+                  priority={index < 4}
+                  position={index}
+                  onClick={() => {
+                    // Track click for RUM
+                    trackInteraction('restaurant_card_click', `restaurant_${restaurant.id}`);
+                  }}
+                />
+              </RobustErrorBoundary>
+            </div>
+          ))}
+        </div>
+        
+        {/* Show LoadMore button only for systems that support pagination */}
+        {systemType !== 'audit-optimized' && (
+          <RobustErrorBoundary 
+            name="LoadMoreButton"
+            enableRecovery={true}
+          >
+            <LoadMoreButton
+              onLoadMore={() => {
+                trackInteraction('load_more_click');
+                loadMore();
+              }}
+              loading={false}
+              hasMore={hasMore}
+              className="mt-8"
             />
-          </div>
-        ))}
+          </RobustErrorBoundary>
+        )}
       </div>
-      
-      {/* Show LoadMore button only for systems that support pagination */}
-      {systemType !== 'audit-optimized' && (
-        <LoadMoreButton
-          onLoadMore={loadMore}
-          loading={false}
-          hasMore={hasMore}
-          className="mt-8"
-        />
-      )}
-    </div>
+    </RobustErrorBoundary>
   )
 }
