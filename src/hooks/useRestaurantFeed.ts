@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -33,7 +32,7 @@ interface UseRestaurantFeedProps {
   priceRanges?: string[];
   isHighRated?: boolean;
   selectedEstablishmentTypes?: number[];
-  selectedDietCategories?: string[]; // ['vegetarian', 'vegan', 'gluten_free', 'healthy']
+  selectedDietCategories?: string[];
   isOpenNow?: boolean;
   sortBy?: 'distance' | 'rating' | 'favorites';
 }
@@ -42,6 +41,7 @@ export const useRestaurantFeed = (props: UseRestaurantFeedProps) => {
   const [restaurants, setRestaurants] = useState<RestaurantFeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [serverTiming, setServerTiming] = useState<number | null>(null);
 
   const {
     searchQuery = '',
@@ -61,8 +61,9 @@ export const useRestaurantFeed = (props: UseRestaurantFeedProps) => {
     try {
       setLoading(true);
       setError(null);
+      setServerTiming(null);
 
-      console.log('useRestaurantFeed: Fetching with optimized RPC', {
+      console.log('useRestaurantFeed: Fetching with edge function', {
         searchQuery,
         userLat,
         userLng,
@@ -75,31 +76,43 @@ export const useRestaurantFeed = (props: UseRestaurantFeedProps) => {
         isOpenNow
       });
 
-      // Prepare parameters for RPC call
-      const rpcParams = {
-        search_query: searchQuery.trim(),
-        user_lat: userLat || null,
-        user_lon: userLng || null,
-        max_distance_km: maxDistance,
-        cuisine_type_ids: cuisineTypeIds && cuisineTypeIds.length > 0 ? cuisineTypeIds : null,
-        price_ranges: priceRanges && priceRanges.length > 0 ? priceRanges : null,
-        establishment_type_ids: selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : null,
-        diet_categories: selectedDietCategories && selectedDietCategories.length > 0 ? selectedDietCategories : null,
-        min_rating: isHighRated ? 4.5 : null,
-        is_open_now: isOpenNow,
-        max_results: 50
-      };
+      // Use edge function for better performance monitoring
+      const { data, error } = await supabase.functions.invoke('search-restaurant-feed', {
+        body: {
+          search_query: searchQuery.trim(),
+          user_lat: userLat || null,
+          user_lon: userLng || null,
+          max_distance_km: maxDistance,
+          cuisine_type_ids: cuisineTypeIds && cuisineTypeIds.length > 0 ? cuisineTypeIds : null,
+          price_ranges: priceRanges && priceRanges.length > 0 ? priceRanges : null,
+          establishment_type_ids: selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : null,
+          diet_categories: selectedDietCategories && selectedDietCategories.length > 0 ? selectedDietCategories : null,
+          min_rating: isHighRated ? 4.5 : null,
+          is_open_now: isOpenNow,
+          max_results: 50
+        }
+      });
 
-      // Use the generic rpc method since the function isn't in types yet
-      const { data, error } = await supabase.rpc('search_restaurant_feed' as any, rpcParams);
+      // Extract Server-Timing header if available
+      if (data && typeof data === 'object' && 'headers' in data) {
+        const serverTimingHeader = data.headers?.['server-timing'];
+        if (serverTimingHeader) {
+          const match = serverTimingHeader.match(/feed;dur=([0-9.]+)/);
+          if (match) {
+            setServerTiming(parseFloat(match[1]));
+          }
+        }
+      }
 
       if (error) {
-        console.error('useRestaurantFeed: RPC error:', error);
+        console.error('useRestaurantFeed: Edge function error:', error);
         throw error;
       }
 
-      if (data && Array.isArray(data)) {
-        const formattedData: RestaurantFeedItem[] = data.map((item: any) => {
+      const responseData = data?.data || data;
+
+      if (responseData && Array.isArray(responseData)) {
+        const formattedData: RestaurantFeedItem[] = responseData.map((item: any) => {
           // Parse JSON fields safely
           let cuisine_types: Array<{ name: string; slug: string }> = [];
           let services: string[] = [];
@@ -144,6 +157,9 @@ export const useRestaurantFeed = (props: UseRestaurantFeedProps) => {
         });
 
         console.log('useRestaurantFeed: Formatted results:', formattedData.length, 'restaurants');
+        if (serverTiming) {
+          console.log(`Feed search took ${serverTiming.toFixed(3)}ms on server`);
+        }
         setRestaurants(formattedData);
       } else {
         setRestaurants([]);
@@ -224,5 +240,5 @@ export const useRestaurantFeed = (props: UseRestaurantFeedProps) => {
     };
   }, []);
 
-  return { restaurants, loading, error, refetch: fetchRestaurants };
+  return { restaurants, loading, error, refetch: fetchRestaurants, serverTiming };
 };

@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { usePaginatedRestaurants } from '@/hooks/usePaginatedRestaurants'
 import InstrumentedRestaurantCard from './InstrumentedRestaurantCard'
 import LoadMoreButton from './LoadMoreButton'
+import PerformanceMetrics from './PerformanceMetrics'
 import { Skeleton } from '@/components/ui/skeleton'
 import { preloadRestaurantImages } from '@/utils/imagePreloader'
 import { useAnalytics } from '@/hooks/useAnalytics'
@@ -30,7 +31,8 @@ export default function InstrumentedPaginatedRestaurantsGrid(props: Instrumented
     loadingMore, 
     error, 
     hasMore, 
-    loadMore 
+    loadMore,
+    serverTiming
   } = usePaginatedRestaurants(props)
 
   // Preload first batch of images for better LCP
@@ -50,17 +52,19 @@ export default function InstrumentedPaginatedRestaurantsGrid(props: Instrumented
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="space-y-3">
-            <Skeleton className="h-48 w-full rounded-lg" />
-            <div className="p-4 space-y-3">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-48 w-full rounded-lg" />
+              <div className="p-4 space-y-3">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     )
   }
@@ -85,7 +89,12 @@ export default function InstrumentedPaginatedRestaurantsGrid(props: Instrumented
   }
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="space-y-6">
+      {/* Performance metrics - only show in development or for admin users */}
+      {process.env.NODE_ENV === 'development' && (
+        <PerformanceMetrics serverTiming={serverTiming} />
+      )}
+
       <div className="restaurants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
         {restaurants.map((restaurant, index) => (
           <div key={restaurant.id} data-restaurant-id={restaurant.id}>

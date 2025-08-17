@@ -42,11 +42,15 @@ export type Database = {
         Row: {
           city_id: number | null
           created_at: string | null
+          dish_id: number | null
           entity_id: number | null
           entity_type: string | null
+          event_name: string | null
           event_type: string
+          event_value: Json | null
           id: string
           properties: Json | null
+          restaurant_id: number | null
           session_id: string | null
           user_agent: string | null
           user_id: string | null
@@ -54,11 +58,15 @@ export type Database = {
         Insert: {
           city_id?: number | null
           created_at?: string | null
+          dish_id?: number | null
           entity_id?: number | null
           entity_type?: string | null
+          event_name?: string | null
           event_type: string
+          event_value?: Json | null
           id?: string
           properties?: Json | null
+          restaurant_id?: number | null
           session_id?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -66,11 +74,15 @@ export type Database = {
         Update: {
           city_id?: number | null
           created_at?: string | null
+          dish_id?: number | null
           entity_id?: number | null
           entity_type?: string | null
+          event_name?: string | null
           event_type?: string
+          event_value?: Json | null
           id?: string
           properties?: Json | null
+          restaurant_id?: number | null
           session_id?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -91,6 +103,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      analytics_sessions: {
+        Row: {
+          created_at: string
+          geo_city: string | null
+          id: string
+          referrer: string | null
+          started_at: string
+          timezone: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          geo_city?: string | null
+          id?: string
+          referrer?: string | null
+          started_at?: string
+          timezone?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          geo_city?: string | null
+          id?: string
+          referrer?: string | null
+          started_at?: string
+          timezone?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
       }
       app_config: {
         Row: {
@@ -2670,6 +2712,7 @@ export type Database = {
           profile_views_count: number | null
           published_at: string | null
           reservation_link: string | null
+          review_count: number | null
           slug: string
           social_links: Json | null
           specializes_in_diet: number | null
@@ -2727,6 +2770,7 @@ export type Database = {
           profile_views_count?: number | null
           published_at?: string | null
           reservation_link?: string | null
+          review_count?: number | null
           slug: string
           social_links?: Json | null
           specializes_in_diet?: number | null
@@ -2784,6 +2828,7 @@ export type Database = {
           profile_views_count?: number | null
           published_at?: string | null
           reservation_link?: string | null
+          review_count?: number | null
           slug?: string
           social_links?: Json | null
           specializes_in_diet?: number | null
@@ -5031,9 +5076,22 @@ export type Database = {
         Args: { "": unknown } | { "": unknown }
         Returns: string
       }
+      cleanup_old_analytics_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_rating_cache: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      create_analytics_session: {
+        Args: {
+          p_geo_city?: string
+          p_referrer?: string
+          p_timezone?: string
+          p_user_agent?: string
+        }
+        Returns: string
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
@@ -5611,28 +5669,36 @@ export type Database = {
         }[]
       }
       search_restaurants: {
-        Args: {
-          max_distance_km?: number
-          max_results?: number
-          search_query: string
-          user_lat: number
-          user_lon: number
-        }
+        Args:
+          | {
+              cuisine_type_ids?: number[]
+              has_services?: number[]
+              limit_count?: number
+              max_distance_km?: number
+              min_rating?: number
+              offset_count?: number
+              price_ranges?: Database["public"]["Enums"]["price_range"][]
+              search_query?: string
+              user_lat?: number
+              user_lng?: number
+            }
+          | {
+              max_distance_km?: number
+              max_results?: number
+              search_query: string
+              user_lat: number
+              user_lon: number
+            }
         Returns: {
-          cover_image_url: string
-          cuisine_types: Json
+          cuisine_types: string[]
           description: string
           distance_km: number
           establishment_type: string
-          favorites_count: number
           google_rating: number
-          google_rating_count: number
-          id: number
-          logo_url: string
           name: string
-          price_range: string
-          services: Json
-          similarity_score: number
+          price_range: Database["public"]["Enums"]["price_range"]
+          restaurant_id: number
+          review_count: number
           slug: string
         }[]
       }

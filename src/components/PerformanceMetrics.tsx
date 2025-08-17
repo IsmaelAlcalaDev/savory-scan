@@ -1,85 +1,49 @@
 
-import { useEffect, useState } from 'react';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Clock } from 'lucide-react';
 
-interface PerformanceMetrics {
-  lcp: number | null;
-  fid: number | null;
-  cls: number | null;
-  queryTime: number | null;
-  fetchCount: number;
+interface PerformanceMetricsProps {
+  serverTiming?: number | null;
+  className?: string;
 }
 
-export const PerformanceMetrics = ({ onMetricsChange }: { onMetricsChange?: (metrics: PerformanceMetrics) => void }) => {
-  const [metrics, setMetrics] = useState<PerformanceMetrics>({
-    lcp: null,
-    fid: null,
-    cls: null,
-    queryTime: null,
-    fetchCount: 0
-  });
+export default function PerformanceMetrics({ serverTiming, className }: PerformanceMetricsProps) {
+  if (!serverTiming) return null;
 
-  useEffect(() => {
-    // Solo en desarrollo para monitorear performance
-    if (process.env.NODE_ENV !== 'development') return;
+  const getPerformanceColor = (ms: number) => {
+    if (ms < 100) return 'text-green-600';
+    if (ms < 300) return 'text-yellow-600';
+    return 'text-red-600';
+  };
 
-    // Observador de Core Web Vitals
-    const observer = new PerformanceObserver((list) => {
-      list.getEntries().forEach((entry) => {
-        const updatedMetrics = { ...metrics };
-        
-        if (entry.entryType === 'largest-contentful-paint') {
-          updatedMetrics.lcp = entry.startTime;
-        }
-        
-        if (entry.entryType === 'first-input') {
-          updatedMetrics.fid = (entry as any).processingStart - entry.startTime;
-        }
-        
-        if (entry.entryType === 'layout-shift' && !(entry as any).hadRecentInput) {
-          updatedMetrics.cls = (updatedMetrics.cls || 0) + (entry as any).value;
-        }
-
-        setMetrics(updatedMetrics);
-        onMetricsChange?.(updatedMetrics);
-      });
-    });
-
-    observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
-
-    // Medir tiempo de queries de Supabase
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-      const start = performance.now();
-      const response = await originalFetch(...args);
-      const duration = performance.now() - start;
-      
-      if (args[0]?.toString().includes('supabase')) {
-        setMetrics(prev => ({ 
-          ...prev, 
-          queryTime: duration,
-          fetchCount: prev.fetchCount + 1
-        }));
-      }
-      
-      return response;
-    };
-
-    return () => {
-      observer.disconnect();
-      window.fetch = originalFetch;
-    };
-  }, []);
-
-  // No renderizar nada en producción
-  if (process.env.NODE_ENV !== 'development') return null;
+  const getPerformanceLabel = (ms: number) => {
+    if (ms < 100) return 'Excelente';
+    if (ms < 300) return 'Bueno';
+    return 'Lento';
+  };
 
   return (
-    <div className="fixed bottom-4 right-4 bg-black/80 text-white p-2 rounded text-xs font-mono z-50">
-      <div>LCP: {metrics.lcp ? `${Math.round(metrics.lcp)}ms` : 'N/A'}</div>
-      <div>FID: {metrics.fid ? `${Math.round(metrics.fid)}ms` : 'N/A'}</div>
-      <div>CLS: {metrics.cls ? metrics.cls.toFixed(3) : 'N/A'}</div>
-      <div>Query: {metrics.queryTime ? `${Math.round(metrics.queryTime)}ms` : 'N/A'}</div>
-      <div>Fetches: {metrics.fetchCount}</div>
-    </div>
+    <Card className={`${className} border-dashed border-gray-300`}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Clock className="w-4 h-4" />
+          Rendimiento del Feed
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Tiempo de respuesta:</span>
+          <div className="flex items-center gap-2">
+            <span className={`font-mono text-sm ${getPerformanceColor(serverTiming)}`}>
+              {serverTiming.toFixed(1)}ms
+            </span>
+            <span className={`text-xs px-2 py-1 rounded-full ${getPerformanceColor(serverTiming)} bg-opacity-10`}>
+              {getPerformanceLabel(serverTiming)}
+            </span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
-};
+}
