@@ -32,7 +32,8 @@ serve(async (req) => {
       diet_categories,
       min_rating,
       is_open_now = false,
-      max_results = 50
+      max_results = 50,
+      bypass_rpc = false // New parameter for rollback
     } = await req.json()
 
     console.log('Search restaurant feed request:', {
@@ -46,8 +47,30 @@ serve(async (req) => {
       diet_categories,
       min_rating,
       is_open_now,
-      max_results
+      max_results,
+      bypass_rpc
     })
+
+    // If bypass_rpc is true, return minimal response to force fallback
+    if (bypass_rpc) {
+      console.log('RPC bypassed, returning empty result for fallback')
+      return new Response(
+        JSON.stringify({ 
+          data: [],
+          message: 'RPC bypassed for rollback',
+          system: 'fallback'
+        }),
+        { 
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Server-Timing': `feed;dur=0`,
+            'X-System-Type': 'bypassed'
+          }
+        }
+      )
+    }
 
     // Call the existing RPC function
     const { data, error } = await supabase.rpc('search_restaurant_feed', {
@@ -79,7 +102,8 @@ serve(async (req) => {
           headers: {
             ...corsHeaders,
             'Content-Type': 'application/json',
-            'Server-Timing': `feed;dur=${duration.toFixed(3)}`
+            'Server-Timing': `feed;dur=${duration.toFixed(3)}`,
+            'X-System-Type': 'rpc-error'
           }
         }
       )
@@ -94,7 +118,8 @@ serve(async (req) => {
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json',
-          'Server-Timing': `feed;dur=${duration.toFixed(3)}`
+          'Server-Timing': `feed;dur=${duration.toFixed(3)}`,
+          'X-System-Type': 'rpc-success'
         }
       }
     )
@@ -107,7 +132,8 @@ serve(async (req) => {
         status: 500,
         headers: {
           ...corsHeaders,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-System-Type': 'edge-error'
         }
       }
     )

@@ -4,11 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface FeatureFlags {
   FF_HOME_RPC_FEED: boolean;
+  FF_RESTAURANT_FEED_RPC: boolean;
   // Otros feature flags existentes pueden ir aquí
 }
 
 const defaultFlags: FeatureFlags = {
   FF_HOME_RPC_FEED: false, // Por defecto desactivado
+  FF_RESTAURANT_FEED_RPC: false, // Por defecto desactivado - nuevo flag para rollback
 };
 
 export const useFeatureFlags = () => {
@@ -18,6 +20,19 @@ export const useFeatureFlags = () => {
   useEffect(() => {
     const fetchFlags = async () => {
       try {
+        // Check for environment variable override first
+        const envOverride = import.meta.env.VITE_FF_RESTAURANT_FEED_RPC;
+        if (envOverride !== undefined) {
+          const envFlags = {
+            ...defaultFlags,
+            FF_RESTAURANT_FEED_RPC: envOverride === 'true'
+          };
+          setFlags(envFlags);
+          setLoading(false);
+          console.log('Using environment override for FF_RESTAURANT_FEED_RPC:', envOverride);
+          return;
+        }
+
         const { data, error } = await supabase
           .from('app_settings')
           .select('key, value')
@@ -68,4 +83,10 @@ export const useFeatureFlags = () => {
 export const useHomeRpcFeed = () => {
   const { flags, loading } = useFeatureFlags();
   return { enabled: flags.FF_HOME_RPC_FEED, loading };
+};
+
+// Hook específico para el flag del restaurant feed RPC (rollback)
+export const useRestaurantFeedRpc = () => {
+  const { flags, loading } = useFeatureFlags();
+  return { enabled: flags.FF_RESTAURANT_FEED_RPC, loading };
 };
