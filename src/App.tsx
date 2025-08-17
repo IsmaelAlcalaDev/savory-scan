@@ -10,8 +10,8 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
 import { DishFavoritesProvider } from "./contexts/DishFavoritesContext";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { AnalyticsProvider } from "./components/AnalyticsProvider";
+import ErrorBoundary from "./components/ErrorBoundary";
+import AnalyticsProvider from "./components/AnalyticsProvider";
 
 // Pages
 import FoodieSpot from "./pages/FoodieSpot";
