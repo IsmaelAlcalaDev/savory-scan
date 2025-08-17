@@ -1,15 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Restaurant {
+interface RestaurantWithCachedRating {
   id: number;
   name: string;
   slug: string;
   description?: string;
   price_range: string;
-  google_rating?: number;
-  google_rating_count?: number;
   distance_km?: number;
   cuisine_types: string[];
   establishment_type?: string;
@@ -17,21 +14,19 @@ interface Restaurant {
   favorites_count: number;
   cover_image_url?: string;
   logo_url?: string;
-  specializes_in_diet?: number[];
-  diet_certifications?: string[];
-  diet_percentages?: Record<string, number>;
+  // Cached rating data (can be null if not cached yet)
+  cached_rating?: number;
+  cached_rating_count?: number;
+  cached_rating_last_sync?: string;
   // Pre-calculated diet stats
   vegan_pct?: number;
   vegetarian_pct?: number;
   glutenfree_pct?: number;
   healthy_pct?: number;
   items_total?: number;
-  // Cached rating data
-  cached_rating?: number;
-  cached_rating_count?: number;
 }
 
-interface UseOptimizedRestaurantsProps {
+interface UseOptimizedRatingCacheProps {
   searchQuery?: string;
   userLat?: number;
   userLng?: number;
@@ -41,7 +36,7 @@ interface UseOptimizedRestaurantsProps {
   isHighRated?: boolean;
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
-  minDietPercentages?: Record<string, number>; 
+  minDietPercentages?: Record<string, number>;
   isOpenNow?: boolean;
 }
 
@@ -56,8 +51,8 @@ const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * c;
 };
 
-export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => {
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+export const useOptimizedRatingCache = (props: UseOptimizedRatingCacheProps) => {
+  const [restaurants, setRestaurants] = useState<RestaurantWithCachedRating[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,9 +76,9 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
         setLoading(true);
         setError(null);
 
-        console.log('useOptimizedRestaurants: Using rating cache with LEFT JOIN for optimal performance');
+        console.log('useOptimizedRatingCache: Using cached ratings with LEFT JOIN');
 
-        // Enhanced query with rating cache and diet stats LEFT JOIN
+        // Enhanced query with rating cache LEFT JOIN and diet stats LEFT JOIN
         let query = supabase
           .from('restaurants_full')
           .select(`
@@ -107,7 +102,12 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         }
 
-        // Apply other filters
+        // Apply high-rated filter using cached ratings with fallback
+        if (isHighRated) {
+          // This will work with cached ratings when available, gracefully handle NULLs
+          console.log('useOptimizedRatingCache: Applying high rating filter with cache fallback');
+        }
+
         if (priceRanges && priceRanges.length > 0) {
           const { data: priceRangeData } = await supabase
             .from('price_ranges')
@@ -158,7 +158,7 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
             services = [];
           }
 
-          // Extract cached rating data from LEFT JOIN (gracefully handle NULLs)
+          // Extract cached rating data from LEFT JOIN (can be null)
           const cachedRating = restaurant.restaurant_rating_cache?.[0];
           
           // Extract diet stats from the LEFT JOIN
@@ -170,9 +170,6 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
             slug: restaurant.slug,
             description: restaurant.description,
             price_range: restaurant.price_range,
-            // Use cached rating with fallback to original google_rating
-            google_rating: cachedRating?.rating ?? restaurant.google_rating,
-            google_rating_count: cachedRating?.rating_count ?? restaurant.google_rating_count,
             distance_km,
             cuisine_types,
             establishment_type: restaurant.establishment_type,
@@ -180,107 +177,51 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
             favorites_count: restaurant.favorites_count || 0,
             cover_image_url: restaurant.cover_image_url,
             logo_url: restaurant.logo_url,
-            specializes_in_diet: restaurant.specializes_in_diet || [],
-            diet_certifications: restaurant.diet_certifications || [],
-            diet_percentages: restaurant.diet_percentages || {},
+            // Cached rating data (gracefully handle NULLs)
+            cached_rating: cachedRating?.rating || null,
+            cached_rating_count: cachedRating?.rating_count || null,
+            cached_rating_last_sync: cachedRating?.last_sync || null,
             // Include pre-calculated diet percentages
             vegan_pct: dietStats.vegan_pct || 0,
             vegetarian_pct: dietStats.vegetarian_pct || 0,
             glutenfree_pct: dietStats.glutenfree_pct || 0,
             healthy_pct: dietStats.healthy_pct || 0,
-            items_total: dietStats.items_total || 0,
-            // Store raw cached data for debugging
-            cached_rating: cachedRating?.rating || null,
-            cached_rating_count: cachedRating?.rating_count || null
+            items_total: dietStats.items_total || 0
           };
         }).filter(Boolean) || [];
 
-        // Apply high-rated filter using cached ratings with graceful fallback
+        // Apply high-rated filter after data processing to handle NULLs gracefully
         if (isHighRated) {
-          console.log('useOptimizedRestaurants: Filtering by high ratings using cache');
+          console.log('useOptimizedRatingCache: Filtering by high ratings (>= 4.5) from cache');
           formattedData = formattedData.filter(restaurant => {
-            // Use the google_rating field which now includes cached data with fallback
-            return (restaurant.google_rating || 0) >= 4.5;
+            // Use cached rating if available, otherwise skip (don't exclude)
+            if (restaurant.cached_rating !== null && restaurant.cached_rating !== undefined) {
+              return restaurant.cached_rating >= 4.5;
+            }
+            // If no cached rating, include restaurant (graceful degradation)
+            return true;
           });
         }
 
-        // Apply OPTIMIZED diet percentage filtering using pre-calculated stats
+        // Apply diet percentage filtering using pre-calculated stats
         if (Object.keys(minDietPercentages).length > 0) {
-          console.log('useOptimizedRestaurants: Applying pre-calculated diet percentage filters:', minDietPercentages);
+          console.log('useOptimizedRatingCache: Applying diet percentage filters:', minDietPercentages);
           
           formattedData = formattedData.filter(restaurant => {
-            // Check vegan percentage
             if (minDietPercentages.vegan && (restaurant.vegan_pct || 0) < minDietPercentages.vegan) {
               return false;
             }
-            // Check vegetarian percentage  
             if (minDietPercentages.vegetarian && (restaurant.vegetarian_pct || 0) < minDietPercentages.vegetarian) {
               return false;
             }
-            // Check gluten-free percentage
             if (minDietPercentages.glutenfree && (restaurant.glutenfree_pct || 0) < minDietPercentages.glutenfree) {
               return false;
             }
-            // Check healthy percentage
             if (minDietPercentages.healthy && (restaurant.healthy_pct || 0) < minDietPercentages.healthy) {
               return false;
             }
             return true;
           });
-        }
-
-        // FALLBACK: Apply legacy diet type filtering for selectedDietTypes if needed
-        if (selectedDietTypes && selectedDietTypes.length > 0) {
-          const { data: dietTypesData } = await supabase
-            .from('diet_types')
-            .select('*')
-            .in('id', selectedDietTypes);
-
-          if (dietTypesData && dietTypesData.length > 0) {
-            const validRestaurantIds = new Set<number>();
-            
-            formattedData.forEach(restaurant => {
-              // First try with pre-calculated percentages
-              for (const dietType of dietTypesData) {
-                const minPercentage = dietType.min_percentage || 0;
-                let meetsRequirement = false;
-                
-                switch (dietType.category) {
-                  case 'vegan':
-                    meetsRequirement = (restaurant.vegan_pct || 0) >= minPercentage;
-                    break;
-                  case 'vegetarian':
-                    meetsRequirement = (restaurant.vegetarian_pct || 0) >= minPercentage;
-                    break;
-                  case 'gluten_free':
-                    meetsRequirement = (restaurant.glutenfree_pct || 0) >= minPercentage;
-                    break;
-                  case 'healthy':
-                    meetsRequirement = (restaurant.healthy_pct || 0) >= minPercentage;
-                    break;
-                }
-                
-                if (meetsRequirement) {
-                  validRestaurantIds.add(restaurant.id);
-                  break; // Found matching diet type, no need to check others
-                }
-              }
-              
-              // Fallback to specializes_in_diet if no pre-calculated stats match
-              if (!validRestaurantIds.has(restaurant.id) && restaurant.specializes_in_diet && restaurant.specializes_in_diet.length > 0) {
-                const hasMatchingSpecialization = selectedDietTypes.some(dietId => 
-                  restaurant.specializes_in_diet!.includes(dietId)
-                );
-                if (hasMatchingSpecialization) {
-                  validRestaurantIds.add(restaurant.id);
-                }
-              }
-            });
-
-            formattedData = formattedData.filter(restaurant => 
-              validRestaurantIds.has(restaurant.id)
-            );
-          }
         }
 
         // Sort results
@@ -294,17 +235,25 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
             })
             .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
         } else {
-          // Sort by favorites and rating for general queries
+          // Sort by cached rating first, then favorites
           sortedData = formattedData.sort((a, b) => {
+            // Prioritize restaurants with cached ratings
+            const aRating = a.cached_rating || 0;
+            const bRating = b.cached_rating || 0;
+            
+            if (aRating !== bRating) {
+              return bRating - aRating;
+            }
+            
             return (b.favorites_count || 0) - (a.favorites_count || 0);
           });
         }
 
         setRestaurants(sortedData);
-        console.log('useOptimizedRestaurants: Final results with cached ratings and diet stats:', sortedData.length);
+        console.log('useOptimizedRatingCache: Results with cached ratings:', sortedData.length);
 
       } catch (err) {
-        console.error('Error fetching optimized restaurants:', err);
+        console.error('Error fetching restaurants with rating cache:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar restaurantes');
         setRestaurants([]);
       } finally {
@@ -314,7 +263,7 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
 
     fetchRestaurants();
 
-    // Handle favorites updates
+    // Handle favorites updates (keep existing realtime functionality)
     const handleFavoriteToggled = (event: CustomEvent) => {
       const { restaurantId, newCount } = event.detail;
       setRestaurants(prev =>
@@ -351,23 +300,9 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
       )
       .subscribe();
 
-    // Listen for rating cache updates
-    const ratingCacheChannel = supabase
-      .channel('restaurant-rating-cache-updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'restaurant_rating_cache' },
-        (payload) => {
-          console.log('Rating cache updated:', payload);
-          // Could trigger a refresh or update specific restaurant ratings
-        }
-      )
-      .subscribe();
-
     return () => {
       window.removeEventListener('favoriteToggled', handleFavoriteToggled as EventListener);
       supabase.removeChannel(channel);
-      supabase.removeChannel(ratingCacheChannel);
     };
 
   }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, JSON.stringify(minDietPercentages), isOpenNow]);

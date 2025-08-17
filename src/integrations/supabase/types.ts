@@ -2359,6 +2359,69 @@ export type Database = {
           },
         ]
       }
+      restaurant_rating_cache: {
+        Row: {
+          created_at: string | null
+          last_sync: string | null
+          rating: number | null
+          rating_count: number | null
+          restaurant_id: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          last_sync?: string | null
+          rating?: number | null
+          rating_count?: number | null
+          restaurant_id: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          last_sync?: string | null
+          rating?: number | null
+          rating_count?: number | null
+          restaurant_id?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_rating_cache_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurant_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_rating_cache_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_rating_cache_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_rating_cache_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants_with_counters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_rating_cache_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "v_restaurants_with_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_schedules: {
         Row: {
           closing_time: string
@@ -4968,6 +5031,10 @@ export type Database = {
         Args: { "": unknown } | { "": unknown }
         Returns: string
       }
+      cleanup_rating_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -5235,6 +5302,14 @@ export type Database = {
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
+      }
+      get_stale_rating_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          days_old: number
+          last_sync: string
+          restaurant_id: number
+        }[]
       }
       gettransactionid: {
         Args: Record<PropertyKey, never>
@@ -6569,6 +6644,10 @@ export type Database = {
       st_zmin: {
         Args: { "": unknown }
         Returns: number
+      }
+      sync_restaurant_rating_cache: {
+        Args: { restaurant_id_param?: number }
+        Returns: undefined
       }
       text: {
         Args: { "": unknown }
