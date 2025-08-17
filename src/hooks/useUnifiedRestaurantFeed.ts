@@ -1,6 +1,5 @@
 
 import { useRestaurantFeed } from './useRestaurantFeed';
-import { usePaginatedRestaurants } from './usePaginatedRestaurants';
 import { useRestaurantFeedRpc } from './useFeatureFlags';
 
 interface UnifiedRestaurantFeedProps {
@@ -46,7 +45,7 @@ const normalizeRestaurantData = (restaurant: any) => {
 export const useUnifiedRestaurantFeed = (props: UnifiedRestaurantFeedProps) => {
   const { enabled: useRpcFeed, loading: flagLoading } = useRestaurantFeedRpc();
   
-  // Use new RPC system when flag is enabled
+  // Use RPC system (the current active system)
   const rpcFeedResult = useRestaurantFeed({
     searchQuery: props.searchQuery,
     userLat: props.userLat,
@@ -61,21 +60,7 @@ export const useUnifiedRestaurantFeed = (props: UnifiedRestaurantFeedProps) => {
     sortBy: props.sortBy,
   });
 
-  // Use old pagination system when flag is disabled
-  const paginatedResult = usePaginatedRestaurants({
-    searchQuery: props.searchQuery,
-    userLat: props.userLat,
-    userLng: props.userLng,
-    maxDistance: props.maxDistance,
-    cuisineTypeIds: props.cuisineTypeIds,
-    priceRanges: props.priceRanges,
-    isHighRated: props.isHighRated,
-    selectedEstablishmentTypes: props.selectedEstablishmentTypes,
-    selectedDietTypes: props.selectedDietTypes,
-    sortBy: props.sortBy,
-  });
-
-  console.log(`useUnifiedRestaurantFeed: Using ${useRpcFeed ? 'RPC' : 'Paginated'} system`);
+  console.log('useUnifiedRestaurantFeed: Using RPC system');
 
   if (flagLoading) {
     return {
@@ -90,29 +75,15 @@ export const useUnifiedRestaurantFeed = (props: UnifiedRestaurantFeedProps) => {
     };
   }
 
-  if (useRpcFeed) {
-    // Return RPC system results
-    return {
-      restaurants: rpcFeedResult.restaurants.map(normalizeRestaurantData),
-      loading: rpcFeedResult.loading,
-      error: rpcFeedResult.error,
-      hasMore: false, // RPC system doesn't use pagination
-      loadMore: () => {}, // No-op for RPC system
-      refetch: rpcFeedResult.refetch,
-      serverTiming: rpcFeedResult.serverTiming,
-      systemType: 'rpc' as const
-    };
-  } else {
-    // Return paginated system results
-    return {
-      restaurants: paginatedResult.restaurants.map(normalizeRestaurantData),
-      loading: paginatedResult.loading,
-      error: paginatedResult.error,
-      hasMore: paginatedResult.hasMore,
-      loadMore: paginatedResult.loadMore,
-      refetch: paginatedResult.refresh,
-      serverTiming: paginatedResult.serverTiming,
-      systemType: 'paginated' as const
-    };
-  }
+  // Always return RPC system results (simplified)
+  return {
+    restaurants: rpcFeedResult.restaurants.map(normalizeRestaurantData),
+    loading: rpcFeedResult.loading,
+    error: rpcFeedResult.error,
+    hasMore: false, // RPC system doesn't use pagination
+    loadMore: () => {}, // No-op for RPC system
+    refetch: rpcFeedResult.refetch,
+    serverTiming: rpcFeedResult.serverTiming,
+    systemType: 'rpc' as const
+  };
 };

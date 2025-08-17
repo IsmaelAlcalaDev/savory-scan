@@ -2,7 +2,6 @@
 import { useEffect, useRef } from 'react'
 import { useUnifiedRestaurantFeed } from '@/hooks/useUnifiedRestaurantFeed'
 import InstrumentedRestaurantCard from './InstrumentedRestaurantCard'
-import LoadMoreButton from './LoadMoreButton'
 import PerformanceMetrics from './PerformanceMetrics'
 import { Skeleton } from '@/components/ui/skeleton'
 import { preloadRestaurantImages } from '@/utils/imagePreloader'
@@ -31,8 +30,6 @@ export default function UnifiedRestaurantsGrid(props: UnifiedRestaurantsGridProp
     restaurants, 
     loading, 
     error, 
-    hasMore, 
-    loadMore,
     refetch,
     serverTiming,
     systemType
@@ -99,12 +96,12 @@ export default function UnifiedRestaurantsGrid(props: UnifiedRestaurantsGridProp
 
   return (
     <div ref={containerRef} className="space-y-6">
-      {/* Performance metrics - only show in development or for admin users */}
+      {/* Performance metrics - only show in development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="space-y-2">
           <PerformanceMetrics serverTiming={serverTiming} />
           <div className="text-xs text-muted-foreground">
-            Sistema activo: {systemType === 'rpc' ? 'RPC Feed (Nuevo)' : 'Paginated Feed (Antiguo)'}
+            Sistema activo: {systemType === 'rpc' ? 'RPC Feed' : 'Sistema Unificado'}
           </div>
         </div>
       )}
@@ -133,16 +130,6 @@ export default function UnifiedRestaurantsGrid(props: UnifiedRestaurantsGridProp
           </div>
         ))}
       </div>
-      
-      {/* Show LoadMore button only for paginated system */}
-      {systemType === 'paginated' && (
-        <LoadMoreButton
-          onLoadMore={loadMore}
-          loading={false}
-          hasMore={hasMore}
-          className="mt-8"
-        />
-      )}
     </div>
   )
 }
