@@ -40,7 +40,7 @@ class AnalyticsService {
       const { data: { user } } = await supabase.auth.getUser()
       this.userId = user?.id || null
 
-      // Create session record
+      // Send session creation event to Edge Function
       const sessionData = {
         id: this.sessionId,
         started_at: new Date().toISOString(),
@@ -50,7 +50,13 @@ class AnalyticsService {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       }
 
-      await supabase.from('analytics_sessions').insert(sessionData)
+      // The Edge Function will handle session creation
+      await supabase.functions.invoke('analytics', {
+        body: {
+          type: 'session_create',
+          session_data: sessionData
+        }
+      })
     } catch (error) {
       console.warn('Failed to create analytics session:', error)
     }
@@ -121,7 +127,10 @@ class AnalyticsService {
 
     try {
       const { error } = await supabase.functions.invoke('analytics', {
-        body: batch
+        body: {
+          type: 'events',
+          events: batch
+        }
       })
 
       if (error) {

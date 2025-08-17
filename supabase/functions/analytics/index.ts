@@ -1,5 +1,5 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const supabase = createClient(
@@ -17,35 +17,13 @@ interface AnalyticsEvent {
   event_value?: Record<string, any>
 }
 
-// Rate limiting map (in-memory, simple)
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const limit = rateLimitMap.get(ip)
-  
-  if (!limit || now > limit.resetTime) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + 60000 }) // 1 minute window
-    return true
-  }
-  
-  if (limit.count >= 100) { // 100 events per minute per IP
-    return false
-  }
-  
-  limit.count++
-  return true
-}
-
-function validateEvent(event: any): event is AnalyticsEvent {
-  return (
-    typeof event.session_id === 'string' &&
-    typeof event.event_type === 'string' &&
-    typeof event.event_name === 'string' &&
-    (event.user_id === undefined || typeof event.user_id === 'string') &&
-    (event.restaurant_id === undefined || typeof event.restaurant_id === 'number') &&
-    (event.dish_id === undefined || typeof event.dish_id === 'number')
-  )
+interface SessionData {
+  id: string
+  started_at: string
+  user_agent: string
+  referrer: string | null
+  geo_city: string | null
+  timezone: string
 }
 
 Deno.serve(async (req) => {
@@ -55,51 +33,59 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const clientIP = req.headers.get('x-forwarded-for') || 'unknown'
-    
-    // Check rate limit
-    if (!checkRateLimit(clientIP)) {
+    const { type, events, session_data }: { 
+      type: 'events' | 'session_create'
+      events?: AnalyticsEvent[]
+      session_data?: SessionData
+    } = await req.json()
+
+    if (type === 'session_create' && session_data) {
+      // Handle session creation
+      const { error: sessionError } = await supabase
+        .from('analytics_sessions')
+        .insert({
+          id: session_data.id,
+          started_at: session_data.started_at,
+          user_agent: session_data.user_agent,
+          referrer: session_data.referrer,
+          geo_city: session_data.geo_city,
+          timezone: session_data.timezone
+        })
+
+      if (sessionError) {
+        console.error('Session creation error:', sessionError)
+        // Don't throw error, just log it - sessions are nice to have but not critical
+      }
+
       return new Response(
-        JSON.stringify({ error: 'Rate limit exceeded' }),
+        JSON.stringify({ success: true }),
         { 
-          status: 429, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
         }
       )
     }
 
-    if (req.method !== 'POST') {
-      return new Response(
-        JSON.stringify({ error: 'Method not allowed' }),
-        { 
-          status: 405, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+    if (type === 'events' && events && events.length > 0) {
+      // Validate events
+      const validEvents = events.filter(event => 
+        event.session_id && 
+        event.event_type && 
+        event.event_name
       )
-    }
 
-    const body = await req.json()
-    
-    // Handle both single event and batch events
-    const events = Array.isArray(body) ? body : [body]
-    
-    // Validate all events
-    const validEvents = events.filter(validateEvent)
-    
-    if (validEvents.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'No valid events provided' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
+      if (validEvents.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'No valid events provided' }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400 
+          }
+        )
+      }
 
-    // Insert events in batch
-    const { error } = await supabase
-      .from('analytics_events')
-      .insert(validEvents.map(event => ({
+      // Prepare events for insertion
+      const eventsToInsert = validEvents.map(event => ({
         session_id: event.session_id,
         user_id: event.user_id || null,
         restaurant_id: event.restaurant_id || null,
@@ -107,24 +93,41 @@ Deno.serve(async (req) => {
         event_type: event.event_type,
         event_name: event.event_name,
         event_value: event.event_value || {}
-      })))
+      }))
 
-    if (error) {
-      console.error('Database insert error:', error)
+      // Insert events in batch
+      const { error: insertError } = await supabase
+        .from('analytics_events')
+        .insert(eventsToInsert)
+
+      if (insertError) {
+        console.error('Analytics insert error:', insertError)
+        return new Response(
+          JSON.stringify({ error: 'Failed to insert events' }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500 
+          }
+        )
+      }
+
       return new Response(
-        JSON.stringify({ error: 'Database error' }),
+        JSON.stringify({ 
+          success: true, 
+          processed: eventsToInsert.length 
+        }),
         { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
         }
       )
     }
 
     return new Response(
-      JSON.stringify({ success: true, processed: validEvents.length }),
+      JSON.stringify({ error: 'Invalid request type' }),
       { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400 
       }
     )
 
@@ -133,8 +136,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
       }
     )
   }
