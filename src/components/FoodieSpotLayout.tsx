@@ -15,6 +15,8 @@ import MenuModal from './MenuModal';
 import MobileHeader from './MobileHeader';
 import TabletHeader from './TabletHeader';
 import DesktopHeader from './DesktopHeader';
+import NormalizedPaginatedRestaurantsTab from './NormalizedPaginatedRestaurantsTab';
+import CanonicalUrl from './CanonicalUrl';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
@@ -467,7 +469,7 @@ export default function FoodieSpotLayout({
         </>;
     }
 
-    // Default restaurants content (siempre mostrar cuando no sea 'dishes' ni 'account')
+    // Default restaurants content - now using normalized approach
     return <>
         {/* Filter Tags with Quick Filters integrated */}
         <FilterTags 
@@ -503,29 +505,16 @@ export default function FoodieSpotLayout({
           />
         </div>
 
-        {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-          {restaurantsLoading ? Array.from({
-          length: 12
-        }).map((_, i) => <div key={i} className="space-y-3">
-                <Skeleton className="h-48 w-full rounded-lg" />
-                <div className="p-4 space-y-3">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-              </div>) : restaurantsError ? <div className="col-span-full text-center py-8">
-              <p className="text-muted-foreground">Error al cargar restaurantes: {restaurantsError}</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Revisa la consola para más detalles
-              </p>
-            </div> : restaurants.length === 0 ? <div className="col-span-full text-center py-8">
-              <p className="text-muted-foreground">No se encontraron restaurantes</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Intenta cambiar los filtros de búsqueda
-              </p>
-            </div> : restaurants.map((restaurant: Restaurant) => <RestaurantCard key={restaurant.id} id={restaurant.id} name={restaurant.name} slug={restaurant.slug} description={restaurant.description} priceRange={restaurant.price_range} googleRating={restaurant.google_rating} googleRatingCount={restaurant.google_rating_count} distance={restaurant.distance_km} cuisineTypes={restaurant.cuisine_types} establishmentType={restaurant.establishment_type} services={restaurant.services} favoritesCount={restaurant.favorites_count} coverImageUrl={restaurant.cover_image_url} logoUrl={restaurant.logo_url} onLoginRequired={handleLoginRequired} />)}
-        </div>
+        {/* Use Normalized Restaurant Tab instead of the old grid */}
+        <NormalizedPaginatedRestaurantsTab
+          searchQuery={searchQueryRestaurants}
+          cuisineTypeIds={selectedCuisines.length > 0 ? selectedCuisines : undefined}
+          priceRanges={selectedPriceRanges.length > 0 ? selectedPriceRanges : undefined}
+          isHighRated={isHighRated}
+          selectedEstablishmentTypes={selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined}
+          selectedDietTypes={selectedDietTypes.length > 0 ? selectedDietTypes : undefined}
+          maxDistance={1000}
+        />
       </>;
   };
 
