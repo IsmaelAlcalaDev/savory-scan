@@ -1,12 +1,11 @@
 
 import { useState } from 'react';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { useCachedRestaurantFeed } from '@/hooks/useCachedRestaurantFeed';
+import { useRestaurantFeed } from '@/hooks/useRestaurantFeed';
 import RestaurantCard from './RestaurantCard';
 import RestaurantSortSelector from './RestaurantSortSelector';
 import { Skeleton } from '@/components/ui/skeleton';
 import SimpleDietFilterWithCounts from './SimpleDietFilterWithCounts';
-import CacheDebugPanel from './CacheDebugPanel';
 
 interface OptimizedRestaurantsTabProps {
   searchQuery?: string;
@@ -24,11 +23,10 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
     userLocation ? 'distance' : 'favorites'
   );
   const [selectedDietCategories, setSelectedDietCategories] = useState<string[]>([]);
-  const [showCacheDebug, setShowCacheDebug] = useState(false);
 
   const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
 
-  const { restaurants, loading, error, cacheMetrics } = useCachedRestaurantFeed({
+  const { restaurants, loading, error } = useRestaurantFeed({
     searchQuery: props.searchQuery,
     userLat: userLocation?.latitude,
     userLng: userLocation?.longitude,
@@ -40,9 +38,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
     selectedDietCategories,
     sortBy
   });
-
-  // Show debug panel in development or when cache metrics are available
-  const shouldShowDebug = process.env.NODE_ENV === 'development' || cacheMetrics.cacheStatus !== 'unknown';
 
   if (loading) {
     return (
@@ -63,10 +58,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             />
           </div>
         </div>
-
-        {shouldShowDebug && (
-          <CacheDebugPanel metrics={cacheMetrics} />
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {Array.from({ length: 12 }).map((_, i) => (
@@ -103,11 +94,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             />
           </div>
         </div>
-        
-        {shouldShowDebug && (
-          <CacheDebugPanel metrics={cacheMetrics} />
-        )}
-        
         <div className="text-center py-8">
           <p className="text-muted-foreground">Error al cargar restaurantes: {error}</p>
         </div>
@@ -134,11 +120,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             />
           </div>
         </div>
-        
-        {shouldShowDebug && (
-          <CacheDebugPanel metrics={cacheMetrics} />
-        )}
-        
         <div className="text-center py-8">
           <p className="text-muted-foreground">No se encontraron restaurantes</p>
           <p className="text-sm text-muted-foreground mt-2">
@@ -168,10 +149,6 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
         </div>
       </div>
 
-      {shouldShowDebug && (
-        <CacheDebugPanel metrics={cacheMetrics} />
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
         {restaurants.map((restaurant, index) => (
           <RestaurantCard
@@ -184,7 +161,7 @@ export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabPr
             googleRating={restaurant.google_rating}
             googleRatingCount={restaurant.google_rating_count}
             distance={restaurant.distance_km}
-            cuisineTypes={restaurant.cuisine_types.map(ct => ct.name)}
+            cuisineTypes={restaurant.cuisine_types.map(ct => ct.name)} // Convert objects to string array
             establishmentType={restaurant.establishment_type}
             services={restaurant.services}
             favoritesCount={restaurant.favorites_count}

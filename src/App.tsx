@@ -1,60 +1,42 @@
 
-import "./App.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
 import { DishFavoritesProvider } from "./contexts/DishFavoritesContext";
-import ErrorBoundary from "./components/ErrorBoundary";
+import { OrderSimulatorProvider } from "./contexts/OrderSimulatorContext";
 import AnalyticsProvider from "./components/AnalyticsProvider";
-
-// Pages
-import FoodieSpot from "./pages/FoodieSpot";
-import Restaurants from "./pages/Restaurants";
-import Dishes from "./pages/Dishes";
+import ProtectedRoute from "./components/ProtectedRoute";
 import RestaurantProfile from "./pages/RestaurantProfile";
 import RestaurantMenu from "./pages/RestaurantMenu";
-import Account from "./pages/Account";
-import Auth from "./pages/Auth";
-import LocationEntry from "./pages/LocationEntry";
-import SuperAdminPanel from "./pages/SuperAdminPanel";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
+import SuperAdminPanel from "./pages/SuperAdminPanel";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import LocationEntry from "./pages/LocationEntry";
+import Restaurants from "./pages/Restaurants";
+import Dishes from "./pages/Dishes";
+import Account from "./pages/Account";
+import ErrorBoundary from "./components/ErrorBoundary";
 
-// ✅ Optimized ReactQuery configuration for caching system
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Longer stale times to work better with our Redis cache
-      staleTime: 2 * 60 * 1000, // 2 minutes (longer than Redis TTL)
-      gcTime: 5 * 60 * 1000, // 5 minutes
-      // Reduce network requests when cache is fresh
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      // Retry configuration
-      retry: (failureCount, error: any) => {
-        // Don't retry if it's a client error (4xx)
-        if (error?.status >= 400 && error?.status < 500) {
-          return false;
-        }
-        return failureCount < 2;
-      },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
-    },
-    mutations: {
-      // Cache mutations for better UX
       retry: 1,
-    }
-  }
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
 });
 
-function App() {
+const App = () => {
+  console.log('App: Starting application with enhanced security and analytics');
+
   return (
     <ErrorBoundary>
       <HelmetProvider>
@@ -62,41 +44,57 @@ function App() {
           <AuthProvider>
             <FavoritesProvider>
               <DishFavoritesProvider>
-                <TooltipProvider>
-                  <BrowserRouter>
-                    <AnalyticsProvider>
-                      <div className="min-h-screen bg-background font-sans antialiased">
+                <OrderSimulatorProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <AnalyticsProvider>
                         <Routes>
-                          <Route path="/" element={<FoodieSpot />} />
+                          <Route path="/" element={<LocationEntry />} />
                           <Route path="/restaurantes" element={<Restaurants />} />
                           <Route path="/platos" element={<Dishes />} />
-                          <Route path="/restaurante/:slug" element={<RestaurantProfile />} />
-                          <Route path="/restaurante/:slug/menu" element={<RestaurantMenu />} />
-                          <Route path="/cuenta" element={<Account />} />
+                          <Route path="/account" element={<Account />} />
+                          <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
+                          <Route path="/carta/:slug" element={<RestaurantMenu />} />
+                          <Route 
+                            path="/admin" 
+                            element={
+                              <ProtectedRoute requiredRole="admin">
+                                <SecureAdminPanel />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          <Route 
+                            path="/superadmin" 
+                            element={
+                              <ProtectedRoute requiredRole="admin">
+                                <SuperAdminPanel />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          <Route 
+                            path="/security" 
+                            element={
+                              <ProtectedRoute requiredRole="admin">
+                                <SecurityDashboard />
+                              </ProtectedRoute>
+                            } 
+                          />
                           <Route path="/auth" element={<Auth />} />
-                          <Route path="/ubicacion" element={<LocationEntry />} />
-                          <Route path="/admin/super" element={<SuperAdminPanel />} />
-                          <Route path="/admin/secure" element={<SecureAdminPanel />} />
-                          <Route path="/seguridad" element={<SecurityDashboard />} />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
-                      </div>
-                      <Toaster />
-                      <Sonner />
-                    </AnalyticsProvider>
-                  </BrowserRouter>
-                </TooltipProvider>
+                      </AnalyticsProvider>
+                    </BrowserRouter>
+                  </TooltipProvider>
+                </OrderSimulatorProvider>
               </DishFavoritesProvider>
             </FavoritesProvider>
           </AuthProvider>
-          {/* ✅ Only show React Query Devtools in development */}
-          {process.env.NODE_ENV === 'development' && (
-            <ReactQueryDevtools initialIsOpen={false} />
-          )}
         </QueryClientProvider>
       </HelmetProvider>
     </ErrorBoundary>
   );
-}
+};
 
 export default App;
