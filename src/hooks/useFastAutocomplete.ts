@@ -25,21 +25,17 @@ export const useFastAutocomplete = (query: string, limit: number = 10) => {
       setError(null);
 
       try {
-        console.log('Fast autocomplete search for query:', query);
+        console.log('Fast trigram autocomplete search for query:', query);
 
-        // Use direct query on restaurants table until types are updated
+        // Use the new trigram-optimized RPC function
         const { data, error } = await supabase
-          .from('restaurants')
-          .select('id, name, slug, google_rating')
-          .ilike('name', `%${query}%`)
-          .eq('is_active', true)
-          .eq('is_published', true)
-          .is('deleted_at', null)
-          .order('google_rating', { ascending: false, nullsFirst: false })
-          .limit(limit);
+          .rpc('fast_restaurant_autocomplete', {
+            search_query: query.trim(),
+            max_results: limit
+          });
 
         if (error) {
-          console.error('Error in fast autocomplete:', error);
+          console.error('Error in fast trigram autocomplete:', error);
           throw error;
         }
 
@@ -48,16 +44,16 @@ export const useFastAutocomplete = (query: string, limit: number = 10) => {
             id: item.id,
             name: item.name,
             slug: item.slug,
-            similarity_score: 0.5 // Placeholder until trigram is available
+            similarity_score: item.similarity_score || 0
           }));
 
           setResults(formattedResults);
-          console.log('Fast autocomplete results:', formattedResults);
+          console.log('Fast trigram autocomplete results:', formattedResults.length, 'found');
         } else {
           setResults([]);
         }
       } catch (err) {
-        console.error('Error in fast autocomplete:', err);
+        console.error('Error in fast trigram autocomplete:', err);
         setError(err instanceof Error ? err.message : 'Error en autocompletado');
         setResults([]);
       } finally {
@@ -65,7 +61,8 @@ export const useFastAutocomplete = (query: string, limit: number = 10) => {
       }
     };
 
-    const debounceTimer = setTimeout(searchAutocomplete, 100);
+    // Reduced debounce time since trigram search is much faster
+    const debounceTimer = setTimeout(searchAutocomplete, 50);
     return () => clearTimeout(debounceTimer);
   }, [query, limit]);
 

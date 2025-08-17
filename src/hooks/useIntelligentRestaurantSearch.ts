@@ -26,21 +26,17 @@ export const useIntelligentRestaurantSearch = (query: string) => {
       setError(null);
 
       try {
-        console.log('Optimized restaurant search for query:', query);
+        console.log('Intelligent trigram restaurant search for query:', query);
 
-        // Use direct SQL query with trigram similarity until types are updated
+        // Use the new trigram-optimized RPC function for restaurant search
         const { data, error } = await supabase
-          .from('restaurants')
-          .select('id, name, slug, description')
-          .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
-          .eq('is_active', true)
-          .eq('is_published', true)
-          .is('deleted_at', null)
-          .order('favorites_count', { ascending: false })
-          .limit(20);
+          .rpc('fast_restaurant_autocomplete', {
+            search_query: query.trim(),
+            max_results: 20
+          });
 
         if (error) {
-          console.error('Error in restaurant search:', error);
+          console.error('Error in intelligent restaurant search:', error);
           throw error;
         }
 
@@ -49,17 +45,17 @@ export const useIntelligentRestaurantSearch = (query: string) => {
             id: item.id,
             name: item.name,
             slug: item.slug,
-            description: item.description,
-            similarity_score: 0.5 // Placeholder until trigram is available
+            description: '', // RPC function doesn't return description for performance
+            similarity_score: item.similarity_score || 0
           }));
 
           setResults(formattedResults);
-          console.log('Restaurant search results:', formattedResults);
+          console.log('Intelligent restaurant search results:', formattedResults.length, 'found');
         } else {
           setResults([]);
         }
       } catch (err) {
-        console.error('Error in restaurant search:', err);
+        console.error('Error in intelligent restaurant search:', err);
         setError(err instanceof Error ? err.message : 'Error en búsqueda de restaurantes');
         setResults([]);
       } finally {
@@ -67,7 +63,8 @@ export const useIntelligentRestaurantSearch = (query: string) => {
       }
     };
 
-    const debounceTimer = setTimeout(searchRestaurants, 200);
+    // Reduced debounce time since trigram search is much faster
+    const debounceTimer = setTimeout(searchRestaurants, 100);
     return () => clearTimeout(debounceTimer);
   }, [query]);
 

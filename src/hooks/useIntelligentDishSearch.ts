@@ -9,6 +9,9 @@ interface DishSearchResult {
   restaurant_id: number;
   restaurant_name: string;
   restaurant_slug: string;
+  base_price: number;
+  image_url?: string;
+  category_name?: string;
   similarity_score: number;
 }
 
@@ -28,17 +31,20 @@ export const useIntelligentDishSearch = (query: string) => {
       setError(null);
 
       try {
-        console.log('Optimized dish search for query:', query);
+        console.log('Fulltext tsvector dish search for query:', query);
 
-        // Use the existing dishes_full view until types are updated
+        // Prepare query for tsvector search - convert spaces to & for AND search
+        const tsQuery = query.trim().split(/\s+/).join(' & ');
+
+        // Use the new tsvector-optimized RPC function
         const { data, error } = await supabase
-          .from('dishes_full')
-          .select('*')
-          .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
-          .limit(30);
+          .rpc('search_dishes_fulltext', {
+            search_query: tsQuery,
+            max_results: 30
+          });
 
         if (error) {
-          console.error('Error in dish search:', error);
+          console.error('Error in fulltext dish search:', error);
           throw error;
         }
 
@@ -50,16 +56,19 @@ export const useIntelligentDishSearch = (query: string) => {
             restaurant_id: item.restaurant_id,
             restaurant_name: item.restaurant_name,
             restaurant_slug: item.restaurant_slug,
-            similarity_score: 0.5 // Placeholder until trigram is available
+            base_price: item.base_price,
+            image_url: item.image_url,
+            category_name: item.category_name,
+            similarity_score: item.ts_rank || 0
           }));
 
           setResults(formattedResults);
-          console.log('Dish search results:', formattedResults);
+          console.log('Fulltext dish search results:', formattedResults.length, 'found');
         } else {
           setResults([]);
         }
       } catch (err) {
-        console.error('Error in dish search:', err);
+        console.error('Error in fulltext dish search:', err);
         setError(err instanceof Error ? err.message : 'Error en búsqueda de platos');
         setResults([]);
       } finally {
@@ -67,7 +76,8 @@ export const useIntelligentDishSearch = (query: string) => {
       }
     };
 
-    const debounceTimer = setTimeout(searchDishes, 200);
+    // Reduced debounce time since tsvector search is much faster
+    const debounceTimer = setTimeout(searchDishes, 100);
     return () => clearTimeout(debounceTimer);
   }, [query]);
 

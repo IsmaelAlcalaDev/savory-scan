@@ -4921,6 +4921,15 @@ export type Database = {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
       }
+      fast_restaurant_autocomplete: {
+        Args: { max_results?: number; search_query: string }
+        Returns: {
+          id: number
+          name: string
+          similarity_score: number
+          slug: string
+        }[]
+      }
       geography: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
@@ -5161,6 +5170,26 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       json: {
         Args: { "": unknown }
         Returns: Json
@@ -5362,6 +5391,33 @@ export type Database = {
       postgis_wagyu_version: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      search_dishes_fulltext: {
+        Args: { max_results?: number; search_query: string }
+        Returns: {
+          base_price: number
+          category_name: string
+          description: string
+          id: number
+          image_url: string
+          name: string
+          restaurant_id: number
+          restaurant_name: string
+          restaurant_slug: string
+          ts_rank: number
+        }[]
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
       spheroid_in: {
         Args: { "": unknown }
