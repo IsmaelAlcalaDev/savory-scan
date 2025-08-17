@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -160,32 +161,33 @@ export const useOptimizedRestaurantFeed = (props: UseOptimizedRestaurantFeedProp
         
         setRestaurants(formattedData);
 
-        // Track analytics event (non-blocking)
-        supabase.from('analytics_events').insert({
-          event_type: 'feed_search',
-          event_name: 'optimized_restaurant_feed',
-          properties: {
-            result_count: formattedData.length,
-            search_query: searchQuery,
-            has_location: Boolean(userLat && userLng),
-            filters_applied: {
-              cuisine_types: cuisineTypeIds?.length || 0,
-              price_ranges: priceRanges?.length || 0,
-              establishment_types: selectedEstablishmentTypes?.length || 0,
-              diet_categories: selectedDietCategories?.length || 0,
-              is_high_rated: isHighRated,
-              is_open_now: isOpenNow
-            },
-            performance: {
-              client_duration_ms: clientDuration,
-              cache_key: cacheKey
+        // Track analytics event (non-blocking) - fix promise handling
+        try {
+          await supabase.from('analytics_events').insert({
+            event_type: 'feed_search',
+            event_name: 'optimized_restaurant_feed',
+            properties: {
+              result_count: formattedData.length,
+              search_query: searchQuery,
+              has_location: Boolean(userLat && userLng),
+              filters_applied: {
+                cuisine_types: cuisineTypeIds?.length || 0,
+                price_ranges: priceRanges?.length || 0,
+                establishment_types: selectedEstablishmentTypes?.length || 0,
+                diet_categories: selectedDietCategories?.length || 0,
+                is_high_rated: isHighRated,
+                is_open_now: isOpenNow
+              },
+              performance: {
+                client_duration_ms: clientDuration,
+                cache_key: cacheKey
+              }
             }
-          }
-        }).then(() => {
+          });
           console.log('Analytics event tracked for optimized feed');
-        }).catch(err => {
-          console.warn('Failed to track analytics event:', err);
-        });
+        } catch (analyticsError) {
+          console.warn('Failed to track analytics event:', analyticsError);
+        }
 
       } else {
         setRestaurants([]);
