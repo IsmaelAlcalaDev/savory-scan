@@ -1,5 +1,6 @@
 
 
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface FavoriteResult {
@@ -50,10 +51,10 @@ export class FavoritesService {
         return { success: false, error: 'User not authenticated' };
       }
 
-      // Check if the restaurant is already in favorites - explicitly select id field
-      const { data: existingFavoriteData, error: existingFavoriteError } = await supabase
+      // Check if the restaurant is already in favorites - use composite key
+      const { data: existingFavorite, error: existingFavoriteError } = await supabase
         .from('user_saved_restaurants')
-        .select('id, is_active, restaurant_id, user_id')
+        .select('is_active, restaurant_id, user_id')
         .eq('user_id', user.id)
         .eq('restaurant_id', restaurantId)
         .maybeSingle();
@@ -62,8 +63,6 @@ export class FavoritesService {
         console.error('Error checking existing favorite:', existingFavoriteError);
         throw existingFavoriteError;
       }
-
-      const existingFavorite = existingFavoriteData;
 
       let result;
       
@@ -78,7 +77,8 @@ export class FavoritesService {
             saved_from: savedFrom,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingFavorite.id);
+          .eq('user_id', user.id)
+          .eq('restaurant_id', restaurantId);
 
         if (error) throw error;
         
@@ -142,4 +142,5 @@ export class FavoritesService {
     }
   }
 }
+
 
