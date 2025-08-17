@@ -11,7 +11,6 @@ import { useSecurityLogger } from '@/hooks/useSecurityLogger';
 import RestaurantCard from '@/components/RestaurantCard';
 import FavoriteRestaurantItem from '@/components/FavoriteRestaurantItem';
 import FavoriteDishItem from '@/components/FavoriteDishItem';
-import { useConsolidatedFavoritesRealtime } from '@/hooks/useConsolidatedFavoritesRealtime';
 
 interface FavoriteRestaurant {
   id: number;
@@ -60,29 +59,22 @@ export default function FavoritesSection() {
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState<{ [key: string]: boolean }>({});
 
-  // Use consolidated realtime instead of multiple subscriptions
-  const { isActive: realtimeActive } = useConsolidatedFavoritesRealtime();
-
   useEffect(() => {
     if (user) {
       loadFavorites();
     }
   }, [user]);
 
-  // Listen to favoriteToggled events for real-time updates
   useEffect(() => {
     const handleFavoriteToggled = (event: CustomEvent) => {
       const { restaurantId, isFavorite, newCount } = event.detail;
       
       if (isFavorite) {
-        // Restaurant was added to favorites, refresh the list to show it
         loadFavorites();
       } else {
-        // Restaurant was removed from favorites, remove it from the list
         setFavoriteRestaurants(prev => prev.filter(item => item.id !== restaurantId));
       }
       
-      // Update favorites count in existing items
       setFavoriteRestaurants(prev =>
         prev.map(r => (r.id === restaurantId ? { ...r, favorites_count: newCount } : r))
       );
@@ -94,16 +86,13 @@ export default function FavoritesSection() {
     };
   }, []);
 
-  // Listen to dishFavoriteToggled events for real-time updates
   useEffect(() => {
     const handleDishFavoriteToggled = (event: CustomEvent) => {
       const { dishId, isFavorite } = event.detail;
       
       if (!isFavorite) {
-        // Dish was removed from favorites, remove it from the list
         setFavoriteDishes(prev => prev.filter(item => item.id !== dishId));
       } else {
-        // Dish was added to favorites, refresh the list to show it
         loadFavorites();
       }
     };
@@ -114,7 +103,6 @@ export default function FavoritesSection() {
     };
   }, []);
 
-  // Listen to restaurant favorites count updates
   useEffect(() => {
     const handleRestaurantFavoritesCountUpdated = (event: CustomEvent) => {
       const { restaurantId, newCount } = event.detail;
@@ -286,11 +274,6 @@ export default function FavoritesSection() {
           <span className="text-sm text-muted-foreground">
             {favoritesCount} total
           </span>
-          {realtimeActive && (
-            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-              Tiempo real activo
-            </span>
-          )}
         </div>
       </div>
 
