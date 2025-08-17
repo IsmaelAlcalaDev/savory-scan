@@ -1,6 +1,6 @@
 
 import { useOptimizedRestaurants } from './useOptimizedRestaurants';
-import { useEnhancedIntelligentRestaurants } from './useEnhancedIntelligentRestaurants';
+import { useSpatialRestaurants } from './useSpatialRestaurants';
 
 interface UseEnhancedRestaurantsProps {
   searchQuery?: string;
@@ -16,7 +16,31 @@ interface UseEnhancedRestaurantsProps {
 }
 
 export const useEnhancedRestaurants = (props: UseEnhancedRestaurantsProps) => {
-  // Always use the optimized restaurants hook now
-  // The optimized version handles both search and non-search cases efficiently
-  return useOptimizedRestaurants(props);
+  const hasLocation = Boolean(props.userLat && props.userLng);
+  
+  // Usar consultas espaciales cuando tenemos ubicación del usuario
+  const spatialResults = useSpatialRestaurants({
+    ...props,
+    enabled: hasLocation
+  });
+
+  // Usar consultas tradicionales cuando no tenemos ubicación
+  const traditionalResults = useOptimizedRestaurants({
+    ...props,
+    // Solo habilitar cuando no tenemos ubicación
+    // Si tenemos ubicación pero no hay resultados espaciales, usar como fallback
+  });
+
+  // Determinar qué resultados usar
+  if (hasLocation) {
+    // Si tenemos ubicación, usar resultados espaciales
+    if (spatialResults.loading || spatialResults.restaurants.length > 0 || spatialResults.error) {
+      return spatialResults;
+    }
+    // Fallback a resultados tradicionales si no hay resultados espaciales
+    console.log('useEnhancedRestaurants: Falling back to traditional results');
+  }
+
+  // Sin ubicación o como fallback, usar resultados tradicionales
+  return traditionalResults;
 };
