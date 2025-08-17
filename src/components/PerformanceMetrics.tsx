@@ -6,6 +6,7 @@ interface PerformanceMetrics {
   fid: number | null;
   cls: number | null;
   queryTime: number | null;
+  fetchCount: number;
 }
 
 export const PerformanceMetrics = ({ onMetricsChange }: { onMetricsChange?: (metrics: PerformanceMetrics) => void }) => {
@@ -13,14 +14,13 @@ export const PerformanceMetrics = ({ onMetricsChange }: { onMetricsChange?: (met
     lcp: null,
     fid: null,
     cls: null,
-    queryTime: null
+    queryTime: null,
+    fetchCount: 0
   });
 
   useEffect(() => {
     // Solo en desarrollo para monitorear performance
     if (process.env.NODE_ENV !== 'development') return;
-
-    let queryStartTime = performance.now();
 
     // Observador de Core Web Vitals
     const observer = new PerformanceObserver((list) => {
@@ -46,7 +46,7 @@ export const PerformanceMetrics = ({ onMetricsChange }: { onMetricsChange?: (met
 
     observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
 
-    // Medir tiempo de queries
+    // Medir tiempo de queries de Supabase
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
       const start = performance.now();
@@ -54,7 +54,11 @@ export const PerformanceMetrics = ({ onMetricsChange }: { onMetricsChange?: (met
       const duration = performance.now() - start;
       
       if (args[0]?.toString().includes('supabase')) {
-        setMetrics(prev => ({ ...prev, queryTime: duration }));
+        setMetrics(prev => ({ 
+          ...prev, 
+          queryTime: duration,
+          fetchCount: prev.fetchCount + 1
+        }));
       }
       
       return response;
@@ -75,6 +79,7 @@ export const PerformanceMetrics = ({ onMetricsChange }: { onMetricsChange?: (met
       <div>FID: {metrics.fid ? `${Math.round(metrics.fid)}ms` : 'N/A'}</div>
       <div>CLS: {metrics.cls ? metrics.cls.toFixed(3) : 'N/A'}</div>
       <div>Query: {metrics.queryTime ? `${Math.round(metrics.queryTime)}ms` : 'N/A'}</div>
+      <div>Fetches: {metrics.fetchCount}</div>
     </div>
   );
 };

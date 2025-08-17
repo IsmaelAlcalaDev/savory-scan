@@ -1,7 +1,4 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { RealtimeChannel } from '@supabase/supabase-js';
-
 interface BroadcastEvent {
   type: string;
   payload: any;
@@ -16,7 +13,8 @@ interface BroadcastChannelConfig {
 
 class BroadcastManager {
   private static instance: BroadcastManager;
-  private channels: Map<string, RealtimeChannel> = new Map();
+  private channels: Map<string, BroadcastChannel> = new Map();
+  private handlers: Map<string, (event: BroadcastEvent) => void> = new Map();
 
   private constructor() {}
 
@@ -27,89 +25,66 @@ class BroadcastManager {
     return BroadcastManager.instance;
   }
 
-  // Setup broadcast channel for custom events
-  setupBroadcastChannel(config: BroadcastChannelConfig): RealtimeChannel {
-    console.log(`BroadcastManager: Setting up broadcast channel ${config.name}`);
+  setupBroadcastChannel(config: BroadcastChannelConfig): void {
+    console.log(`BroadcastManager: Setting up channel ${config.name}`);
     
-    // Remove existing channel if it exists
-    if (this.channels.has(config.name)) {
-      this.removeBroadcastChannel(config.name);
-    }
-
-    // Create new channel for broadcasts
-    const channel = supabase.channel(config.name);
-
-    // Listen to broadcast events
-    config.events.forEach(eventType => {
-      channel.on('broadcast', { event: eventType }, (payload) => {
-        console.log(`BroadcastManager: Received broadcast ${eventType}:`, payload);
-        
-        const broadcastEvent: BroadcastEvent = {
-          type: eventType,
-          payload: payload.payload,
-          timestamp: Date.now()
-        };
-        
+    // Create broadcast channel
+    const channel = new BroadcastChannel(config.name);
+    
+    // Setup message handler
+    const handler = (event: MessageEvent) => {
+      const broadcastEvent = event.data as BroadcastEvent;
+      
+      if (config.events.includes(broadcastEvent.type)) {
+        console.log(`BroadcastManager: Received event ${broadcastEvent.type}:`, broadcastEvent.payload);
         config.handler(broadcastEvent);
-      });
-    });
+      }
+    };
 
-    // Subscribe to the channel
-    channel.subscribe((status) => {
-      console.log(`BroadcastManager: Channel ${config.name} status:`, status);
-    });
-
+    channel.addEventListener('message', handler);
+    
+    // Store references
     this.channels.set(config.name, channel);
-    return channel;
+    this.handlers.set(config.name, config.handler);
   }
 
-  // Send broadcast event
   sendBroadcast(channelName: string, eventType: string, payload: any): void {
     const channel = this.channels.get(channelName);
+    
     if (channel) {
-      console.log(`BroadcastManager: Sending broadcast ${eventType} to ${channelName}:`, payload);
+      const event: BroadcastEvent = {
+        type: eventType,
+        payload,
+        timestamp: Date.now()
+      };
       
-      channel.send({
-        type: 'broadcast',
-        event: eventType,
-        payload: {
-          payload,
-          timestamp: Date.now()
-        }
-      });
+      console.log(`BroadcastManager: Sending broadcast ${eventType} on ${channelName}:`, payload);
+      channel.postMessage(event);
     } else {
       console.warn(`BroadcastManager: Channel ${channelName} not found`);
     }
   }
 
-  // Remove broadcast channel
   removeBroadcastChannel(channelName: string): void {
     console.log(`BroadcastManager: Removing broadcast channel ${channelName}`);
     
     const channel = this.channels.get(channelName);
     if (channel) {
-      supabase.removeChannel(channel);
+      channel.close();
       this.channels.delete(channelName);
+      this.handlers.delete(channelName);
     }
   }
 
-  // Cleanup all channels
   cleanup(): void {
-    console.log('BroadcastManager: Cleaning up all broadcast channels');
+    console.log('BroadcastManager: Cleaning up all channels');
     
     this.channels.forEach((channel, name) => {
-      supabase.removeChannel(channel);
+      channel.close();
     });
+    
     this.channels.clear();
-  }
-
-  // Get channel status
-  getChannelStatus(): Record<string, string> {
-    const status: Record<string, string> = {};
-    this.channels.forEach((channel, name) => {
-      status[name] = channel.state;
-    });
-    return status;
+    this.handlers.clear();
   }
 }
 
