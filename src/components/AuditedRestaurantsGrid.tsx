@@ -107,13 +107,12 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
       {/* Enhanced performance metrics */}
       {(process.env.NODE_ENV === 'development' || systemType?.includes('audit')) && (
         <div className="space-y-2">
-          <OptimizedPerformanceMonitor serverTiming={serverTiming} />
+          <OptimizedPerformanceMonitor />
           <div className="text-xs text-muted-foreground space-y-1">
             <div className="flex items-center gap-4">
               <span>
                 Sistema: {
                   systemType === 'audit-optimized' ? '🚀 AUDIT OPTIMIZADO (Cache + MV + RPC)' :
-                  systemType === 'audit' ? '📊 AUDIT (MV + RPC)' :
                   systemType === 'rpc-optimized' ? '⚡ RPC OPTIMIZADO' : 
                   systemType === 'loading' ? 'Cargando...' :
                   'Sistema Unificado'
@@ -129,7 +128,7 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
                 </span>
               )}
             </div>
-            {(systemType === 'audit-optimized' || systemType === 'audit') && (
+            {systemType === 'audit-optimized' && (
               <div className="flex items-center gap-4 text-xs">
                 <span className={cacheHit ? 'text-green-600' : 'text-orange-600'}>
                   Cache: {cacheHit ? '✅ HIT' : '⚡ MISS'}
@@ -171,8 +170,8 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
         ))}
       </div>
       
-      {/* Show LoadMore button only for non-audit systems */}
-      {systemType !== 'audit' && (
+      {/* Show LoadMore button only for systems that support pagination */}
+      {systemType !== 'audit-optimized' && (
         <LoadMoreButton
           onLoadMore={loadMore}
           loading={false}
