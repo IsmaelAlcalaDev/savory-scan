@@ -311,6 +311,12 @@ export const useDishes = (params: UseDishesParams = {}) => {
     } catch (err) {
       if (signal.aborted) return;
       
+      // Handle AbortError gracefully - this is expected when requests are cancelled
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('useDishes: Request aborted, ignoring error');
+        return;
+      }
+      
       console.error('useDishes: Error fetching dishes:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
       setDishes([]);
