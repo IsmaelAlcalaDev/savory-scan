@@ -5,6 +5,7 @@ import LoadMoreButton from './LoadMoreButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useConsolidatedRestaurantsRealtime } from '@/hooks/useConsolidatedRestaurantsRealtime';
 import { useEffect, useRef } from 'react';
+import { preloadRestaurantImages } from '@/utils/imagePreloader';
 
 interface PaginatedRestaurantsGridProps {
   searchQuery?: string;
@@ -31,6 +32,13 @@ export default function PaginatedRestaurantsGrid(props: PaginatedRestaurantsGrid
     hasMore, 
     loadMore 
   } = usePaginatedRestaurants(props);
+
+  // Preload first batch of images for better LCP
+  useEffect(() => {
+    if (restaurants.length > 0) {
+      preloadRestaurantImages(restaurants.slice(0, 6));
+    }
+  }, [restaurants]);
 
   // Observe restaurant elements for realtime updates
   useEffect(() => {
@@ -79,7 +87,7 @@ export default function PaginatedRestaurantsGrid(props: PaginatedRestaurantsGrid
   return (
     <div ref={containerRef}>
       <div className="restaurants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-        {restaurants.map((restaurant) => (
+        {restaurants.map((restaurant, index) => (
           <div key={restaurant.id} data-restaurant-id={restaurant.id}>
             <RestaurantCard
               id={restaurant.id}
@@ -96,6 +104,7 @@ export default function PaginatedRestaurantsGrid(props: PaginatedRestaurantsGrid
               favoritesCount={restaurant.favorites_count}
               coverImageUrl={restaurant.cover_image_url}
               logoUrl={restaurant.logo_url}
+              priority={index < 4} // Mark first 4 as priority for LCP optimization
             />
           </div>
         ))}

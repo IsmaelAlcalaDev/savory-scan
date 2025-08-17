@@ -37,7 +37,7 @@ export default function OptimizedImage({
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Generate WebP and AVIF sources
+  // Generate optimized sources for Supabase Storage
   const generateOptimizedSrc = (originalSrc: string, format: 'webp' | 'avif' | 'original' = 'original') => {
     if (!originalSrc || originalSrc.includes('data:')) return originalSrc;
     
@@ -48,16 +48,15 @@ export default function OptimizedImage({
       
       if (width) params.set('width', width.toString());
       if (height) params.set('height', height.toString());
-      if (quality !== 75) params.set('quality', quality.toString());
+      params.set('quality', quality.toString());
+      params.set('resize', 'contain');
       
       // Add format parameter for WebP/AVIF if supported
       if (format === 'webp') params.set('format', 'webp');
       if (format === 'avif') params.set('format', 'avif');
       
-      if (params.toString()) {
-        url.search = params.toString();
-        return url.toString();
-      }
+      url.search = params.toString();
+      return url.toString();
     }
     
     return originalSrc;
@@ -79,7 +78,7 @@ export default function OptimizedImage({
         }
       },
       {
-        rootMargin: '50px 0px', // Start loading 50px before the image comes into view
+        rootMargin: '50px 0px',
         threshold: 0.1
       }
     );
@@ -93,18 +92,16 @@ export default function OptimizedImage({
     };
   }, [priority]);
 
-  // Preload critical images (LCP)
+  // Preload critical images for LCP
   useEffect(() => {
     if (priority && src) {
       const link = document.createElement('link');
       link.rel = 'preload';
       link.as = 'image';
-      link.href = avifSrc; // Preload the best format
+      link.href = webpSrc; // Preload WebP as it has good support
       
-      // Add responsive sizes if provided
       if (sizes) {
         link.imageSizes = sizes;
-        link.imageSrcset = `${avifSrc} 1x`;
       }
       
       document.head.appendChild(link);
@@ -115,7 +112,7 @@ export default function OptimizedImage({
         }
       };
     }
-  }, [priority, avifSrc, sizes]);
+  }, [priority, webpSrc, sizes]);
 
   const handleLoad = () => {
     setIsLoaded(true);
@@ -132,7 +129,7 @@ export default function OptimizedImage({
   const generateBlurPlaceholder = () => {
     if (blurDataURL) return blurDataURL;
     
-    // Simple 1x1 pixel blur placeholder
+    // Simple 1x1 pixel blur placeholder with better compression
     return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjNmNGY2Ii8+Cjwvc3ZnPgo=';
   };
 
@@ -141,7 +138,11 @@ export default function OptimizedImage({
       <div
         ref={imgRef}
         className={cn('bg-muted animate-pulse', className)}
-        style={{ width, height }}
+        style={{ 
+          width: width || '100%', 
+          height: height || '100%',
+          aspectRatio: width && height ? `${width}/${height}` : undefined
+        }}
         aria-label={`Loading ${alt}`}
       />
     );
@@ -191,7 +192,7 @@ export default function OptimizedImage({
 
       {/* Error fallback */}
       {isError && (
-        <div className={cn('flex items-center justify-center bg-muted text-muted-foreground', className)}>
+        <div className={cn('flex items-center justify-center bg-muted text-muted-foreground min-h-[120px]', className)}>
           <span className="text-sm">Error al cargar imagen</span>
         </div>
       )}

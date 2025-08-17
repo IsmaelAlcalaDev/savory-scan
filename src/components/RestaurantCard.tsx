@@ -3,6 +3,7 @@ import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import FavoriteButton from './FavoriteButton';
+import OptimizedImage from './OptimizedImage';
 
 interface RestaurantCardProps {
   id: number;
@@ -24,6 +25,7 @@ interface RestaurantCardProps {
   onLoginRequired?: () => void;
   layout?: 'grid' | 'list';
   onFavoriteChange?: (restaurantId: number, isFavorite: boolean) => void;
+  priority?: boolean;
 }
 
 export default function RestaurantCard({
@@ -45,7 +47,8 @@ export default function RestaurantCard({
   className,
   onLoginRequired = () => {},
   layout = 'grid',
-  onFavoriteChange
+  onFavoriteChange,
+  priority = false
 }: RestaurantCardProps) {
   const handleClick = () => {
     if (onClick) {
@@ -74,17 +77,17 @@ export default function RestaurantCard({
         onClick={handleClick}
       >
         <div className="w-24 h-24 relative overflow-hidden rounded-lg flex-shrink-0">
-          {displayImage ? (
-            <img 
-              src={displayImage} 
+          {displayImage && (
+            <OptimizedImage
+              src={displayImage}
               alt={name}
+              width={96}
+              height={96}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
+              priority={priority}
+              sizes="96px"
             />
-          ) : null}
+          )}
           <div className={cn(
             "absolute inset-0 transition-smooth",
             displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
@@ -112,14 +115,13 @@ export default function RestaurantCard({
           <div className="flex items-center gap-3">
             {logoUrl && (
               <div className="flex-shrink-0 flex items-center">
-                <img 
-                  src={logoUrl} 
+                <OptimizedImage
+                  src={logoUrl}
                   alt={`${name} logo`}
+                  width={48}
+                  height={48}
                   className="w-12 h-12 rounded object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
+                  sizes="48px"
                 />
               </div>
             )}
@@ -172,17 +174,15 @@ export default function RestaurantCard({
       onClick={handleClick}
     >
       <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
-        {displayImage ? (
-          <img 
-            src={displayImage} 
+        {displayImage && (
+          <OptimizedImage
+            src={displayImage}
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-            }}
+            priority={priority}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-        ) : null}
+        )}
         <div className={cn(
           "absolute inset-0 transition-smooth",
           displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
@@ -209,14 +209,13 @@ export default function RestaurantCard({
         <div className="flex items-center gap-3">
           {logoUrl && (
             <div className="flex-shrink-0 flex items-center">
-              <img 
-                src={logoUrl} 
+              <OptimizedImage
+                src={logoUrl}
                 alt={`${name} logo`}
+                width={48}
+                height={48}
                 className="w-12 h-12 rounded object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }}
+                sizes="48px"
               />
             </div>
           )}
