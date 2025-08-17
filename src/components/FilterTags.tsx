@@ -1,3 +1,4 @@
+
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -158,7 +159,7 @@ export default function FilterTags({
                 className="h-3 w-3 cursor-pointer" 
                 onClick={() => onClearFilter('foodType', foodTypeId)}
               />
-            Badge>
+            </Badge>
           ) : null;
         })}
 
