@@ -1,28 +1,17 @@
-import { imageOptimizer } from './imageOptimizer';
 
 interface PreloadOptions {
   priority?: boolean;
   sizes?: string;
   type?: 'image/webp' | 'image/avif' | 'image/jpeg' | 'image/png';
-  context?: 'dish' | 'restaurant' | 'gallery' | 'hero' | 'avatar';
-  width?: number;
-}
-
-interface LCPCandidate {
-  src: string;
-  context: string;
-  priority: number; // Higher = more likely to be LCP
-  element?: string; // CSS selector or description
 }
 
 class ImagePreloader {
   private preloadedImages = new Set<string>();
   private preloadQueue: Array<{ src: string; options: PreloadOptions }> = [];
   private isProcessing = false;
-  private lcpCandidates: LCPCandidate[] = [];
 
   /**
-   * Preload a single image with optimization
+   * Preload a single image with optional format conversion
    */
   preload(src: string, options: PreloadOptions = {}): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -31,12 +20,6 @@ class ImagePreloader {
         return;
       }
 
-      // Get optimized version
-      const optimized = imageOptimizer.optimize(src, {
-        width: options.width,
-        context: options.context
-      });
-
       const img = new Image();
       
       img.onload = () => {
@@ -44,7 +27,7 @@ class ImagePreloader {
         
         // Also add to browser cache via link preload for better caching
         if (options.priority) {
-          this.addPreloadLink(optimized.webp || src, options);
+          this.addPreloadLink(src, options);
         }
         
         resolve();
@@ -55,8 +38,7 @@ class ImagePreloader {
         reject(new Error(`Failed to preload image: ${src}`));
       };
       
-      // Use WebP version if available, fallback to original
-      img.src = optimized.webp || src;
+      img.src = src;
     });
   }
 
@@ -84,65 +66,13 @@ class ImagePreloader {
   }
 
   /**
-   * Register potential LCP candidates
-   */
-  registerLCPCandidate(src: string, context: string, priority: number, element?: string) {
-    this.lcpCandidates.push({ src, context, priority, element });
-    
-    // Sort by priority (highest first)
-    this.lcpCandidates.sort((a, b) => b.priority - a.priority);
-    
-    // Only keep top 5 candidates to avoid memory bloat
-    if (this.lcpCandidates.length > 5) {
-      this.lcpCandidates = this.lcpCandidates.slice(0, 5);
-    }
-  }
-
-  /**
-   * Preload LCP candidates with context-aware optimization
-   */
-  preloadLCPCandidates(): Promise<void[]> {
-    const topCandidates = this.lcpCandidates.slice(0, 3);
-    
-    const promises = topCandidates.map(candidate => 
-      this.preload(candidate.src, {
-        priority: true,
-        context: candidate.context as PreloadOptions['context'],
-        width: this.getOptimalWidthForContext(candidate.context)
-      }).catch(error => {
-        console.warn(`LCP preload failed for ${candidate.src}:`, error);
-        return Promise.resolve();
-      })
-    );
-    
-    return Promise.all(promises);
-  }
-
-  /**
-   * Get optimal width based on context and viewport
-   */
-  private getOptimalWidthForContext(context: string): number {
-    const isMobile = window.innerWidth < 768;
-    
-    const contextWidths = {
-      dish: isMobile ? 320 : 480,
-      restaurant: isMobile ? 400 : 600,
-      hero: isMobile ? 800 : 1200,
-      gallery: isMobile ? 400 : 800,
-      avatar: isMobile ? 48 : 64
-    };
-    
-    return contextWidths[context as keyof typeof contextWidths] || (isMobile ? 400 : 600);
-  }
-
-  /**
    * Preload multiple images with priority queue
    */
   preloadBatch(images: Array<{ src: string; options?: PreloadOptions }>): Promise<void[]> {
     const promises = images.map(({ src, options = {} }) => 
       this.preload(src, options).catch(error => {
         console.warn(`Batch preload failed for ${src}:`, error);
-        return Promise.resolve();
+        return Promise.resolve(); // Don't fail the entire batch
       })
     );
     
@@ -192,12 +122,26 @@ class ImagePreloader {
   }
 
   /**
-   * Clear preload cache and candidates
+   * Preload images that are likely to be the LCP (Largest Contentful Paint)
+   */
+  preloadLCP(images: string[], options: PreloadOptions = { priority: true }) {
+    // Preload the first few images as they're most likely to be LCP
+    const lcpCandidates = images.slice(0, 3);
+    
+    return this.preloadBatch(
+      lcpCandidates.map(src => ({
+        src,
+        options: { ...options, priority: true }
+      }))
+    );
+  }
+
+  /**
+   * Clear preload cache (useful for memory management)
    */
   clearCache() {
     this.preloadedImages.clear();
     this.preloadQueue = [];
-    this.lcpCandidates = [];
   }
 
   /**
@@ -214,9 +158,7 @@ class ImagePreloader {
     return {
       preloadedCount: this.preloadedImages.size,
       queueLength: this.preloadQueue.length,
-      isProcessing: this.isProcessing,
-      lcpCandidatesCount: this.lcpCandidates.length,
-      topLCPCandidate: this.lcpCandidates[0]?.src || null
+      isProcessing: this.isProcessing
     };
   }
 }
@@ -224,61 +166,16 @@ class ImagePreloader {
 // Export singleton instance
 export const imagePreloader = new ImagePreloader();
 
-// Utility functions for common use cases
+// Utility functions
 export const preloadRestaurantImages = (restaurants: any[]) => {
   const images = restaurants
-    .map((r, index) => ({
-      src: r.cover_image_url || r.logo_url,
-      priority: index < 4 ? 10 - index : 1, // First 4 get high priority
-      context: 'restaurant'
-    }))
-    .filter(img => img.src)
-    .slice(0, 8); // Only preload first 8 images
+    .map(r => r.cover_image_url || r.logo_url)
+    .filter(Boolean)
+    .slice(0, 6); // Preload first 6 images
 
-  // Register LCP candidates
-  images.forEach(img => {
-    imagePreloader.registerLCPCandidate(img.src, img.context, img.priority, 'restaurant-card');
-  });
-
-  // Preload LCP candidates immediately
-  imagePreloader.preloadLCPCandidates();
-
-  // Queue the rest for background loading
-  images.slice(3).forEach(img => {
-    imagePreloader.queuePreload(img.src, { context: 'restaurant' as PreloadOptions['context'] });
-  });
+  return imagePreloader.preloadLCP(images);
 };
 
-export const preloadDishImages = (dishes: any[]) => {
-  const images = dishes
-    .map((d, index) => ({
-      src: d.image_url,
-      priority: index < 6 ? 10 - index : 1, // First 6 get high priority
-      context: 'dish'
-    }))
-    .filter(img => img.src)
-    .slice(0, 12); // Only preload first 12 images
-
-  // Register LCP candidates for dishes
-  images.forEach(img => {
-    imagePreloader.registerLCPCandidate(img.src, img.context, img.priority, 'dish-card');
-  });
-
-  // Preload LCP candidates immediately
-  imagePreloader.preloadLCPCandidates();
-
-  // Queue the rest for background loading
-  images.slice(3).forEach(img => {
-    imagePreloader.queuePreload(img.src, { context: 'dish' as PreloadOptions['context'] });
-  });
-};
-
-export const preloadImage = (src: string, priority = false, context: PreloadOptions['context'] = 'dish') => {
-  if (priority) {
-    imagePreloader.registerLCPCandidate(src, context, 10, 'manual-preload');
-    return imagePreloader.preload(src, { priority, context });
-  }
-  
-  imagePreloader.queuePreload(src, { context });
-  return Promise.resolve();
+export const preloadImage = (src: string, priority = false) => {
+  return imagePreloader.preload(src, { priority });
 };

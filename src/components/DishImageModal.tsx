@@ -2,7 +2,6 @@
 import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
-import OptimizedImage from './OptimizedImage';
 
 interface DishImageModalProps {
   isOpen: boolean;
@@ -32,15 +31,12 @@ export default function DishImageModal({ isOpen, onClose, dish }: DishImageModal
             <X className="h-6 w-6" />
           </button>
 
-          {/* Optimized Image */}
+          {/* Image only */}
           <div className="relative rounded-lg overflow-hidden">
-            <OptimizedImage
+            <img
               src={dish.image_url}
               alt={dish.image_alt || dish.name}
-              context="gallery"
-              priority={true}
               className="w-full max-h-[85vh] object-cover"
-              sizes="90vw"
             />
           </div>
         </div>
