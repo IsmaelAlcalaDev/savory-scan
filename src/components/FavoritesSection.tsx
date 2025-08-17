@@ -11,6 +11,7 @@ import { useSecurityLogger } from '@/hooks/useSecurityLogger';
 import RestaurantCard from '@/components/RestaurantCard';
 import FavoriteRestaurantItem from '@/components/FavoriteRestaurantItem';
 import FavoriteDishItem from '@/components/FavoriteDishItem';
+import { useConsolidatedFavoritesRealtime } from '@/hooks/useConsolidatedFavoritesRealtime';
 
 interface FavoriteRestaurant {
   id: number;
@@ -59,10 +60,12 @@ export default function FavoritesSection() {
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState<{ [key: string]: boolean }>({});
 
+  // Use consolidated realtime instead of multiple subscriptions
+  const { isActive: realtimeActive } = useConsolidatedFavoritesRealtime();
+
   useEffect(() => {
     if (user) {
       loadFavorites();
-      setupRealtimeSubscription();
     }
   }, [user]);
 
@@ -111,71 +114,21 @@ export default function FavoritesSection() {
     };
   }, []);
 
+  // Listen to restaurant favorites count updates
   useEffect(() => {
-    const channel = supabase
-      .channel(`favorites-section-restaurants-${user?.id || 'anon'}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'restaurants' },
-        (payload) => {
-          const updatedRestaurant = payload.new as any;
-          const restaurantId = updatedRestaurant?.id;
-          const newFavoritesCount = updatedRestaurant?.favorites_count;
-          
-          if (typeof restaurantId === 'number' && typeof newFavoritesCount === 'number') {
-            setFavoriteRestaurants(prev =>
-              prev.map(r => (r.id === restaurantId ? { ...r, favorites_count: newFavoritesCount } : r))
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    const handleRestaurantFavoritesCountUpdated = (event: CustomEvent) => {
+      const { restaurantId, newCount } = event.detail;
+      
+      setFavoriteRestaurants(prev =>
+        prev.map(r => (r.id === restaurantId ? { ...r, favorites_count: newCount } : r))
+      );
     };
-  }, [user]);
 
-  const setupRealtimeSubscription = () => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel(`favorites-section-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_saved_restaurants',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('Favorites section change detected:', payload);
-          
-          if (payload.eventType === 'DELETE' || 
-              (payload.eventType === 'UPDATE' && payload.new && 
-               typeof payload.new === 'object' && 'is_active' in payload.new && !payload.new.is_active)) {
-            const restaurantId = (payload.old && typeof payload.old === 'object' && 'restaurant_id' in payload.old) 
-              ? (payload.old as any).restaurant_id 
-              : (payload.new && typeof payload.new === 'object' && 'restaurant_id' in payload.new) 
-                ? (payload.new as any).restaurant_id 
-                : null;
-            
-            if (restaurantId) {
-              setFavoriteRestaurants(prev => prev.filter(item => item.id !== restaurantId));
-            }
-          } else if (payload.eventType === 'INSERT' && payload.new && 
-                     typeof payload.new === 'object' && 'is_active' in payload.new && (payload.new as any).is_active) {
-            loadFavorites();
-          }
-        }
-      )
-      .subscribe();
-
+    window.addEventListener('restaurantFavoritesCountUpdated', handleRestaurantFavoritesCountUpdated as EventListener);
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('restaurantFavoritesCountUpdated', handleRestaurantFavoritesCountUpdated as EventListener);
     };
-  };
+  }, []);
 
   const loadFavorites = async () => {
     if (!user) return;
@@ -329,9 +282,16 @@ export default function FavoritesSection() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Mis Favoritos</h2>
-        <span className="text-sm text-muted-foreground">
-          {favoritesCount} total
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            {favoritesCount} total
+          </span>
+          {realtimeActive && (
+            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+              Tiempo real activo
+            </span>
+          )}
+        </div>
       </div>
 
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
