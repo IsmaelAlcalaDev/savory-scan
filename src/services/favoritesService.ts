@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface FavoriteResult {
@@ -56,7 +57,7 @@ export class FavoritesService {
         .eq('restaurant_id', restaurantId)
         .single();
 
-      if (existingFavoriteError && existingFavoriteError.code !== '404') {
+      if (existingFavoriteError && existingFavoriteError.code !== 'PGRST116') {
         console.error('Error checking existing favorite:', existingFavoriteError);
         throw existingFavoriteError;
       }
@@ -69,22 +70,27 @@ export class FavoritesService {
         // Toggle existing favorite
         const newState = !existingFavorite.is_active;
         
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('user_saved_restaurants')
           .update({ 
             is_active: newState,
             saved_from: savedFrom,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingFavorite.id)
-          .select('*, restaurants(name)')
-          .single();
+          .eq('id', existingFavorite.id);
 
         if (error) throw error;
         
         // Send broadcast notification for new favorites
-        if (newState && data) {
-          const restaurantName = data.restaurants?.name || 'Restaurante';
+        if (newState) {
+          // Get restaurant name for notification
+          const { data: restaurantData } = await supabase
+            .from('restaurants')
+            .select('name')
+            .eq('id', restaurantId)
+            .single();
+
+          const restaurantName = restaurantData?.name || 'Restaurante';
           notificationBroadcaster.notifyFavoriteAdded(
             user.id, 
             restaurantName, 
@@ -95,28 +101,30 @@ export class FavoritesService {
         result = { success: true, isFavorite: newState };
       } else {
         // Create new favorite
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('user_saved_restaurants')
           .insert({
             user_id: user.id,
             restaurant_id: restaurantId,
             is_active: true,
             saved_from: savedFrom
-          })
-          .select('*, restaurants(name)')
-          .single();
+          });
 
         if (error) throw error;
 
-        // Send broadcast notification for new favorite
-        if (data) {
-          const restaurantName = data.restaurants?.name || 'Restaurante';
-          notificationBroadcaster.notifyFavoriteAdded(
-            user.id, 
-            restaurantName, 
-            restaurantId
-          );
-        }
+        // Get restaurant name for notification
+        const { data: restaurantData } = await supabase
+          .from('restaurants')
+          .select('name')
+          .eq('id', restaurantId)
+          .single();
+
+        const restaurantName = restaurantData?.name || 'Restaurante';
+        notificationBroadcaster.notifyFavoriteAdded(
+          user.id, 
+          restaurantName, 
+          restaurantId
+        );
 
         result = { success: true, isFavorite: true };
       }
