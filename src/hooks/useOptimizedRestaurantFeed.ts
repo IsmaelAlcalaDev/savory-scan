@@ -87,8 +87,8 @@ export const useOptimizedRestaurantFeed = (props: UseOptimizedRestaurantFeedProp
 
       console.log('Cache key generated:', cacheKey);
 
-      // Call optimized RPC function
-      const { data, error } = await supabase.rpc('search_restaurant_feed', {
+      // Call optimized RPC function using any to bypass type checking
+      const { data, error } = await (supabase as any).rpc('search_restaurant_feed', {
         search_query: searchQuery.trim(),
         user_lat: userLat || null,
         user_lon: userLng || null,
@@ -162,33 +162,34 @@ export const useOptimizedRestaurantFeed = (props: UseOptimizedRestaurantFeedProp
         setRestaurants(formattedData);
 
         // Track analytics event (non-blocking)
-        setTimeout(() => {
-          supabase.from('analytics_events').insert({
-            event_type: 'feed_search',
-            event_name: 'optimized_restaurant_feed',
-            properties: {
-              result_count: formattedData.length,
-              search_query: searchQuery,
-              has_location: Boolean(userLat && userLng),
-              filters_applied: {
-                cuisine_types: cuisineTypeIds?.length || 0,
-                price_ranges: priceRanges?.length || 0,
-                establishment_types: selectedEstablishmentTypes?.length || 0,
-                diet_categories: selectedDietCategories?.length || 0,
-                is_high_rated: isHighRated,
-                is_open_now: isOpenNow
-              },
-              performance: {
-                client_duration_ms: clientDuration,
-                cache_key: cacheKey
-              }
+        const analyticsPromise = supabase.from('analytics_events').insert({
+          event_type: 'feed_search',
+          event_name: 'optimized_restaurant_feed',
+          properties: {
+            result_count: formattedData.length,
+            search_query: searchQuery,
+            has_location: Boolean(userLat && userLng),
+            filters_applied: {
+              cuisine_types: cuisineTypeIds?.length || 0,
+              price_ranges: priceRanges?.length || 0,
+              establishment_types: selectedEstablishmentTypes?.length || 0,
+              diet_categories: selectedDietCategories?.length || 0,
+              is_high_rated: isHighRated,
+              is_open_now: isOpenNow
+            },
+            performance: {
+              client_duration_ms: clientDuration,
+              cache_key: cacheKey
             }
-          }).then(() => {
-            console.log('Analytics event tracked for optimized feed');
-          }).catch(err => {
-            console.warn('Failed to track analytics event:', err);
-          });
-        }, 0);
+          }
+        });
+
+        // Handle analytics promise without blocking
+        analyticsPromise.then(() => {
+          console.log('Analytics event tracked for optimized feed');
+        }).catch(err => {
+          console.warn('Failed to track analytics event:', err);
+        });
 
       } else {
         setRestaurants([]);

@@ -2,6 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+interface FeatureFlagValue {
+  enabled: boolean;
+}
+
 export const useRestaurantsAuditFeature = () => {
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -16,7 +20,8 @@ export const useRestaurantsAuditFeature = () => {
           .single();
 
         if (data?.value) {
-          setEnabled(data.value.enabled === true);
+          const flagValue = data.value as FeatureFlagValue;
+          setEnabled(flagValue.enabled === true);
         }
       } catch (error) {
         console.error('Error fetching FF_RESTAURANTES_RPC:', error);
