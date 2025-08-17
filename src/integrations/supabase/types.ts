@@ -5564,38 +5564,6 @@ export type Database = {
           ts_rank: number
         }[]
       }
-      search_feed: {
-        Args: {
-          p_cuisines?: number[]
-          p_diet?: string
-          p_diet_pct_min?: number
-          p_est_types?: number[]
-          p_lat?: number
-          p_limit?: number
-          p_lon?: number
-          p_max_km?: number
-          p_min_rating?: number
-          p_price_bands?: string[]
-          p_q?: string
-        }
-        Returns: {
-          cover_image_url: string
-          cuisine_types: string[]
-          description: string
-          diet_pct: number
-          distance_km: number
-          establishment_type: string
-          favorites_count: number
-          id: number
-          logo_url: string
-          name: string
-          price_range: string
-          rating: number
-          rating_count: number
-          services: string[]
-          slug: string
-        }[]
-      }
       set_limit: {
         Args: { "": number }
         Returns: number
