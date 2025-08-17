@@ -51,14 +51,19 @@ class RealtimeManager {
     config.subscriptions.forEach(sub => {
       console.log(`RealtimeManager: Adding subscription for ${sub.table} ${sub.event}`);
       
+      const subscriptionConfig: any = {
+        event: sub.event,
+        schema: 'public',
+        table: sub.table
+      };
+
+      if (sub.filter) {
+        subscriptionConfig.filter = sub.filter;
+      }
+
       channel = channel.on(
         'postgres_changes',
-        {
-          event: sub.event,
-          schema: 'public',
-          table: sub.table,
-          filter: sub.filter
-        },
+        subscriptionConfig,
         (payload) => {
           console.log(`RealtimeManager: Received ${sub.event} for ${sub.table}:`, payload);
           sub.handler(payload);
