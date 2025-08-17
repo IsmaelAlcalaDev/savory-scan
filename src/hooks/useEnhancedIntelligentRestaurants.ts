@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -82,37 +83,15 @@ export const useEnhancedIntelligentRestaurants = ({
         setLoading(true);
         setError(null);
 
-        let restaurantIds: number[] = [];
-
-        // Use optimized trigram search for text queries
-        if (searchQuery && searchQuery.trim().length > 0) {
-          console.log('Using optimized trigram search for intelligent restaurants');
-          
-          const { data: intelligentResults, error: intelligentError } = await supabase
-            .rpc('intelligent_restaurant_search', {
-              search_query: searchQuery.trim(),
-              search_limit: 50
-            });
-
-          if (intelligentError) {
-            console.error('Trigram search failed, falling back:', intelligentError);
-          } else if (intelligentResults && Array.isArray(intelligentResults)) {
-            restaurantIds = intelligentResults.map((r: any) => r.id);
-            console.log('Optimized trigram search found restaurant IDs:', restaurantIds);
-          }
-        }
-
-        // Use the optimized view for faster queries
+        // Use the existing restaurants_full view until types are updated
         let query = supabase
-          .from('restaurants_list_optimized')
+          .from('restaurants_full')
           .select('*');
 
         // Apply search filter
-        if (restaurantIds.length > 0) {
-          query = query.in('id', restaurantIds);
-        } else if (searchQuery && searchQuery.trim().length > 0) {
-          // Fallback to simple text search
+        if (searchQuery && searchQuery.trim().length > 0) {
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+          console.log('Using text search for intelligent restaurants:', searchQuery);
         }
 
         // Apply other filters...
@@ -148,7 +127,7 @@ export const useEnhancedIntelligentRestaurants = ({
             distance_km = haversineDistance(userLat, userLng, restaurant.latitude, restaurant.longitude);
           }
 
-          // Parse JSON arrays from the optimized view
+          // Parse JSON arrays from the view
           let cuisine_types: string[] = [];
           let services: string[] = [];
 
@@ -189,7 +168,7 @@ export const useEnhancedIntelligentRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        // Enhanced diet type filtering with specializations and calculated percentages
+        // Enhanced diet type filtering with specializations
         if (selectedDietTypes && selectedDietTypes.length > 0) {
           const { data: dietTypesData } = await supabase
             .from('diet_types')
@@ -200,7 +179,7 @@ export const useEnhancedIntelligentRestaurants = ({
             const restaurantIds = formattedData.map(r => r.id);
             
             if (restaurantIds.length > 0) {
-              // Check for restaurants with diet specializations first (faster)
+              // Check for restaurants with diet specializations first
               const specializedRestaurants = new Set<number>();
               formattedData.forEach(restaurant => {
                 if (restaurant.specializes_in_diet && restaurant.specializes_in_diet.length > 0) {
@@ -213,65 +192,24 @@ export const useEnhancedIntelligentRestaurants = ({
                 }
               });
 
-              // For restaurants without specializations, calculate percentages
-              const { data: dishesData } = await supabase
-                .from('dishes')
-                .select('restaurant_id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
-                .in('restaurant_id', restaurantIds.filter(id => !specializedRestaurants.has(id)))
-                .eq('is_active', true)
-                .is('deleted_at', null);
-
-              if (dishesData) {
-                const dishesByRestaurant: Record<number, any[]> = {};
-                dishesData.forEach(dish => {
-                  if (!dishesByRestaurant[dish.restaurant_id]) {
-                    dishesByRestaurant[dish.restaurant_id] = [];
-                  }
-                  dishesByRestaurant[dish.restaurant_id].push(dish);
-                });
-
-                const calculatedRestaurants = new Set<number>();
-                dietTypesData.forEach((dietType: any) => {
-                  Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
-                    const restaurantId = parseInt(restaurantIdStr);
-                    const percentage = calculateDietPercentage(dishes, dietType.category);
-                    
-                    if (percentage >= dietType.min_percentage && percentage <= dietType.max_percentage) {
-                      calculatedRestaurants.add(restaurantId);
-                    }
-                  });
-                });
-
-                // Combine specialized and calculated restaurants
-                const validRestaurantIds = new Set([...specializedRestaurants, ...calculatedRestaurants]);
-                formattedData = formattedData.filter(restaurant => 
-                  validRestaurantIds.has(restaurant.id)
-                );
-              } else {
-                // If no dishes data, keep only specialized restaurants
-                formattedData = formattedData.filter(restaurant => 
-                  specializedRestaurants.has(restaurant.id)
-                );
-              }
+              formattedData = formattedData.filter(restaurant => 
+                specializedRestaurants.has(restaurant.id)
+              );
             }
           }
         }
 
         // Sort results maintaining search relevance
         let sortedData = formattedData;
-        if (restaurantIds.length > 0) {
-          sortedData = formattedData.sort((a, b) => {
-            const aIndex = restaurantIds.indexOf(a.id);
-            const bIndex = restaurantIds.indexOf(b.id);
-            return aIndex - bIndex;
-          });
-        } else if (userLat && userLng) {
+        if (userLat && userLng) {
           sortedData = formattedData
             .filter(restaurant => {
               if (restaurant.distance_km === null) return false;
               return restaurant.distance_km <= maxDistance;
             })
             .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
+        } else {
+          sortedData = formattedData.sort((a, b) => (b.favorites_count || 0) - (a.favorites_count || 0));
         }
 
         setRestaurants(sortedData);

@@ -27,11 +27,16 @@ export const useFastAutocomplete = (query: string, limit: number = 10) => {
       try {
         console.log('Fast autocomplete search for query:', query);
 
+        // Use direct query on restaurants table until types are updated
         const { data, error } = await supabase
-          .rpc('restaurants_autocomplete', {
-            search_query: query,
-            search_limit: limit
-          });
+          .from('restaurants')
+          .select('id, name, slug, google_rating')
+          .ilike('name', `%${query}%`)
+          .eq('is_active', true)
+          .eq('is_published', true)
+          .is('deleted_at', null)
+          .order('google_rating', { ascending: false, nullsFirst: false })
+          .limit(limit);
 
         if (error) {
           console.error('Error in fast autocomplete:', error);
@@ -43,7 +48,7 @@ export const useFastAutocomplete = (query: string, limit: number = 10) => {
             id: item.id,
             name: item.name,
             slug: item.slug,
-            similarity_score: item.similarity_score || 0
+            similarity_score: 0.5 // Placeholder until trigram is available
           }));
 
           setResults(formattedResults);
@@ -60,7 +65,7 @@ export const useFastAutocomplete = (query: string, limit: number = 10) => {
       }
     };
 
-    const debounceTimer = setTimeout(searchAutocomplete, 100); // Very fast debounce for autocomplete
+    const debounceTimer = setTimeout(searchAutocomplete, 100);
     return () => clearTimeout(debounceTimer);
   }, [query, limit]);
 

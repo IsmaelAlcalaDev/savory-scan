@@ -70,59 +70,13 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
         setLoading(true);
         setError(null);
 
-        let restaurantIds: number[] = [];
-
-        // Use trigram search for text queries
-        if (searchQuery && searchQuery.trim().length > 0) {
-          console.log('Using optimized trigram search for restaurants');
-          
-          const { data: searchResults, error: searchError } = await supabase
-            .rpc('intelligent_restaurant_search', {
-              search_query: searchQuery.trim(),
-              search_limit: 100
-            });
-
-          if (searchError) {
-            console.error('Trigram search failed:', searchError);
-          } else if (searchResults && Array.isArray(searchResults)) {
-            restaurantIds = searchResults.map((r: any) => r.id);
-            console.log('Trigram search found restaurant IDs:', restaurantIds);
-          }
-        }
-
-        // Use geographic search for location-based queries
-        let nearbyIds: number[] = [];
-        if (userLat && userLng && !searchQuery) {
-          console.log('Using KNN geographic search');
-          
-          const { data: nearbyResults, error: geoError } = await supabase
-            .rpc('restaurants_near_location', {
-              user_lat: userLat,
-              user_lng: userLng,
-              max_distance_km: maxDistance,
-              search_limit: 100
-            });
-
-          if (geoError) {
-            console.error('Geographic search failed:', geoError);
-          } else if (nearbyResults && Array.isArray(nearbyResults)) {
-            nearbyIds = nearbyResults.map((r: any) => r.id);
-            console.log('Geographic search found restaurant IDs:', nearbyIds);
-          }
-        }
-
-        // Query the optimized view
+        // Use the existing restaurants_full view until types are updated
         let query = supabase
-          .from('restaurants_list_optimized')
+          .from('restaurants_full')
           .select('*');
 
         // Apply search filter
-        if (restaurantIds.length > 0) {
-          query = query.in('id', restaurantIds);
-        } else if (nearbyIds.length > 0) {
-          query = query.in('id', nearbyIds);
-        } else if (searchQuery && searchQuery.trim().length > 0) {
-          // Fallback to simple text search if trigram fails
+        if (searchQuery && searchQuery.trim().length > 0) {
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         }
 
@@ -202,7 +156,7 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
           };
         }).filter(Boolean) || [];
 
-        // Apply diet type filtering (client-side for now, can be optimized later)
+        // Apply diet type filtering (client-side for now)
         if (selectedDietTypes && selectedDietTypes.length > 0) {
           const { data: dietTypesData } = await supabase
             .from('diet_types')
@@ -231,28 +185,19 @@ export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => 
 
         // Sort results
         let sortedData = formattedData;
-        if (restaurantIds.length > 0) {
-          // Maintain search relevance order
-          sortedData = formattedData.sort((a, b) => {
-            const aIndex = restaurantIds.indexOf(a.id);
-            const bIndex = restaurantIds.indexOf(b.id);
-            return aIndex - bIndex;
-          });
-        } else if (nearbyIds.length > 0) {
-          // Maintain geographic proximity order
-          sortedData = formattedData.sort((a, b) => {
-            const aIndex = nearbyIds.indexOf(a.id);
-            const bIndex = nearbyIds.indexOf(b.id);
-            return aIndex - bIndex;
-          });
-        } else if (userLat && userLng) {
-          // Sort by distance for general location queries
+        if (userLat && userLng) {
+          // Sort by distance for location queries
           sortedData = formattedData
             .filter(restaurant => {
               if (restaurant.distance_km === null) return false;
               return restaurant.distance_km <= maxDistance;
             })
             .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
+        } else {
+          // Sort by favorites and rating for general queries
+          sortedData = formattedData.sort((a, b) => {
+            return (b.favorites_count || 0) - (a.favorites_count || 0);
+          });
         }
 
         setRestaurants(sortedData);
