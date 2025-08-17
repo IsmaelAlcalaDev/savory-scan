@@ -42,11 +42,11 @@ export default defineConfig(({ mode }) => ({
           'query-vendor': ['@tanstack/react-query'],
           'supabase-vendor': ['@supabase/supabase-js'],
           
-          // Feature-based chunks
+          // Feature-based chunks - updated to only include existing files
           'restaurant-features': [
             './src/components/RestaurantCard.tsx',
-            './src/components/PaginatedRestaurantsGrid.tsx',
-            './src/hooks/useRestaurants.ts'
+            './src/components/UnifiedRestaurantsGrid.tsx',
+            './src/hooks/useUnifiedRestaurantFeed.ts'
           ],
           'dish-features': [
             './src/components/DishCard.tsx',
