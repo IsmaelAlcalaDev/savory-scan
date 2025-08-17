@@ -2046,6 +2046,84 @@ export type Database = {
           },
         ]
       }
+      restaurant_diet_stats: {
+        Row: {
+          glutenfree_pct: number | null
+          glutenfree_total: number | null
+          healthy_pct: number | null
+          healthy_total: number | null
+          items_total: number | null
+          restaurant_id: number
+          updated_at: string | null
+          vegan_pct: number | null
+          vegan_total: number | null
+          vegetarian_pct: number | null
+          vegetarian_total: number | null
+        }
+        Insert: {
+          glutenfree_pct?: number | null
+          glutenfree_total?: number | null
+          healthy_pct?: number | null
+          healthy_total?: number | null
+          items_total?: number | null
+          restaurant_id: number
+          updated_at?: string | null
+          vegan_pct?: number | null
+          vegan_total?: number | null
+          vegetarian_pct?: number | null
+          vegetarian_total?: number | null
+        }
+        Update: {
+          glutenfree_pct?: number | null
+          glutenfree_total?: number | null
+          healthy_pct?: number | null
+          healthy_total?: number | null
+          items_total?: number | null
+          restaurant_id?: number
+          updated_at?: string | null
+          vegan_pct?: number | null
+          vegan_total?: number | null
+          vegetarian_pct?: number | null
+          vegetarian_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurant_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants_with_counters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "v_restaurants_with_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_gallery: {
         Row: {
           alt_text: string | null
@@ -5391,6 +5469,10 @@ export type Database = {
       postgis_wagyu_version: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      recalc_diet_stats: {
+        Args: { restaurant_id_param: number }
+        Returns: undefined
       }
       search_dishes_fulltext: {
         Args: { max_results?: number; search_query: string }
