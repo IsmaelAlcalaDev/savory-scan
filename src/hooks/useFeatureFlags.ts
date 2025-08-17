@@ -30,7 +30,20 @@ export const useFeatureFlags = () => {
         } else {
           const flagsFromDB = data?.reduce((acc, setting) => {
             if (setting.key in defaultFlags) {
-              acc[setting.key as keyof FeatureFlags] = setting.value?.enabled === true;
+              // Safely parse the JSON value
+              let parsedValue = setting.value;
+              if (typeof parsedValue === 'string') {
+                try {
+                  parsedValue = JSON.parse(parsedValue);
+                } catch {
+                  parsedValue = null;
+                }
+              }
+              
+              // Check if the parsed value has an enabled property
+              if (parsedValue && typeof parsedValue === 'object' && 'enabled' in parsedValue) {
+                acc[setting.key as keyof FeatureFlags] = Boolean(parsedValue.enabled);
+              }
             }
             return acc;
           }, {} as Partial<FeatureFlags>) || {};
