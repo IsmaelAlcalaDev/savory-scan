@@ -14,7 +14,6 @@ interface UseOptimizedHomeDataProps {
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
   minDietPercentages?: Record<string, number>;
-  limit?: number;
 }
 
 export const useOptimizedHomeData = (props: UseOptimizedHomeDataProps) => {
@@ -23,7 +22,6 @@ export const useOptimizedHomeData = (props: UseOptimizedHomeDataProps) => {
   // Use enhanced restaurants hook for home data
   const restaurantsData = useEnhancedRestaurants({
     ...props,
-    limit: props.limit || 20, // Default limit for home page
   });
 
   // Get cuisine types for filters

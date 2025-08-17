@@ -3,14 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
-import { CuisineTypeSelector } from './CuisineFilter';
-import { PriceRangeSelector } from './PriceFilter';
-import { EstablishmentTypeSelector } from './EstablishmentTypeFilter';
+import CuisineFilter from './CuisineFilter';
+import PriceFilter from './PriceFilter';
+import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import RestaurantsGrid from './PaginatedRestaurantsGrid';
 import DishesGrid from './DishesGrid';
 import PaginatedRestaurantsTab from './PaginatedRestaurantsTab';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { DietTypeSelector } from './DietFilter';
+import DietFilter from './DietFilter';
 import RpcRestaurantsGrid from './RpcRestaurantsGrid';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
@@ -96,10 +96,10 @@ export default function FoodieSpotLayout({ initialTab = "home" }: FoodieSpotLayo
                 />
               </div>
 
-              <CuisineTypeSelector onChange={handleCuisineTypeChange} />
-              <PriceRangeSelector onChange={handlePriceRangeChange} />
-              <EstablishmentTypeSelector onChange={handleEstablishmentTypeChange} />
-              <DietTypeSelector onChange={handleDietTypeChange} onMinPercentagesChange={handleMinDietPercentagesChange} />
+              <CuisineFilter onChange={handleCuisineTypeChange} />
+              <PriceFilter onChange={handlePriceRangeChange} />
+              <EstablishmentTypeFilter onChange={handleEstablishmentTypeChange} />
+              <DietFilter onChange={handleDietTypeChange} onMinPercentagesChange={handleMinDietPercentagesChange} />
 
               <label className="flex items-center space-x-2">
                 <input
@@ -138,7 +138,6 @@ export default function FoodieSpotLayout({ initialTab = "home" }: FoodieSpotLayo
                   isHighRated={isHighRated}
                   selectedEstablishmentTypes={selectedEstablishmentTypes}
                   selectedDietTypes={selectedDietTypes}
-                  minDietPercentages={minDietPercentages}
                   maxDistance={maxDistance}
                 />
               )}
@@ -187,7 +186,7 @@ export default function FoodieSpotLayout({ initialTab = "home" }: FoodieSpotLayo
                 className="mb-4"
               />
             </div>
-            <DishesGrid />
+            <DishesGrid dishes={[]} loading={false} error={null} />
           </div>
         );
 
