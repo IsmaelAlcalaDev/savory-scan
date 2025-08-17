@@ -28,17 +28,17 @@ export const useIntelligentDishSearch = (query: string) => {
       setError(null);
 
       try {
-        console.log('Intelligent dish search for query:', query);
+        console.log('Optimized trigram dish search for query:', query);
 
-        // Usar la función de búsqueda inteligente
+        // Use the new optimized trigram function
         const { data, error } = await supabase
-          .rpc('intelligent_dish_search' as any, {
+          .rpc('intelligent_dish_search', {
             search_query: query,
             search_limit: 30
           });
 
         if (error) {
-          console.error('Error in intelligent dish search:', error);
+          console.error('Error in trigram dish search:', error);
           throw error;
         }
 
@@ -54,12 +54,12 @@ export const useIntelligentDishSearch = (query: string) => {
           }));
 
           setResults(formattedResults);
-          console.log('Intelligent dish search results:', formattedResults);
+          console.log('Trigram dish search results:', formattedResults);
         } else {
           setResults([]);
         }
       } catch (err) {
-        console.error('Error in intelligent dish search:', err);
+        console.error('Error in trigram dish search:', err);
         setError(err instanceof Error ? err.message : 'Error en búsqueda de platos');
         setResults([]);
       } finally {
@@ -67,7 +67,7 @@ export const useIntelligentDishSearch = (query: string) => {
       }
     };
 
-    const debounceTimer = setTimeout(searchDishes, 300);
+    const debounceTimer = setTimeout(searchDishes, 200); // Reduced debounce for faster autocomplete
     return () => clearTimeout(debounceTimer);
   }, [query]);
 

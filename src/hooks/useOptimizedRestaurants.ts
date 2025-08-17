@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -8,6 +9,7 @@ interface Restaurant {
   description?: string;
   price_range: string;
   google_rating?: number;
+  google_rating_count?: number;
   distance_km?: number;
   cuisine_types: string[];
   establishment_type?: string;
@@ -20,7 +22,7 @@ interface Restaurant {
   diet_percentages?: Record<string, number>;
 }
 
-interface UseEnhancedIntelligentRestaurantsProps {
+interface UseOptimizedRestaurantsProps {
   searchQuery?: string;
   userLat?: number;
   userLng?: number;
@@ -44,37 +46,23 @@ const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * c;
 };
 
-const calculateDietPercentage = (dishes: any[], category: string): number => {
-  if (dishes.length === 0) return 0;
-  
-  const matchingDishes = dishes.filter(dish => {
-    switch (category) {
-      case 'vegetarian': return dish.is_vegetarian;
-      case 'vegan': return dish.is_vegan;
-      case 'gluten_free': return dish.is_gluten_free;
-      case 'healthy': return dish.is_healthy;
-      default: return false;
-    }
-  });
-  
-  return Math.round((matchingDishes.length / dishes.length) * 100);
-};
-
-export const useEnhancedIntelligentRestaurants = ({
-  searchQuery = '',
-  userLat,
-  userLng,
-  maxDistance = 50,
-  cuisineTypeIds,
-  priceRanges,
-  isHighRated = false,
-  selectedEstablishmentTypes,
-  selectedDietTypes,
-  isOpenNow = false
-}: UseEnhancedIntelligentRestaurantsProps) => {
+export const useOptimizedRestaurants = (props: UseOptimizedRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    searchQuery = '',
+    userLat,
+    userLng,
+    maxDistance = 50,
+    cuisineTypeIds,
+    priceRanges,
+    isHighRated = false,
+    selectedEstablishmentTypes,
+    selectedDietTypes,
+    isOpenNow = false
+  } = props;
 
   useEffect(() => {
     const fetchRestaurants = async () => {
@@ -84,25 +72,46 @@ export const useEnhancedIntelligentRestaurants = ({
 
         let restaurantIds: number[] = [];
 
-        // Use optimized trigram search for text queries
+        // Use trigram search for text queries
         if (searchQuery && searchQuery.trim().length > 0) {
-          console.log('Using optimized trigram search for intelligent restaurants');
+          console.log('Using optimized trigram search for restaurants');
           
-          const { data: intelligentResults, error: intelligentError } = await supabase
+          const { data: searchResults, error: searchError } = await supabase
             .rpc('intelligent_restaurant_search', {
               search_query: searchQuery.trim(),
-              search_limit: 50
+              search_limit: 100
             });
 
-          if (intelligentError) {
-            console.error('Trigram search failed, falling back:', intelligentError);
-          } else if (intelligentResults && Array.isArray(intelligentResults)) {
-            restaurantIds = intelligentResults.map((r: any) => r.id);
-            console.log('Optimized trigram search found restaurant IDs:', restaurantIds);
+          if (searchError) {
+            console.error('Trigram search failed:', searchError);
+          } else if (searchResults && Array.isArray(searchResults)) {
+            restaurantIds = searchResults.map((r: any) => r.id);
+            console.log('Trigram search found restaurant IDs:', restaurantIds);
           }
         }
 
-        // Use the optimized view for faster queries
+        // Use geographic search for location-based queries
+        let nearbyIds: number[] = [];
+        if (userLat && userLng && !searchQuery) {
+          console.log('Using KNN geographic search');
+          
+          const { data: nearbyResults, error: geoError } = await supabase
+            .rpc('restaurants_near_location', {
+              user_lat: userLat,
+              user_lng: userLng,
+              max_distance_km: maxDistance,
+              search_limit: 100
+            });
+
+          if (geoError) {
+            console.error('Geographic search failed:', geoError);
+          } else if (nearbyResults && Array.isArray(nearbyResults)) {
+            nearbyIds = nearbyResults.map((r: any) => r.id);
+            console.log('Geographic search found restaurant IDs:', nearbyIds);
+          }
+        }
+
+        // Query the optimized view
         let query = supabase
           .from('restaurants_list_optimized')
           .select('*');
@@ -110,12 +119,14 @@ export const useEnhancedIntelligentRestaurants = ({
         // Apply search filter
         if (restaurantIds.length > 0) {
           query = query.in('id', restaurantIds);
+        } else if (nearbyIds.length > 0) {
+          query = query.in('id', nearbyIds);
         } else if (searchQuery && searchQuery.trim().length > 0) {
-          // Fallback to simple text search
+          // Fallback to simple text search if trigram fails
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         }
 
-        // Apply other filters...
+        // Apply filters
         if (isHighRated) {
           query = query.gte('google_rating', 4.5);
         }
@@ -136,7 +147,7 @@ export const useEnhancedIntelligentRestaurants = ({
           query = query.in('establishment_type_id', selectedEstablishmentTypes);
         }
 
-        const { data, error } = await query.limit(50);
+        const { data, error } = await query.limit(100);
 
         if (error) {
           throw error;
@@ -148,7 +159,7 @@ export const useEnhancedIntelligentRestaurants = ({
             distance_km = haversineDistance(userLat, userLng, restaurant.latitude, restaurant.longitude);
           }
 
-          // Parse JSON arrays from the optimized view
+          // Parse JSON arrays from the view
           let cuisine_types: string[] = [];
           let services: string[] = [];
 
@@ -157,6 +168,7 @@ export const useEnhancedIntelligentRestaurants = ({
               ? restaurant.cuisine_types 
               : JSON.parse(restaurant.cuisine_types || '[]');
           } catch (e) {
+            console.warn('Failed to parse cuisine_types:', restaurant.cuisine_types);
             cuisine_types = [];
           }
 
@@ -165,6 +177,7 @@ export const useEnhancedIntelligentRestaurants = ({
               ? restaurant.services 
               : JSON.parse(restaurant.services || '[]');
           } catch (e) {
+            console.warn('Failed to parse services:', restaurant.services);
             services = [];
           }
 
@@ -189,7 +202,7 @@ export const useEnhancedIntelligentRestaurants = ({
           };
         }).filter(Boolean) || [];
 
-        // Enhanced diet type filtering with specializations and calculated percentages
+        // Apply diet type filtering (client-side for now, can be optimized later)
         if (selectedDietTypes && selectedDietTypes.length > 0) {
           const { data: dietTypesData } = await supabase
             .from('diet_types')
@@ -197,75 +210,43 @@ export const useEnhancedIntelligentRestaurants = ({
             .in('id', selectedDietTypes);
 
           if (dietTypesData && dietTypesData.length > 0) {
-            const restaurantIds = formattedData.map(r => r.id);
+            const validRestaurantIds = new Set<number>();
             
-            if (restaurantIds.length > 0) {
-              // Check for restaurants with diet specializations first (faster)
-              const specializedRestaurants = new Set<number>();
-              formattedData.forEach(restaurant => {
-                if (restaurant.specializes_in_diet && restaurant.specializes_in_diet.length > 0) {
-                  const hasMatchingSpecialization = selectedDietTypes.some(dietId => 
-                    restaurant.specializes_in_diet!.includes(dietId)
-                  );
-                  if (hasMatchingSpecialization) {
-                    specializedRestaurants.add(restaurant.id);
-                  }
+            formattedData.forEach(restaurant => {
+              if (restaurant.specializes_in_diet && restaurant.specializes_in_diet.length > 0) {
+                const hasMatchingSpecialization = selectedDietTypes.some(dietId => 
+                  restaurant.specializes_in_diet!.includes(dietId)
+                );
+                if (hasMatchingSpecialization) {
+                  validRestaurantIds.add(restaurant.id);
                 }
-              });
-
-              // For restaurants without specializations, calculate percentages
-              const { data: dishesData } = await supabase
-                .from('dishes')
-                .select('restaurant_id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
-                .in('restaurant_id', restaurantIds.filter(id => !specializedRestaurants.has(id)))
-                .eq('is_active', true)
-                .is('deleted_at', null);
-
-              if (dishesData) {
-                const dishesByRestaurant: Record<number, any[]> = {};
-                dishesData.forEach(dish => {
-                  if (!dishesByRestaurant[dish.restaurant_id]) {
-                    dishesByRestaurant[dish.restaurant_id] = [];
-                  }
-                  dishesByRestaurant[dish.restaurant_id].push(dish);
-                });
-
-                const calculatedRestaurants = new Set<number>();
-                dietTypesData.forEach((dietType: any) => {
-                  Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
-                    const restaurantId = parseInt(restaurantIdStr);
-                    const percentage = calculateDietPercentage(dishes, dietType.category);
-                    
-                    if (percentage >= dietType.min_percentage && percentage <= dietType.max_percentage) {
-                      calculatedRestaurants.add(restaurantId);
-                    }
-                  });
-                });
-
-                // Combine specialized and calculated restaurants
-                const validRestaurantIds = new Set([...specializedRestaurants, ...calculatedRestaurants]);
-                formattedData = formattedData.filter(restaurant => 
-                  validRestaurantIds.has(restaurant.id)
-                );
-              } else {
-                // If no dishes data, keep only specialized restaurants
-                formattedData = formattedData.filter(restaurant => 
-                  specializedRestaurants.has(restaurant.id)
-                );
               }
-            }
+            });
+
+            formattedData = formattedData.filter(restaurant => 
+              validRestaurantIds.has(restaurant.id)
+            );
           }
         }
 
-        // Sort results maintaining search relevance
+        // Sort results
         let sortedData = formattedData;
         if (restaurantIds.length > 0) {
+          // Maintain search relevance order
           sortedData = formattedData.sort((a, b) => {
             const aIndex = restaurantIds.indexOf(a.id);
             const bIndex = restaurantIds.indexOf(b.id);
             return aIndex - bIndex;
           });
+        } else if (nearbyIds.length > 0) {
+          // Maintain geographic proximity order
+          sortedData = formattedData.sort((a, b) => {
+            const aIndex = nearbyIds.indexOf(a.id);
+            const bIndex = nearbyIds.indexOf(b.id);
+            return aIndex - bIndex;
+          });
         } else if (userLat && userLng) {
+          // Sort by distance for general location queries
           sortedData = formattedData
             .filter(restaurant => {
               if (restaurant.distance_km === null) return false;
@@ -277,7 +258,7 @@ export const useEnhancedIntelligentRestaurants = ({
         setRestaurants(sortedData);
 
       } catch (err) {
-        console.error('Error fetching intelligent restaurants:', err);
+        console.error('Error fetching optimized restaurants:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar restaurantes');
         setRestaurants([]);
       } finally {
@@ -287,10 +268,9 @@ export const useEnhancedIntelligentRestaurants = ({
 
     fetchRestaurants();
 
+    // Handle favorites updates
     const handleFavoriteToggled = (event: CustomEvent) => {
       const { restaurantId, newCount } = event.detail;
-      console.log('useRestaurants: Received favoriteToggled event:', { restaurantId, newCount });
-      
       setRestaurants(prev =>
         prev.map(r => 
           r.id === restaurantId 
@@ -313,7 +293,6 @@ export const useEnhancedIntelligentRestaurants = ({
           const newFavoritesCount = updatedRestaurant?.favorites_count;
           
           if (typeof restaurantId === 'number' && typeof newFavoritesCount === 'number') {
-            console.log('useRestaurants: Received favorites_count update from DB:', { restaurantId, newFavoritesCount });
             setRestaurants(prev =>
               prev.map(r => 
                 r.id === restaurantId 
