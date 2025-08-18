@@ -1,6 +1,5 @@
-
 import { useState, useCallback, useMemo } from 'react';
-import { Search, MapPin, Navigation, Clock, ChevronDown, Utensils } from 'lucide-react';
+import { Search, MapPin, Navigation, Clock, ChevronDown, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -195,208 +194,236 @@ export default function ModernLocationModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/90 border-0 text-white">
-        <DialogHeader className="space-y-6 pb-0">
-          <DialogTitle className="flex items-center justify-center gap-3 text-2xl font-bold">
-            <div className="bg-white/20 p-3 rounded-full">
-              <Utensils className="h-8 w-8 text-white" />
-            </div>
-            <span>Seleccionar Ubicación</span>
-          </DialogTitle>
-          
-          <div className="text-center space-y-2">
-            <p className="text-white/90 text-lg font-medium">
-              🍽️ ¿Dónde quieres explorar?
-            </p>
-            <p className="text-white/70 text-sm">
-              Encuentra los mejores restaurantes cerca de ti
-            </p>
+      <DialogContent className="w-full max-w-md mx-auto p-0 gap-0 bg-background border-border shadow-xl">
+        {/* Header */}
+        <DialogHeader className="px-6 pt-6 pb-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-semibold text-foreground">
+              Seleccionar ubicación
+            </DialogTitle>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="h-8 w-8 rounded-full hover:bg-muted"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
+          <p className="text-sm text-muted-foreground">
+            Encuentra restaurantes cerca de ti
+          </p>
         </DialogHeader>
-        
-        <div className="space-y-6 mt-6">
+
+        <div className="px-6 pb-6 space-y-4">
           {/* Detected Location Display */}
           {detectedLocation && (
-            <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-              <p className="text-white/70 text-sm mb-1">Ubicación detectada:</p>
-              <p className="text-white font-medium">{detectedLocation}</p>
+            <div className="p-3 bg-muted/50 rounded-lg border border-border">
+              <p className="text-xs font-medium text-muted-foreground mb-1">
+                Ubicación detectada:
+              </p>
+              <p className="text-sm font-medium text-foreground">
+                {detectedLocation}
+              </p>
             </div>
           )}
 
-          {/* Location Dropdown */}
-          <div className="relative">
+          {/* Search Dropdown */}
+          <div className="space-y-3">
             <Popover open={isDropdownOpen} onOpenChange={handleDropdownOpenChange}>
               <PopoverTrigger asChild>
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <Input
-                    type="text"
-                    placeholder="Buscar ubicación..."
-                    value={searchQuery}
-                    onChange={handleInputChange}
-                    className="pl-12 pr-12 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-lg text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-white/50 text-lg cursor-pointer"
-                    style={{ borderRadius: '0px' }}
-                    maxLength={50}
-                  />
-                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <div className="relative cursor-pointer">
+                  <div className="flex items-center border border-border rounded-lg bg-background hover:bg-muted/50 transition-colors">
+                    <div className="flex-1 flex items-center gap-3 px-4 py-3">
+                      <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <Input
+                        placeholder="Buscar ubicación..."
+                        value={searchQuery}
+                        onChange={handleInputChange}
+                        className="border-0 p-0 h-auto bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm placeholder:text-muted-foreground"
+                        maxLength={50}
+                      />
+                    </div>
+                    <div className="px-4">
+                      <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                    </div>
+                  </div>
                 </div>
               </PopoverTrigger>
 
               <PopoverContent 
-                className="w-[var(--radix-popover-trigger-width)] p-0 bg-white/98 backdrop-blur-sm border-0 shadow-2xl max-h-[70vh] overflow-hidden"
-                style={{ borderRadius: '0px' }}
+                className="w-[var(--radix-popover-trigger-width)] p-0 bg-background border border-border shadow-lg max-h-80"
                 align="start"
                 sideOffset={4}
               >
-                <ScrollArea className="max-h-[70vh]">
-                  <div className="p-0">
-                    {/* GPS Option - Always at top */}
-                    <button
-                      className="w-full text-left p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 flex items-center gap-3 group"
-                      onClick={handleGPSLocation}
-                      disabled={isLoadingGPS}
-                    >
-                      <div className="bg-primary/10 p-2 rounded-full group-hover:bg-primary/20 transition-colors">
-                        <Navigation className="h-4 w-4 text-primary flex-shrink-0" />
+                {/* GPS Option */}
+                <div className="p-2 border-b border-border">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 p-3 h-auto text-left hover:bg-muted/80"
+                    onClick={handleGPSLocation}
+                    disabled={isLoadingGPS}
+                  >
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
+                      <Navigation className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm text-foreground">
+                        {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
                       </div>
-                      <div>
-                        <div className="font-semibold text-gray-900 text-base">
-                          {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Encuentra restaurantes cerca de ti automáticamente
-                        </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        Detecta automáticamente donde estás
                       </div>
-                    </button>
+                    </div>
+                  </Button>
+                </div>
 
-                    {/* Search Results Section */}
-                    {searchQuery.length >= 2 && (
-                      <div className="border-b border-gray-200">
-                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                          <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2">
-                            <Search className="h-4 w-4" />
+                <ScrollArea className="max-h-64">
+                  {/* Search Results */}
+                  {searchQuery.length >= 2 && (
+                    <div>
+                      <div className="px-3 py-2 bg-muted/30 border-b border-border">
+                        <div className="flex items-center gap-2">
+                          <Search className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                             Sugerencias
-                            {!loadingSuggestions && limitedSuggestions.length > 0 && (
-                              <span className="text-gray-400">({limitedSuggestions.length})</span>
-                            )}
-                          </div>
+                          </span>
+                          {!loadingSuggestions && limitedSuggestions.length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              ({limitedSuggestions.length})
+                            </span>
+                          )}
                         </div>
-                        
+                      </div>
+                      
+                      <div className="p-2">
                         {loadingSuggestions ? (
-                          <div className="p-4 space-y-3">
+                          <div className="space-y-2">
                             {Array.from({ length: 3 }).map((_, i) => (
-                              <div key={i} className="flex items-center gap-3">
+                              <div key={i} className="flex items-center gap-3 p-2">
                                 <Skeleton className="h-8 w-8 rounded-full" />
-                                <div className="space-y-2 flex-1">
-                                  <Skeleton className="h-4 w-3/4" />
+                                <div className="space-y-1 flex-1">
+                                  <Skeleton className="h-3 w-3/4" />
                                   <Skeleton className="h-3 w-1/2" />
                                 </div>
                               </div>
                             ))}
                           </div>
                         ) : limitedSuggestions.length > 0 ? (
-                          <>
+                          <div className="space-y-1">
                             {limitedSuggestions.map((suggestion) => (
-                              <button
+                              <Button
                                 key={`${suggestion.type}-${suggestion.id}`}
-                                className="w-full text-left p-4 hover:bg-gray-50 transition-colors flex items-center gap-3 group border-b border-gray-50 last:border-b-0"
+                                variant="ghost"
+                                className="w-full justify-start gap-3 p-2 h-auto text-left hover:bg-muted/80"
                                 onClick={() => handleSuggestionSelect(suggestion)}
                               >
-                                <div className="bg-green-50 p-2 rounded-full group-hover:bg-green-100 transition-colors">
-                                  <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-50">
+                                  <MapPin className="h-4 w-4 text-green-600" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-semibold text-gray-900 flex items-center gap-2 text-base">
+                                  <div className="font-medium text-sm text-foreground flex items-center gap-2">
                                     {suggestion.name}
                                     {suggestion.is_famous && (
-                                      <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-medium flex-shrink-0">
-                                        ⭐ Famoso
+                                      <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-medium">
+                                        ⭐
                                       </span>
                                     )}
                                   </div>
                                   {suggestion.parent && (
-                                    <div className="text-sm text-gray-500 truncate mt-1">
+                                    <div className="text-xs text-muted-foreground truncate mt-0.5">
                                       {suggestion.parent}
                                     </div>
                                   )}
                                 </div>
-                              </button>
+                              </Button>
                             ))}
-                          </>
+                          </div>
                         ) : (
-                          <div className="p-6 text-center">
-                            <div className="text-gray-900 font-medium text-base mb-1">No se encontraron ubicaciones</div>
-                            <div className="text-sm text-gray-500">
-                              Intenta con una palabra diferente
+                          <div className="py-4 text-center">
+                            <div className="text-sm font-medium text-foreground mb-1">
+                              No se encontraron ubicaciones
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Intenta con otra palabra
                             </div>
                           </div>
                         )}
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {/* History Section - Always visible */}
-                    <div className="bg-gray-50">
-                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-                        <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Historial reciente
-                          {topLocations.length > 0 && (
-                            <span className="text-gray-400">({topLocations.length})</span>
-                          )}
-                        </h4>
-                        {topLocations.length > 0 && (
+                  {/* History Section */}
+                  {topLocations.length > 0 && (
+                    <div className={searchQuery.length >= 2 ? 'border-t border-border' : ''}>
+                      <div className="px-3 py-2 bg-muted/30 border-b border-border">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                              Recientes
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              ({topLocations.length})
+                            </span>
+                          </div>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={clearHistory}
-                            className="text-xs text-gray-400 hover:text-gray-600 h-auto p-1"
+                            className="text-xs text-muted-foreground hover:text-foreground h-auto p-1"
                           >
                             Limpiar
                           </Button>
-                        )}
+                        </div>
                       </div>
                       
-                      {topLocations.length > 0 ? (
-                        <>
+                      <div className="p-2">
+                        <div className="space-y-1">
                           {topLocations.map((item) => (
-                            <button
+                            <Button
                               key={item.id}
-                              className="w-full text-left p-4 hover:bg-gray-100 transition-colors flex items-center gap-3 group border-b border-gray-100 last:border-b-0"
+                              variant="ghost"
+                              className="w-full justify-start gap-3 p-2 h-auto text-left hover:bg-muted/80"
                               onClick={() => handleHistorySelect(item)}
                             >
-                              <div className="bg-blue-50 p-2 rounded-full group-hover:bg-blue-100 transition-colors">
-                                <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50">
+                                <Clock className="h-4 w-4 text-blue-600" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="font-semibold text-gray-900 flex items-center gap-2 text-base">
+                                <div className="font-medium text-sm text-foreground flex items-center gap-2">
                                   {item.name}
                                   {item.usage_count > 1 && (
-                                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium flex-shrink-0">
+                                    <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">
                                       {item.usage_count}x
                                     </span>
                                   )}
                                 </div>
                                 {item.parent && (
-                                  <div className="text-sm text-gray-500 truncate mt-1">
+                                  <div className="text-xs text-muted-foreground truncate mt-0.5">
                                     {item.parent}
                                   </div>
                                 )}
                               </div>
-                            </button>
+                            </Button>
                           ))}
-                        </>
-                      ) : (
-                        <div className="p-6 text-center">
-                          <div className="text-gray-500 text-sm">
-                            No hay ubicaciones recientes
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            Tus búsquedas aparecerán aquí
-                          </div>
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Empty History State */}
+                  {topLocations.length === 0 && searchQuery.length < 2 && (
+                    <div className="py-6 text-center">
+                      <Clock className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                      <div className="text-sm font-medium text-foreground mb-1">
+                        No hay ubicaciones recientes
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Tus búsquedas aparecerán aquí
+                      </div>
+                    </div>
+                  )}
                 </ScrollArea>
               </PopoverContent>
             </Popover>
@@ -404,8 +431,8 @@ export default function ModernLocationModal({
 
           {/* Helper Text */}
           <div className="text-center">
-            <p className="text-white/60 text-sm">
-              💡 Selecciona una ubicación para encontrar restaurantes increíbles
+            <p className="text-xs text-muted-foreground">
+              Selecciona una ubicación para encontrar restaurantes cerca
             </p>
           </div>
         </div>
