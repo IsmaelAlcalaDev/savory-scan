@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { Search, MapPin, Navigation, Clock } from 'lucide-react';
+import { Search, MapPin, Navigation, Clock, X } from 'lucide-react';
 import {
   ModernModal,
   ModernModalContent,
@@ -164,6 +164,10 @@ export default function ModernLocationModal({
     onOpenChange(false);
   }, [addToHistory, onLocationSelect, onOpenChange]);
 
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
+
   return (
     <ModernModal open={open} onOpenChange={onOpenChange}>
       <ModernModalContent className="max-w-lg">
@@ -171,82 +175,88 @@ export default function ModernLocationModal({
           <ModernModalTitle>¿Dónde hay que hacer la entrega?</ModernModalTitle>
         </ModernModalHeader>
         
-        <ModernModalBody className="space-y-4">
+        <ModernModalBody className="space-y-0 px-0 pb-0">
           {/* Search Input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar dirección"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 rounded-xl border-border/50 focus:border-primary bg-muted/30"
-            />
+          <div className="px-6 pb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar dirección"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-10 h-12 rounded-xl border-border/50 focus:border-primary bg-muted/30"
+              />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* GPS Button */}
-          <Button 
-            variant="outline" 
-            className="w-full justify-center gap-2 h-12 rounded-xl bg-primary/5 border-primary/20 text-primary hover:bg-primary/10" 
-            onClick={handleGPSLocation}
-            disabled={isLoadingGPS}
-          >
-            <Navigation className="h-4 w-4" />
-            {isLoadingGPS ? 'Detectando ubicación...' : 'Utilizar la ubicación actual'}
-          </Button>
+          <div className="px-6 pb-4">
+            <Button 
+              variant="outline" 
+              className="w-full justify-center gap-2 h-12 rounded-xl bg-primary/5 border-primary/20 text-primary hover:bg-primary/10" 
+              onClick={handleGPSLocation}
+              disabled={isLoadingGPS}
+            >
+              <Navigation className="h-4 w-4" />
+              {isLoadingGPS ? 'Detectando ubicación...' : 'Utilizar la ubicación actual'}
+            </Button>
+          </div>
 
-          {/* Detected Location Display */}
-          {detectedLocation && (
-            <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-              <p className="text-sm text-muted-foreground mb-1">Ubicación detectada:</p>
-              <p className="text-sm font-medium text-primary">{detectedLocation}</p>
-            </div>
-          )}
-
-          {/* Search Suggestions */}
+          {/* Search Results - Clean List Style */}
           {searchQuery.length >= 2 && (
-            <div className="border border-border/50 rounded-xl bg-background overflow-hidden">
-              <ScrollArea className="max-h-48">
+            <div className="border-t border-border/30">
+              <ScrollArea className="max-h-80">
                 {loadingSuggestions ? (
-                  <div className="p-3 space-y-2">
+                  <div className="p-6 space-y-4">
                     {Array.from({ length: 3 }).map((_, i) => (
-                      <Skeleton key={i} className="h-12 w-full rounded-lg" />
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                      </div>
                     ))}
                   </div>
                 ) : suggestions.length > 0 ? (
-                  <div className="p-2">
-                    {suggestions.slice(0, 4).map((suggestion) => (
-                      <Button
+                  <div>
+                    {suggestions.slice(0, 6).map((suggestion) => (
+                      <button
                         key={`${suggestion.type}-${suggestion.id}`}
-                        variant="ghost"
-                        className="w-full justify-start text-left h-auto p-3 hover:bg-muted/50 rounded-lg"
+                        className="w-full text-left px-6 py-4 hover:bg-muted/30 transition-colors border-b border-border/10 last:border-b-0"
                         onClick={() => handleSuggestionSelect(suggestion)}
                       >
-                        <div className="flex items-center gap-3">
-                          <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                          <div className="flex-1">
-                            <div className="font-medium flex items-center gap-2">
+                        <div className="flex items-start gap-3">
+                          <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-foreground mb-1 flex items-center gap-2">
                               {suggestion.name}
                               {suggestion.is_famous && (
-                                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
                                   ⭐
                                 </span>
                               )}
                             </div>
                             {suggestion.parent && (
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-sm text-muted-foreground">
                                 {suggestion.parent}
                               </div>
                             )}
                           </div>
                         </div>
-                      </Button>
+                      </button>
                     ))}
                   </div>
                 ) : (
-                  <div className="p-6 text-center text-sm text-muted-foreground">
-                    <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <div>No se encontraron ubicaciones</div>
-                    <div className="text-xs mt-1">
+                  <div className="p-8 text-center">
+                    <MapPin className="h-8 w-8 mx-auto mb-3 text-muted-foreground/50" />
+                    <div className="text-sm text-muted-foreground mb-1">No se encontraron ubicaciones</div>
+                    <div className="text-xs text-muted-foreground">
                       Intenta con otra palabra o revisa la ortografía
                     </div>
                   </div>
@@ -257,52 +267,61 @@ export default function ModernLocationModal({
 
           {/* Location History */}
           {history.length > 0 && searchQuery.length < 2 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Direcciones recientes
-                </h4>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearHistory}
-                  className="text-xs text-muted-foreground hover:text-foreground h-auto p-1"
-                >
-                  Limpiar
-                </Button>
+            <div className="border-t border-border/30">
+              <div className="px-6 py-4 border-b border-border/10">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Direcciones recientes
+                  </h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearHistory}
+                    className="text-xs text-muted-foreground hover:text-foreground h-auto p-1"
+                  >
+                    Limpiar
+                  </Button>
+                </div>
               </div>
-              <div className="border border-border/50 rounded-xl bg-background overflow-hidden">
-                <div className="p-2">
+              <ScrollArea className="max-h-64">
+                <div>
                   {topLocations.map((item) => (
-                    <Button
+                    <button
                       key={item.id}
-                      variant="ghost"
-                      className="w-full justify-start text-left h-auto p-3 hover:bg-muted/50 rounded-lg"
+                      className="w-full text-left px-6 py-4 hover:bg-muted/30 transition-colors border-b border-border/10 last:border-b-0"
                       onClick={() => handleHistorySelect(item)}
                     >
-                      <div className="flex items-center gap-3">
-                        <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <div className="flex-1">
-                          <div className="font-medium flex items-center gap-2">
+                      <div className="flex items-start gap-3">
+                        <Clock className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-foreground mb-1 flex items-center gap-2">
                             {item.name}
                             {item.usage_count > 1 && (
-                              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                              <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium">
                                 {item.usage_count}x
                               </span>
                             )}
                           </div>
                           {item.parent && (
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-sm text-muted-foreground">
                               {item.parent}
                             </div>
                           )}
                         </div>
                       </div>
-                    </Button>
+                    </button>
                   ))}
                 </div>
-              </div>
+              </ScrollArea>
+            </div>
+          )}
+
+          {/* Detected Location Display */}
+          {detectedLocation && (
+            <div className="px-6 py-4 bg-primary/5 border-t border-primary/10">
+              <p className="text-sm text-muted-foreground mb-1">Ubicación detectada:</p>
+              <p className="text-sm font-medium text-primary">{detectedLocation}</p>
             </div>
           )}
         </ModernModalBody>
