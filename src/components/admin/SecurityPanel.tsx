@@ -45,9 +45,9 @@ export function SecurityPanel() {
               <div>
                 <div className="text-2xl font-bold text-blue-900">3</div>
                 <p className="text-sm text-blue-700">Cuentas Suspendidas</p>
-              </p>
+              </div>
+              <Lock className="h-8 w-8 text-blue-600" />
             </div>
-            <Lock className="h-8 w-8 text-blue-600" />
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
