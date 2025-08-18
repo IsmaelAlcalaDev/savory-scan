@@ -4,7 +4,7 @@ import { useCuisineTypes } from '@/hooks/useCuisineTypes';
 import { useEstablishmentTypes } from '@/hooks/useEstablishmentTypes';
 import { usePriceRanges } from '@/hooks/usePriceRanges';
 import { useDietTypes } from '@/hooks/useDietTypes';
-import { SearchBar } from './SearchBar';
+import SearchBar from './SearchBar';
 import LocationInfo from './LocationInfo';
 import CuisineFilter from './CuisineFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
