@@ -7,7 +7,7 @@ import { useDietTypes } from '@/hooks/useDietTypes';
 import { SearchBar } from './SearchBar';
 import { LocationInfo } from './LocationInfo';
 import CuisineFilter from './CuisineFilter';
-import { EstablishmentTypeFilter } from './EstablishmentTypeFilter';
+import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import { PriceFilter } from './PriceFilter';
 import DietFilter from './DietFilter';
 import { FilterTags } from './FilterTags';
