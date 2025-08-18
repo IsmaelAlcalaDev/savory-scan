@@ -1,9 +1,9 @@
+
 import React, { useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigation } from '@/hooks/useNavigation';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { DEFAULT_RESTAURANT_IMAGE_URL } from '@/constants';
 import RestaurantVerificationBadge from './RestaurantVerificationBadge';
 
@@ -78,24 +78,20 @@ export default function RestaurantCard({
       <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow">
         {coverImageUrl ? (
           <div className="relative w-full h-48 md:h-52 lg:h-56">
-            <Image
+            <img
               src={coverImageUrl}
               alt={name}
-              fill
-              style={{ objectFit: 'cover' }}
-              className="transition-transform duration-500 transform scale-100 group-hover:scale-105"
-              priority={priority}
+              className="w-full h-full object-cover transition-transform duration-500 transform scale-100 group-hover:scale-105"
+              loading={priority ? 'eager' : 'lazy'}
             />
           </div>
         ) : (
           <div className="relative w-full h-48 md:h-52 lg:h-56">
-            <Image
+            <img
               src={DEFAULT_RESTAURANT_IMAGE_URL}
               alt={name}
-              fill
-              style={{ objectFit: 'cover' }}
-              className="transition-transform duration-500 transform scale-100 group-hover:scale-105"
-              priority={priority}
+              className="w-full h-full object-cover transition-transform duration-500 transform scale-100 group-hover:scale-105"
+              loading={priority ? 'eager' : 'lazy'}
             />
           </div>
         )}
@@ -130,7 +126,7 @@ export default function RestaurantCard({
               {cuisineTypes?.map((cuisine, index) => (
                 <React.Fragment key={index}>
                   <Link
-                    href={`/restaurants?cuisine=${cuisine}`}
+                    to={`/restaurants?cuisine=${cuisine}`}
                     className="inline-flex items-center rounded-full bg-secondary px-3 py-0.5 text-sm font-semibold transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
                   >
                     {cuisine}
