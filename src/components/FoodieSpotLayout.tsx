@@ -24,6 +24,7 @@ export default function FoodieSpotLayout() {
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
   const [isHighRated, setIsHighRated] = useState<boolean>(false);
   const [isOpenNow, setIsOpenNow] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>('restaurants');
 
   const { userLocation, updateUserPreferences } = useUserPreferences();
   const { cuisineTypes, loading: loadingCuisineTypes, error: errorCuisineTypes } = useCuisineTypes();
@@ -112,6 +113,7 @@ export default function FoodieSpotLayout() {
             selectedDietTypes={selectedDietTypes}
             isHighRated={isHighRated}
             isOpenNow={isOpenNow}
+            activeTab={activeTab}
             onClearSearch={() => setSearchQuery('')}
             onRemoveCuisine={handleCuisineToggle}
             onRemoveEstablishmentType={handleEstablishmentTypeToggle}
