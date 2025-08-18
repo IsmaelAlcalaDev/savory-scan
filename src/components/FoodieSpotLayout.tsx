@@ -19,8 +19,9 @@ import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Skeleton } from '@/components/ui/skeleton';
-import DishesGrid from './DishesGrid';
+import DishesWithSort from './DishesWithSort';
 import FilterTags, { ResetFiltersButton } from './FilterTags';
+import UnifiedRestaurantsTab from './UnifiedRestaurantsTab';
 import type { Restaurant } from '@/types/restaurant';
 
 interface FoodieSpotLayoutProps {
@@ -426,110 +427,40 @@ export default function FoodieSpotLayout({
     }
 
     if (activeBottomTab === 'dishes') {
-      return <>
-          {/* Filter Tags with Quick Filters integrated */}
-          <FilterTags 
-            activeTab="dishes" 
-            selectedCuisines={selectedCuisines} 
-            selectedFoodTypes={selectedFoodTypes} 
-            selectedPriceRanges={selectedPriceRanges} 
-            isHighRated={isHighRated} 
-            selectedEstablishmentTypes={selectedEstablishmentTypes} 
-            selectedDietTypes={selectedDietTypes} 
-            selectedCustomTags={selectedCustomTags}
-            isOpenNow={isOpenNow}
-            isBudgetFriendly={isBudgetFriendly}
-            onClearFilter={handleClearFilter}
-            onPriceRangeChange={setSelectedPriceRanges}
-            onHighRatedChange={setIsHighRated}
-            onEstablishmentTypeChange={setSelectedEstablishmentTypes}
-            onDietTypeChange={setSelectedDietTypes}
-            onCustomTagsChange={setSelectedCustomTags}
-            onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
-            onBudgetFriendlyChange={setIsBudgetFriendly}
-          />
-
-          {/* Results Header with adjusted spacing */}
-          <div className="flex items-center justify-between mb-3 mt-3">
-            <div>
-              <h2 className="text-sm font-medium mb-1 text-muted-foreground">
-                {getResultsText(dishes.length, dishesLoading)}
-              </h2>
-              {dishesError && <p className="text-sm text-destructive mt-1">Error: {dishesError}</p>}
-            </div>
-            <ResetFiltersButton 
-              hasActiveFilters={hasActiveFilters} 
-              onClearAll={() => handleClearFilter('all')} 
-            />
-          </div>
-
-          <DishesGrid dishes={dishes} loading={dishesLoading} error={dishesError} />
-        </>;
+      return (
+        <DishesWithSort
+          searchQuery={searchQueryDishes}
+          userLocation={userLocation}
+          selectedFoodTypes={selectedFoodTypes}
+          selectedDietTypes={selectedDietTypes}
+          selectedCustomTags={selectedCustomTags}
+          hasActiveFilters={hasActiveFilters}
+          onClearAll={() => handleClearFilter('all')}
+        />
+      );
     }
 
-    // Default restaurants content (siempre mostrar cuando no sea 'dishes' ni 'account')
-    return <>
-        {/* Filter Tags with Quick Filters integrated */}
-        <FilterTags 
-          activeTab="restaurants" 
-          selectedCuisines={selectedCuisines} 
-          selectedFoodTypes={selectedFoodTypes} 
-          selectedPriceRanges={selectedPriceRanges} 
-          isHighRated={isHighRated} 
-          selectedEstablishmentTypes={selectedEstablishmentTypes} 
-          selectedDietTypes={selectedDietTypes} 
-          isOpenNow={isOpenNow}
-          isBudgetFriendly={isBudgetFriendly}
-          onClearFilter={handleClearFilter}
-          onPriceRangeChange={setSelectedPriceRanges}
-          onHighRatedChange={setIsHighRated}
-          onEstablishmentTypeChange={setSelectedEstablishmentTypes}
-          onDietTypeChange={setSelectedDietTypes}
-          onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
-          onBudgetFriendlyChange={setIsBudgetFriendly}
-        />
-
-        {/* Results Header with adjusted spacing */}
-        <div className="flex items-center justify-between mb-3 mt-3">
-          <div>
-            <h2 className="text-sm font-medium mb-1 text-muted-foreground">
-              {getResultsText(restaurants.length, restaurantsLoading)}
-            </h2>
-            {restaurantsError && <p className="text-sm text-destructive mt-1">Error: {restaurantsError}</p>}
-          </div>
-          <ResetFiltersButton 
-            hasActiveFilters={hasActiveFilters} 
-            onClearAll={() => handleClearFilter('all')} 
-          />
-        </div>
-
-        {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-          {restaurantsLoading ? Array.from({
-          length: 12
-        }).map((_, i) => <div key={i} className="space-y-3">
-                <Skeleton className="h-48 w-full rounded-lg" />
-                <div className="p-4 space-y-3">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-              </div>) : restaurantsError ? <div className="col-span-full text-center py-8">
-              <p className="text-muted-foreground">Error al cargar restaurantes: {restaurantsError}</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Revisa la consola para más detalles
-              </p>
-            </div> : restaurants.length === 0 ? <div className="col-span-full text-center py-8">
-              <p className="text-muted-foreground">No se encontraron restaurantes</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Intenta cambiar los filtros de búsqueda
-              </p>
-            </div> : restaurants.map((restaurant: Restaurant) => <RestaurantCard key={restaurant.id} id={restaurant.id} name={restaurant.name} slug={restaurant.slug} description={restaurant.description} priceRange={restaurant.price_range} googleRating={restaurant.google_rating} googleRatingCount={restaurant.google_rating_count} distance={restaurant.distance_km} cuisineTypes={restaurant.cuisine_types} establishmentType={restaurant.establishment_type} services={restaurant.services} favoritesCount={restaurant.favorites_count} coverImageUrl={restaurant.cover_image_url} logoUrl={restaurant.logo_url} onLoginRequired={handleLoginRequired} />)}
-        </div>
-      </>;
+    // Default restaurants content
+    return (
+      <UnifiedRestaurantsTab
+        searchQuery={searchQueryRestaurants}
+        userLocation={userLocation}
+        selectedCuisines={selectedCuisines}
+        selectedPriceRanges={selectedPriceRanges}
+        isHighRated={isHighRated}
+        selectedEstablishmentTypes={selectedEstablishmentTypes}
+        selectedDietTypes={selectedDietTypes}
+        isOpenNow={isOpenNow}
+        isBudgetFriendly={isBudgetFriendly}
+        hasActiveFilters={hasActiveFilters}
+        onClearAll={() => handleClearFilter('all')}
+        onLoginRequired={() => setAccountModalOpen(true)}
+      />
+    );
   };
 
-  return <div className="min-h-screen bg-white pb-20">
+  return (
+    <div className="min-h-screen bg-white pb-20">
       {/* Header - Only the navigation is sticky */}
       {activeBottomTab !== 'account' && (
         <header className="sticky top-0 z-50 bg-white">
@@ -544,19 +475,34 @@ export default function FoodieSpotLayout({
         {/* Tipos de Cocina / Tipos de Comida - Now in scrollable content */}
         {activeBottomTab !== 'account' && (
           <div className="pb-2 pt-4">
-            {activeBottomTab === 'dishes' ? <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} /> : <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />}
+            {activeBottomTab === 'dishes' ? (
+              <FoodTypeFilter selectedFoodTypes={selectedFoodTypes} onFoodTypeChange={setSelectedFoodTypes} />
+            ) : (
+              <CuisineFilter selectedCuisines={selectedCuisines} onCuisineChange={setSelectedCuisines} />
+            )}
           </div>
         )}
 
         {/* Search bar for mobile - Full width below cuisine types with doubled spacing */}
-        {isMobile && activeBottomTab !== 'account' && <div className="pb-4">
+        {isMobile && activeBottomTab !== 'account' && (
+          <div className="pb-4">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 z-10 text-black" />
-              <input type="text" placeholder={getSearchPlaceholder()} value={getCurrentSearchQuery()} onChange={e => setCurrentSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setIsSearchFocused(false)} className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 text-black placeholder:text-black" style={{
-            backgroundColor: 'rgb(243, 243, 243)'
-          }} />
+              <input
+                type="text"
+                placeholder={activeBottomTab === 'dishes' ? 'Buscar platos...' : 'Buscar restaurantes...'}
+                value={activeBottomTab === 'dishes' ? searchQueryDishes : searchQueryRestaurants}
+                onChange={e => activeBottomTab === 'dishes' ? setSearchQueryDishes(e.target.value) : setSearchQueryRestaurants(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                className="w-full pl-10 pr-4 h-10 text-base rounded-full border-0 focus:outline-none focus:ring-0 text-black placeholder:text-black"
+                style={{
+                  backgroundColor: 'rgb(243, 243, 243)'
+                }}
+              />
             </div>
-          </div>}
+          </div>
+        )}
 
         <div className="p-0 md:p-4">
           {renderContent()}
@@ -572,5 +518,6 @@ export default function FoodieSpotLayout({
       <MenuModal open={menuModalOpen} onOpenChange={setMenuModalOpen} />
 
       <LocationModal open={locationModalOpen} onOpenChange={setLocationModalOpen} onLocationSelect={handleLocationSelect} />
-    </div>;
+    </div>
+  );
 }

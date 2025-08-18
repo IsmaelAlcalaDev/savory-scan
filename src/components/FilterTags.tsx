@@ -19,6 +19,27 @@ interface FilterTagsProps {
   showSort?: boolean;
 }
 
+export function ResetFiltersButton({ 
+  hasActiveFilters, 
+  onClearAll 
+}: { 
+  hasActiveFilters: boolean; 
+  onClearAll: () => void; 
+}) {
+  if (!hasActiveFilters) return null;
+  
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={onClearAll}
+      className="text-sm text-gray-600 hover:text-gray-800 px-2"
+    >
+      Limpiar filtros
+    </Button>
+  );
+}
+
 export default function FilterTags({ 
   tags, 
   onClearAll,
