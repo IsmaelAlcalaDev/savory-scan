@@ -1,12 +1,17 @@
 
 import { useState, useCallback, useMemo } from 'react';
-import { Search, MapPin, Navigation, Clock, X, Utensils } from 'lucide-react';
+import { Search, MapPin, Navigation, Clock, ChevronDown, Utensils } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -28,7 +33,7 @@ export default function ModernLocationModal({
   onLocationSelect 
 }: ModernLocationModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoadingGPS, setIsLoadingGPS] = useState(false);
   const [detectedLocation, setDetectedLocation] = useState<string>('');
 
@@ -110,6 +115,7 @@ export default function ModernLocationModal({
         data: locationData
       });
       
+      setIsDropdownOpen(false);
       onOpenChange(false);
     } catch (error: any) {
       console.error('GPS Error:', error);
@@ -150,6 +156,7 @@ export default function ModernLocationModal({
         address: suggestion.name
       }
     });
+    setIsDropdownOpen(false);
     onOpenChange(false);
   }, [addToHistory, onLocationSelect, onOpenChange]);
 
@@ -174,23 +181,16 @@ export default function ModernLocationModal({
         address: item.name
       }
     });
+    setIsDropdownOpen(false);
     onOpenChange(false);
   }, [addToHistory, onLocationSelect, onOpenChange]);
 
-  const handleInputFocus = useCallback(() => {
-    setShowSuggestions(true);
-  }, []);
-
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    if (!showSuggestions) {
-      setShowSuggestions(true);
-    }
-  }, [showSuggestions]);
+  }, []);
 
-  const handleInputBlur = useCallback(() => {
-    // Delay hiding to allow clicks on suggestions
-    setTimeout(() => setShowSuggestions(false), 200);
+  const handleDropdownOpenChange = useCallback((open: boolean) => {
+    setIsDropdownOpen(open);
   }, []);
 
   return (
@@ -223,46 +223,34 @@ export default function ModernLocationModal({
             </div>
           )}
 
-          {/* Search Input with GPS Button - No rounded borders */}
+          {/* Location Dropdown */}
           <div className="relative">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                type="text"
-                placeholder="Buscar ubicación..."
-                value={searchQuery}
-                onChange={handleInputChange}
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
-                className="pl-12 pr-16 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-lg text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-white/50 text-lg"
-                style={{ borderRadius: '0px' }}
-                maxLength={50}
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-10 px-3 bg-primary text-white hover:bg-primary/80 transition-colors"
-                style={{ borderRadius: '0px' }}
-                onClick={handleGPSLocation}
-                disabled={isLoadingGPS}
-              >
-                <Navigation className="h-4 w-4" />
-              </Button>
-            </div>
+            <Popover open={isDropdownOpen} onOpenChange={handleDropdownOpenChange}>
+              <PopoverTrigger asChild>
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar ubicación..."
+                    value={searchQuery}
+                    onChange={handleInputChange}
+                    className="pl-12 pr-12 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-lg text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-white/50 text-lg cursor-pointer"
+                    style={{ borderRadius: '0px' }}
+                    maxLength={50}
+                  />
+                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                </div>
+              </PopoverTrigger>
 
-            {/* Modern Dropdown - Always positioned correctly */}
-            {showSuggestions && (
-              <div 
-                className="absolute top-full left-0 right-0 mt-1 bg-white/98 backdrop-blur-sm border-0 shadow-2xl z-50 max-h-[60vh] overflow-hidden"
-                style={{ 
-                  borderRadius: '0px',
-                  transform: 'translateZ(0)', // Force hardware acceleration
-                  willChange: 'transform, opacity'
-                }}
+              <PopoverContent 
+                className="w-[var(--radix-popover-trigger-width)] p-0 bg-white/98 backdrop-blur-sm border-0 shadow-2xl max-h-[70vh] overflow-hidden"
+                style={{ borderRadius: '0px' }}
+                align="start"
+                sideOffset={4}
               >
-                <ScrollArea className="max-h-[60vh]">
+                <ScrollArea className="max-h-[70vh]">
                   <div className="p-0">
-                    {/* GPS Option - always show first */}
+                    {/* GPS Option - Always at top */}
                     <button
                       className="w-full text-left p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 flex items-center gap-3 group"
                       onClick={handleGPSLocation}
@@ -281,9 +269,19 @@ export default function ModernLocationModal({
                       </div>
                     </button>
 
-                    {/* Search Results - Maximum 6 results */}
+                    {/* Search Results Section */}
                     {searchQuery.length >= 2 && (
-                      <>
+                      <div className="border-b border-gray-200">
+                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                          <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2">
+                            <Search className="h-4 w-4" />
+                            Sugerencias
+                            {!loadingSuggestions && limitedSuggestions.length > 0 && (
+                              <span className="text-gray-400">({limitedSuggestions.length})</span>
+                            )}
+                          </div>
+                        </div>
+                        
                         {loadingSuggestions ? (
                           <div className="p-4 space-y-3">
                             {Array.from({ length: 3 }).map((_, i) => (
@@ -298,15 +296,10 @@ export default function ModernLocationModal({
                           </div>
                         ) : limitedSuggestions.length > 0 ? (
                           <>
-                            <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-                              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                                Resultados ({limitedSuggestions.length})
-                              </div>
-                            </div>
                             {limitedSuggestions.map((suggestion) => (
                               <button
                                 key={`${suggestion.type}-${suggestion.id}`}
-                                className="w-full text-left p-4 hover:bg-gray-50 transition-colors flex items-center gap-3 group border-b border-gray-50"
+                                className="w-full text-left p-4 hover:bg-gray-50 transition-colors flex items-center gap-3 group border-b border-gray-50 last:border-b-0"
                                 onClick={() => handleSuggestionSelect(suggestion)}
                               >
                                 <div className="bg-green-50 p-2 rounded-full group-hover:bg-green-100 transition-colors">
@@ -331,22 +324,25 @@ export default function ModernLocationModal({
                             ))}
                           </>
                         ) : (
-                          <div className="p-6 text-center border-b border-gray-100">
+                          <div className="p-6 text-center">
                             <div className="text-gray-900 font-medium text-base mb-1">No se encontraron ubicaciones</div>
                             <div className="text-sm text-gray-500">
                               Intenta con una palabra diferente
                             </div>
                           </div>
                         )}
-                      </>
+                      </div>
                     )}
 
-                    {/* Location History - Always show, even when empty or searching */}
+                    {/* History Section - Always visible */}
                     <div className="bg-gray-50">
                       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2 uppercase tracking-wide">
+                        <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2">
                           <Clock className="h-4 w-4" />
-                          Ubicaciones recientes
+                          Historial reciente
+                          {topLocations.length > 0 && (
+                            <span className="text-gray-400">({topLocations.length})</span>
+                          )}
                         </h4>
                         {topLocations.length > 0 && (
                           <Button
@@ -402,8 +398,8 @@ export default function ModernLocationModal({
                     </div>
                   </div>
                 </ScrollArea>
-              </div>
-            )}
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Helper Text */}
