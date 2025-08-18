@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
 import UnifiedRestaurantsGrid from './UnifiedRestaurantsGrid';
-import RestaurantSortSelector from './RestaurantSortSelector';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { useRestaurantSort } from '@/hooks/useRestaurantSort';
+import { useRestaurants } from '@/hooks/useRestaurants';
 
 interface UnifiedRestaurantsTabProps {
   searchQuery?: string;
@@ -13,39 +14,44 @@ interface UnifiedRestaurantsTabProps {
   selectedDietTypes?: number[];
   maxDistance?: number;
   isOpenNow?: boolean;
+  onSortChange?: (sortBy: string) => void;
 }
 
 export default function UnifiedRestaurantsTab(props: UnifiedRestaurantsTabProps) {
   const { userLocation } = useUserPreferences();
-  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'favorites'>(
-    userLocation ? 'distance' : 'favorites'
-  );
+  
+  // Obtener restaurantes primero
+  const { restaurants, loading, error } = useRestaurants({
+    searchQuery: props.searchQuery,
+    userLat: userLocation?.latitude,
+    userLng: userLocation?.longitude,
+    maxDistance: props.maxDistance,
+    cuisineTypeIds: props.cuisineTypeIds,
+    priceRanges: props.priceRanges,
+    isHighRated: props.isHighRated,
+    selectedEstablishmentTypes: props.selectedEstablishmentTypes,
+    selectedDietTypes: props.selectedDietTypes,
+    isOpenNow: props.isOpenNow
+  });
 
-  const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
+  // Usar el hook de ordenamiento con los restaurantes
+  const { sortedRestaurants, sortBy } = useRestaurantSort({ restaurants });
+
+  // Notificar cambios de ordenamiento al padre
+  const handleSortChange = (newSortBy: string) => {
+    props.onSortChange?.(newSortBy);
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Restaurantes</h2>
-        <RestaurantSortSelector
-          value={sortBy}
-          onChange={setSortBy}
-          hasLocation={hasLocation}
-        />
       </div>
 
       <UnifiedRestaurantsGrid
-        searchQuery={props.searchQuery}
-        userLat={userLocation?.latitude}
-        userLng={userLocation?.longitude}
-        maxDistance={props.maxDistance}
-        cuisineTypeIds={props.cuisineTypeIds}
-        priceRanges={props.priceRanges}
-        isHighRated={props.isHighRated}
-        selectedEstablishmentTypes={props.selectedEstablishmentTypes}
-        selectedDietTypes={props.selectedDietTypes}
-        isOpenNow={props.isOpenNow}
-        sortBy={sortBy}
+        restaurants={sortedRestaurants}
+        loading={loading}
+        error={error}
       />
     </div>
   );

@@ -1,53 +1,36 @@
 
-import { useRestaurants } from '@/hooks/useRestaurants';
 import RestaurantCard from './RestaurantCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
 
+interface Restaurant {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  price_range: string;
+  google_rating?: number;
+  google_rating_count?: number;
+  distance_km?: number;
+  cuisine_types: string[];
+  establishment_type?: string;
+  services?: string[];
+  favorites_count?: number;
+  cover_image_url?: string;
+  logo_url?: string;
+}
+
 interface UnifiedRestaurantsGridProps {
-  searchQuery?: string;
-  userLat?: number;
-  userLng?: number;
-  maxDistance?: number;
-  cuisineTypeIds?: number[];
-  priceRanges?: string[];
-  isHighRated?: boolean;
-  selectedEstablishmentTypes?: number[];
-  selectedDietTypes?: number[];
-  isOpenNow?: boolean;
-  sortBy?: 'distance' | 'rating' | 'favorites';
+  restaurants: Restaurant[];
+  loading: boolean;
+  error: string | null;
 }
 
 export default function UnifiedRestaurantsGrid({
-  searchQuery,
-  userLat,
-  userLng,
-  maxDistance,
-  cuisineTypeIds,
-  priceRanges,
-  isHighRated,
-  selectedEstablishmentTypes,
-  selectedDietTypes,
-  isOpenNow,
-  sortBy = 'distance'
+  restaurants,
+  loading,
+  error
 }: UnifiedRestaurantsGridProps) {
-  const {
-    restaurants,
-    loading,
-    error
-  } = useRestaurants({
-    searchQuery,
-    userLat,
-    userLng,
-    maxDistance,
-    cuisineTypeIds,
-    priceRanges,
-    isHighRated,
-    selectedEstablishmentTypes,
-    selectedDietTypes,
-    isOpenNow
-  });
-
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -85,25 +68,9 @@ export default function UnifiedRestaurantsGrid({
     );
   }
 
-  // Sort restaurants based on sortBy prop
-  const sortedRestaurants = [...restaurants].sort((a, b) => {
-    switch (sortBy) {
-      case 'rating':
-        return (b.google_rating || 0) - (a.google_rating || 0);
-      case 'favorites':
-        return (b.favorites_count || 0) - (a.favorites_count || 0);
-      case 'distance':
-      default:
-        if (a.distance_km === null && b.distance_km === null) return 0;
-        if (a.distance_km === null) return 1;
-        if (b.distance_km === null) return -1;
-        return a.distance_km - b.distance_km;
-    }
-  });
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {sortedRestaurants.map((restaurant) => (
+      {restaurants.map((restaurant) => (
         <RestaurantCard
           key={restaurant.id}
           id={restaurant.id}
