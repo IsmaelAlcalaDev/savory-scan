@@ -45,7 +45,7 @@ export default function AllDishCard({
       onClick();
     } else {
       // Navigate to restaurant profile since we don't have individual dish pages
-      window.location.href = `/restaurant/${restaurantSlug}`;
+      navigate(`/restaurant/${restaurantSlug}`);
     }
   };
 

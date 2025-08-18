@@ -118,7 +118,7 @@ export const useRestaurants = ({
           `)
           .eq('is_active', true)
           .eq('is_published', true)
-          .is('deleted_at', null);
+          .limit(200);
 
         if (isOpenNow) {
           console.log('Applying "open now" filter with SQL optimization');

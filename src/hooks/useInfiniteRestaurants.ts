@@ -32,8 +32,8 @@ interface UseInfiniteRestaurantsProps {
   sortBy?: 'recommended' | 'distance';
 }
 
-const PAGE_SIZE = 12;
-const MAX_DISTANCE_KM = 5;
+const PAGE_SIZE = 200;
+const MAX_DISTANCE_KM = 50;
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
   const R = 6371;

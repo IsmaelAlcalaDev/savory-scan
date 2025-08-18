@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useCallback } from 'react';
 import { useInfiniteRestaurants } from '@/hooks/useInfiniteRestaurants';
 import RestaurantCard from './RestaurantCard';

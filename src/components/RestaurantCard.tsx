@@ -54,7 +54,7 @@ export default function RestaurantCard({
     if (onClick) {
       onClick();
     } else {
-      window.location.href = `/restaurant/${slug}`;
+      navigate(`/restaurant/${slug}`);
     }
   };
 
