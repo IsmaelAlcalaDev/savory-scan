@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo } from 'react';
 import { Search, MapPin, Navigation, Clock, X } from 'lucide-react';
 import {
@@ -183,7 +184,7 @@ export default function LocationModal({
                 placeholder="Buscar dirección"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10 h-12 rounded-full border-primary focus:border-primary bg-muted/30 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none text-base placeholder:text-base"
+                className="pl-10 pr-10 h-12 rounded-full border-primary focus:border-primary bg-muted/30 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none text-lg placeholder:text-lg"
               />
               {searchQuery && (
                 <button
@@ -199,7 +200,7 @@ export default function LocationModal({
           {/* GPS Button */}
           <div className="px-6 pb-4">
             <Button 
-              className="w-full justify-center gap-2 h-12 rounded-full bg-red-100 border-red-100 text-red-600 hover:bg-red-50 shadow-soft hover:shadow-card transition-smooth text-base font-medium" 
+              className="w-full justify-center gap-2 h-12 rounded-full bg-red-100 border-red-100 text-red-600 hover:bg-red-200 shadow-soft hover:shadow-card transition-smooth text-lg font-bold" 
               onClick={handleGPSLocation}
               disabled={isLoadingGPS}
             >
