@@ -1,6 +1,6 @@
 
 import { useState, useRef, useCallback } from 'react';
-import { Search, MapPin, Navigation, X, AlertCircle } from 'lucide-react';
+import { Search, Navigation, X, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,7 +39,7 @@ const getLocationTypeIcon = (type: string) => {
     case 'postal_code':
       return '📮';
     case 'poi':
-      return '📍';
+      return '🎯';
     default:
       return '📍';
   }
@@ -171,8 +171,8 @@ export default function LocationSearchInput({
   return (
     <div className={`relative ${className}`}>
       {/* Search input container with integrated dropdown */}
-      <div className={`relative bg-white/95 backdrop-blur-sm rounded-full shadow-card transition-all duration-200 ${
-        showSuggestions ? 'rounded-[28px_28px_16px_16px] shadow-float' : ''
+      <div className={`relative bg-white/95 backdrop-blur-sm shadow-card transition-all duration-200 ${
+        showSuggestions ? 'shadow-float' : ''
       } ${showError ? 'ring-2 ring-red-500/50' : ''} ${selectedLocation ? 'ring-2 ring-green-500/50' : ''}`}>
         
         {/* Input field */}
@@ -186,7 +186,7 @@ export default function LocationSearchInput({
             onChange={handleInputChange}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            className="pl-12 pr-12 h-14 bg-transparent border-0 text-lg placeholder:text-gray-400 focus:ring-0 focus:outline-none rounded-full"
+            className="pl-12 pr-12 h-14 bg-transparent border-0 text-lg placeholder:text-gray-400 focus:ring-0 focus:outline-none"
             maxLength={100}
           />
           {searchQuery && (
@@ -202,12 +202,12 @@ export default function LocationSearchInput({
 
         {/* Integrated suggestions dropdown */}
         {showSuggestions && (
-          <div className="border-t border-gray-100 bg-white/95 backdrop-blur-sm rounded-[0_0_16px_16px] max-h-80 overflow-hidden">
+          <div className="border-t border-gray-100 bg-white/95 backdrop-blur-sm max-h-80 overflow-hidden">
             <ScrollArea className="max-h-80">
               <div className="p-2">
                 {/* GPS Option - always first */}
                 <button
-                  className="w-full text-left p-3 hover:bg-gray-100/80 rounded-lg transition-colors border-b border-gray-100 last:border-b-0"
+                  className="w-full text-left p-3 hover:bg-gray-100/80 transition-colors border-b border-gray-100 last:border-b-0"
                   onClick={handleGPSLocation}
                   disabled={isLoadingGPS}
                   type="button"
@@ -226,7 +226,7 @@ export default function LocationSearchInput({
                     {loading ? (
                       <div className="p-3 space-y-2">
                         {Array.from({ length: 4 }).map((_, i) => (
-                          <Skeleton key={i} className="h-14 w-full rounded-lg" />
+                          <Skeleton key={i} className="h-14 w-full" />
                         ))}
                       </div>
                     ) : suggestions.length > 0 ? (
@@ -234,7 +234,7 @@ export default function LocationSearchInput({
                         {suggestions.map((suggestion) => (
                           <button
                             key={`${suggestion.type}-${suggestion.id}`}
-                            className="w-full text-left p-3 hover:bg-gray-100/80 rounded-lg transition-colors"
+                            className="w-full text-left p-3 hover:bg-gray-100/80 transition-colors"
                             onClick={() => handleLocationSelect(suggestion)}
                             type="button"
                           >
@@ -294,7 +294,7 @@ export default function LocationSearchInput({
                 {/* Initial state when no query */}
                 {!searchQuery && (
                   <div className="p-6 text-center text-gray-500">
-                    <div className="text-4xl mb-2">📍</div>
+                    <div className="text-4xl mb-2">🌍</div>
                     <div className="font-medium text-sm mb-1">Busca tu ubicación</div>
                     <div className="text-xs text-gray-400">
                       Escribe ciudad, municipio, distrito, barrio o código postal
@@ -309,7 +309,7 @@ export default function LocationSearchInput({
 
       {/* Error message - now positioned below the integrated container */}
       {showError && (
-        <div className="absolute top-full left-0 right-0 mt-2 p-3 bg-red-50/95 backdrop-blur-sm border border-red-200 rounded-lg shadow-card z-40">
+        <div className="absolute top-full left-0 right-0 mt-2 p-3 bg-red-50/95 backdrop-blur-sm border border-red-200 shadow-card z-40">
           <div className="flex items-center gap-2 text-red-700 text-sm">
             <AlertCircle className="h-4 w-4" />
             <span>Debes seleccionar una ubicación de la lista</span>
