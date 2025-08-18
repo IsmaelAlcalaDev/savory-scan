@@ -283,7 +283,7 @@ export const useInfiniteRestaurants = (props: UseInfiniteRestaurantsProps) => {
       const sortedData = formattedData.sort((a, b) => {
         switch (sortBy) {
           case 'recommended':
-            // First premium restaurants by distance, then free restaurants by distance (up to 200 total)
+            // Premium restaurants first, sorted by distance
             const aPremium = a.subscription_plan === 'premium';
             const bPremium = b.subscription_plan === 'premium';
             
@@ -296,13 +296,10 @@ export const useInfiniteRestaurants = (props: UseInfiniteRestaurantsProps) => {
               if (a.distance_km === null) return 1;
               if (b.distance_km === null) return -1;
               return a.distance_km - b.distance_km;
-            } else {
-              // Both free: sort by distance (not by favorites)
-              if (a.distance_km === null && b.distance_km === null) return 0;
-              if (a.distance_km === null) return 1;
-              if (b.distance_km === null) return -1;
-              return a.distance_km - b.distance_km;
             }
+            
+            // Both free: keep natural order (no sorting)
+            return 0;
             
           case 'distance':
           default:
