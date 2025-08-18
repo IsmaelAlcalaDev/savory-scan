@@ -319,7 +319,7 @@ export default function FilterTags({
         <Button
           variant="outline"
           size="sm"
-          className={`flex-shrink-0 h-10 px-3 text-sm rounded-full border-0 flex items-center gap-2 relative ${
+          className={`flex-shrink-0 h-10 px-2 text-sm rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
               ? 'bg-black text-white hover:bg-black hover:text-white' 
               : 'text-black hover:text-black'
@@ -359,7 +359,7 @@ export default function FilterTags({
         <Button
           variant="outline"
           size="sm"
-          className={`flex-shrink-0 h-10 px-3 text-sm rounded-full border-0 flex items-center gap-2 relative ${
+          className={`flex-shrink-0 h-10 px-2 text-sm rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
               ? 'bg-black text-white hover:bg-black hover:text-white' 
               : 'text-black hover:text-black'
@@ -420,7 +420,7 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-10 px-3 text-sm rounded-full border-0 flex items-center gap-2 ${
+            className={`flex-shrink-0 h-10 px-2 text-sm rounded-full border-0 flex items-center gap-2 ${
               isHighRated 
                 ? 'bg-black text-white hover:bg-black hover:text-white' 
                 : 'text-black hover:text-black'
@@ -456,7 +456,7 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-10 px-3 text-sm rounded-full border-0 flex items-center gap-2 ${
+            className={`flex-shrink-0 h-10 px-2 text-sm rounded-full border-0 flex items-center gap-2 ${
               isOpenNow 
                 ? 'bg-black text-white hover:bg-black hover:text-white' 
                 : 'text-black hover:text-black'
@@ -493,7 +493,7 @@ export default function FilterTags({
             <Button
               variant="outline"
               size="sm"
-              className={`flex-shrink-0 h-10 px-3 text-sm rounded-full border-0 flex items-center gap-2 ${
+              className={`flex-shrink-0 h-10 px-2 text-sm rounded-full border-0 flex items-center gap-2 ${
                 isBudgetFriendly 
                   ? 'bg-black text-white hover:bg-black hover:text-white' 
                   : 'text-black hover:text-black'
