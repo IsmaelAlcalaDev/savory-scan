@@ -11,7 +11,7 @@ interface ViewModeToggleProps {
 
 export default function ViewModeToggle({ viewMode, onViewModeChange, className }: ViewModeToggleProps) {
   return (
-    <div className={cn("hidden md:flex items-center bg-gray-100 p-1 rounded-lg", className)}>
+    <div className={cn("flex items-center bg-gray-100 p-1 rounded-lg", className)}>
       <Button
         variant="ghost"
         size="sm"

@@ -64,13 +64,11 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-semibold">Restaurantes</h2>
-            <ViewModeToggle
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-            />
-          </div>
+          <h2 className="text-2xl font-semibold">Restaurantes</h2>
+          <ViewModeToggle
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
         </div>
 
         <div className={cn(
@@ -100,13 +98,11 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-semibold">Restaurantes</h2>
-            <ViewModeToggle
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-            />
-          </div>
+          <h2 className="text-2xl font-semibold">Restaurantes</h2>
+          <ViewModeToggle
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
         </div>
 
         <div className="col-span-full text-center py-8">
@@ -126,13 +122,11 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-semibold">Restaurantes</h2>
-            <ViewModeToggle
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-            />
-          </div>
+          <h2 className="text-2xl font-semibold">Restaurantes</h2>
+          <ViewModeToggle
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
         </div>
 
         <div className="col-span-full text-center py-8">
@@ -148,13 +142,11 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
   return (
     <div ref={containerRef} className="space-y-6">
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-semibold">Restaurantes</h2>
-          <ViewModeToggle
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-          />
-        </div>
+        <h2 className="text-2xl font-semibold">Restaurantes</h2>
+        <ViewModeToggle
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+        />
       </div>
 
       {/* Enhanced performance metrics */}
