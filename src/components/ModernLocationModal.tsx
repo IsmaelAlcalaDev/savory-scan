@@ -195,18 +195,11 @@ export default function ModernLocationModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-md mx-auto bg-background border-border shadow-xl rounded-xl overflow-hidden">
-        {/* Modern Header */}
-        <DialogHeader className="px-6 pt-6 pb-4 bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <DialogTitle className="text-xl font-semibold text-foreground">
-                Seleccionar ubicación
-              </DialogTitle>
-              <p className="text-sm text-muted-foreground">
-                Encuentra restaurantes cerca de ti
-              </p>
-            </div>
-          </div>
+        {/* Clean Header */}
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="text-xl font-semibold text-foreground">
+            Seleccionar ubicación
+          </DialogTitle>
         </DialogHeader>
 
         <div className="px-6 pb-6 space-y-4">
