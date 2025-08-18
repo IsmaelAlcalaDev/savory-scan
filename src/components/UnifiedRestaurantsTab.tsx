@@ -17,9 +17,7 @@ interface UnifiedRestaurantsTabProps {
 
 export default function UnifiedRestaurantsTab(props: UnifiedRestaurantsTabProps) {
   const { userLocation } = useUserPreferences();
-  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'favorites'>(
-    userLocation ? 'distance' : 'favorites'
-  );
+  const [sortBy, setSortBy] = useState<'recommended' | 'distance'>('recommended');
 
   const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
 
