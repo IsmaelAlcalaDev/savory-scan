@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { MapPin, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import GuidedLocationModal from './GuidedLocationModal';
+import OptimizedLocationSearchInput from './OptimizedLocationSearchInput';
 
 interface MobileHeaderProps {
   appName: string;
@@ -22,11 +22,6 @@ export default function MobileHeader({
   onLogoClick,
   onMenuClick
 }: MobileHeaderProps) {
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-
-  const handleLocationButtonClick = () => {
-    setIsLocationModalOpen(true);
-  };
 
   const handleLocationSelect = (location: { type: 'gps' | 'manual' | 'city' | 'suggestion'; data?: any }) => {
     console.log('Location selected:', location);
@@ -41,17 +36,15 @@ export default function MobileHeader({
       address: location.data?.address || location.data?.name
     }));
 
-    // Close modal
-    setIsLocationModalOpen(false);
-    
     // Optionally reload the page to reflect the new location
     window.location.reload();
   };
 
   return (
-    <>
-      <div className="flex items-center justify-between py-1 px-4">
-        {/* Logo - Smaller size */}
+    <div className="space-y-3 p-4">
+      {/* Top row: Logo and Menu */}
+      <div className="flex items-center justify-between">
+        {/* Logo */}
         <div className="flex items-center flex-shrink-0">
           <button onClick={onLogoClick} className="flex items-center">
             <img 
@@ -62,34 +55,33 @@ export default function MobileHeader({
           </button>
         </div>
 
-        {/* Location */}
+        {/* Current Location Display */}
         <div className="flex-1 flex justify-center px-4">
-          <Button 
-            variant="ghost" 
-            onClick={handleLocationButtonClick} 
-            className="flex items-center gap-2 text-sm text-black hover:text-black hover:bg-transparent max-w-48 h-8 px-2"
-          >
+          <div className="flex items-center gap-2 text-sm text-black max-w-48">
             <MapPin className="h-4 w-4 flex-shrink-0 text-black" />
             <span className="truncate">
               {isLoadingLocation ? 'Detectando...' : currentLocationName}
             </span>
-          </Button>
+          </div>
         </div>
 
         {/* Menu */}
         <div className="flex items-center flex-shrink-0">
-          <button className="p-1 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors" onClick={onMenuClick}>
+          <button 
+            className="p-1 border-0 bg-transparent hover:bg-transparent focus:bg-transparent text-gray-800 hover:text-gray-600 transition-colors" 
+            onClick={onMenuClick}
+          >
             <Menu className="h-5 w-5" strokeWidth={2.5} />
           </button>
         </div>
       </div>
 
-      {/* Guided Location Modal */}
-      <GuidedLocationModal
-        open={isLocationModalOpen}
-        onOpenChange={setIsLocationModalOpen}
+      {/* Search Input */}
+      <OptimizedLocationSearchInput
+        placeholder="¿Dónde buscas?"
         onLocationSelect={handleLocationSelect}
+        className="w-full"
       />
-    </>
+    </div>
   );
 }
