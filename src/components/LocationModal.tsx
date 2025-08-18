@@ -172,7 +172,7 @@ export default function LocationModal({
     <ModernModal open={open} onOpenChange={onOpenChange}>
       <ModernModalContent className="max-w-lg">
         <ModernModalHeader>
-          <ModernModalTitle>¿Dónde hay que hacer la entrega?</ModernModalTitle>
+          <ModernModalTitle>Encuentra restaurantes cerca de ti</ModernModalTitle>
         </ModernModalHeader>
         
         <ModernModalBody className="space-y-0 px-0 pb-0">
@@ -184,7 +184,7 @@ export default function LocationModal({
                 placeholder="Buscar dirección"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10 h-12 rounded-xl border-border/50 focus:border-primary bg-muted/30"
+                className="pl-10 pr-10 h-12 rounded-full border-primary/30 focus:border-primary bg-muted/30 focus:ring-primary/20"
               />
               {searchQuery && (
                 <button
@@ -200,13 +200,12 @@ export default function LocationModal({
           {/* GPS Button */}
           <div className="px-6 pb-4">
             <Button 
-              variant="outline" 
-              className="w-full justify-center gap-2 h-12 rounded-xl bg-primary/5 border-primary/20 text-primary hover:bg-primary/10" 
+              className="w-full justify-center gap-2 h-12 rounded-full bg-primary border-primary text-primary-foreground hover:bg-primary/90 shadow-soft hover:shadow-card transition-smooth" 
               onClick={handleGPSLocation}
               disabled={isLoadingGPS}
             >
               <Navigation className="h-4 w-4" />
-              {isLoadingGPS ? 'Detectando ubicación...' : 'Utilizar la ubicación actual'}
+              {isLoadingGPS ? 'Detectando ubicación...' : 'Utilizar mi ubicación actual'}
             </Button>
           </div>
 
