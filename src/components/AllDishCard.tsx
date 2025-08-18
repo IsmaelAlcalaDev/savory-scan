@@ -1,112 +1,194 @@
-import { Card, CardContent } from '@/components/ui/card';
+
+import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Star, Clock, Users, ChefHat } from 'lucide-react';
-import { DishFavoriteButton } from './DishFavoriteButton';
-import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import DishFavoriteButton from './DishFavoriteButton';
+import OptimizedImage from './OptimizedImage';
 
 interface AllDishCardProps {
   id: number;
   name: string;
   description?: string;
-  price: number;
+  basePrice: number;
   imageUrl?: string;
-  isVegetarian?: boolean;
-  isVegan?: boolean;
-  isGlutenFree?: boolean;
-  isHealthy?: boolean;
-  prepTimeMinutes?: number;
-  servingSize?: number;
+  categoryName?: string;
   restaurantName: string;
   restaurantSlug: string;
-  rating?: number;
-  category?: string;
-  spiceLevel?: number;
-  allergens?: string[];
+  restaurantId: number;
+  restaurantRating?: number;
+  distance?: number;
+  formattedPrice: string;
+  onClick?: () => void;
+  className?: string;
+  layout?: 'grid' | 'list';
 }
 
 export default function AllDishCard({
   id,
   name,
   description,
-  price,
+  basePrice,
   imageUrl,
-  isVegetarian,
-  isVegan,
-  isGlutenFree,
-  isHealthy,
-  prepTimeMinutes,
-  servingSize,
+  categoryName,
   restaurantName,
   restaurantSlug,
-  rating,
-  category,
-  spiceLevel,
-  allergens
+  restaurantId,
+  restaurantRating,
+  distance,
+  formattedPrice,
+  onClick,
+  className,
+  layout = 'grid'
 }: AllDishCardProps) {
-  const navigate = useNavigate();
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      // Navigate to restaurant profile since we don't have individual dish pages
+      window.location.href = `/restaurant/${restaurantSlug}`;
+    }
+  };
 
-  return (
-    <Card className="bg-secondary shadow-md hover:shadow-lg transition-shadow duration-200">
-      {imageUrl && (
-        <div className="relative w-full h-48 overflow-hidden rounded-md">
-          <img
-            src={imageUrl}
-            alt={name}
-            className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-          />
-        </div>
-      )}
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold line-clamp-1">{name}</h3>
-          <DishFavoriteButton dishId={id} />
-        </div>
-        <p className="text-sm text-muted-foreground line-clamp-2">{description || 'No description available'}</p>
-        <div className="flex items-center space-x-2 mt-3">
-          <Badge variant="secondary">
-            {price.toLocaleString('es-AR', {
-              style: 'currency',
-              currency: 'ARS',
-              minimumFractionDigits: 0,
-            })}
-          </Badge>
-          {isVegetarian && <Badge>Vegetariano</Badge>}
-          {isVegan && <Badge>Vegano</Badge>}
-          {isGlutenFree && <Badge>Sin Gluten</Badge>}
-          {isHealthy && <Badge>Saludable</Badge>}
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {allergens && allergens.length > 0 && (
-            <div className="flex items-center text-xs text-red-500">
-              Alergenos: {allergens.join(', ')}
+  const formatDistance = (distanceKm: number) => {
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)}m`;
+    }
+    return `${distanceKm.toFixed(1)}km`;
+  };
+
+  if (layout === 'list') {
+    return (
+      <div 
+        className={cn(
+          "group cursor-pointer transition-all duration-300 hover:scale-[1.01] flex items-center gap-4 p-4 rounded-lg border bg-card",
+          className
+        )}
+        onClick={handleClick}
+      >
+        <div className="w-24 h-24 relative overflow-hidden rounded-lg flex-shrink-0">
+          {imageUrl ? (
+            <OptimizedImage
+              src={imageUrl}
+              alt={name}
+              width={96}
+              height={96}
+              context="dish"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="96px"
+            />
+          ) : null}
+          <div className={cn(
+            "absolute inset-0 transition-smooth",
+            imageUrl ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
+          )} />
+          
+          {categoryName && (
+            <div className="absolute top-2 left-2">
+              <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
+                {categoryName}
+              </Badge>
             </div>
           )}
+
+          <div className="absolute bottom-2 right-2 z-20">
+            <DishFavoriteButton
+              dishId={id}
+              restaurantId={restaurantId}
+              favoritesCount={0}
+              size="sm"
+              className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
+              savedFrom="list_card"
+            />
+          </div>
         </div>
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center text-sm text-muted-foreground">
-            {rating !== null && rating !== undefined && (
+
+        <div className="flex-1 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-semibold text-base line-clamp-1 transition-smooth">
+              {name}
+            </h3>
+            <div className="text-foreground font-semibold text-base flex-shrink-0">
+              {formattedPrice}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+            <span className="line-clamp-1">{restaurantName}</span>
+            {distance && (
               <>
-                <Star className="h-4 w-4 mr-1" />
-                <span>{rating?.toFixed(1) || 'Sin calificar'}</span>
+                <span>•</span>
+                <span className="flex-shrink-0">{formatDistance(distance)}</span>
               </>
             )}
           </div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            {prepTimeMinutes !== null && prepTimeMinutes !== undefined && (
-              <>
-                <Clock className="h-4 w-4 mr-1" />
-                <span>{prepTimeMinutes} min</span>
-              </>
-            )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className={cn(
+        "group cursor-pointer transition-all duration-300 hover:scale-[1.02]",
+        className
+      )}
+      onClick={handleClick}
+    >
+      <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
+        {imageUrl ? (
+          <OptimizedImage
+            src={imageUrl}
+            alt={name}
+            context="dish"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 320px, 480px"
+          />
+        ) : null}
+        <div className={cn(
+          "absolute inset-0 transition-smooth",
+          imageUrl ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
+        )} />
+        
+        {categoryName && (
+          <div className="absolute top-3 left-3">
+            <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
+              {categoryName}
+            </Badge>
+          </div>
+        )}
+
+        <div className="absolute bottom-3 right-3 z-20">
+          <DishFavoriteButton
+            dishId={id}
+            restaurantId={restaurantId}
+            favoritesCount={0}
+            size="md"
+            className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg hover:bg-white"
+            savedFrom="grid_card"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-base line-clamp-2 transition-smooth">
+            {name}
+          </h3>
+          <div className="text-foreground font-semibold text-base flex-shrink-0">
+            {formattedPrice}
           </div>
         </div>
-        <button
-          onClick={() => navigate(`/restaurants/${restaurantSlug}/dishes/${id}`)}
-          className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90 font-medium rounded-md text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
-        >
-          Ver detalles
-        </button>
-      </CardContent>
-    </Card>
+        
+        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+          <span className="line-clamp-1">{restaurantName}</span>
+          {distance && (
+            <>
+              <span>•</span>
+              <span className="flex-shrink-0">{formatDistance(distance)}</span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

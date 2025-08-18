@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
 import OptimizedImage from './OptimizedImage';
 
@@ -22,9 +22,6 @@ export default function DishImageModal({ isOpen, onClose, dish }: DishImageModal
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-[90vw] h-auto p-0 bg-transparent border-none shadow-none">
-        <DialogHeader className="sr-only">
-          <DialogTitle>{dish.name}</DialogTitle>
-        </DialogHeader>
         <div className="relative">
           {/* Close button */}
           <button
