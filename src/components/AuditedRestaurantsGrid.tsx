@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+
+import { useEffect, useRef } from 'react'
 import { useAuditedRestaurantFeed } from '@/hooks/useAuditedRestaurantFeed'
 import InstrumentedRestaurantCard from './InstrumentedRestaurantCard'
 import LoadMoreButton from './LoadMoreButton'
 import OptimizedPerformanceMonitor from './OptimizedPerformanceMonitor'
-import ViewModeToggle from './ViewModeToggle'
 import { Skeleton } from '@/components/ui/skeleton'
 import { optimizedImagePreloader } from '@/utils/optimizedImagePreloader'
 import { useAnalytics } from '@/hooks/useAnalytics'
-import { cn } from '@/lib/utils'
 
 interface AuditedRestaurantsGridProps {
   searchQuery?: string
@@ -27,7 +26,6 @@ interface AuditedRestaurantsGridProps {
 export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { trackFeedImpression } = useAnalytics()
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   
   const { 
     restaurants, 
@@ -63,25 +61,10 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">Restaurantes</h2>
-          <ViewModeToggle
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-          />
-        </div>
-
-        <div className={cn(
-          viewMode === 'grid' 
-            ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6"
-            : "space-y-4"
-        )}>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="space-y-3">
-              <Skeleton className={cn(
-                "w-full rounded-lg",
-                viewMode === 'grid' ? "h-48" : "h-24"
-              )} />
+              <Skeleton className="h-48 w-full rounded-lg" />
               <div className="p-4 space-y-3">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-full" />
@@ -96,59 +79,31 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">Restaurantes</h2>
-          <ViewModeToggle
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-          />
-        </div>
-
-        <div className="col-span-full text-center py-8">
-          <p className="text-muted-foreground">Error al cargar restaurantes: {error}</p>
-          <button 
-            onClick={refetch}
-            className="mt-2 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-          >
-            Reintentar
-          </button>
-        </div>
+      <div className="col-span-full text-center py-8">
+        <p className="text-muted-foreground">Error al cargar restaurantes: {error}</p>
+        <button 
+          onClick={refetch}
+          className="mt-2 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+        >
+          Reintentar
+        </button>
       </div>
     )
   }
 
   if (restaurants.length === 0) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">Restaurantes</h2>
-          <ViewModeToggle
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-          />
-        </div>
-
-        <div className="col-span-full text-center py-8">
-          <p className="text-muted-foreground">No se encontraron restaurantes</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Intenta cambiar los filtros de búsqueda
-          </p>
-        </div>
+      <div className="col-span-full text-center py-8">
+        <p className="text-muted-foreground">No se encontraron restaurantes</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Intenta cambiar los filtros de búsqueda
+        </p>
       </div>
     )
   }
 
   return (
     <div ref={containerRef} className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">Restaurantes</h2>
-        <ViewModeToggle
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-        />
-      </div>
-
       {/* Enhanced performance metrics */}
       {(process.env.NODE_ENV === 'development' || systemType?.includes('audit')) && (
         <div className="space-y-2">
@@ -190,12 +145,7 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
         </div>
       )}
 
-      <div className={cn(
-        "restaurants-grid",
-        viewMode === 'grid' 
-          ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6"
-          : "space-y-4"
-      )}>
+      <div className="restaurants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
         {restaurants.map((restaurant, index) => (
           <div key={restaurant.id} data-restaurant-id={restaurant.id}>
             <InstrumentedRestaurantCard
@@ -212,9 +162,9 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
               services={restaurant.services}
               favoritesCount={restaurant.favorites_count}
               coverImageUrl={restaurant.cover_image_url}
+              logoUrl={restaurant.logo_url}
               priority={index < 4}
               position={index}
-              layout={viewMode}
             />
           </div>
         ))}

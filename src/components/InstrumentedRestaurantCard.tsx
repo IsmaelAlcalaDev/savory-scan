@@ -24,15 +24,17 @@ interface InstrumentedRestaurantCardProps {
   layout?: 'grid' | 'list'
   onFavoriteChange?: (restaurantId: number, isFavorite: boolean) => void
   priority?: boolean
-  position?: number
+  position?: number // For tracking card position in feed
 }
 
 export default function InstrumentedRestaurantCard(props: InstrumentedRestaurantCardProps) {
   const { trackCardClick } = useAnalytics()
 
   const handleClick = useCallback(() => {
+    // Track card click
     trackCardClick(props.id, props.position)
     
+    // Call original handler or navigate
     if (props.onClick) {
       props.onClick()
     } else {
