@@ -73,33 +73,14 @@ export default function DishesWithSort(props: DishesWithSortProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="space-y-0">
       {sortedDishes.map((dish) => (
         <DishCard
           key={dish.id}
-          id={dish.id}
-          name={dish.name}
-          description={dish.description}
-          basePrice={dish.base_price}
-          imageUrl={dish.image_url}
-          imageAlt={dish.image_alt}
-          isFeatured={dish.is_featured}
-          isVegetarian={dish.is_vegetarian}
-          isVegan={dish.is_vegan}
-          isGlutenFree={dish.is_gluten_free}
-          isHealthy={dish.is_healthy}
-          spiceLevel={dish.spice_level}
-          preparationTimeMinutes={dish.preparation_time_minutes}
-          favoritesCount={dish.favorites_count}
-          categoryName={dish.category_name}
+          dish={dish}
           restaurantId={dish.restaurant_id}
-          restaurantName={dish.restaurant_name}
-          restaurantSlug={dish.restaurant_slug}
-          restaurantPriceRange={dish.restaurant_price_range}
-          restaurantGoogleRating={dish.restaurant_google_rating}
-          distanceKm={dish.distance_km}
-          formattedPrice={dish.formatted_price}
-          customTags={dish.custom_tags}
+          expandedDishId={null}
+          onExpandedChange={() => {}}
         />
       ))}
     </div>

@@ -1,6 +1,5 @@
+
 import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { useSearchParams } from 'next/navigation';
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import SortTag from './SortTag';
@@ -22,35 +21,18 @@ interface FilterTagsProps {
   onSortChange?: (sortBy: string) => void;
 }
 
-const ResetFiltersButton = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const handleResetFilters = () => {
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-
-    // Delete all filter-related parameters
-    newSearchParams.delete('cuisineTypes');
-    newSearchParams.delete('establishmentTypes');
-    newSearchParams.delete('dietTypes');
-    newSearchParams.delete('dishDietTypes');
-    newSearchParams.delete('priceRanges');
-    newSearchParams.delete('foodTypes');
-    newSearchParams.delete('customTags');
-    newSearchParams.delete('spiceLevels');
-
-    router.push(`?${newSearchParams.toString()}`);
-  };
-
+const ResetFiltersButton = ({ onResetFilters }: { onResetFilters: () => void }) => {
   return (
     <button
-      onClick={handleResetFilters}
+      onClick={onResetFilters}
       className="inline-flex items-center rounded-full border border-input bg-background px-3 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
     >
       Borrar filtros
     </button>
   );
 };
+
+export { ResetFiltersButton };
 
 export default function FilterTags({
   cuisineTypes = [],
@@ -66,18 +48,15 @@ export default function FilterTags({
   dishes = [],
   onSortChange
 }: FilterTagsProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const removeFilter = (filterType: string, filterValue: string) => {
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-    const filterValues = newSearchParams.getAll(filterType);
-    const updatedFilterValues = filterValues.filter((value) => value !== filterValue);
+    // This would need to be implemented with proper state management
+    console.log('Remove filter:', filterType, filterValue);
+  };
 
-    newSearchParams.delete(filterType); // Remove all instances of the filter
-    updatedFilterValues.forEach((value) => newSearchParams.append(filterType, value)); // Re-add the ones that weren't removed
-
-    router.push(`?${newSearchParams.toString()}`);
+  const handleResetFilters = () => {
+    // This would need to be implemented with proper state management
+    console.log('Reset all filters');
   };
 
   const hasActiveFilters =
@@ -184,7 +163,7 @@ export default function FilterTags({
         onSortChange={handleSortChange}
       />
 
-      {hasActiveFilters && <ResetFiltersButton />}
+      {hasActiveFilters && <ResetFiltersButton onResetFilters={handleResetFilters} />}
     </div>
   );
 }
