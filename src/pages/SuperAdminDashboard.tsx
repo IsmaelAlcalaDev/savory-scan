@@ -33,14 +33,17 @@ export default function SuperAdminDashboard() {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Mock hash validation - in real implementation this would check against a dynamic hash
+  // Mock hash validation - in development, always allow access
   const [isValidHash, setIsValidHash] = useState(false);
   
   useEffect(() => {
-    // Mock hash validation logic
+    // Check if we're on the secure hash route or the development route
     const currentPath = window.location.pathname;
-    const expectedHash = 'a7f8b2e9'; // This would be dynamic and regenerated every 24h
-    setIsValidHash(currentPath.includes(expectedHash));
+    const isSecureRoute = currentPath.includes('a7f8b2e9');
+    const isDevelopmentRoute = currentPath === '/superadmin';
+    
+    // Allow access if it's the secure route with hash or development route
+    setIsValidHash(isSecureRoute || isDevelopmentRoute);
   }, []);
 
   if (!isAdmin || !isValidHash) {

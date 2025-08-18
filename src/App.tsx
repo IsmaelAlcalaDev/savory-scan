@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -79,7 +80,7 @@ const App = () => {
                             path="/superadmin" 
                             element={
                               <ProtectedRoute requiredRole="admin">
-                                <SuperAdminPanel />
+                                <SuperAdminDashboard />
                               </ProtectedRoute>
                             } 
                           />
