@@ -116,7 +116,7 @@ export default function SearchBar({
               placeholder={placeholder}
               value={query}
               onChange={(e) => handleQueryChange(e.target.value)}
-              className="pl-10 h-10 bg-background/95 backdrop-blur-sm border-border/50 focus:border-primary/50 transition-colors"
+              className="pl-10 h-12 bg-background/95 backdrop-blur-sm border-border/50 focus:border-primary/50 transition-colors"
               maxLength={100}
             />
           </div>
@@ -135,7 +135,7 @@ export default function SearchBar({
                 onChange={(e) => handleLocationChange(e.target.value)}
                 onFocus={handleLocationFocus}
                 onBlur={handleLocationBlur}
-                className="pl-10 pr-8 h-10 bg-background/95 backdrop-blur-sm border-border/50 focus:border-primary/50 transition-colors"
+                className="pl-10 pr-8 h-12 bg-background/95 backdrop-blur-sm border-border/50 focus:border-primary/50 transition-colors"
                 maxLength={50}
               />
               {location && (
@@ -179,7 +179,7 @@ export default function SearchBar({
         <Button 
           type="submit" 
           size="lg" 
-          className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+          className="h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
           disabled={!query.trim()}
         >
           <Search className="h-4 w-4 md:mr-2" />
