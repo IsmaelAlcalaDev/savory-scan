@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import RestaurantProfile from "./pages/RestaurantProfile";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
 import SuperAdminPanel from "./pages/SuperAdminPanel";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -80,6 +80,14 @@ const App = () => {
                             element={
                               <ProtectedRoute requiredRole="admin">
                                 <SuperAdminPanel />
+                              </ProtectedRoute>
+                            } 
+                          />
+                          <Route 
+                            path="/super-admin-a7f8b2e9" 
+                            element={
+                              <ProtectedRoute requiredRole="admin">
+                                <SuperAdminDashboard />
                               </ProtectedRoute>
                             } 
                           />
