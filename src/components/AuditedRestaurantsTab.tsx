@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import AuditedRestaurantsGrid from './AuditedRestaurantsGrid';
+import InfiniteRestaurantsGrid from './InfiniteRestaurantsGrid';
 import RestaurantSortSelector from './RestaurantSortSelector';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
@@ -35,17 +35,15 @@ export default function AuditedRestaurantsTab(props: AuditedRestaurantsTabProps)
         />
       </div>
 
-      <AuditedRestaurantsGrid
+      <InfiniteRestaurantsGrid
         searchQuery={props.searchQuery}
         userLat={userLocation?.latitude}
         userLng={userLocation?.longitude}
-        maxDistance={props.maxDistance}
         cuisineTypeIds={props.cuisineTypeIds}
         priceRanges={props.priceRanges}
         isHighRated={props.isHighRated}
         selectedEstablishmentTypes={props.selectedEstablishmentTypes}
         selectedDietTypes={props.selectedDietTypes}
-        selectedDietCategories={props.selectedDietCategories}
         isOpenNow={props.isOpenNow}
         sortBy={sortBy}
       />

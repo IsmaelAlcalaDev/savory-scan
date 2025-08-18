@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import UnifiedRestaurantsGrid from './UnifiedRestaurantsGrid';
+import InfiniteRestaurantsGrid from './InfiniteRestaurantsGrid';
 import RestaurantSortSelector from './RestaurantSortSelector';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
@@ -11,7 +11,6 @@ interface UnifiedRestaurantsTabProps {
   isHighRated?: boolean;
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
-  maxDistance?: number;
   isOpenNow?: boolean;
 }
 
@@ -32,11 +31,10 @@ export default function UnifiedRestaurantsTab(props: UnifiedRestaurantsTabProps)
         />
       </div>
 
-      <UnifiedRestaurantsGrid
+      <InfiniteRestaurantsGrid
         searchQuery={props.searchQuery}
         userLat={userLocation?.latitude}
         userLng={userLocation?.longitude}
-        maxDistance={props.maxDistance}
         cuisineTypeIds={props.cuisineTypeIds}
         priceRanges={props.priceRanges}
         isHighRated={props.isHighRated}
