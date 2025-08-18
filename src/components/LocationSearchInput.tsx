@@ -151,140 +151,137 @@ export default function LocationSearchInput({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Search input container with integrated dropdown */}
-      <div className={`relative bg-white/95 backdrop-blur-sm shadow-card transition-all duration-200 ${
-        showSuggestions ? 'shadow-float' : ''
-      } ${showError ? 'ring-2 ring-red-500/50' : ''} ${selectedLocation ? 'ring-2 ring-green-500/50' : ''}`}>
-        
-        {/* Input field */}
-        <div className="relative">
-          <Input
-            ref={inputRef}
-            type="text"
-            placeholder={placeholder}
-            value={searchQuery}
-            onChange={handleInputChange}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            className="pl-6 pr-12 h-14 bg-transparent border-0 text-lg placeholder:text-gray-400 focus:ring-0 focus:outline-none"
-            maxLength={100}
-          />
-          {searchQuery && (
-            <button
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 z-10"
-              type="button"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        {/* Integrated suggestions dropdown */}
-        {showSuggestions && (
-          <div className="border-t border-gray-100 bg-white/95 backdrop-blur-sm max-h-80 overflow-hidden">
-            <ScrollArea className="max-h-80">
-              <div className="p-2">
-                {/* GPS Option - always first */}
-                <button
-                  className="w-full text-left p-4 hover:bg-gray-100/80 transition-colors border-b border-gray-100 last:border-b-0"
-                  onClick={handleGPSLocation}
-                  disabled={isLoadingGPS}
-                  type="button"
-                >
-                  <div className="font-medium text-gray-900">
-                    {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Encuentra restaurantes cerca de ti automáticamente
-                  </div>
-                </button>
-
-                {/* Search suggestions */}
-                {searchQuery.length >= 2 && (
-                  <>
-                    {loading ? (
-                      <div className="p-3 space-y-2">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                          <Skeleton key={i} className="h-14 w-full" />
-                        ))}
-                      </div>
-                    ) : suggestions.length > 0 ? (
-                      <div className="space-y-1">
-                        {suggestions.map((suggestion) => (
-                          <button
-                            key={`${suggestion.type}-${suggestion.id}`}
-                            className="w-full text-left p-4 hover:bg-gray-100/80 transition-colors"
-                            onClick={() => handleLocationSelect(suggestion)}
-                            type="button"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <div className="font-medium text-gray-900 truncate">
-                                  {suggestion.name}
-                                </div>
-                                {suggestion.is_famous && (
-                                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full flex-shrink-0">
-                                    Famoso
-                                  </span>
-                                )}
-                                {suggestion.similarity_score && suggestion.similarity_score < 0.7 && (
-                                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full flex-shrink-0">
-                                    ¿Buscabas esto?
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-gray-500">
-                                <span className="bg-gray-100 px-2 py-0.5 rounded-full">
-                                  {getLocationTypeLabel(suggestion.type)}
-                                </span>
-                                {suggestion.parent && (
-                                  <span className="truncate">{suggestion.parent}</span>
-                                )}
-                                {suggestion.postal_code && (
-                                  <span>CP: {suggestion.postal_code}</span>
-                                )}
-                              </div>
-                              {suggestion.description && (
-                                <div className="text-xs text-gray-400 mt-1 line-clamp-1">
-                                  {suggestion.description}
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    ) : hasSearched ? (
-                      <div className="p-6 text-center text-gray-500">
-                        <div className="font-medium text-sm mb-1">No encontramos esa ubicación</div>
-                        <div className="text-xs text-gray-400">
-                          Intenta con el nombre de una ciudad, municipio, distrito o código postal
-                        </div>
-                      </div>
-                    ) : null}
-                  </>
-                )}
-
-                {/* Initial state when no query */}
-                {!searchQuery && (
-                  <div className="p-6 text-center text-gray-500">
-                    <div className="font-medium text-sm mb-1">Busca tu ubicación</div>
-                    <div className="text-xs text-gray-400">
-                      Escribe ciudad, municipio, distrito, barrio o código postal
-                    </div>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
+      {/* Input field - consistent design always */}
+      <div className={`relative bg-white border border-gray-200 shadow-sm transition-all duration-200 hover:border-gray-300 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 ${
+        selectedLocation ? 'border-green-500 ring-2 ring-green-500/20' : ''
+      } ${showError ? 'border-red-500 ring-2 ring-red-500/20' : ''}`}>
+        <Input
+          ref={inputRef}
+          type="text"
+          placeholder={placeholder}
+          value={searchQuery}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          className="px-4 pr-12 h-12 bg-transparent border-0 text-base placeholder:text-gray-500 focus:ring-0 focus:outline-none"
+          maxLength={100}
+        />
+        {searchQuery && (
+          <button
+            onClick={clearSearch}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+            type="button"
+          >
+            <X className="h-4 w-4" />
+          </button>
         )}
       </div>
 
-      {/* Error message - now positioned below the integrated container */}
+      {/* Modern dropdown - appears below input without affecting it */}
+      {showSuggestions && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 shadow-lg z-50 max-h-80 overflow-hidden animate-in fade-in-0 slide-in-from-top-1 duration-200">
+          <ScrollArea className="max-h-80">
+            {/* GPS Option - always first */}
+            <button
+              className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 group"
+              onClick={handleGPSLocation}
+              disabled={isLoadingGPS}
+              type="button"
+            >
+              <div className="font-medium text-gray-900 group-hover:text-primary transition-colors">
+                {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
+              </div>
+              <div className="text-sm text-gray-500 mt-1">
+                Encuentra restaurantes cerca de ti automáticamente
+              </div>
+            </button>
+
+            {/* Search suggestions */}
+            {searchQuery.length >= 2 && (
+              <>
+                {loading ? (
+                  <div className="p-4 space-y-3">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                      </div>
+                    ))}
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <div>
+                    {suggestions.map((suggestion) => (
+                      <button
+                        key={`${suggestion.type}-${suggestion.id}`}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors group"
+                        onClick={() => handleLocationSelect(suggestion)}
+                        type="button"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <div className="font-medium text-gray-900 group-hover:text-primary transition-colors">
+                              {suggestion.name}
+                            </div>
+                            {suggestion.is_famous && (
+                              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 font-medium">
+                                Famoso
+                              </span>
+                            )}
+                            {suggestion.similarity_score && suggestion.similarity_score < 0.7 && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 font-medium">
+                                ¿Buscabas esto?
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span className="bg-gray-100 text-gray-700 px-2 py-0.5 text-xs font-medium">
+                              {getLocationTypeLabel(suggestion.type)}
+                            </span>
+                            {suggestion.parent && (
+                              <span>{suggestion.parent}</span>
+                            )}
+                            {suggestion.postal_code && (
+                              <span>CP: {suggestion.postal_code}</span>
+                            )}
+                          </div>
+                          {suggestion.description && (
+                            <div className="text-sm text-gray-400 line-clamp-1">
+                              {suggestion.description}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : hasSearched ? (
+                  <div className="p-6 text-center">
+                    <div className="text-gray-900 font-medium mb-1">No encontramos esa ubicación</div>
+                    <div className="text-sm text-gray-500">
+                      Intenta con el nombre de una ciudad, municipio, distrito o código postal
+                    </div>
+                  </div>
+                ) : null}
+              </>
+            )}
+
+            {/* Initial state when no query */}
+            {!searchQuery && (
+              <div className="p-6 text-center">
+                <div className="text-gray-900 font-medium mb-1">Busca tu ubicación</div>
+                <div className="text-sm text-gray-500">
+                  Escribe ciudad, municipio, distrito, barrio o código postal
+                </div>
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+      )}
+
+      {/* Error message - positioned below everything */}
       {showError && (
-        <div className="absolute top-full left-0 right-0 mt-2 p-3 bg-red-50/95 backdrop-blur-sm border border-red-200 shadow-card z-40">
+        <div className="absolute top-full left-0 right-0 mt-2 p-3 bg-red-50 border border-red-200 shadow-sm z-40">
           <div className="flex items-center gap-2 text-red-700 text-sm">
-            <AlertCircle className="h-4 w-4" />
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
             <span>Debes seleccionar una ubicación de la lista</span>
           </div>
         </div>
