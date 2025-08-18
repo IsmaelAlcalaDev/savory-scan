@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo } from 'react';
 import { Search, MapPin, Navigation, Clock, X } from 'lucide-react';
 import {
@@ -199,7 +200,7 @@ export default function LocationModal({
           {/* GPS Button */}
           <div className="px-6 pb-4">
             <Button 
-              className="w-full justify-center gap-2 h-12 rounded-full bg-[#F3F3F3] border-[#F3F3F3] text-black hover:bg-black hover:text-white shadow-soft hover:shadow-card transition-smooth text-base font-semibold" 
+              className="w-full justify-center gap-2 h-12 rounded-full bg-gray-100 border-gray-100 text-black hover:bg-black hover:text-white shadow-soft hover:shadow-card transition-smooth text-base font-semibold" 
               onClick={handleGPSLocation}
               disabled={isLoadingGPS}
             >
