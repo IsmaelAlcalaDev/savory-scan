@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -16,6 +15,7 @@ interface Restaurant {
   favorites_count: number;
   cover_image_url?: string;
   logo_url?: string;
+  is_premium?: boolean;
 }
 
 interface UseRestaurantsProps {
@@ -30,6 +30,7 @@ interface UseRestaurantsProps {
   selectedDietTypes?: number[];
   isOpenNow?: boolean;
   isBudgetFriendly?: boolean;
+  sortBy?: 'distance' | 'rating' | 'favorites' | 'recommended';
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -54,7 +55,8 @@ export const useRestaurants = ({
   selectedEstablishmentTypes,
   selectedDietTypes,
   isOpenNow = false,
-  isBudgetFriendly = false
+  isBudgetFriendly = false,
+  sortBy = 'distance'
 }: UseRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,24 +67,10 @@ export const useRestaurants = ({
       try {
         setLoading(true);
         setError(null);
-        console.log('Fetching restaurants with params:', {
-          searchQuery,
-          userLat,
-          userLng,
-          maxDistance,
-          cuisineTypeIds,
-          priceRanges,
-          isHighRated,
-          selectedEstablishmentTypes,
-          selectedDietTypes,
-          isOpenNow,
-          isBudgetFriendly
-        });
 
         let effectivePriceRanges = priceRanges;
         if (isBudgetFriendly) {
           effectivePriceRanges = ['€'];
-          console.log('Budget-friendly filter active, filtering by € only');
         }
 
         let query = supabase
@@ -173,11 +161,8 @@ export const useRestaurants = ({
         const { data, error } = await query.limit(50);
 
         if (error) {
-          console.error('Supabase error:', error);
           throw error;
         }
-
-        console.log('Raw data from restaurants table:', data);
 
         let formattedData = data?.map((restaurant: any) => {
           let distance_km = null;
@@ -199,15 +184,14 @@ export const useRestaurants = ({
             services: restaurant.restaurant_services?.map((rs: any) => rs.services?.name).filter(Boolean) || [],
             favorites_count: restaurant.favorites_count || 0,
             cover_image_url: restaurant.cover_image_url,
-            logo_url: restaurant.logo_url
+            logo_url: restaurant.logo_url,
+            is_premium: (restaurant.google_rating && restaurant.google_rating >= 4.0) || false
           };
         }).filter(Boolean) || [];
 
-        // Apply diet filtering with proper percentage calculation
         if (selectedDietTypes && selectedDietTypes.length > 0) {
           console.log('Applying diet type filter for IDs:', selectedDietTypes);
           
-          // Get diet types data to map categories
           const { data: dietTypesData, error: dietTypesError } = await supabase
             .from('diet_types')
             .select('*')
@@ -223,9 +207,7 @@ export const useRestaurants = ({
             if (restaurantIds.length > 0) {
               const validRestaurantIds = new Set<number>();
               
-              // Check each restaurant individually
               for (const restaurant of formattedData) {
-                // Get total dishes for this restaurant
                 const { data: dishesData, error: dishesError } = await supabase
                   .from('dishes')
                   .select('id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
@@ -240,7 +222,6 @@ export const useRestaurants = ({
                 const totalDishes = dishesData.length;
                 console.log(`Restaurant ${restaurant.name} has ${totalDishes} dishes`);
 
-                // Check if any selected diet meets the 20% threshold
                 for (const dietType of dietTypesData) {
                   let dietDishesCount = 0;
                   
@@ -265,7 +246,7 @@ export const useRestaurants = ({
                   if (percentage >= 20) {
                     validRestaurantIds.add(restaurant.id);
                     console.log(`✓ Restaurant ${restaurant.name} meets ${dietType.category} requirement (${percentage.toFixed(2)}%)`);
-                    break; // Found matching diet type, no need to check others
+                    break;
                   }
                 }
               }
@@ -279,28 +260,56 @@ export const useRestaurants = ({
         }
 
         let sortedData = formattedData;
-        if (userLat && userLng) {
-          sortedData = formattedData.sort((a, b) => {
-            if (a.distance_km === null && b.distance_km === null) return 0;
-            if (a.distance_km === null) return 1;
-            if (b.distance_km === null) return -1;
-            return a.distance_km - b.distance_km;
-          });
-          
-          console.log('Restaurants sorted by distance:', sortedData.length, 'restaurants');
-        } else {
-          sortedData = formattedData.sort((a, b) => {
-            if (b.favorites_count !== a.favorites_count) {
-              return b.favorites_count - a.favorites_count;
+        
+        switch (sortBy) {
+          case 'recommended':
+            sortedData = formattedData.sort((a, b) => {
+              const aIsPremium = a.is_premium;
+              const bIsPremium = b.is_premium;
+              
+              if (aIsPremium && !bIsPremium) return -1;
+              if (!aIsPremium && bIsPremium) return 1;
+              
+              if ((a.google_rating || 0) !== (b.google_rating || 0)) {
+                return (b.google_rating || 0) - (a.google_rating || 0);
+              }
+              
+              if (a.distance_km !== null && b.distance_km !== null) {
+                return a.distance_km - b.distance_km;
+              }
+              
+              return 0;
+            });
+            break;
+            
+          case 'rating':
+            sortedData = formattedData.sort((a, b) => (b.google_rating || 0) - (a.google_rating || 0));
+            break;
+            
+          case 'favorites':
+            sortedData = formattedData.sort((a, b) => (b.favorites_count || 0) - (a.favorites_count || 0));
+            break;
+            
+          case 'distance':
+          default:
+            if (userLat && userLng) {
+              sortedData = formattedData.sort((a, b) => {
+                if (a.distance_km === null && b.distance_km === null) return 0;
+                if (a.distance_km === null) return 1;
+                if (b.distance_km === null) return -1;
+                return a.distance_km - b.distance_km;
+              });
+            } else {
+              sortedData = formattedData.sort((a, b) => {
+                if (b.favorites_count !== a.favorites_count) {
+                  return b.favorites_count - a.favorites_count;
+                }
+                return (b.google_rating || 0) - (a.google_rating || 0);
+              });
             }
-            return (b.google_rating || 0) - (a.google_rating || 0);
-          });
-          
-          console.log('Restaurants sorted by popularity:', sortedData.length, 'restaurants');
+            break;
         }
 
-        console.log('Final formatted restaurants after all filters:', sortedData.length);
-        
         setRestaurants(sortedData);
 
       } catch (err) {
@@ -316,7 +325,6 @@ export const useRestaurants = ({
 
     const handleFavoriteToggled = (event: CustomEvent) => {
       const { restaurantId, newCount } = event.detail;
-      console.log('useRestaurants: Received favoriteToggled event:', { restaurantId, newCount });
       
       setRestaurants(prev =>
         prev.map(r => 
@@ -340,7 +348,6 @@ export const useRestaurants = ({
           const newFavoritesCount = updatedRestaurant?.favorites_count;
           
           if (typeof restaurantId === 'number' && typeof newFavoritesCount === 'number') {
-            console.log('useRestaurants: Received favorites_count update from DB:', { restaurantId, newFavoritesCount });
             setRestaurants(prev =>
               prev.map(r => 
                 r.id === restaurantId 
@@ -358,7 +365,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly, sortBy]);
 
   return { restaurants, loading, error };
 };
