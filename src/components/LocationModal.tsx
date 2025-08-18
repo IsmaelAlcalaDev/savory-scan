@@ -183,7 +183,7 @@ export default function LocationModal({
                 placeholder="Buscar dirección"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10 h-12 rounded-full border-primary focus:border-primary bg-muted/30 focus:ring-0 focus:ring-offset-0"
+                className="pl-10 pr-10 h-12 rounded-full border-primary focus:border-primary bg-muted/30 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
               />
               {searchQuery && (
                 <button
