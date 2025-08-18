@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Search, MapPin, Navigation, Clock, ChevronDown, X, Info } from 'lucide-react';
+import { Search, MapPin, Navigation, Clock, ChevronDown, Info } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -206,14 +206,6 @@ export default function ModernLocationModal({
                 Encuentra restaurantes cerca de ti
               </p>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => onOpenChange(false)}
-              className="h-8 w-8 rounded-full hover:bg-background/80 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </DialogHeader>
 
