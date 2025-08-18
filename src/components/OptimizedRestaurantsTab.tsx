@@ -29,9 +29,7 @@ export default function OptimizedRestaurantsTab({
   isOpenNow
 }: OptimizedRestaurantsTabProps) {
   const { userLocation } = useUserPreferences();
-  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'favorites'>(
-    userLocation ? 'distance' : 'favorites'
-  );
+  const [sortBy, setSortBy] = useState<'recommended' | 'distance'>('recommended');
 
   const {
     restaurants,
@@ -125,10 +123,29 @@ export default function OptimizedRestaurantsTab({
   // Sort restaurants based on sortBy prop
   const sortedRestaurants = [...restaurants].sort((a, b) => {
     switch (sortBy) {
-      case 'rating':
-        return (b.google_rating || 0) - (a.google_rating || 0);
-      case 'favorites':
-        return (b.favorites_count || 0) - (a.favorites_count || 0);
+      case 'recommended':
+        // First all premium restaurants by distance, then all free restaurants by favorites/rating
+        const aPremium = a.subscription_plan === 'premium';
+        const bPremium = b.subscription_plan === 'premium';
+        
+        if (aPremium && !bPremium) return -1;
+        if (!aPremium && bPremium) return 1;
+        
+        // Both have same subscription level
+        if (aPremium && bPremium) {
+          // Both premium: sort by distance
+          if (a.distance_km === null && b.distance_km === null) return 0;
+          if (a.distance_km === null) return 1;
+          if (b.distance_km === null) return -1;
+          return a.distance_km - b.distance_km;
+        } else {
+          // Both free: sort by favorites count, then rating
+          if (b.favorites_count !== a.favorites_count) {
+            return (b.favorites_count || 0) - (a.favorites_count || 0);
+          }
+          return (b.google_rating || 0) - (a.google_rating || 0);
+        }
+        
       case 'distance':
       default:
         if (a.distance_km === null && b.distance_km === null) return 0;

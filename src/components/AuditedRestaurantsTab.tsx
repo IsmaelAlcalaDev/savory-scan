@@ -18,8 +18,8 @@ interface AuditedRestaurantsTabProps {
 
 export default function AuditedRestaurantsTab(props: AuditedRestaurantsTabProps) {
   const { userLocation } = useUserPreferences();
-  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'favorites'>(
-    userLocation ? 'distance' : 'favorites'
+  const [sortBy, setSortBy] = useState<'recommended' | 'distance'>(
+    userLocation ? 'recommended' : 'recommended'
   );
 
   const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
