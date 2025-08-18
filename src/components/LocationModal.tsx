@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { Search, MapPin, Navigation, Clock, X } from 'lucide-react';
 import {
@@ -179,17 +178,17 @@ export default function LocationModal({
           {/* Search Input */}
           <div className="px-6 pb-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black" />
               <Input
                 placeholder="Buscar dirección"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10 h-12 rounded-full border-primary focus:border-primary bg-muted/30 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none text-lg placeholder:text-lg"
+                className="pl-10 pr-10 h-12 rounded-full border-black text-black bg-white focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-black text-base placeholder:text-base placeholder:text-gray-500"
               />
               {searchQuery && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black hover:text-gray-600 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -200,7 +199,7 @@ export default function LocationModal({
           {/* GPS Button */}
           <div className="px-6 pb-4">
             <Button 
-              className="w-full justify-center gap-2 h-12 rounded-full bg-red-100 border-red-100 text-red-600 hover:bg-red-200 shadow-soft hover:shadow-card transition-smooth text-lg font-bold" 
+              className="w-full justify-center gap-2 h-12 rounded-full bg-[#F3F3F3] border-[#F3F3F3] text-black hover:bg-black hover:text-white shadow-soft hover:shadow-card transition-smooth text-base font-semibold" 
               onClick={handleGPSLocation}
               disabled={isLoadingGPS}
             >
