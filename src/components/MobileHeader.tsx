@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { MapPin, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import ModernLocationModal from './ModernLocationModal';
+import GuidedLocationModal from './GuidedLocationModal';
 
 interface MobileHeaderProps {
   appName: string;
@@ -84,8 +84,8 @@ export default function MobileHeader({
         </div>
       </div>
 
-      {/* Modern Location Modal */}
-      <ModernLocationModal
+      {/* Guided Location Modal */}
+      <GuidedLocationModal
         open={isLocationModalOpen}
         onOpenChange={setIsLocationModalOpen}
         onLocationSelect={handleLocationSelect}
