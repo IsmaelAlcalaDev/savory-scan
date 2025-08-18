@@ -1,6 +1,6 @@
 
 import { useState, useRef, useCallback } from 'react';
-import { Search, Navigation, X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,25 +25,6 @@ interface LocationSearchInputProps {
   placeholder?: string;
   className?: string;
 }
-
-const getLocationTypeIcon = (type: string) => {
-  switch (type) {
-    case 'city':
-      return '🏙️';
-    case 'municipality':
-      return '🏘️';
-    case 'district':
-      return '🏛️';
-    case 'neighborhood':
-      return '🏠';
-    case 'postal_code':
-      return '📮';
-    case 'poi':
-      return '🎯';
-    default:
-      return '📍';
-  }
-};
 
 const getLocationTypeLabel = (type: string) => {
   switch (type) {
@@ -177,7 +158,6 @@ export default function LocationSearchInput({
         
         {/* Input field */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 z-10" />
           <Input
             ref={inputRef}
             type="text"
@@ -186,7 +166,7 @@ export default function LocationSearchInput({
             onChange={handleInputChange}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            className="pl-12 pr-12 h-14 bg-transparent border-0 text-lg placeholder:text-gray-400 focus:ring-0 focus:outline-none"
+            className="pl-6 pr-12 h-14 bg-transparent border-0 text-lg placeholder:text-gray-400 focus:ring-0 focus:outline-none"
             maxLength={100}
           />
           {searchQuery && (
@@ -207,16 +187,16 @@ export default function LocationSearchInput({
               <div className="p-2">
                 {/* GPS Option - always first */}
                 <button
-                  className="w-full text-left p-3 hover:bg-gray-100/80 transition-colors border-b border-gray-100 last:border-b-0"
+                  className="w-full text-left p-4 hover:bg-gray-100/80 transition-colors border-b border-gray-100 last:border-b-0"
                   onClick={handleGPSLocation}
                   disabled={isLoadingGPS}
                   type="button"
                 >
-                  <div className="flex items-center gap-3">
-                    <Navigation className="h-5 w-5 text-primary flex-shrink-0" />
-                    <div className="font-medium text-gray-900">
-                      {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
-                    </div>
+                  <div className="font-medium text-gray-900">
+                    {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Encuentra restaurantes cerca de ti automáticamente
                   </div>
                 </button>
 
@@ -234,54 +214,48 @@ export default function LocationSearchInput({
                         {suggestions.map((suggestion) => (
                           <button
                             key={`${suggestion.type}-${suggestion.id}`}
-                            className="w-full text-left p-3 hover:bg-gray-100/80 transition-colors"
+                            className="w-full text-left p-4 hover:bg-gray-100/80 transition-colors"
                             onClick={() => handleLocationSelect(suggestion)}
                             type="button"
                           >
-                            <div className="flex items-start gap-3">
-                              <div className="text-xl mt-0.5 flex-shrink-0">
-                                {getLocationTypeIcon(suggestion.type)}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="font-medium text-gray-900 truncate">
-                                    {suggestion.name}
-                                  </div>
-                                  {suggestion.is_famous && (
-                                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full flex-shrink-0">
-                                      ⭐ Famoso
-                                    </span>
-                                  )}
-                                  {suggestion.similarity_score && suggestion.similarity_score < 0.7 && (
-                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full flex-shrink-0">
-                                      ¿Buscabas esto?
-                                    </span>
-                                  )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <div className="font-medium text-gray-900 truncate">
+                                  {suggestion.name}
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-gray-500">
-                                  <span className="bg-gray-100 px-2 py-0.5 rounded-full">
-                                    {getLocationTypeLabel(suggestion.type)}
+                                {suggestion.is_famous && (
+                                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full flex-shrink-0">
+                                    Famoso
                                   </span>
-                                  {suggestion.parent && (
-                                    <span className="truncate">{suggestion.parent}</span>
-                                  )}
-                                  {suggestion.postal_code && (
-                                    <span>CP: {suggestion.postal_code}</span>
-                                  )}
-                                </div>
-                                {suggestion.description && (
-                                  <div className="text-xs text-gray-400 mt-1 line-clamp-1">
-                                    {suggestion.description}
-                                  </div>
+                                )}
+                                {suggestion.similarity_score && suggestion.similarity_score < 0.7 && (
+                                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full flex-shrink-0">
+                                    ¿Buscabas esto?
+                                  </span>
                                 )}
                               </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <span className="bg-gray-100 px-2 py-0.5 rounded-full">
+                                  {getLocationTypeLabel(suggestion.type)}
+                                </span>
+                                {suggestion.parent && (
+                                  <span className="truncate">{suggestion.parent}</span>
+                                )}
+                                {suggestion.postal_code && (
+                                  <span>CP: {suggestion.postal_code}</span>
+                                )}
+                              </div>
+                              {suggestion.description && (
+                                <div className="text-xs text-gray-400 mt-1 line-clamp-1">
+                                  {suggestion.description}
+                                </div>
+                              )}
                             </div>
                           </button>
                         ))}
                       </div>
                     ) : hasSearched ? (
                       <div className="p-6 text-center text-gray-500">
-                        <div className="text-4xl mb-2">🔍</div>
                         <div className="font-medium text-sm mb-1">No encontramos esa ubicación</div>
                         <div className="text-xs text-gray-400">
                           Intenta con el nombre de una ciudad, municipio, distrito o código postal
@@ -294,7 +268,6 @@ export default function LocationSearchInput({
                 {/* Initial state when no query */}
                 {!searchQuery && (
                   <div className="p-6 text-center text-gray-500">
-                    <div className="text-4xl mb-2">🌍</div>
                     <div className="font-medium text-sm mb-1">Busca tu ubicación</div>
                     <div className="text-xs text-gray-400">
                       Escribe ciudad, municipio, distrito, barrio o código postal
