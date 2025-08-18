@@ -40,6 +40,9 @@ export default function ModernLocationModal({
   // Get top 5 locations for history
   const topLocations = useMemo(() => getTopLocations(5), [getTopLocations]);
 
+  // Limit suggestions to maximum 6 results
+  const limitedSuggestions = useMemo(() => suggestions.slice(0, 6), [suggestions]);
+
   const handleGPSLocation = useCallback(async () => {
     setIsLoadingGPS(true);
     setDetectedLocation('');
@@ -180,8 +183,10 @@ export default function ModernLocationModal({
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setShowSuggestions(true);
-  }, []);
+    if (!showSuggestions) {
+      setShowSuggestions(true);
+    }
+  }, [showSuggestions]);
 
   const handleInputBlur = useCallback(() => {
     // Delay hiding to allow clicks on suggestions
@@ -190,7 +195,7 @@ export default function ModernLocationModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden bg-primary border-0 text-white">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/90 border-0 text-white">
         <DialogHeader className="space-y-6 pb-0">
           <DialogTitle className="flex items-center justify-center gap-3 text-2xl font-bold">
             <div className="bg-white/20 p-3 rounded-full">
@@ -218,7 +223,7 @@ export default function ModernLocationModal({
             </div>
           )}
 
-          {/* Search Input with GPS Button */}
+          {/* Search Input with GPS Button - No rounded borders */}
           <div className="relative">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -229,13 +234,15 @@ export default function ModernLocationModal({
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
-                className="pl-12 pr-16 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-lg text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-white/50 rounded-full text-lg"
+                className="pl-12 pr-16 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-lg text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-white/50 text-lg"
+                style={{ borderRadius: '0px' }}
                 maxLength={50}
               />
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-10 px-3 rounded-full bg-primary text-white hover:bg-primary/80 transition-colors"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-10 px-3 bg-primary text-white hover:bg-primary/80 transition-colors"
+                style={{ borderRadius: '0px' }}
                 onClick={handleGPSLocation}
                 disabled={isLoadingGPS}
               >
@@ -243,52 +250,79 @@ export default function ModernLocationModal({
               </Button>
             </div>
 
-            {/* Search Suggestions Dropdown */}
-            {showSuggestions && (searchQuery.length >= 2 || topLocations.length > 0) && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-sm border-0 rounded-lg shadow-float z-50 max-h-80 overflow-hidden">
-                <ScrollArea className="max-h-80">
-                  <div className="p-2">
-                    {/* GPS Option - always show when suggestions are open */}
+            {/* Modern Dropdown - Always positioned correctly */}
+            {showSuggestions && (
+              <div 
+                className="absolute top-full left-0 right-0 mt-1 bg-white/98 backdrop-blur-sm border-0 shadow-2xl z-50 max-h-[60vh] overflow-hidden"
+                style={{ 
+                  borderRadius: '0px',
+                  transform: 'translateZ(0)', // Force hardware acceleration
+                  willChange: 'transform, opacity'
+                }}
+              >
+                <ScrollArea className="max-h-[60vh]">
+                  <div className="p-0">
+                    {/* GPS Option - always show first */}
                     <button
-                      className="w-full text-left p-3 hover:bg-gray-100 rounded-md transition-colors border-b border-gray-200 flex items-center gap-3"
+                      className="w-full text-left p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 flex items-center gap-3 group"
                       onClick={handleGPSLocation}
                       disabled={isLoadingGPS}
                     >
-                      <Navigation className="h-5 w-5 text-primary flex-shrink-0" />
-                      <div className="font-medium text-gray-900">
-                        {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
+                      <div className="bg-primary/10 p-2 rounded-full group-hover:bg-primary/20 transition-colors">
+                        <Navigation className="h-4 w-4 text-primary flex-shrink-0" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 text-base">
+                          {isLoadingGPS ? 'Detectando ubicación...' : 'Usar mi ubicación actual'}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Encuentra restaurantes cerca de ti automáticamente
+                        </div>
                       </div>
                     </button>
 
-                    {/* Search Results */}
+                    {/* Search Results - Maximum 6 results */}
                     {searchQuery.length >= 2 && (
                       <>
                         {loadingSuggestions ? (
-                          <div className="p-3 space-y-2">
+                          <div className="p-4 space-y-3">
                             {Array.from({ length: 3 }).map((_, i) => (
-                              <Skeleton key={i} className="h-12 w-full" />
+                              <div key={i} className="flex items-center gap-3">
+                                <Skeleton className="h-8 w-8 rounded-full" />
+                                <div className="space-y-2 flex-1">
+                                  <Skeleton className="h-4 w-3/4" />
+                                  <Skeleton className="h-3 w-1/2" />
+                                </div>
+                              </div>
                             ))}
                           </div>
-                        ) : suggestions.length > 0 ? (
+                        ) : limitedSuggestions.length > 0 ? (
                           <>
-                            {suggestions.map((suggestion) => (
+                            <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                                Resultados ({limitedSuggestions.length})
+                              </div>
+                            </div>
+                            {limitedSuggestions.map((suggestion) => (
                               <button
                                 key={`${suggestion.type}-${suggestion.id}`}
-                                className="w-full text-left p-3 hover:bg-gray-100 rounded-md transition-colors flex items-center gap-3"
+                                className="w-full text-left p-4 hover:bg-gray-50 transition-colors flex items-center gap-3 group border-b border-gray-50"
                                 onClick={() => handleSuggestionSelect(suggestion)}
                               >
-                                <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                <div className="bg-green-50 p-2 rounded-full group-hover:bg-green-100 transition-colors">
+                                  <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-gray-900 flex items-center gap-2">
+                                  <div className="font-semibold text-gray-900 flex items-center gap-2 text-base">
                                     {suggestion.name}
                                     {suggestion.is_famous && (
-                                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full flex-shrink-0">
+                                      <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-medium flex-shrink-0">
                                         ⭐ Famoso
                                       </span>
                                     )}
                                   </div>
                                   {suggestion.parent && (
-                                    <div className="text-sm text-gray-500 truncate">
+                                    <div className="text-sm text-gray-500 truncate mt-1">
                                       {suggestion.parent}
                                     </div>
                                   )}
@@ -297,9 +331,9 @@ export default function ModernLocationModal({
                             ))}
                           </>
                         ) : (
-                          <div className="p-4 text-center text-gray-500">
-                            <div className="text-sm">No se encontraron ubicaciones</div>
-                            <div className="text-xs text-gray-400 mt-1">
+                          <div className="p-6 text-center border-b border-gray-100">
+                            <div className="text-gray-900 font-medium text-base mb-1">No se encontraron ubicaciones</div>
+                            <div className="text-sm text-gray-500">
                               Intenta con una palabra diferente
                             </div>
                           </div>
@@ -307,14 +341,14 @@ export default function ModernLocationModal({
                       </>
                     )}
 
-                    {/* Location History - show only when not searching */}
-                    {searchQuery.length < 2 && topLocations.length > 0 && (
-                      <>
-                        <div className="flex items-center justify-between px-3 py-2 border-t border-gray-200 mt-2">
-                          <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            Recientes
-                          </h4>
+                    {/* Location History - Always show, even when empty or searching */}
+                    <div className="bg-gray-50">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                        <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2 uppercase tracking-wide">
+                          <Clock className="h-4 w-4" />
+                          Ubicaciones recientes
+                        </h4>
+                        {topLocations.length > 0 && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -323,33 +357,49 @@ export default function ModernLocationModal({
                           >
                             Limpiar
                           </Button>
-                        </div>
-                        {topLocations.map((item) => (
-                          <button
-                            key={item.id}
-                            className="w-full text-left p-3 hover:bg-gray-100 rounded-md transition-colors flex items-center gap-3"
-                            onClick={() => handleHistorySelect(item)}
-                          >
-                            <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-gray-900 flex items-center gap-2">
-                                {item.name}
-                                {item.usage_count > 1 && (
-                                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full flex-shrink-0">
-                                    {item.usage_count}x
-                                  </span>
+                        )}
+                      </div>
+                      
+                      {topLocations.length > 0 ? (
+                        <>
+                          {topLocations.map((item) => (
+                            <button
+                              key={item.id}
+                              className="w-full text-left p-4 hover:bg-gray-100 transition-colors flex items-center gap-3 group border-b border-gray-100 last:border-b-0"
+                              onClick={() => handleHistorySelect(item)}
+                            >
+                              <div className="bg-blue-50 p-2 rounded-full group-hover:bg-blue-100 transition-colors">
+                                <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-gray-900 flex items-center gap-2 text-base">
+                                  {item.name}
+                                  {item.usage_count > 1 && (
+                                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium flex-shrink-0">
+                                      {item.usage_count}x
+                                    </span>
+                                  )}
+                                </div>
+                                {item.parent && (
+                                  <div className="text-sm text-gray-500 truncate mt-1">
+                                    {item.parent}
+                                  </div>
                                 )}
                               </div>
-                              {item.parent && (
-                                <div className="text-sm text-gray-500 truncate">
-                                  {item.parent}
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        ))}
-                      </>
-                    )}
+                            </button>
+                          ))}
+                        </>
+                      ) : (
+                        <div className="p-6 text-center">
+                          <div className="text-gray-500 text-sm">
+                            No hay ubicaciones recientes
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            Tus búsquedas aparecerán aquí
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </ScrollArea>
               </div>
