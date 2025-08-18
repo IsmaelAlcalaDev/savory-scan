@@ -1,11 +1,9 @@
 
-import React, { useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { useNavigation } from '@/hooks/useNavigation';
+import { Star } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Link } from 'react-router-dom';
-import { DEFAULT_RESTAURANT_IMAGE_URL } from '@/constants';
-import RestaurantVerificationBadge from './RestaurantVerificationBadge';
+import FavoriteButton from './FavoriteButton';
+import OptimizedImage from './OptimizedImage';
 
 interface RestaurantCardProps {
   id: number;
@@ -28,9 +26,6 @@ interface RestaurantCardProps {
   layout?: 'grid' | 'list';
   onFavoriteChange?: (restaurantId: number, isFavorite: boolean) => void;
   priority?: boolean;
-  verification_level?: 'basic' | 'standard' | 'premium';
-  verification_status?: 'pending' | 'in_review' | 'verified' | 'rejected' | 'disputed' | 'suspended';
-  verification_score?: number;
 }
 
 export default function RestaurantCard({
@@ -44,123 +39,221 @@ export default function RestaurantCard({
   distance,
   cuisineTypes,
   establishmentType,
-  services,
-  favoritesCount,
+  services = [],
+  favoritesCount = 0,
   coverImageUrl,
   logoUrl,
   onClick,
   className,
-  onLoginRequired,
+  onLoginRequired = () => {},
   layout = 'grid',
   onFavoriteChange,
-  priority = false,
-  verification_level,
-  verification_status,
-  verification_score,
-  ...rest
+  priority = false
 }: RestaurantCardProps) {
-  const { navigate } = useNavigation();
-
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     if (onClick) {
       onClick();
     } else {
-      navigate(`/restaurant/${slug}`);
+      window.location.href = `/restaurant/${slug}`;
     }
-  }, [slug, onClick, navigate]);
+  };
 
-  return (
-    <div 
-      className={`group cursor-pointer transition-all duration-200 hover:shadow-lg ${className}`}
-      onClick={handleClick}
-      {...rest}
-    >
-      <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow">
-        {coverImageUrl ? (
-          <div className="relative w-full h-48 md:h-52 lg:h-56">
-            <img
-              src={coverImageUrl}
-              alt={name}
-              className="w-full h-full object-cover transition-transform duration-500 transform scale-100 group-hover:scale-105"
-              loading={priority ? 'eager' : 'lazy'}
-            />
-          </div>
-        ) : (
-          <div className="relative w-full h-48 md:h-52 lg:h-56">
-            <img
-              src={DEFAULT_RESTAURANT_IMAGE_URL}
-              alt={name}
-              className="w-full h-full object-cover transition-transform duration-500 transform scale-100 group-hover:scale-105"
-              loading={priority ? 'eager' : 'lazy'}
-            />
-          </div>
+  const displayImage = coverImageUrl || logoUrl;
+
+  const formatDistance = (distanceKm: number) => {
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)}m`;
+    }
+    return `${distanceKm.toFixed(1)}km`;
+  };
+
+  if (layout === 'list') {
+    return (
+      <div 
+        className={cn(
+          "group cursor-pointer transition-all duration-300 hover:scale-[1.01] flex items-center gap-4 p-4 rounded-lg border bg-card",
+          className
         )}
-        
-        <CardContent className="p-4">
-          <div className="space-y-3">
-            {/* Header con nombre y verificación */}
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+        onClick={handleClick}
+      >
+        <div className="w-24 h-24 relative overflow-hidden rounded-lg flex-shrink-0">
+          {displayImage && (
+            <OptimizedImage
+              src={displayImage}
+              alt={name}
+              width={96}
+              height={96}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              priority={priority}
+              sizes="96px"
+            />
+          )}
+          <div className={cn(
+            "absolute inset-0 transition-smooth",
+            displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
+          )} />
+          
+          <div className="absolute top-2 left-2">
+            <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
+              {establishmentType}
+            </Badge>
+          </div>
+          
+          <div className="absolute bottom-2 right-2">
+            <FavoriteButton
+              restaurantId={id}
+              favoritesCount={favoritesCount}
+              onLoginRequired={onLoginRequired}
+              savedFrom="list_card"
+              size="sm"
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-2">
+          {/* Logo and name row */}
+          <div className="flex items-center gap-3">
+            {logoUrl && (
+              <div className="flex-shrink-0 flex items-center">
+                <OptimizedImage
+                  src={logoUrl}
+                  alt={`${name} logo`}
+                  width={48}
+                  height={48}
+                  className="w-12 h-12 rounded object-cover"
+                  sizes="48px"
+                />
+              </div>
+            )}
+            
+            {/* Name and rating container - aligned with content below */}
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base line-clamp-1 text-black font-medium">
                   {name}
                 </h3>
-                {establishmentType && (
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {establishmentType}
-                  </p>
+                
+                {googleRating && typeof googleRating === 'number' && (
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
+                    {googleRatingCount && typeof googleRatingCount === 'number' && (
+                      <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
+                    )}
+                  </div>
                 )}
               </div>
               
-              {/* Badge de verificación */}
-              {verification_status && verification_level && (
-                <RestaurantVerificationBadge
-                  verificationLevel={verification_level}
-                  verificationStatus={verification_status}
-                  verificationScore={verification_score}
-                  className="flex-shrink-0"
-                />
-              )}
+              {/* Second line - aligned with name, not logo */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                <span className="line-clamp-1">
+                  {cuisineTypes.slice(0, 2).join(', ')}
+                </span>
+                <span>•</span>
+                <span className="text-muted-foreground font-medium">{priceRange}</span>
+                {distance && typeof distance === 'number' && (
+                  <>
+                    <span>•</span>
+                    <span className="flex-shrink-0 text-black font-medium">{formatDistance(distance)}</span>
+                  </>
+                )}
+              </div>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-            <div className="flex flex-wrap items-center gap-2">
-              {cuisineTypes?.map((cuisine, index) => (
-                <React.Fragment key={index}>
-                  <Link
-                    to={`/restaurants?cuisine=${cuisine}`}
-                    className="inline-flex items-center rounded-full bg-secondary px-3 py-0.5 text-sm font-semibold transition-colors hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
-                  >
-                    {cuisine}
-                  </Link>
-                  {index < cuisineTypes.length - 1 && (
-                    <span className="text-muted-foreground">•</span>
+  return (
+    <div 
+      className={cn(
+        "group cursor-pointer transition-all duration-300 hover:scale-[1.02]",
+        className
+      )}
+      onClick={handleClick}
+    >
+      <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
+        {displayImage && (
+          <OptimizedImage
+            src={displayImage}
+            alt={name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            priority={priority}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        )}
+        <div className={cn(
+          "absolute inset-0 transition-smooth",
+          displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
+        )} />
+        
+        <div className="absolute top-3 left-3">
+          <Badge variant="secondary" className="bg-white/90 text-foreground text-xs shadow-sm pointer-events-none">
+            {establishmentType}
+          </Badge>
+        </div>
+        
+        <div className="absolute bottom-3 right-3">
+          <FavoriteButton
+            restaurantId={id}
+            favoritesCount={favoritesCount}
+            onLoginRequired={onLoginRequired}
+            savedFrom="grid_card"
+            size="md"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          {logoUrl && (
+            <div className="flex-shrink-0 flex items-center">
+              <OptimizedImage
+                src={logoUrl}
+                alt={`${name} logo`}
+                width={48}
+                height={48}
+                className="w-12 h-12 rounded object-cover"
+                sizes="48px"
+              />
+            </div>
+          )}
+          
+          {/* Name and rating container - aligned with content below */}
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-base line-clamp-1 text-black font-medium">
+                {name}
+              </h3>
+              {googleRating && typeof googleRating === 'number' && (
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
+                  {googleRatingCount && typeof googleRatingCount === 'number' && (
+                    <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
                   )}
-                </React.Fragment>
-              ))}
+                </div>
+              )}
             </div>
-
-            <div className="flex items-center space-x-2">
-              {googleRating && (
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">{googleRating}</span>
-                  <span className="text-muted-foreground text-sm">
-                    ({googleRatingCount})
-                  </span>
-                </div>
-              )}
-              {distance && (
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">{distance} km</span>
-                </div>
-              )}
-              {priceRange && (
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">{priceRange}</span>
-                </div>
+            
+            {/* Second line - aligned with name, not logo */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+              <span className="line-clamp-1">
+                {cuisineTypes.slice(0, 2).join(', ')}
+              </span>
+              <span>•</span>
+              <span className="text-muted-foreground font-medium">{priceRange}</span>
+              {distance && typeof distance === 'number' && (
+                <>
+                  <span>•</span>
+                  <span className="flex-shrink-0 text-black font-medium">{formatDistance(distance)}</span>
+                </>
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

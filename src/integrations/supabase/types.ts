@@ -697,38 +697,6 @@ export type Database = {
           },
         ]
       }
-      dispute_claimants: {
-        Row: {
-          claim_evidence: string | null
-          claimant_id: string
-          created_at: string | null
-          dispute_id: string
-          id: string
-        }
-        Insert: {
-          claim_evidence?: string | null
-          claimant_id: string
-          created_at?: string | null
-          dispute_id: string
-          id?: string
-        }
-        Update: {
-          claim_evidence?: string | null
-          claimant_id?: string
-          created_at?: string | null
-          dispute_id?: string
-          id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "dispute_claimants_dispute_id_fkey"
-            columns: ["dispute_id"]
-            isOneToOne: false
-            referencedRelation: "verification_disputes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       distance_ranges: {
         Row: {
           created_at: string | null
@@ -2719,112 +2687,6 @@ export type Database = {
           },
         ]
       }
-      restaurant_verification_requests: {
-        Row: {
-          additional_info: string | null
-          business_address: string | null
-          business_name: string
-          business_type: string | null
-          contact_email: string | null
-          contact_phone: string | null
-          created_at: string | null
-          current_status:
-            | Database["public"]["Enums"]["verification_status"]
-            | null
-          id: string
-          rejection_reason: string | null
-          requested_level: Database["public"]["Enums"]["verification_level"]
-          requester_id: string
-          restaurant_id: number
-          reviewed_at: string | null
-          reviewed_by: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          additional_info?: string | null
-          business_address?: string | null
-          business_name: string
-          business_type?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          created_at?: string | null
-          current_status?:
-            | Database["public"]["Enums"]["verification_status"]
-            | null
-          id?: string
-          rejection_reason?: string | null
-          requested_level: Database["public"]["Enums"]["verification_level"]
-          requester_id: string
-          restaurant_id: number
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          additional_info?: string | null
-          business_address?: string | null
-          business_name?: string
-          business_type?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          created_at?: string | null
-          current_status?:
-            | Database["public"]["Enums"]["verification_status"]
-            | null
-          id?: string
-          rejection_reason?: string | null
-          requested_level?: Database["public"]["Enums"]["verification_level"]
-          requester_id?: string
-          restaurant_id?: number
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "restaurant_verification_requests_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "restaurant_verification_requests_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "restaurant_verification_requests_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "restaurant_verification_requests_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants_full"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "restaurant_verification_requests_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants_with_counters"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "restaurant_verification_requests_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "v_restaurants_with_images"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       restaurants: {
         Row: {
           address: string
@@ -2854,7 +2716,6 @@ export type Database = {
           is_claimed: boolean | null
           is_published: boolean | null
           is_verified: boolean | null
-          last_verification_update: string | null
           latitude: number
           location_tags: Json | null
           logo_url: string | null
@@ -2881,18 +2742,7 @@ export type Database = {
             | null
           trial_ends_at: string | null
           updated_at: string | null
-          verification_completed_at: string | null
-          verification_level:
-            | Database["public"]["Enums"]["verification_level"]
-            | null
-          verification_notes: string | null
-          verification_requested_at: string | null
-          verification_score: number | null
-          verification_status:
-            | Database["public"]["Enums"]["verification_status"]
-            | null
           verified_at: string | null
-          verified_by: string | null
           website: string | null
           whatsapp: string | null
         }
@@ -2924,7 +2774,6 @@ export type Database = {
           is_claimed?: boolean | null
           is_published?: boolean | null
           is_verified?: boolean | null
-          last_verification_update?: string | null
           latitude: number
           location_tags?: Json | null
           logo_url?: string | null
@@ -2951,18 +2800,7 @@ export type Database = {
             | null
           trial_ends_at?: string | null
           updated_at?: string | null
-          verification_completed_at?: string | null
-          verification_level?:
-            | Database["public"]["Enums"]["verification_level"]
-            | null
-          verification_notes?: string | null
-          verification_requested_at?: string | null
-          verification_score?: number | null
-          verification_status?:
-            | Database["public"]["Enums"]["verification_status"]
-            | null
           verified_at?: string | null
-          verified_by?: string | null
           website?: string | null
           whatsapp?: string | null
         }
@@ -2994,7 +2832,6 @@ export type Database = {
           is_claimed?: boolean | null
           is_published?: boolean | null
           is_verified?: boolean | null
-          last_verification_update?: string | null
           latitude?: number
           location_tags?: Json | null
           logo_url?: string | null
@@ -3021,18 +2858,7 @@ export type Database = {
             | null
           trial_ends_at?: string | null
           updated_at?: string | null
-          verification_completed_at?: string | null
-          verification_level?:
-            | Database["public"]["Enums"]["verification_level"]
-            | null
-          verification_notes?: string | null
-          verification_requested_at?: string | null
-          verification_score?: number | null
-          verification_status?:
-            | Database["public"]["Enums"]["verification_status"]
-            | null
           verified_at?: string | null
-          verified_by?: string | null
           website?: string | null
           whatsapp?: string | null
         }
@@ -4291,242 +4117,6 @@ export type Database = {
           },
         ]
       }
-      verification_audit_log: {
-        Row: {
-          action_type: string
-          created_at: string | null
-          details: Json | null
-          id: string
-          ip_address: unknown | null
-          new_level: Database["public"]["Enums"]["verification_level"] | null
-          new_status: Database["public"]["Enums"]["verification_status"] | null
-          old_level: Database["public"]["Enums"]["verification_level"] | null
-          old_status: Database["public"]["Enums"]["verification_status"] | null
-          performed_by: string | null
-          restaurant_id: number
-          user_agent: string | null
-          verification_request_id: string | null
-        }
-        Insert: {
-          action_type: string
-          created_at?: string | null
-          details?: Json | null
-          id?: string
-          ip_address?: unknown | null
-          new_level?: Database["public"]["Enums"]["verification_level"] | null
-          new_status?: Database["public"]["Enums"]["verification_status"] | null
-          old_level?: Database["public"]["Enums"]["verification_level"] | null
-          old_status?: Database["public"]["Enums"]["verification_status"] | null
-          performed_by?: string | null
-          restaurant_id: number
-          user_agent?: string | null
-          verification_request_id?: string | null
-        }
-        Update: {
-          action_type?: string
-          created_at?: string | null
-          details?: Json | null
-          id?: string
-          ip_address?: unknown | null
-          new_level?: Database["public"]["Enums"]["verification_level"] | null
-          new_status?: Database["public"]["Enums"]["verification_status"] | null
-          old_level?: Database["public"]["Enums"]["verification_level"] | null
-          old_status?: Database["public"]["Enums"]["verification_status"] | null
-          performed_by?: string | null
-          restaurant_id?: number
-          user_agent?: string | null
-          verification_request_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "verification_audit_log_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "verification_audit_log_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_audit_log_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_audit_log_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants_full"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_audit_log_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants_with_counters"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_audit_log_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "v_restaurants_with_images"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_audit_log_verification_request_id_fkey"
-            columns: ["verification_request_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_verification_requests"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      verification_disputes: {
-        Row: {
-          created_at: string | null
-          dispute_reason: string
-          evidence_summary: string | null
-          id: string
-          primary_claimant_id: string
-          resolution_notes: string | null
-          resolved_at: string | null
-          resolved_by: string | null
-          restaurant_id: number
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          dispute_reason: string
-          evidence_summary?: string | null
-          id?: string
-          primary_claimant_id: string
-          resolution_notes?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-          restaurant_id: number
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          dispute_reason?: string
-          evidence_summary?: string | null
-          id?: string
-          primary_claimant_id?: string
-          resolution_notes?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-          restaurant_id?: number
-          status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "verification_disputes_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "verification_disputes_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_disputes_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_disputes_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants_full"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_disputes_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants_with_counters"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verification_disputes_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "v_restaurants_with_images"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      verification_documents: {
-        Row: {
-          created_at: string | null
-          document_type: Database["public"]["Enums"]["document_type"]
-          file_name: string
-          file_size: number | null
-          file_url: string
-          id: string
-          is_verified: boolean | null
-          mime_type: string | null
-          notes: string | null
-          verification_request_id: string
-          verified_at: string | null
-          verified_by: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          document_type: Database["public"]["Enums"]["document_type"]
-          file_name: string
-          file_size?: number | null
-          file_url: string
-          id?: string
-          is_verified?: boolean | null
-          mime_type?: string | null
-          notes?: string | null
-          verification_request_id: string
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          document_type?: Database["public"]["Enums"]["document_type"]
-          file_name?: string
-          file_size?: number | null
-          file_url?: string
-          id?: string
-          is_verified?: boolean | null
-          mime_type?: string | null
-          notes?: string | null
-          verification_request_id?: string
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "verification_documents_verification_request_id_fkey"
-            columns: ["verification_request_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_verification_requests"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       active_fraud_alerts: {
@@ -5584,10 +5174,6 @@ export type Database = {
       bytea: {
         Args: { "": unknown } | { "": unknown }
         Returns: string
-      }
-      calculate_verification_score: {
-        Args: { restaurant_id_param: number }
-        Returns: number
       }
       cleanup_old_analytics_data: {
         Args: Record<PropertyKey, never>
@@ -7398,15 +6984,6 @@ export type Database = {
       auth_provider: "google" | "apple" | "email"
       device_type: "ios" | "android" | "web"
       discount_type: "percentage" | "fixed" | "two_for_one"
-      document_type:
-        | "business_license"
-        | "tax_certificate"
-        | "identity_document"
-        | "property_deed"
-        | "rental_agreement"
-        | "menu_photos"
-        | "interior_photos"
-        | "other"
       dress_code:
         | "casual"
         | "smart_casual"
@@ -7420,14 +6997,6 @@ export type Database = {
       report_reason: "inappropriate" | "spam" | "fake" | "copyright"
       report_status: "pending" | "reviewed" | "resolved" | "dismissed"
       subscription_plan: "free" | "premium"
-      verification_level: "basic" | "standard" | "premium"
-      verification_status:
-        | "pending"
-        | "in_review"
-        | "verified"
-        | "rejected"
-        | "disputed"
-        | "suspended"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -7574,16 +7143,6 @@ export const Constants = {
       auth_provider: ["google", "apple", "email"],
       device_type: ["ios", "android", "web"],
       discount_type: ["percentage", "fixed", "two_for_one"],
-      document_type: [
-        "business_license",
-        "tax_certificate",
-        "identity_document",
-        "property_deed",
-        "rental_agreement",
-        "menu_photos",
-        "interior_photos",
-        "other",
-      ],
       dress_code: [
         "casual",
         "smart_casual",
@@ -7598,15 +7157,6 @@ export const Constants = {
       report_reason: ["inappropriate", "spam", "fake", "copyright"],
       report_status: ["pending", "reviewed", "resolved", "dismissed"],
       subscription_plan: ["free", "premium"],
-      verification_level: ["basic", "standard", "premium"],
-      verification_status: [
-        "pending",
-        "in_review",
-        "verified",
-        "rejected",
-        "disputed",
-        "suspended",
-      ],
     },
   },
 } as const
