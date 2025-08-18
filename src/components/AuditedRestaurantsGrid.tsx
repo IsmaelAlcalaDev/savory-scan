@@ -1,184 +1,145 @@
 
-import { useEffect, useRef } from 'react'
-import { useAuditedRestaurantFeed } from '@/hooks/useAuditedRestaurantFeed'
-import InstrumentedRestaurantCard from './InstrumentedRestaurantCard'
-import LoadMoreButton from './LoadMoreButton'
-import OptimizedPerformanceMonitor from './OptimizedPerformanceMonitor'
-import { Skeleton } from '@/components/ui/skeleton'
-import { optimizedImagePreloader } from '@/utils/optimizedImagePreloader'
-import { useAnalytics } from '@/hooks/useAnalytics'
+import { useRestaurants } from '@/hooks/useRestaurants';
+import RestaurantCard from './RestaurantCard';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle } from 'lucide-react';
 
 interface AuditedRestaurantsGridProps {
-  searchQuery?: string
-  userLat?: number
-  userLng?: number
-  maxDistance?: number
-  cuisineTypeIds?: number[]
-  priceRanges?: string[]
-  isHighRated?: boolean
-  selectedEstablishmentTypes?: number[]
-  selectedDietTypes?: number[]
-  selectedDietCategories?: string[]
-  isOpenNow?: boolean
-  sortBy?: 'distance' | 'rating' | 'favorites'
+  searchQuery?: string;
+  userLat?: number;
+  userLng?: number;
+  maxDistance?: number;
+  cuisineTypeIds?: number[];
+  priceRanges?: string[];
+  isHighRated?: boolean;
+  selectedEstablishmentTypes?: number[];
+  selectedDietTypes?: number[];
+  selectedDietCategories?: string[];
+  isOpenNow?: boolean;
+  sortBy?: 'recommended' | 'distance';
 }
 
-export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const { trackFeedImpression } = useAnalytics()
-  
-  const { 
-    restaurants, 
-    loading, 
-    error, 
-    hasMore, 
-    loadMore,
-    refetch,
-    serverTiming,
-    systemType,
-    cacheHit
-  } = useAuditedRestaurantFeed(props)
-
-  // Optimized image preloading
-  useEffect(() => {
-    if (restaurants.length > 0) {
-      optimizedImagePreloader.preloadRestaurantImages(restaurants.slice(0, 8))
-        .then(() => {
-          console.log('🖼️ Images preloaded successfully');
-        })
-        .catch(console.warn);
-    }
-  }, [restaurants])
-
-  // Track feed impression when restaurants load
-  useEffect(() => {
-    if (restaurants.length > 0 && !loading) {
-      const restaurantIds = restaurants.map(r => r.id)
-      trackFeedImpression(restaurantIds)
-    }
-  }, [restaurants, loading, trackFeedImpression])
+export default function AuditedRestaurantsGrid({
+  searchQuery,
+  userLat,
+  userLng,
+  maxDistance,
+  cuisineTypeIds,
+  priceRanges,
+  isHighRated,
+  selectedEstablishmentTypes,
+  selectedDietTypes,
+  selectedDietCategories,
+  isOpenNow,
+  sortBy = 'recommended'
+}: AuditedRestaurantsGridProps) {
+  const {
+    restaurants,
+    loading,
+    error
+  } = useRestaurants({
+    searchQuery,
+    userLat,
+    userLng,
+    maxDistance,
+    cuisineTypeIds,
+    priceRanges,
+    isHighRated,
+    selectedEstablishmentTypes,
+    selectedDietTypes,
+    isOpenNow
+  });
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="h-48 w-full rounded-lg" />
-              <div className="p-4 space-y-3">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="space-y-4">
+            <Skeleton className="h-48 w-full rounded-lg" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-    )
+    );
   }
 
   if (error) {
     return (
-      <div className="col-span-full text-center py-8">
-        <p className="text-muted-foreground">Error al cargar restaurantes: {error}</p>
-        <button 
-          onClick={refetch}
-          className="mt-2 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-        >
-          Reintentar
-        </button>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Error al cargar restaurantes</h3>
+        <p className="text-muted-foreground">{error}</p>
       </div>
-    )
+    );
   }
 
   if (restaurants.length === 0) {
     return (
-      <div className="col-span-full text-center py-8">
-        <p className="text-muted-foreground">No se encontraron restaurantes</p>
-        <p className="text-sm text-muted-foreground mt-2">
-          Intenta cambiar los filtros de búsqueda
+      <div className="text-center py-12">
+        <h3 className="text-lg font-semibold mb-2">No hay restaurantes disponibles</h3>
+        <p className="text-muted-foreground">
+          Intenta ajustar tus filtros o buscar en una zona diferente.
         </p>
       </div>
-    )
+    );
   }
 
-  return (
-    <div ref={containerRef} className="space-y-6">
-      {/* Enhanced performance metrics */}
-      {(process.env.NODE_ENV === 'development' || systemType?.includes('audit')) && (
-        <div className="space-y-2">
-          <OptimizedPerformanceMonitor />
-          <div className="text-xs text-muted-foreground space-y-1">
-            <div className="flex items-center gap-4">
-              <span>
-                Sistema: {
-                  systemType === 'audit-optimized' ? '🚀 AUDIT OPTIMIZADO (Cache + MV + RPC)' :
-                  systemType === 'rpc-optimized' ? '⚡ RPC OPTIMIZADO' : 
-                  systemType === 'loading' ? 'Cargando...' :
-                  'Sistema Unificado'
-                }
-              </span>
-              {serverTiming && (
-                <span className={`px-2 py-1 rounded text-xs ${
-                  serverTiming < 100 ? 'bg-green-100 text-green-800' :
-                  serverTiming < 300 ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {serverTiming.toFixed(1)}ms
-                </span>
-              )}
-            </div>
-            {systemType === 'audit-optimized' && (
-              <div className="flex items-center gap-4 text-xs">
-                <span className={cacheHit ? 'text-green-600' : 'text-orange-600'}>
-                  Cache: {cacheHit ? '✅ HIT' : '⚡ MISS'}
-                </span>
-                <span className="text-blue-600">
-                  📊 {restaurants.length} resultados
-                </span>
-                <span className="text-purple-600">
-                  🎯 PostGIS + Índices optimizados
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+  // Sort restaurants based on sortBy prop
+  const sortedRestaurants = [...restaurants].sort((a, b) => {
+    switch (sortBy) {
+      case 'recommended':
+        // First all premium restaurants by distance, then all free restaurants by favorites/rating
+        const aPremium = a.subscription_plan === 'premium';
+        const bPremium = b.subscription_plan === 'premium';
+        
+        if (aPremium && !bPremium) return -1;
+        if (!aPremium && bPremium) return 1;
+        
+        // Both have same subscription level
+        if (aPremium && bPremium) {
+          // Both premium: sort by distance
+          if (a.distance_km === null && b.distance_km === null) return 0;
+          if (a.distance_km === null) return 1;
+          if (b.distance_km === null) return -1;
+          return a.distance_km - b.distance_km;
+        } else {
+          // Both free: sort by favorites count, then rating
+          if (b.favorites_count !== a.favorites_count) {
+            return (b.favorites_count || 0) - (a.favorites_count || 0);
+          }
+          return (b.google_rating || 0) - (a.google_rating || 0);
+        }
+        
+      case 'distance':
+      default:
+        if (a.distance_km === null && b.distance_km === null) return 0;
+        if (a.distance_km === null) return 1;
+        if (b.distance_km === null) return -1;
+        return a.distance_km - b.distance_km;
+    }
+  });
 
-      <div className="restaurants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-        {restaurants.map((restaurant, index) => (
-          <div key={restaurant.id} data-restaurant-id={restaurant.id}>
-            <InstrumentedRestaurantCard
-              id={restaurant.id}
-              name={restaurant.name}
-              slug={restaurant.slug}
-              description={restaurant.description}
-              priceRange={restaurant.price_range}
-              googleRating={restaurant.google_rating}
-              googleRatingCount={restaurant.google_rating_count}
-              distance={restaurant.distance_km}
-              cuisineTypes={restaurant.cuisine_types}
-              establishmentType={restaurant.establishment_type}
-              services={restaurant.services}
-              favoritesCount={restaurant.favorites_count}
-              coverImageUrl={restaurant.cover_image_url}
-              logoUrl={restaurant.logo_url}
-              priority={index < 4}
-              position={index}
-            />
-          </div>
-        ))}
-      </div>
-      
-      {/* Show LoadMore button only for systems that support pagination */}
-      {systemType !== 'audit-optimized' && (
-        <LoadMoreButton
-          onLoadMore={loadMore}
-          loading={false}
-          hasMore={hasMore}
-          className="mt-8"
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {sortedRestaurants.map((restaurant) => (
+        <RestaurantCard
+          key={restaurant.id}
+          id={restaurant.id}
+          name={restaurant.name}
+          description={restaurant.description}
+          coverImageUrl={restaurant.cover_image_url}
+          cuisineTypes={restaurant.cuisine_types}
+          priceRange={restaurant.price_range}
+          googleRating={restaurant.google_rating}
+          distance={restaurant.distance_km}
+          establishmentType={restaurant.establishment_type}
+          slug={restaurant.slug}
+          favoritesCount={restaurant.favorites_count}
         />
-      )}
+      ))}
     </div>
-  )
+  );
 }
