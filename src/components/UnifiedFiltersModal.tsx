@@ -1,6 +1,6 @@
 
-import { ModernFiltersModal } from './ModernFiltersModal';
-import { ReactNode } from 'react';
+import { useState, ReactNode } from 'react';
+import ModernFiltersModal from './ModernFiltersModal';
 
 interface UnifiedFiltersModalProps {
   activeTab?: 'restaurants' | 'dishes';

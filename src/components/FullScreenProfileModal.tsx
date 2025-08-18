@@ -1,5 +1,5 @@
 
-import { ModernProfileModal } from './ModernProfileModal';
+import ModernProfileModal from './ModernProfileModal';
 
 interface FullScreenProfileModalProps {
   open: boolean;

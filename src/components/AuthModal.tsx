@@ -1,5 +1,5 @@
 
-import { ModernAuthModal } from './ModernAuthModal';
+import ModernAuthModal from './ModernAuthModal';
 
 interface AuthModalProps {
   isOpen: boolean;
