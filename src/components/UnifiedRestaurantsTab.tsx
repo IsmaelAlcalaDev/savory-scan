@@ -20,6 +20,8 @@ export default function UnifiedRestaurantsTab(props: UnifiedRestaurantsTabProps)
 
   const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
 
+  console.log('UnifiedRestaurantsTab: sortBy state =', sortBy, 'hasLocation =', hasLocation);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">

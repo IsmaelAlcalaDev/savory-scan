@@ -70,6 +70,8 @@ export const useInfiniteRestaurants = (props: UseInfiniteRestaurantsProps) => {
     sortBy = 'recommended'
   } = props;
 
+  console.log('useInfiniteRestaurants: sortBy =', sortBy);
+
   const fetchRestaurants = useCallback(async (pageOffset: number, isLoadMore: boolean = false) => {
     try {
       if (isLoadMore) {
@@ -84,7 +86,8 @@ export const useInfiniteRestaurants = (props: UseInfiniteRestaurantsProps) => {
         isLoadMore, 
         userLat, 
         userLng,
-        maxDistance: MAX_DISTANCE_KM 
+        maxDistance: MAX_DISTANCE_KM,
+        sortBy 
       });
 
       // Cancel previous request
@@ -277,10 +280,11 @@ export const useInfiniteRestaurants = (props: UseInfiniteRestaurantsProps) => {
         }
       }
 
-      // Sort restaurants
+      // Sort restaurants according to sortBy
       const sortedData = formattedData.sort((a, b) => {
         switch (sortBy) {
           case 'recommended':
+            // First premium restaurants by distance, then free restaurants by favorites/rating
             const aPremium = a.subscription_plan === 'premium';
             const bPremium = b.subscription_plan === 'premium';
             
@@ -288,11 +292,13 @@ export const useInfiniteRestaurants = (props: UseInfiniteRestaurantsProps) => {
             if (!aPremium && bPremium) return 1;
             
             if (aPremium && bPremium) {
+              // Both premium: sort by distance
               if (a.distance_km === null && b.distance_km === null) return 0;
               if (a.distance_km === null) return 1;
               if (b.distance_km === null) return -1;
               return a.distance_km - b.distance_km;
             } else {
+              // Both free: sort by favorites count, then rating
               if (b.favorites_count !== a.favorites_count) {
                 return (b.favorites_count || 0) - (a.favorites_count || 0);
               }
@@ -308,7 +314,7 @@ export const useInfiniteRestaurants = (props: UseInfiniteRestaurantsProps) => {
         }
       });
 
-      console.log('useInfiniteRestaurants: Final restaurants for page:', sortedData.length);
+      console.log('useInfiniteRestaurants: Final restaurants for page:', sortedData.length, 'sortBy:', sortBy);
 
       if (isLoadMore) {
         setRestaurants(prev => [...prev, ...sortedData]);

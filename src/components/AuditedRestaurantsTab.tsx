@@ -18,11 +18,11 @@ interface AuditedRestaurantsTabProps {
 
 export default function AuditedRestaurantsTab(props: AuditedRestaurantsTabProps) {
   const { userLocation } = useUserPreferences();
-  const [sortBy, setSortBy] = useState<'recommended' | 'distance'>(
-    userLocation ? 'recommended' : 'recommended'
-  );
+  const [sortBy, setSortBy] = useState<'recommended' | 'distance'>('recommended');
 
   const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
+
+  console.log('AuditedRestaurantsTab: sortBy state =', sortBy, 'hasLocation =', hasLocation);
 
   return (
     <div className="space-y-6">

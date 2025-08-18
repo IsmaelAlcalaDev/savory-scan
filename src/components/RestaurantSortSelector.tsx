@@ -15,6 +15,8 @@ export default function RestaurantSortSelector({
   hasLocation = false,
   className = "" 
 }: RestaurantSortSelectorProps) {
+  console.log('RestaurantSortSelector: value =', value, 'hasLocation =', hasLocation);
+
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
