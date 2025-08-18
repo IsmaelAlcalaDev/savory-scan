@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { Search, MapPin, Navigation, Clock, X } from 'lucide-react';
 import {
@@ -184,7 +183,7 @@ export default function LocationModal({
                 placeholder="Buscar dirección"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10 h-12 rounded-full border-primary/30 focus:border-primary bg-muted/30 focus:ring-primary/20"
+                className="pl-10 pr-10 h-12 rounded-full border-primary focus:border-primary bg-muted/30 focus:ring-0 focus:ring-offset-0"
               />
               {searchQuery && (
                 <button
