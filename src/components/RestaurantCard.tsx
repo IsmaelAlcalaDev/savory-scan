@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, MapPin, Clock, Heart } from 'lucide-react';
-import { OptimizedImage } from './OptimizedImage';
+import OptimizedImage from './OptimizedImage';
 import FavoriteButton from './FavoriteButton';
 import { useNavigate } from 'react-router-dom';
 
