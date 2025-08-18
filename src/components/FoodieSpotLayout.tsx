@@ -10,7 +10,7 @@ import CuisineFilter from './CuisineFilter';
 import EstablishmentTypeFilter from './EstablishmentTypeFilter';
 import { PriceFilter } from './PriceFilter';
 import DietFilter from './DietFilter';
-import { FilterTags } from './FilterTags';
+import FilterTags from './FilterTags';
 import { LoadMoreButton } from './LoadMoreButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
