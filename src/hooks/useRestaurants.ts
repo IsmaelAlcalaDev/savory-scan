@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -220,145 +221,59 @@ export const useRestaurants = ({
             const restaurantIds = formattedData.map(r => r.id);
             
             if (restaurantIds.length > 0) {
-              // Create a query to calculate diet percentages for each restaurant
-              const dietCalculationQuery = `
-                SELECT 
-                  r.id as restaurant_id,
-                  COUNT(d.id) as total_dishes,
-                  COUNT(CASE WHEN d.is_vegetarian = true THEN 1 END) as vegetarian_dishes,
-                  COUNT(CASE WHEN d.is_vegan = true THEN 1 END) as vegan_dishes,
-                  COUNT(CASE WHEN d.is_gluten_free = true THEN 1 END) as gluten_free_dishes,
-                  COUNT(CASE WHEN d.is_healthy = true THEN 1 END) as healthy_dishes,
-                  CASE 
-                    WHEN COUNT(d.id) > 0 THEN 
-                      ROUND((COUNT(CASE WHEN d.is_vegetarian = true THEN 1 END)::numeric / COUNT(d.id)) * 100, 2)
-                    ELSE 0 
-                  END as vegetarian_pct,
-                  CASE 
-                    WHEN COUNT(d.id) > 0 THEN 
-                      ROUND((COUNT(CASE WHEN d.is_vegan = true THEN 1 END)::numeric / COUNT(d.id)) * 100, 2)
-                    ELSE 0 
-                  END as vegan_pct,
-                  CASE 
-                    WHEN COUNT(d.id) > 0 THEN 
-                      ROUND((COUNT(CASE WHEN d.is_gluten_free = true THEN 1 END)::numeric / COUNT(d.id)) * 100, 2)
-                    ELSE 0 
-                  END as glutenfree_pct,
-                  CASE 
-                    WHEN COUNT(d.id) > 0 THEN 
-                      ROUND((COUNT(CASE WHEN d.is_healthy = true THEN 1 END)::numeric / COUNT(d.id)) * 100, 2)
-                    ELSE 0 
-                  END as healthy_pct
-                FROM restaurants r
-                LEFT JOIN dishes d ON r.id = d.restaurant_id 
-                  AND d.is_active = true 
-                  AND d.deleted_at IS NULL
-                WHERE r.id = ANY($1)
-                GROUP BY r.id
-              `;
+              const validRestaurantIds = new Set<number>();
+              
+              // Check each restaurant individually
+              for (const restaurant of formattedData) {
+                // Get total dishes for this restaurant
+                const { data: dishesData, error: dishesError } = await supabase
+                  .from('dishes')
+                  .select('id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
+                  .eq('restaurant_id', restaurant.id)
+                  .eq('is_active', true)
+                  .is('deleted_at', null);
 
-              const { data: dietStatsData, error: dietStatsError } = await supabase
-                .rpc('execute_sql', { 
-                  query: dietCalculationQuery,
-                  params: [restaurantIds]
-                })
-                .select();
-
-              if (dietStatsError) {
-                console.error('Error calculating diet percentages, using direct query instead:', dietStatsError);
-                
-                // Fallback: Use simpler approach with individual queries
-                const validRestaurantIds = new Set<number>();
-                
-                for (const restaurant of formattedData) {
-                  // Get total dishes for this restaurant
-                  const { data: dishesData, error: dishesError } = await supabase
-                    .from('dishes')
-                    .select('id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
-                    .eq('restaurant_id', restaurant.id)
-                    .eq('is_active', true)
-                    .is('deleted_at', null);
-
-                  if (dishesError || !dishesData || dishesData.length === 0) {
-                    continue;
-                  }
-
-                  const totalDishes = dishesData.length;
-                  console.log(`Restaurant ${restaurant.name} has ${totalDishes} dishes`);
-
-                  // Check if any selected diet meets the 20% threshold
-                  for (const dietType of dietTypesData) {
-                    let dietDishesCount = 0;
-                    
-                    switch (dietType.category) {
-                      case 'vegetarian':
-                        dietDishesCount = dishesData.filter(d => d.is_vegetarian).length;
-                        break;
-                      case 'vegan':
-                        dietDishesCount = dishesData.filter(d => d.is_vegan).length;
-                        break;
-                      case 'gluten_free':
-                        dietDishesCount = dishesData.filter(d => d.is_gluten_free).length;
-                        break;
-                      case 'healthy':
-                        dietDishesCount = dishesData.filter(d => d.is_healthy).length;
-                        break;
-                    }
-                    
-                    const percentage = (dietDishesCount / totalDishes) * 100;
-                    console.log(`Restaurant ${restaurant.name}: ${dietType.category} = ${dietDishesCount}/${totalDishes} (${percentage.toFixed(2)}%)`);
-                    
-                    if (percentage >= 20) {
-                      validRestaurantIds.add(restaurant.id);
-                      console.log(`✓ Restaurant ${restaurant.name} meets ${dietType.category} requirement (${percentage.toFixed(2)}%)`);
-                      break; // Found matching diet type, no need to check others
-                    }
-                  }
+                if (dishesError || !dishesData || dishesData.length === 0) {
+                  continue;
                 }
 
-                console.log('Valid restaurants after diet filtering:', validRestaurantIds.size, 'out of', formattedData.length);
-                formattedData = formattedData.filter(restaurant => 
-                  validRestaurantIds.has(restaurant.id)
-                );
-              } else if (dietStatsData) {
-                // Use the SQL query results
-                const validRestaurantIds = new Set<number>();
-                
-                dietStatsData.forEach((stats: any) => {
-                  const restaurantId = stats.restaurant_id;
-                  
-                  // Check if any selected diet meets the 20% threshold
-                  for (const dietType of dietTypesData) {
-                    let percentage = 0;
-                    
-                    switch (dietType.category) {
-                      case 'vegetarian':
-                        percentage = stats.vegetarian_pct || 0;
-                        break;
-                      case 'vegan':
-                        percentage = stats.vegan_pct || 0;
-                        break;
-                      case 'gluten_free':
-                        percentage = stats.glutenfree_pct || 0;
-                        break;
-                      case 'healthy':
-                        percentage = stats.healthy_pct || 0;
-                        break;
-                    }
-                    
-                    if (percentage >= 20) {
-                      validRestaurantIds.add(restaurantId);
-                      console.log(`✓ Restaurant ID ${restaurantId} meets ${dietType.category} requirement (${percentage}%)`);
-                      break; // Found matching diet type, no need to check others
-                    }
-                  }
-                });
+                const totalDishes = dishesData.length;
+                console.log(`Restaurant ${restaurant.name} has ${totalDishes} dishes`);
 
-                console.log('Valid restaurants after diet filtering:', validRestaurantIds.size, 'out of', formattedData.length);
-                formattedData = formattedData.filter(restaurant => 
-                  validRestaurantIds.has(restaurant.id)
-                );
+                // Check if any selected diet meets the 20% threshold
+                for (const dietType of dietTypesData) {
+                  let dietDishesCount = 0;
+                  
+                  switch (dietType.category) {
+                    case 'vegetarian':
+                      dietDishesCount = dishesData.filter(d => d.is_vegetarian).length;
+                      break;
+                    case 'vegan':
+                      dietDishesCount = dishesData.filter(d => d.is_vegan).length;
+                      break;
+                    case 'gluten_free':
+                      dietDishesCount = dishesData.filter(d => d.is_gluten_free).length;
+                      break;
+                    case 'healthy':
+                      dietDishesCount = dishesData.filter(d => d.is_healthy).length;
+                      break;
+                  }
+                  
+                  const percentage = (dietDishesCount / totalDishes) * 100;
+                  console.log(`Restaurant ${restaurant.name}: ${dietType.category} = ${dietDishesCount}/${totalDishes} (${percentage.toFixed(2)}%)`);
+                  
+                  if (percentage >= 20) {
+                    validRestaurantIds.add(restaurant.id);
+                    console.log(`✓ Restaurant ${restaurant.name} meets ${dietType.category} requirement (${percentage.toFixed(2)}%)`);
+                    break; // Found matching diet type, no need to check others
+                  }
+                }
               }
+
+              console.log('Valid restaurants after diet filtering:', validRestaurantIds.size, 'out of', formattedData.length);
+              formattedData = formattedData.filter(restaurant => 
+                validRestaurantIds.has(restaurant.id)
+              );
             }
           }
         }
