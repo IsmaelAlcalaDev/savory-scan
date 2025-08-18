@@ -33,7 +33,6 @@ export default function TabletHeader({
   searchPlaceholder,
   isSearchFocused,
   onLogoClick,
-  onLocationClick,
   onMenuClick,
   onAccountClick,
   onSearchChange,
@@ -60,15 +59,26 @@ export default function TabletHeader({
 
   const handleLocationButtonClick = () => {
     setIsLocationModalOpen(true);
-    // También llamar al callback original si es necesario
-    onLocationClick();
   };
 
   const handleLocationSelect = (location: { type: 'gps' | 'manual' | 'city' | 'suggestion'; data?: any }) => {
     console.log('Location selected:', location);
-    // Aquí puedes manejar la selección de ubicación
-    // Por ejemplo, actualizar el estado global de ubicación
+    
+    // Save the selected location in localStorage
+    localStorage.setItem('selectedLocation', JSON.stringify({
+      name: location.data?.name || location.data?.address || 'Ubicación seleccionada',
+      latitude: location.data?.latitude,
+      longitude: location.data?.longitude,
+      type: location.data?.type,
+      parent: location.data?.parent,
+      address: location.data?.address || location.data?.name
+    }));
+
+    // Close modal
     setIsLocationModalOpen(false);
+    
+    // Optionally reload the page to reflect the new location
+    window.location.reload();
   };
 
   return (
