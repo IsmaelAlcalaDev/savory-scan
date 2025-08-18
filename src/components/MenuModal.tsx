@@ -3,6 +3,8 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
@@ -238,6 +240,9 @@ export default function MenuModal({ open, onOpenChange }: MenuModalProps) {
   ) : (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Menú</DialogTitle>
+        </DialogHeader>
         {MenuContent}
       </DialogContent>
     </Dialog>
