@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -32,8 +31,8 @@ interface UseInfiniteRestaurantsProps {
   sortBy?: 'recommended' | 'distance';
 }
 
-const PAGE_SIZE = 200;
-const MAX_DISTANCE_KM = 50;
+const PAGE_SIZE = 12;
+const MAX_DISTANCE_KM = 5;
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
   const R = 6371;
@@ -284,25 +283,25 @@ export const useInfiniteRestaurants = (props: UseInfiniteRestaurantsProps) => {
       const sortedData = formattedData.sort((a, b) => {
         switch (sortBy) {
           case 'recommended':
-            // First premium restaurants by distance, then free restaurants by favorites/rating
+            // First premium restaurants by distance, then free restaurants by distance (up to 200 total)
             const aPremium = a.subscription_plan === 'premium';
             const bPremium = b.subscription_plan === 'premium';
             
             if (aPremium && !bPremium) return -1;
             if (!aPremium && bPremium) return 1;
             
+            // Both premium: sort by distance
             if (aPremium && bPremium) {
-              // Both premium: sort by distance
               if (a.distance_km === null && b.distance_km === null) return 0;
               if (a.distance_km === null) return 1;
               if (b.distance_km === null) return -1;
               return a.distance_km - b.distance_km;
             } else {
-              // Both free: sort by favorites count, then rating
-              if (b.favorites_count !== a.favorites_count) {
-                return (b.favorites_count || 0) - (a.favorites_count || 0);
-              }
-              return (b.google_rating || 0) - (a.google_rating || 0);
+              // Both free: sort by distance (not by favorites)
+              if (a.distance_km === null && b.distance_km === null) return 0;
+              if (a.distance_km === null) return 1;
+              if (b.distance_km === null) return -1;
+              return a.distance_km - b.distance_km;
             }
             
           case 'distance':
