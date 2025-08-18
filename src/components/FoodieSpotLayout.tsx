@@ -22,6 +22,11 @@ export default function FoodieSpotLayout() {
   const [selectedEstablishmentTypes, setSelectedEstablishmentTypes] = useState<number[]>([]);
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
   const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
+  const [selectedFoodTypes, setSelectedFoodTypes] = useState<number[]>([]);
+  const [selectedDishDietTypes, setSelectedDishDietTypes] = useState<number[]>([]);
+  const [selectedCustomTags, setSelectedCustomTags] = useState<string[]>([]);
+  const [selectedSpiceLevels, setSelectedSpiceLevels] = useState<number[]>([]);
+  const [selectedSortBy, setSelectedSortBy] = useState<string[]>([]);
   const [isHighRated, setIsHighRated] = useState<boolean>(false);
   const [isOpenNow, setIsOpenNow] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('restaurants');
@@ -111,6 +116,11 @@ export default function FoodieSpotLayout() {
             selectedEstablishmentTypes={selectedEstablishmentTypes}
             selectedPriceRanges={selectedPriceRanges}
             selectedDietTypes={selectedDietTypes}
+            selectedFoodTypes={selectedFoodTypes}
+            selectedDishDietTypes={selectedDishDietTypes}
+            selectedCustomTags={selectedCustomTags}
+            selectedSpiceLevels={selectedSpiceLevels}
+            selectedSortBy={selectedSortBy}
             isHighRated={isHighRated}
             isOpenNow={isOpenNow}
             activeTab={activeTab}
@@ -119,6 +129,11 @@ export default function FoodieSpotLayout() {
             onRemoveEstablishmentType={handleEstablishmentTypeToggle}
             onRemovePriceRange={handlePriceRangeToggle}
             onRemoveDietType={handleDietTypeToggle}
+            onRemoveFoodType={(id: number) => setSelectedFoodTypes(prev => prev.filter(t => t !== id))}
+            onRemoveDishDietType={(id: number) => setSelectedDishDietTypes(prev => prev.filter(t => t !== id))}
+            onRemoveCustomTag={(tag: string) => setSelectedCustomTags(prev => prev.filter(t => t !== tag))}
+            onRemoveSpiceLevel={(level: number) => setSelectedSpiceLevels(prev => prev.filter(l => l !== level))}
+            onRemoveSortBy={(sort: string) => setSelectedSortBy(prev => prev.filter(s => s !== sort))}
             onToggleHighRated={() => setIsHighRated(!isHighRated)}
             onToggleOpenNow={() => setIsOpenNow(!isOpenNow)}
           />
