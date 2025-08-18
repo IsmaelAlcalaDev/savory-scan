@@ -183,7 +183,7 @@ export default function LocationModal({
                 placeholder="Buscar dirección"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10 h-12 rounded-full border-primary focus:border-primary bg-muted/30 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none"
+                className="pl-10 pr-10 h-12 rounded-full border-primary focus:border-primary bg-muted/30 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none text-base placeholder:text-base"
               />
               {searchQuery && (
                 <button
@@ -199,7 +199,7 @@ export default function LocationModal({
           {/* GPS Button */}
           <div className="px-6 pb-4">
             <Button 
-              className="w-full justify-center gap-2 h-12 rounded-full bg-primary border-primary text-primary-foreground hover:bg-primary/90 shadow-soft hover:shadow-card transition-smooth" 
+              className="w-full justify-center gap-2 h-12 rounded-full bg-red-100 border-red-100 text-red-600 hover:bg-red-50 shadow-soft hover:shadow-card transition-smooth text-base font-medium" 
               onClick={handleGPSLocation}
               disabled={isLoadingGPS}
             >
@@ -268,8 +268,7 @@ export default function LocationModal({
             <div className="border-t border-border/30">
               <div className="px-6 py-4 border-b border-border/10">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
+                  <h4 className="text-sm font-medium text-muted-foreground">
                     Direcciones recientes
                   </h4>
                   <Button
@@ -291,7 +290,7 @@ export default function LocationModal({
                       onClick={() => handleHistorySelect(item)}
                     >
                       <div className="flex items-start gap-3">
-                        <Clock className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                        <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-foreground mb-1 flex items-center gap-2">
                             {item.name}
