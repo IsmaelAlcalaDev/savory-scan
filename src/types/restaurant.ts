@@ -14,6 +14,15 @@ export interface Restaurant {
   favorites_count: number;
   cover_image_url?: string;
   logo_url?: string;
+  // Campos de verificación
+  verification_level?: 'basic' | 'standard' | 'premium';
+  verification_status?: 'pending' | 'in_review' | 'verified' | 'rejected' | 'disputed' | 'suspended';
+  verification_score?: number;
+  verification_requested_at?: string;
+  verification_completed_at?: string;
+  verification_notes?: string;
+  verified_by?: string;
+  last_verification_update?: string;
 }
 
 export interface RestaurantService {
