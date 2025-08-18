@@ -6,6 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import CuisineFilter from './CuisineFilter';
 import FoodTypeFilter from './FoodTypeFilter';
+import RestaurantCard from './RestaurantCard';
 import AllDishCard from './AllDishCard';
 import LocationModal from './LocationModal';
 import BottomNavigation from './BottomNavigation';
@@ -14,12 +15,13 @@ import MenuModal from './MenuModal';
 import MobileHeader from './MobileHeader';
 import TabletHeader from './TabletHeader';
 import DesktopHeader from './DesktopHeader';
-import UnifiedRestaurantsTab from './UnifiedRestaurantsTab';
+import { useRestaurants } from '@/hooks/useRestaurants';
 import { useDishes } from '@/hooks/useDishes';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Skeleton } from '@/components/ui/skeleton';
 import DishesGrid from './DishesGrid';
 import FilterTags, { ResetFiltersButton } from './FilterTags';
+import type { Restaurant } from '@/types/restaurant';
 
 interface FoodieSpotLayoutProps {
   initialTab?: 'restaurants' | 'dishes' | 'account';
@@ -62,6 +64,7 @@ export default function FoodieSpotLayout({
   // Add new states for quick filters
   const [isBudgetFriendly, setIsBudgetFriendly] = useState(false);
 
+  // Determine active tab based on current route
   const getActiveTabFromRoute = (): 'restaurants' | 'dishes' | 'account' => {
     if (location.pathname === '/platos') return 'dishes';
     if (location.pathname === '/restaurantes' || location.pathname === '/') return 'restaurants';
@@ -80,6 +83,7 @@ export default function FoodieSpotLayout({
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  // Cargar configuración de branding desde la BD
   const {
     data: appSettings
   } = useAppSettings();
@@ -214,10 +218,12 @@ export default function FoodieSpotLayout({
     }
   };
 
+  // Get current search query based on active tab
   const getCurrentSearchQuery = () => {
     return activeBottomTab === 'dishes' ? searchQueryDishes : searchQueryRestaurants;
   };
 
+  // Set search query for current tab
   const setCurrentSearchQuery = (query: string) => {
     if (activeBottomTab === 'dishes') {
       setSearchQueryDishes(query);
@@ -262,6 +268,24 @@ export default function FoodieSpotLayout({
   };
 
   const {
+    restaurants,
+    loading: restaurantsLoading,
+    error: restaurantsError
+  } = useRestaurants({
+    searchQuery: searchQueryRestaurants,
+    userLat: userLocation?.lat,
+    userLng: userLocation?.lng,
+    maxDistance: 1000, // Increased to 1000km to cover all of Spain
+    cuisineTypeIds: selectedCuisines.length > 0 ? selectedCuisines : undefined,
+    priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges as ('€' | '€€' | '€€€' | '€€€€')[] : undefined,
+    isHighRated: isHighRated,
+    selectedEstablishmentTypes: selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined,
+    selectedDietTypes: selectedDietTypes.length > 0 ? selectedDietTypes : undefined,
+    isOpenNow: isOpenNow,
+    isBudgetFriendly: isBudgetFriendly
+  });
+  
+  const {
     dishes,
     loading: dishesLoading,
     error: dishesError
@@ -277,6 +301,9 @@ export default function FoodieSpotLayout({
   });
 
   console.log('FoodieSpotLayout: Hook results:', {
+    restaurants: restaurants.length,
+    restaurantsLoading,
+    restaurantsError,
     dishes: dishes.length,
     dishesLoading,
     dishesError,
@@ -379,6 +406,7 @@ export default function FoodieSpotLayout({
     isBudgetFriendly;
 
     if (activeBottomTab === 'account') {
+      // Show account content directly when authenticated and on account tab
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
@@ -439,18 +467,66 @@ export default function FoodieSpotLayout({
         </>;
     }
 
-    // Use UnifiedRestaurantsTab for restaurants
-    return (
-      <UnifiedRestaurantsTab
-        searchQuery={searchQueryRestaurants}
-        cuisineTypeIds={selectedCuisines.length > 0 ? selectedCuisines : undefined}
-        priceRanges={selectedPriceRanges.length > 0 ? selectedPriceRanges : undefined}
-        isHighRated={isHighRated}
-        selectedEstablishmentTypes={selectedEstablishmentTypes.length > 0 ? selectedEstablishmentTypes : undefined}
-        selectedDietTypes={selectedDietTypes.length > 0 ? selectedDietTypes : undefined}
-        isOpenNow={isOpenNow}
-      />
-    );
+    // Default restaurants content (siempre mostrar cuando no sea 'dishes' ni 'account')
+    return <>
+        {/* Filter Tags with Quick Filters integrated */}
+        <FilterTags 
+          activeTab="restaurants" 
+          selectedCuisines={selectedCuisines} 
+          selectedFoodTypes={selectedFoodTypes} 
+          selectedPriceRanges={selectedPriceRanges} 
+          isHighRated={isHighRated} 
+          selectedEstablishmentTypes={selectedEstablishmentTypes} 
+          selectedDietTypes={selectedDietTypes} 
+          isOpenNow={isOpenNow}
+          isBudgetFriendly={isBudgetFriendly}
+          onClearFilter={handleClearFilter}
+          onPriceRangeChange={setSelectedPriceRanges}
+          onHighRatedChange={setIsHighRated}
+          onEstablishmentTypeChange={setSelectedEstablishmentTypes}
+          onDietTypeChange={setSelectedDietTypes}
+          onOpenNowChange={(value: boolean) => setIsOpenNow(value)}
+          onBudgetFriendlyChange={setIsBudgetFriendly}
+        />
+
+        {/* Results Header with adjusted spacing */}
+        <div className="flex items-center justify-between mb-3 mt-3">
+          <div>
+            <h2 className="text-sm font-medium mb-1 text-muted-foreground">
+              {getResultsText(restaurants.length, restaurantsLoading)}
+            </h2>
+            {restaurantsError && <p className="text-sm text-destructive mt-1">Error: {restaurantsError}</p>}
+          </div>
+          <ResetFiltersButton 
+            hasActiveFilters={hasActiveFilters} 
+            onClearAll={() => handleClearFilter('all')} 
+          />
+        </div>
+
+        {/* Restaurant Grid - Responsive: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols large screens */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+          {restaurantsLoading ? Array.from({
+          length: 12
+        }).map((_, i) => <div key={i} className="space-y-3">
+                <Skeleton className="h-48 w-full rounded-lg" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </div>) : restaurantsError ? <div className="col-span-full text-center py-8">
+              <p className="text-muted-foreground">Error al cargar restaurantes: {restaurantsError}</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Revisa la consola para más detalles
+              </p>
+            </div> : restaurants.length === 0 ? <div className="col-span-full text-center py-8">
+              <p className="text-muted-foreground">No se encontraron restaurantes</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Intenta cambiar los filtros de búsqueda
+              </p>
+            </div> : restaurants.map((restaurant: Restaurant) => <RestaurantCard key={restaurant.id} id={restaurant.id} name={restaurant.name} slug={restaurant.slug} description={restaurant.description} priceRange={restaurant.price_range} googleRating={restaurant.google_rating} googleRatingCount={restaurant.google_rating_count} distance={restaurant.distance_km} cuisineTypes={restaurant.cuisine_types} establishmentType={restaurant.establishment_type} services={restaurant.services} favoritesCount={restaurant.favorites_count} coverImageUrl={restaurant.cover_image_url} logoUrl={restaurant.logo_url} onLoginRequired={handleLoginRequired} />)}
+        </div>
+      </>;
   };
 
   return <div className="min-h-screen bg-white pb-20">

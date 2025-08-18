@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -279,27 +280,30 @@ export const useInfiniteRestaurants = (props: UseInfiniteRestaurantsProps) => {
         }
       }
 
-      // Corrected sorting logic: Only sort premium restaurants by distance, free restaurants stay in natural order
+      // Sort restaurants according to sortBy
       const sortedData = formattedData.sort((a, b) => {
         switch (sortBy) {
           case 'recommended':
+            // First premium restaurants by distance, then free restaurants by favorites/rating
             const aPremium = a.subscription_plan === 'premium';
             const bPremium = b.subscription_plan === 'premium';
             
-            // Premium restaurants come first
             if (aPremium && !bPremium) return -1;
             if (!aPremium && bPremium) return 1;
             
-            // If both are premium, sort by distance
             if (aPremium && bPremium) {
+              // Both premium: sort by distance
               if (a.distance_km === null && b.distance_km === null) return 0;
               if (a.distance_km === null) return 1;
               if (b.distance_km === null) return -1;
               return a.distance_km - b.distance_km;
+            } else {
+              // Both free: sort by favorites count, then rating
+              if (b.favorites_count !== a.favorites_count) {
+                return (b.favorites_count || 0) - (a.favorites_count || 0);
+              }
+              return (b.google_rating || 0) - (a.google_rating || 0);
             }
-            
-            // If both are free, keep natural order (no sorting)
-            return 0;
             
           case 'distance':
           default:

@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import InfiniteRestaurantsGrid from './InfiniteRestaurantsGrid';
 import RestaurantSortSelector from './RestaurantSortSelector';
-import FilterTags, { ResetFiltersButton } from './FilterTags';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 interface UnifiedRestaurantsTabProps {
@@ -22,16 +21,6 @@ export default function UnifiedRestaurantsTab(props: UnifiedRestaurantsTabProps)
   const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
 
   console.log('UnifiedRestaurantsTab: sortBy state =', sortBy, 'hasLocation =', hasLocation);
-
-  // Check if there are active filters
-  const hasActiveFilters = Boolean(
-    (props.cuisineTypeIds && props.cuisineTypeIds.length > 0) ||
-    (props.priceRanges && props.priceRanges.length > 0) ||
-    props.isHighRated ||
-    (props.selectedEstablishmentTypes && props.selectedEstablishmentTypes.length > 0) ||
-    (props.selectedDietTypes && props.selectedDietTypes.length > 0) ||
-    props.isOpenNow
-  );
 
   return (
     <div className="space-y-6">
