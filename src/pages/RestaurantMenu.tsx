@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapPin, Phone, Globe, ChevronLeft, Star, Utensils } from 'lucide-react';
@@ -10,7 +9,7 @@ import DishSearchBar from '@/components/DishSearchBar';
 import OrderSimulatorModal from '@/components/OrderSimulatorModal';
 import { Separator } from "@/components/ui/separator"
 import { useNavigate } from 'react-router-dom';
-import type { Dish } from '@/hooks/useRestaurantMenu';
+import type { Dish } from '@/types/dish';
 
 interface Restaurant {
   id: string;

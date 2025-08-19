@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Dish, MenuSection } from '@/types/dish';
 
 interface UseRestaurantMenuProps {
   restaurantSlug: string;
@@ -22,8 +23,8 @@ interface UseRestaurantMenuProps {
 
 export const useRestaurantMenu = (props: UseRestaurantMenuProps) => {
   const [restaurant, setRestaurant] = useState<any>(null);
-  const [sections, setSections] = useState<any[]>([]);
-  const [dishes, setDishes] = useState<any[]>([]);
+  const [sections, setSections] = useState<MenuSection[]>([]);
+  const [dishes, setDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -166,7 +167,7 @@ export const useRestaurantMenu = (props: UseRestaurantMenuProps) => {
         filteredDishes = filteredDishes.filter(dish => 
           dish.custom_tags && 
           Array.isArray(dish.custom_tags) &&
-          customTags.some(tag => dish.custom_tags.includes(tag))
+          customTags.some(tag => (dish.custom_tags as string[]).includes(tag))
         );
       }
 
@@ -188,3 +189,5 @@ export const useRestaurantMenu = (props: UseRestaurantMenuProps) => {
     refetch: fetchRestaurantMenu
   };
 };
+
+export type { Dish, MenuSection };

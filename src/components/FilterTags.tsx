@@ -235,8 +235,8 @@ export default function FilterTags({
         return (
           <div className="[&_label]:text-base space-y-4">
             <CustomTagsFilter
-              selectedCustomTags={selectedCustomTags}
-              onCustomTagsChange={onCustomTagsChange}
+              selectedTags={selectedCustomTags}
+              onTagsChange={onCustomTagsChange}
             />
           </div>
         );

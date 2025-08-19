@@ -1,9 +1,8 @@
-
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import type { MenuSection } from '@/hooks/useRestaurantMenu';
+import type { MenuSection } from '@/types/dish';
 import UnifiedFiltersModal from '@/components/UnifiedFiltersModal';
 import { useEffect, useRef } from 'react';
 

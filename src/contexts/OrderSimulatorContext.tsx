@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import type { Dish } from '@/hooks/useRestaurantMenu';
+import type { Dish } from '@/types/dish';
 
 export interface Diner {
   id: string;

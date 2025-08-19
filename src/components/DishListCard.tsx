@@ -1,11 +1,10 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import DishFavoriteButton from './DishFavoriteButton';
 import DinerSelector from './DinerSelector';
 import DishVariantsModal from './DishVariantsModal';
 import DishInfoModal from './DishInfoModal';
-import type { Dish } from '@/hooks/useRestaurantMenu';
+import type { Dish } from '@/types/dish';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 import { useState } from 'react';
 

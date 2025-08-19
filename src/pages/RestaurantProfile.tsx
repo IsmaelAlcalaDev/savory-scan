@@ -35,6 +35,7 @@ import RestaurantSocialSection from '@/components/RestaurantSocialSection';
 import RestaurantServicesList from '@/components/RestaurantServicesList';
 import RestaurantDeliveryLinks from '@/components/RestaurantDeliveryLinks';
 import { useRestaurantSchedules } from '@/hooks/useRestaurantSchedules';
+import type { Dish } from '@/types/dish';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();

@@ -5,7 +5,7 @@ import { Utensils } from 'lucide-react';
 import { useState } from 'react';
 import DishCard from './DishCard';
 import DishListCard from './DishListCard';
-import type { Dish } from '@/hooks/useRestaurantMenu';
+import type { Dish } from '@/types/dish';
 import { useRestaurantDishes } from '@/hooks/useRestaurantDishes';
 
 interface RestaurantDishesGridProps {
@@ -19,7 +19,7 @@ export default function RestaurantDishesGrid({
 }: RestaurantDishesGridProps) {
   console.log('RestaurantDishesGrid: Rendering with restaurantId:', restaurantId, 'viewMode:', viewMode);
   
-  const { dishes, loading, error } = useRestaurantDishes(restaurantId);
+  const { dishes, loading, error } = useRestaurantDishes({ restaurantId });
   const [expandedDishId, setExpandedDishId] = useState<number | null>(null);
 
   console.log('RestaurantDishesGrid: Hook result:', { dishes: dishes.length, loading, error });

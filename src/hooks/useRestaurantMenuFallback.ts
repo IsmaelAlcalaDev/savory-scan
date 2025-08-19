@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { type Dish, type MenuSection } from '@/hooks/useRestaurantMenu';
+import type { Dish, MenuSection } from '@/types/dish';
 
 export const useRestaurantMenuFallback = (restaurantId: number) => {
   const [sections, setSections] = useState<MenuSection[]>([]);

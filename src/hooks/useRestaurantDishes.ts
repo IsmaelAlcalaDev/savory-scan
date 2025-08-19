@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Dish } from '@/types/dish';
 
 interface UseDishesProps {
   restaurantId: number;
@@ -21,7 +22,7 @@ interface UseDishesProps {
 }
 
 export const useRestaurantDishes = (props: UseDishesProps) => {
-  const [dishes, setDishes] = useState<any[]>([]);
+  const [dishes, setDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -138,7 +139,7 @@ export const useRestaurantDishes = (props: UseDishesProps) => {
         filteredData = filteredData.filter(dish => 
           dish.custom_tags && 
           Array.isArray(dish.custom_tags) &&
-          customTags.some(tag => dish.custom_tags.includes(tag))
+          customTags.some(tag => (dish.custom_tags as string[]).includes(tag))
         );
       }
 

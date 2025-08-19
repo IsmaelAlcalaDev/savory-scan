@@ -16,18 +16,13 @@ export const useRestaurantSchedules = (restaurantId: number) => {
         setLoading(true);
         setError(null);
 
-        // Usar query SQL directo ya que la función RPC no existe
+        // Consulta directa a la tabla de horarios
         const { data, error: fetchError } = await supabase
-          .rpc('get_restaurant_schedules', { p_restaurant_id: restaurantId })
-          .catch(async () => {
-            // Fallback: consulta directa a la tabla
-            return await supabase
-              .from('restaurant_schedules')
-              .select('*')
-              .eq('restaurant_id', restaurantId)
-              .eq('is_active', true)
-              .order('day_of_week');
-          });
+          .from('restaurant_schedules')
+          .select('*')
+          .eq('restaurant_id', restaurantId)
+          .eq('is_active', true)
+          .order('day_of_week');
 
         if (fetchError) {
           throw fetchError;

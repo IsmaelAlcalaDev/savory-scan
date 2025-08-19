@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DinerSelector from './DinerSelector';
-import type { Dish } from '@/hooks/useRestaurantMenu';
+import type { Dish } from '@/types/dish';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 
 interface DishVariantSelectorProps {
