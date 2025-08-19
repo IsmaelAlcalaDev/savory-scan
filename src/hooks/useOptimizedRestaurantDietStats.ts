@@ -1,14 +1,14 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Restaurant {
+interface RestaurantWithDietStats {
   id: number;
   name: string;
   slug: string;
   description?: string;
   price_range: string;
   google_rating?: number;
+  google_rating_count?: number;
   distance_km?: number;
   cuisine_types: string[];
   establishment_type?: string;
@@ -16,12 +16,15 @@ interface Restaurant {
   favorites_count: number;
   cover_image_url?: string;
   logo_url?: string;
-  specializes_in_diet?: number[];
-  diet_certifications?: string[];
-  diet_percentages?: Record<string, number>;
+  // Pre-calculated diet stats
+  vegan_pct?: number;
+  vegetarian_pct?: number;
+  glutenfree_pct?: number;
+  healthy_pct?: number;
+  items_total?: number;
 }
 
-interface UseEnhancedIntelligentRestaurantsProps {
+interface UseOptimizedRestaurantDietStatsProps {
   searchQuery?: string;
   userLat?: number;
   userLng?: number;
@@ -31,6 +34,7 @@ interface UseEnhancedIntelligentRestaurantsProps {
   isHighRated?: boolean;
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
+  minDietPercentages?: Record<string, number>; // New: min percentages for diet filters
   isOpenNow?: boolean;
 }
 
@@ -45,37 +49,24 @@ const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * c;
 };
 
-const calculateDietPercentage = (dishes: any[], category: string): number => {
-  if (dishes.length === 0) return 0;
-  
-  const matchingDishes = dishes.filter(dish => {
-    switch (category) {
-      case 'vegetarian': return dish.is_vegetarian;
-      case 'vegan': return dish.is_vegan;
-      case 'gluten_free': return dish.is_gluten_free;
-      case 'healthy': return dish.is_healthy;
-      default: return false;
-    }
-  });
-  
-  return Math.round((matchingDishes.length / dishes.length) * 100);
-};
-
-export const useEnhancedIntelligentRestaurants = ({
-  searchQuery = '',
-  userLat,
-  userLng,
-  maxDistance = 50,
-  cuisineTypeIds,
-  priceRanges,
-  isHighRated = false,
-  selectedEstablishmentTypes,
-  selectedDietTypes,
-  isOpenNow = false
-}: UseEnhancedIntelligentRestaurantsProps) => {
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+export const useOptimizedRestaurantDietStats = (props: UseOptimizedRestaurantDietStatsProps) => {
+  const [restaurants, setRestaurants] = useState<RestaurantWithDietStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    searchQuery = '',
+    userLat,
+    userLng,
+    maxDistance = 50,
+    cuisineTypeIds,
+    priceRanges,
+    isHighRated = false,
+    selectedEstablishmentTypes,
+    selectedDietTypes,
+    minDietPercentages = {},
+    isOpenNow = false
+  } = props;
 
   useEffect(() => {
     const fetchRestaurants = async () => {
@@ -83,18 +74,42 @@ export const useEnhancedIntelligentRestaurants = ({
         setLoading(true);
         setError(null);
 
-        // Use the existing restaurants_full view until types are updated
+        console.log('useOptimizedRestaurantDietStats: Fetching with pre-calculated diet stats');
+
+        // Use optimized query with diet stats JOIN
         let query = supabase
           .from('restaurants_full')
-          .select('*');
+          .select(`
+            *,
+            restaurant_diet_stats!inner (
+              vegan_pct,
+              vegetarian_pct,
+              glutenfree_pct,
+              healthy_pct,
+              items_total
+            )
+          `);
 
         // Apply search filter
         if (searchQuery && searchQuery.trim().length > 0) {
           query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-          console.log('Using text search for intelligent restaurants:', searchQuery);
         }
 
-        // Apply other filters...
+        // Apply diet percentage filters EFFICIENTLY using pre-calculated stats
+        if (minDietPercentages.vegan && minDietPercentages.vegan > 0) {
+          query = query.gte('restaurant_diet_stats.vegan_pct', minDietPercentages.vegan);
+        }
+        if (minDietPercentages.vegetarian && minDietPercentages.vegetarian > 0) {
+          query = query.gte('restaurant_diet_stats.vegetarian_pct', minDietPercentages.vegetarian);
+        }
+        if (minDietPercentages.glutenfree && minDietPercentages.glutenfree > 0) {
+          query = query.gte('restaurant_diet_stats.glutenfree_pct', minDietPercentages.glutenfree);
+        }
+        if (minDietPercentages.healthy && minDietPercentages.healthy > 0) {
+          query = query.gte('restaurant_diet_stats.healthy_pct', minDietPercentages.healthy);
+        }
+
+        // Apply other existing filters
         if (isHighRated) {
           query = query.gte('google_rating', 4.5);
         }
@@ -115,7 +130,7 @@ export const useEnhancedIntelligentRestaurants = ({
           query = query.in('establishment_type_id', selectedEstablishmentTypes);
         }
 
-        const { data, error } = await query.limit(50);
+        const { data, error } = await query.limit(100);
 
         if (error) {
           throw error;
@@ -147,6 +162,9 @@ export const useEnhancedIntelligentRestaurants = ({
             services = [];
           }
 
+          // Extract diet stats from the JOIN
+          const dietStats = restaurant.restaurant_diet_stats?.[0] || {};
+
           return {
             id: restaurant.id,
             name: restaurant.name,
@@ -162,13 +180,16 @@ export const useEnhancedIntelligentRestaurants = ({
             favorites_count: restaurant.favorites_count || 0,
             cover_image_url: restaurant.cover_image_url,
             logo_url: restaurant.logo_url,
-            specializes_in_diet: restaurant.specializes_in_diet || [],
-            diet_certifications: restaurant.diet_certifications || [],
-            diet_percentages: restaurant.diet_percentages || {}
+            // Include pre-calculated diet percentages
+            vegan_pct: dietStats.vegan_pct || 0,
+            vegetarian_pct: dietStats.vegetarian_pct || 0,
+            glutenfree_pct: dietStats.glutenfree_pct || 0,
+            healthy_pct: dietStats.healthy_pct || 0,
+            items_total: dietStats.items_total || 0
           };
         }).filter(Boolean) || [];
 
-        // Enhanced diet type filtering with specializations
+        // Apply legacy diet type filtering if needed (fallback)
         if (selectedDietTypes && selectedDietTypes.length > 0) {
           const { data: dietTypesData } = await supabase
             .from('diet_types')
@@ -176,30 +197,32 @@ export const useEnhancedIntelligentRestaurants = ({
             .in('id', selectedDietTypes);
 
           if (dietTypesData && dietTypesData.length > 0) {
-            const restaurantIds = formattedData.map(r => r.id);
-            
-            if (restaurantIds.length > 0) {
-              // Check for restaurants with diet specializations first
-              const specializedRestaurants = new Set<number>();
-              formattedData.forEach(restaurant => {
-                if (restaurant.specializes_in_diet && restaurant.specializes_in_diet.length > 0) {
-                  const hasMatchingSpecialization = selectedDietTypes.some(dietId => 
-                    restaurant.specializes_in_diet!.includes(dietId)
-                  );
-                  if (hasMatchingSpecialization) {
-                    specializedRestaurants.add(restaurant.id);
-                  }
+            // Filter by diet specializations as fallback
+            formattedData = formattedData.filter(restaurant => {
+              // Use percentage-based filtering when available
+              for (const dietType of dietTypesData) {
+                const minPercentage = dietType.min_percentage || 0;
+                switch (dietType.category) {
+                  case 'vegan':
+                    if ((restaurant.vegan_pct || 0) >= minPercentage) return true;
+                    break;
+                  case 'vegetarian':
+                    if ((restaurant.vegetarian_pct || 0) >= minPercentage) return true;
+                    break;
+                  case 'gluten_free':
+                    if ((restaurant.glutenfree_pct || 0) >= minPercentage) return true;
+                    break;
+                  case 'healthy':
+                    if ((restaurant.healthy_pct || 0) >= minPercentage) return true;
+                    break;
                 }
-              });
-
-              formattedData = formattedData.filter(restaurant => 
-                specializedRestaurants.has(restaurant.id)
-              );
-            }
+              }
+              return false;
+            });
           }
         }
 
-        // Sort results maintaining search relevance
+        // Sort results
         let sortedData = formattedData;
         if (userLat && userLng) {
           sortedData = formattedData
@@ -213,9 +236,10 @@ export const useEnhancedIntelligentRestaurants = ({
         }
 
         setRestaurants(sortedData);
+        console.log('useOptimizedRestaurantDietStats: Fetched', sortedData.length, 'restaurants with diet stats');
 
       } catch (err) {
-        console.error('Error fetching intelligent restaurants:', err);
+        console.error('Error fetching restaurants with diet stats:', err);
         setError(err instanceof Error ? err.message : 'Error al cargar restaurantes');
         setRestaurants([]);
       } finally {
@@ -225,10 +249,9 @@ export const useEnhancedIntelligentRestaurants = ({
 
     fetchRestaurants();
 
+    // Handle favorites updates (keep existing realtime functionality)
     const handleFavoriteToggled = (event: CustomEvent) => {
       const { restaurantId, newCount } = event.detail;
-      console.log('useRestaurants: Received favoriteToggled event:', { restaurantId, newCount });
-      
       setRestaurants(prev =>
         prev.map(r => 
           r.id === restaurantId 
@@ -251,7 +274,6 @@ export const useEnhancedIntelligentRestaurants = ({
           const newFavoritesCount = updatedRestaurant?.favorites_count;
           
           if (typeof restaurantId === 'number' && typeof newFavoritesCount === 'number') {
-            console.log('useRestaurants: Received favorites_count update from DB:', { restaurantId, newFavoritesCount });
             setRestaurants(prev =>
               prev.map(r => 
                 r.id === restaurantId 
@@ -269,7 +291,7 @@ export const useEnhancedIntelligentRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, JSON.stringify(minDietPercentages), isOpenNow]);
 
   return { restaurants, loading, error };
 };

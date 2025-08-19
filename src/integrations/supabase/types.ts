@@ -650,13 +650,6 @@ export type Database = {
             foreignKeyName: "dishes_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "dishes_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -955,13 +948,6 @@ export type Database = {
             foreignKeyName: "events_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "events_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -1172,13 +1158,6 @@ export type Database = {
             foreignKeyName: "invoices_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "invoices_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -1342,13 +1321,6 @@ export type Database = {
             foreignKeyName: "menu_sections_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "menu_sections_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -1505,13 +1477,6 @@ export type Database = {
           view_to_ticket_rate?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "peak_hours_metrics_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
           {
             foreignKeyName: "peak_hours_metrics_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -1853,13 +1818,6 @@ export type Database = {
             foreignKeyName: "promotions_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "promotions_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -2097,13 +2055,6 @@ export type Database = {
             foreignKeyName: "restaurant_cuisines_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "restaurant_cuisines_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -2132,6 +2083,84 @@ export type Database = {
             foreignKeyName: "restaurant_cuisines_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
+            referencedRelation: "v_restaurants_with_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_diet_stats: {
+        Row: {
+          glutenfree_pct: number | null
+          glutenfree_total: number | null
+          healthy_pct: number | null
+          healthy_total: number | null
+          items_total: number | null
+          restaurant_id: number
+          updated_at: string | null
+          vegan_pct: number | null
+          vegan_total: number | null
+          vegetarian_pct: number | null
+          vegetarian_total: number | null
+        }
+        Insert: {
+          glutenfree_pct?: number | null
+          glutenfree_total?: number | null
+          healthy_pct?: number | null
+          healthy_total?: number | null
+          items_total?: number | null
+          restaurant_id: number
+          updated_at?: string | null
+          vegan_pct?: number | null
+          vegan_total?: number | null
+          vegetarian_pct?: number | null
+          vegetarian_total?: number | null
+        }
+        Update: {
+          glutenfree_pct?: number | null
+          glutenfree_total?: number | null
+          healthy_pct?: number | null
+          healthy_total?: number | null
+          items_total?: number | null
+          restaurant_id?: number
+          updated_at?: string | null
+          vegan_pct?: number | null
+          vegan_total?: number | null
+          vegetarian_pct?: number | null
+          vegetarian_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurant_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants_with_counters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_diet_stats_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
             referencedRelation: "v_restaurants_with_images"
             referencedColumns: ["id"]
           },
@@ -2166,13 +2195,6 @@ export type Database = {
           restaurant_id?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "restaurant_gallery_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
           {
             foreignKeyName: "restaurant_gallery_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -2282,13 +2304,6 @@ export type Database = {
             foreignKeyName: "restaurant_metrics_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "restaurant_metrics_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -2353,13 +2368,6 @@ export type Database = {
             foreignKeyName: "restaurant_poi_proximity_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "restaurant_poi_proximity_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -2419,13 +2427,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "restaurant_rating_cache_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: true
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
           {
             foreignKeyName: "restaurant_rating_cache_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -2496,13 +2497,6 @@ export type Database = {
             foreignKeyName: "restaurant_schedules_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "restaurant_schedules_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -2553,13 +2547,6 @@ export type Database = {
           service_id?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "restaurant_services_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
           {
             foreignKeyName: "restaurant_services_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -2643,13 +2630,6 @@ export type Database = {
           restaurant_id?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "restaurant_special_schedules_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
           {
             foreignKeyName: "restaurant_special_schedules_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -3263,13 +3243,6 @@ export type Database = {
             foreignKeyName: "ticket_simulations_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "ticket_simulations_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -3517,13 +3490,6 @@ export type Database = {
             foreignKeyName: "user_favorites_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "user_favorites_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -3727,13 +3693,6 @@ export type Database = {
             foreignKeyName: "user_saved_dishes_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "user_saved_dishes_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -3814,13 +3773,6 @@ export type Database = {
             foreignKeyName: "user_saved_events_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "user_saved_events_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -3887,13 +3839,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "user_saved_restaurants_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
           {
             foreignKeyName: "user_saved_restaurants_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -4200,13 +4145,6 @@ export type Database = {
             foreignKeyName: "dishes_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "dishes_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -4310,22 +4248,6 @@ export type Database = {
           total_favorites: number | null
           type: string | null
           week_favorites: number | null
-        }
-        Relationships: []
-      }
-      restaurant_diet_stats: {
-        Row: {
-          gluten_free_percentage: number | null
-          has_gluten_free_options: boolean | null
-          has_healthy_options: boolean | null
-          has_vegan_options: boolean | null
-          has_vegetarian_options: boolean | null
-          healthy_percentage: number | null
-          restaurant_id: number | null
-          restaurant_name: string | null
-          total_dishes: number | null
-          vegan_percentage: number | null
-          vegetarian_percentage: number | null
         }
         Relationships: []
       }
@@ -4582,13 +4504,6 @@ export type Database = {
             foreignKeyName: "ticket_simulations_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "ticket_simulations_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -4664,13 +4579,6 @@ export type Database = {
             foreignKeyName: "dishes_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "dishes_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
             referencedRelation: "restaurant_stats"
             referencedColumns: ["id"]
           },
@@ -4724,13 +4632,6 @@ export type Database = {
           restaurant_slug: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "restaurant_gallery_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
           {
             foreignKeyName: "restaurant_gallery_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -5456,61 +5357,9 @@ export type Database = {
         Args: { "": string }
         Returns: unknown
       }
-      get_diet_category_counts: {
-        Args: {
-          city_id?: number
-          radius_km?: number
-          user_lat?: number
-          user_lng?: number
-        }
-        Returns: {
-          gluten_free_count: number
-          healthy_count: number
-          vegan_count: number
-          vegetarian_count: number
-        }[]
-      }
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
-      }
-      get_restaurants_by_diet_categories: {
-        Args: {
-          cuisine_type_ids?: number[]
-          diet_categories?: string[]
-          establishment_type_ids?: number[]
-          is_budget_friendly?: boolean
-          is_high_rated?: boolean
-          is_open_now?: boolean
-          max_distance_km?: number
-          price_ranges?: string[]
-          search_query?: string
-          user_lat?: number
-          user_lng?: number
-        }
-        Returns: {
-          cover_image_url: string
-          cuisine_types: Json
-          description: string
-          distance_km: number
-          establishment_type: string
-          favorites_count: number
-          gluten_free_pct: number
-          google_rating: number
-          google_rating_count: number
-          healthy_pct: number
-          latitude: number
-          logo_url: string
-          longitude: number
-          name: string
-          price_range: string
-          restaurant_id: number
-          services: Json
-          slug: string
-          total_dishes: number
-          vegan_pct: number
-          vegetarian_pct: number
-        }[]
       }
       get_stale_rating_cache: {
         Args: Record<PropertyKey, never>
@@ -5770,10 +5619,6 @@ export type Database = {
       }
       recalc_diet_stats: {
         Args: { restaurant_id_param: number }
-        Returns: undefined
-      }
-      refresh_restaurant_diet_stats: {
-        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       search_dishes_fulltext: {

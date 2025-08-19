@@ -3,9 +3,9 @@ import { useEffect, useRef } from 'react'
 import { useAuditedRestaurantFeed } from '@/hooks/useAuditedRestaurantFeed'
 import InstrumentedRestaurantCard from './InstrumentedRestaurantCard'
 import LoadMoreButton from './LoadMoreButton'
-import OptimizedPerformanceMonitor from './OptimizedPerformanceMonitor'
+import PerformanceMetrics from './PerformanceMetrics'
 import { Skeleton } from '@/components/ui/skeleton'
-import { optimizedImagePreloader } from '@/utils/optimizedImagePreloader'
+import { preloadRestaurantImages } from '@/utils/imagePreloader'
 import { useAnalytics } from '@/hooks/useAnalytics'
 
 interface AuditedRestaurantsGridProps {
@@ -39,14 +39,10 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
     cacheHit
   } = useAuditedRestaurantFeed(props)
 
-  // Optimized image preloading
+  // Preload first batch of images for better LCP
   useEffect(() => {
     if (restaurants.length > 0) {
-      optimizedImagePreloader.preloadRestaurantImages(restaurants.slice(0, 8))
-        .then(() => {
-          console.log('🖼️ Images preloaded successfully');
-        })
-        .catch(console.warn);
+      preloadRestaurantImages(restaurants.slice(0, 6))
     }
   }, [restaurants])
 
@@ -104,40 +100,26 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
 
   return (
     <div ref={containerRef} className="space-y-6">
-      {/* Enhanced performance metrics */}
-      {(process.env.NODE_ENV === 'development' || systemType?.includes('audit')) && (
+      {/* Performance metrics - show in development or for audit system */}
+      {(process.env.NODE_ENV === 'development' || systemType === 'audit') && (
         <div className="space-y-2">
-          <OptimizedPerformanceMonitor />
+          <PerformanceMetrics serverTiming={serverTiming} />
           <div className="text-xs text-muted-foreground space-y-1">
-            <div className="flex items-center gap-4">
-              <span>
-                Sistema: {
-                  systemType === 'audit-optimized' ? '🚀 AUDIT OPTIMIZADO (Cache + MV + RPC)' :
-                  systemType === 'rpc-optimized' ? '⚡ RPC OPTIMIZADO' : 
-                  systemType === 'loading' ? 'Cargando...' :
-                  'Sistema Unificado'
-                }
-              </span>
-              {serverTiming && (
-                <span className={`px-2 py-1 rounded text-xs ${
-                  serverTiming < 100 ? 'bg-green-100 text-green-800' :
-                  serverTiming < 300 ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {serverTiming.toFixed(1)}ms
-                </span>
-              )}
+            <div>
+              Sistema activo: {
+                systemType === 'audit' ? 'AUDIT (Optimizado con MV + RPC)' :
+                systemType === 'rpc-optimized' ? 'RPC Feed (Nuevo)' : 
+                systemType === 'loading' ? 'Cargando...' :
+                'Sistema Unificado'
+              }
             </div>
-            {systemType === 'audit-optimized' && (
-              <div className="flex items-center gap-4 text-xs">
-                <span className={cacheHit ? 'text-green-600' : 'text-orange-600'}>
-                  Cache: {cacheHit ? '✅ HIT' : '⚡ MISS'}
+            {systemType === 'audit' && (
+              <div className="flex items-center gap-2">
+                <span className={cacheHit ? 'text-green-600' : 'text-yellow-600'}>
+                  Caché: {cacheHit ? 'HIT' : 'MISS'}
                 </span>
                 <span className="text-blue-600">
-                  📊 {restaurants.length} resultados
-                </span>
-                <span className="text-purple-600">
-                  🎯 PostGIS + Índices optimizados
+                  Resultados: {restaurants.length}
                 </span>
               </div>
             )}
@@ -170,8 +152,8 @@ export default function AuditedRestaurantsGrid(props: AuditedRestaurantsGridProp
         ))}
       </div>
       
-      {/* Show LoadMore button only for systems that support pagination */}
-      {systemType !== 'audit-optimized' && (
+      {/* Show LoadMore button only for non-audit systems */}
+      {systemType !== 'audit' && (
         <LoadMoreButton
           onLoadMore={loadMore}
           loading={false}

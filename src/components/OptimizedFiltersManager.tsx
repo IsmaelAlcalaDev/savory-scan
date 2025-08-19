@@ -1,185 +1,163 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Filter, X } from 'lucide-react';
+
+import { useState } from 'react';
 import CuisineFilterWithCounts from './CuisineFilterWithCounts';
 import PriceFilterWithCounts from './PriceFilterWithCounts';
 import EstablishmentTypeFilterWithCounts from './EstablishmentTypeFilterWithCounts';
-import DietFilter from './DietFilter';
-import { useFacetCounts } from '@/hooks/useFacetCounts';
+import SimpleDietFilterWithCounts from './SimpleDietFilterWithCounts';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface OptimizedFiltersManagerProps {
-  searchQuery: string;
-  cuisineTypeIds: number[];
-  priceRanges: string[];
-  isHighRated: boolean;
+  selectedCuisines: number[];
+  onCuisineChange: (cuisines: number[]) => void;
+  selectedPriceRanges: string[];
+  onPriceRangeChange: (ranges: string[]) => void;
   selectedEstablishmentTypes: number[];
-  selectedDietTypes: number[];
-  isOpenNow: boolean;
+  onEstablishmentTypeChange: (types: number[]) => void;
+  selectedDietCategories: string[];
+  onDietCategoryChange: (categories: string[]) => void;
   cityId?: number;
   userLat?: number;
   userLng?: number;
-  onCuisineChange: (ids: number[]) => void;
-  onPriceChange: (ranges: string[]) => void;
-  onHighRatedChange: (isHighRated: boolean) => void;
-  onEstablishmentTypeChange: (types: number[]) => void;
-  onDietTypeChange: (types: number[]) => void;
-  onOpenNowChange: (isOpenNow: boolean) => void;
-  onClearAll: () => void;
 }
 
 export default function OptimizedFiltersManager({
-  searchQuery,
-  cuisineTypeIds,
-  priceRanges,
-  isHighRated,
+  selectedCuisines,
+  onCuisineChange,
+  selectedPriceRanges,
+  onPriceRangeChange,
   selectedEstablishmentTypes,
-  selectedDietTypes,
-  isOpenNow,
+  onEstablishmentTypeChange,
+  selectedDietCategories,
+  onDietCategoryChange,
   cityId,
   userLat,
-  userLng,
-  onCuisineChange,
-  onPriceChange,
-  onHighRatedChange,
-  onEstablishmentTypeChange,
-  onDietTypeChange,
-  onOpenNowChange,
-  onClearAll
+  userLng
 }: OptimizedFiltersManagerProps) {
-  const [showFilters, setShowFilters] = useState(false);
-  const { facetData, loading: facetsLoading } = useFacetCounts({ 
-    cityId, 
-    userLat, 
-    userLng 
-  });
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
-  // Calculate active filters count
-  const activeFiltersCount = 
-    cuisineTypeIds.length +
-    priceRanges.length +
-    selectedEstablishmentTypes.length +
-    selectedDietTypes.length +
-    (isHighRated ? 1 : 0) +
-    (isOpenNow ? 1 : 0);
+  const toggleFilter = (filterName: string) => {
+    setActiveFilters(prev => 
+      prev.includes(filterName) 
+        ? prev.filter(f => f !== filterName)
+        : [...prev, filterName]
+    );
+  };
 
-  const hasActiveFilters = activeFiltersCount > 0;
+  const clearAllFilters = () => {
+    onCuisineChange([]);
+    onPriceRangeChange([]);
+    onEstablishmentTypeChange([]);
+    onDietCategoryChange([]);
+  };
 
-  // Auto-hide filters on mobile when no active filters
-  useEffect(() => {
-    if (!hasActiveFilters && window.innerWidth < 768) {
-      setShowFilters(false);
-    }
-  }, [hasActiveFilters]);
+  const totalActiveFilters = selectedCuisines.length + selectedPriceRanges.length + 
+                            selectedEstablishmentTypes.length + selectedDietCategories.length;
 
   return (
     <div className="space-y-4">
-      {/* Filter Toggle Button */}
       <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2"
-        >
-          <Filter className="h-4 w-4" />
-          Filtros
-          {hasActiveFilters && (
-            <Badge variant="secondary" className="ml-1">
-              {activeFiltersCount}
-            </Badge>
-          )}
-        </Button>
-
-        {hasActiveFilters && (
-          <Button
-            variant="ghost"
+        <div className="flex gap-2 flex-wrap">
+          <Button 
+            variant={activeFilters.includes('cuisine') ? 'default' : 'outline'}
             size="sm"
-            onClick={onClearAll}
+            onClick={() => toggleFilter('cuisine')}
+          >
+            Cocina
+            {selectedCuisines.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {selectedCuisines.length}
+              </Badge>
+            )}
+          </Button>
+          
+          <Button 
+            variant={activeFilters.includes('price') ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => toggleFilter('price')}
+          >
+            Precio
+            {selectedPriceRanges.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {selectedPriceRanges.length}
+              </Badge>
+            )}
+          </Button>
+          
+          <Button 
+            variant={activeFilters.includes('establishment') ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => toggleFilter('establishment')}
+          >
+            Tipo
+            {selectedEstablishmentTypes.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {selectedEstablishmentTypes.length}
+              </Badge>
+            )}
+          </Button>
+        </div>
+
+        {totalActiveFilters > 0 && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={clearAllFilters}
             className="text-muted-foreground hover:text-foreground"
           >
-            <X className="h-4 w-4 mr-1" />
             Limpiar filtros
           </Button>
         )}
       </div>
 
-      {/* Active Filters Display */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2">
-          {isHighRated && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              ⭐ Mejor valorados
-              <X 
-                className="h-3 w-3 cursor-pointer" 
-                onClick={() => onHighRatedChange(false)}
-              />
-            </Badge>
-          )}
-          {isOpenNow && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              🕐 Abierto ahora
-              <X 
-                className="h-3 w-3 cursor-pointer" 
-                onClick={() => onOpenNowChange(false)}
-              />
-            </Badge>
-          )}
+      {/* Diet filter is always visible */}
+      <div>
+        <SimpleDietFilterWithCounts
+          selectedDietCategories={selectedDietCategories}
+          onDietCategoryChange={onDietCategoryChange}
+          cityId={cityId}
+          userLat={userLat}
+          userLng={userLng}
+        />
+      </div>
+
+      {/* Expandable filter sections */}
+      {activeFilters.includes('cuisine') && (
+        <div className="space-y-2">
+          <h4 className="font-medium text-sm">Tipos de Cocina</h4>
+          <CuisineFilterWithCounts
+            selectedCuisines={selectedCuisines}
+            onCuisineChange={onCuisineChange}
+            cityId={cityId}
+            userLat={userLat}
+            userLng={userLng}
+          />
         </div>
       )}
 
-      {/* Filters Panel */}
-      {showFilters && (
-        <div className="space-y-6 p-4 border rounded-lg bg-card">
-          {!facetsLoading && facetData && (
-            <>
-              <CuisineFilterWithCounts
-                selectedCuisines={cuisineTypeIds}
-                onCuisineChange={onCuisineChange}
-                cityId={cityId}
-                userLat={userLat}
-                userLng={userLng}
-              />
+      {activeFilters.includes('price') && (
+        <div className="space-y-2">
+          <h4 className="font-medium text-sm">Rango de Precios</h4>
+          <PriceFilterWithCounts
+            selectedPriceRanges={selectedPriceRanges}
+            onPriceRangeChange={onPriceRangeChange}
+            cityId={cityId}
+            userLat={userLat}
+            userLng={userLng}
+          />
+        </div>
+      )}
 
-              <PriceFilterWithCounts
-                selectedPriceRanges={priceRanges}
-                onPriceRangeChange={onPriceChange}
-                cityId={cityId}
-                userLat={userLat}
-                userLng={userLng}
-              />
-
-              <EstablishmentTypeFilterWithCounts
-                selectedEstablishmentTypes={selectedEstablishmentTypes}
-                onEstablishmentTypeChange={onEstablishmentTypeChange}
-                cityId={cityId}
-                userLat={userLat}
-                userLng={userLng}
-              />
-
-              <DietFilter
-                selectedDietTypes={selectedDietTypes}
-                onDietTypeChange={onDietTypeChange}
-              />
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={isHighRated ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => onHighRatedChange(!isHighRated)}
-                >
-                  ⭐ Mejor valorados
-                </Button>
-
-                <Button
-                  variant={isOpenNow ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => onOpenNowChange(!isOpenNow)}
-                >
-                  🕐 Abierto ahora
-                </Button>
-              </div>
-            </>
-          )}
+      {activeFilters.includes('establishment') && (
+        <div className="space-y-2">
+          <h4 className="font-medium text-sm">Tipo de Establecimiento</h4>
+          <EstablishmentTypeFilterWithCounts
+            selectedEstablishmentTypes={selectedEstablishmentTypes}
+            onEstablishmentTypeChange={onEstablishmentTypeChange}
+            cityId={cityId}
+            userLat={userLat}
+            userLng={userLng}
+          />
         </div>
       )}
     </div>

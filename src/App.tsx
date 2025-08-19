@@ -22,33 +22,23 @@ import LocationEntry from "./pages/LocationEntry";
 import Restaurants from "./pages/Restaurants";
 import Dishes from "./pages/Dishes";
 import Account from "./pages/Account";
-import OptimizedErrorBoundary from "./components/OptimizedErrorBoundary";
+import ErrorBoundary from "./components/ErrorBoundary";
 
-// Optimized QueryClient configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error: any) => {
-        // Smart retry logic
-        if (error?.status === 404 || error?.status === 403) return false;
-        return failureCount < 2;
-      },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: 'always',
-    },
-    mutations: {
       retry: 1,
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
     },
   },
 });
 
 const App = () => {
-  console.log('🚀 App: Starting optimized application with enhanced security and performance');
+  console.log('App: Starting application with enhanced security and analytics');
 
   return (
-    <OptimizedErrorBoundary>
+    <ErrorBoundary>
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
@@ -103,7 +93,7 @@ const App = () => {
           </AuthProvider>
         </QueryClientProvider>
       </HelmetProvider>
-    </OptimizedErrorBoundary>
+    </ErrorBoundary>
   );
 };
 

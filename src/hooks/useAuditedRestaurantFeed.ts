@@ -1,3 +1,4 @@
+
 import { useRestaurantsAuditFeature } from './useRestaurantsAuditFeature';
 import { useOptimizedRestaurantFeed } from './useOptimizedRestaurantFeed';
 import { useUnifiedRestaurantFeed } from './useUnifiedRestaurantFeed';
@@ -68,17 +69,17 @@ export const useAuditedRestaurantFeed = (props: AuditedRestaurantFeedProps) => {
   }
 
   if (auditEnabled) {
-    // Return optimized audit system results with enhanced metrics
+    // Return optimized audit system results
     return {
       restaurants: optimizedResults.restaurants,
       loading: optimizedResults.loading,
       error: optimizedResults.error,
-      hasMore: false,
-      loadMore: () => {},
+      hasMore: false, // Optimized system doesn't use pagination
+      loadMore: () => {}, // No-op for optimized system
       refetch: optimizedResults.refetch,
       serverTiming: optimizedResults.serverTiming,
-      systemType: 'audit-optimized' as const,
-      cacheHit: optimizedResults.cacheHit || false
+      systemType: 'audit' as const,
+      cacheHit: optimizedResults.cacheHit
     };
   } else {
     // Return unified system results (existing behavior)

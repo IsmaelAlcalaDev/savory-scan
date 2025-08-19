@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { useRestaurants } from '@/hooks/useRestaurants';
+import { useRestaurantFeed } from '@/hooks/useRestaurantFeed';
 import RestaurantCard from './RestaurantCard';
 import RestaurantSortSelector from './RestaurantSortSelector';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle } from 'lucide-react';
+import SimpleDietFilterWithCounts from './SimpleDietFilterWithCounts';
 
 interface OptimizedRestaurantsTabProps {
   searchQuery?: string;
@@ -13,64 +13,60 @@ interface OptimizedRestaurantsTabProps {
   priceRanges?: string[];
   isHighRated?: boolean;
   selectedEstablishmentTypes?: number[];
-  selectedDietTypes?: number[];
+  selectedDietTypes?: number[]; // Legacy prop for backward compatibility
   maxDistance?: number;
-  isOpenNow?: boolean;
 }
 
-export default function OptimizedRestaurantsTab({
-  searchQuery,
-  cuisineTypeIds,
-  priceRanges,
-  isHighRated,
-  selectedEstablishmentTypes,
-  selectedDietTypes,
-  maxDistance,
-  isOpenNow
-}: OptimizedRestaurantsTabProps) {
+export default function OptimizedRestaurantsTab(props: OptimizedRestaurantsTabProps) {
   const { userLocation } = useUserPreferences();
   const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'favorites'>(
     userLocation ? 'distance' : 'favorites'
   );
-
-  const {
-    restaurants,
-    loading,
-    error
-  } = useRestaurants({
-    searchQuery,
-    userLat: userLocation?.latitude,
-    userLng: userLocation?.longitude,
-    maxDistance,
-    cuisineTypeIds,
-    priceRanges,
-    isHighRated,
-    selectedEstablishmentTypes,
-    selectedDietTypes,
-    isOpenNow
-  });
+  const [selectedDietCategories, setSelectedDietCategories] = useState<string[]>([]);
 
   const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
+
+  const { restaurants, loading, error } = useRestaurantFeed({
+    searchQuery: props.searchQuery,
+    userLat: userLocation?.latitude,
+    userLng: userLocation?.longitude,
+    maxDistance: props.maxDistance,
+    cuisineTypeIds: props.cuisineTypeIds,
+    priceRanges: props.priceRanges,
+    isHighRated: props.isHighRated,
+    selectedEstablishmentTypes: props.selectedEstablishmentTypes,
+    selectedDietCategories,
+    sortBy
+  });
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Restaurantes</h2>
-          <RestaurantSortSelector
-            value={sortBy}
-            onChange={setSortBy}
-            hasLocation={hasLocation}
-          />
+          <div className="flex gap-2">
+            <SimpleDietFilterWithCounts
+              selectedDietCategories={selectedDietCategories}
+              onDietCategoryChange={setSelectedDietCategories}
+              userLat={userLocation?.latitude}
+              userLng={userLocation?.longitude}
+            />
+            <RestaurantSortSelector
+              value={sortBy}
+              onChange={setSortBy}
+              hasLocation={hasLocation}
+            />
+          </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="space-y-4">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="space-y-3">
               <Skeleton className="h-48 w-full rounded-lg" />
-              <div className="space-y-2">
+              <div className="p-4 space-y-3">
                 <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
               </div>
             </div>
           ))}
@@ -84,17 +80,22 @@ export default function OptimizedRestaurantsTab({
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Restaurantes</h2>
-          <RestaurantSortSelector
-            value={sortBy}
-            onChange={setSortBy}
-            hasLocation={hasLocation}
-          />
+          <div className="flex gap-2">
+            <SimpleDietFilterWithCounts
+              selectedDietCategories={selectedDietCategories}
+              onDietCategoryChange={setSelectedDietCategories}
+              userLat={userLocation?.latitude}
+              userLng={userLocation?.longitude}
+            />
+            <RestaurantSortSelector
+              value={sortBy}
+              onChange={setSortBy}
+              hasLocation={hasLocation}
+            />
+          </div>
         </div>
-        
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Error al cargar restaurantes</h3>
-          <p className="text-muted-foreground">{error}</p>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Error al cargar restaurantes: {error}</p>
         </div>
       </div>
     );
@@ -105,65 +106,68 @@ export default function OptimizedRestaurantsTab({
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Restaurantes</h2>
-          <RestaurantSortSelector
-            value={sortBy}
-            onChange={setSortBy}
-            hasLocation={hasLocation}
-          />
+          <div className="flex gap-2">
+            <SimpleDietFilterWithCounts
+              selectedDietCategories={selectedDietCategories}
+              onDietCategoryChange={setSelectedDietCategories}
+              userLat={userLocation?.latitude}
+              userLng={userLocation?.longitude}
+            />
+            <RestaurantSortSelector
+              value={sortBy}
+              onChange={setSortBy}
+              hasLocation={hasLocation}
+            />
+          </div>
         </div>
-        
-        <div className="text-center py-12">
-          <h3 className="text-lg font-semibold mb-2">No hay restaurantes disponibles</h3>
-          <p className="text-muted-foreground">
-            Intenta ajustar tus filtros o buscar en una zona diferente.
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No se encontraron restaurantes</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Intenta cambiar los filtros de búsqueda
           </p>
         </div>
       </div>
     );
   }
 
-  // Sort restaurants based on sortBy prop
-  const sortedRestaurants = [...restaurants].sort((a, b) => {
-    switch (sortBy) {
-      case 'rating':
-        return (b.google_rating || 0) - (a.google_rating || 0);
-      case 'favorites':
-        return (b.favorites_count || 0) - (a.favorites_count || 0);
-      case 'distance':
-      default:
-        if (a.distance_km === null && b.distance_km === null) return 0;
-        if (a.distance_km === null) return 1;
-        if (b.distance_km === null) return -1;
-        return a.distance_km - b.distance_km;
-    }
-  });
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Restaurantes</h2>
-        <RestaurantSortSelector
-          value={sortBy}
-          onChange={setSortBy}
-          hasLocation={hasLocation}
-        />
+        <div className="flex gap-2">
+          <SimpleDietFilterWithCounts
+            selectedDietCategories={selectedDietCategories}
+            onDietCategoryChange={setSelectedDietCategories}
+            userLat={userLocation?.latitude}
+            userLng={userLocation?.longitude}
+          />
+          <RestaurantSortSelector
+            value={sortBy}
+            onChange={setSortBy}
+            hasLocation={hasLocation}
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sortedRestaurants.map((restaurant) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+        {restaurants.map((restaurant, index) => (
           <RestaurantCard
             key={restaurant.id}
             id={restaurant.id}
             name={restaurant.name}
+            slug={restaurant.slug}
             description={restaurant.description}
-            coverImageUrl={restaurant.cover_image_url}
-            cuisineTypes={restaurant.cuisine_types}
             priceRange={restaurant.price_range}
             googleRating={restaurant.google_rating}
+            googleRatingCount={restaurant.google_rating_count}
             distance={restaurant.distance_km}
+            cuisineTypes={restaurant.cuisine_types.map(ct => ct.name)} // Convert objects to string array
             establishmentType={restaurant.establishment_type}
-            slug={restaurant.slug}
+            services={restaurant.services}
             favoritesCount={restaurant.favorites_count}
+            coverImageUrl={restaurant.cover_image_url}
+            logoUrl={restaurant.logo_url}
+            priority={index < 4}
           />
         ))}
       </div>

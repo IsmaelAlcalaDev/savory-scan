@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Search, MapPin, Navigation, Clock } from 'lucide-react';
+import { useState, useCallback, useMemo } from 'react';
+import { Search, MapPin, Navigation, Clock, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -10,30 +10,38 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useIntelligentLocationSuggestions } from '@/hooks/useIntelligentLocationSuggestions';
-import { useLocationHistory } from '@/hooks/useLocationHistory';
-import { useNearestLocation } from '@/hooks/useNearestLocation';
 import { Skeleton } from '@/components/ui/skeleton';
-import LocationInfo from './LocationInfo';
+import { useIntelligentLocationSuggestions } from '@/hooks/useIntelligentLocationSuggestions';
+import { useOptimizedLocationHistory } from '@/hooks/useOptimizedLocationHistory';
+import { useNearestLocation } from '@/hooks/useNearestLocation';
 import { useReverseGeocoding } from '@/hooks/useReverseGeocoding';
+import LocationInfo from './LocationInfo';
 
-interface LocationModalProps {
+interface OptimizedLocationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLocationSelect: (location: { type: 'gps' | 'manual' | 'city' | 'suggestion'; data?: any }) => void;
 }
 
-export default function LocationModal({ open, onOpenChange, onLocationSelect }: LocationModalProps) {
+export default function OptimizedLocationModal({ 
+  open, 
+  onOpenChange, 
+  onLocationSelect 
+}: OptimizedLocationModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showLocationInfo, setShowLocationInfo] = useState<any>(null);
   const [isLoadingGPS, setIsLoadingGPS] = useState(false);
   const [detectedLocation, setDetectedLocation] = useState<string>('');
+
   const { suggestions, loading: loadingSuggestions } = useIntelligentLocationSuggestions(searchQuery);
-  const { history, addToHistory, clearHistory } = useLocationHistory();
+  const { history, addToHistory, clearHistory, getTopLocations } = useOptimizedLocationHistory();
   const { findNearestLocation } = useNearestLocation();
   const { reverseGeocode } = useReverseGeocoding();
 
-  const handleGPSLocation = async () => {
+  // Memoized top locations for better performance
+  const topLocations = useMemo(() => getTopLocations(3), [getTopLocations]);
+
+  const handleGPSLocation = useCallback(async () => {
     setIsLoadingGPS(true);
     setDetectedLocation('');
     
@@ -51,7 +59,7 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
           {
             enableHighAccuracy: true,
             timeout: 10000,
-            maximumAge: 0
+            maximumAge: 60000 // Cache for 1 minute
           }
         );
       });
@@ -59,34 +67,45 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
       const { latitude, longitude } = position.coords;
       console.log('GPS coordinates obtained:', { latitude, longitude });
       
-      // Obtener información de geocodificación inversa
-      const geocodeResult = await reverseGeocode(latitude, longitude);
-      
-      // Encontrar la ubicación más cercana en la base de datos
-      const nearestLocation = await findNearestLocation(latitude, longitude);
+      // Run geocoding and nearest location search in parallel
+      const [geocodeResult, nearestLocation] = await Promise.all([
+        reverseGeocode(latitude, longitude),
+        findNearestLocation(latitude, longitude)
+      ]);
       
       let displayName = 'Ubicación detectada';
       
       if (nearestLocation) {
-        // Usar solo el nombre del lugar más específico
         displayName = nearestLocation.name;
       } else if (geocodeResult) {
-        // Usar la ubicación local específica del geocoding
         displayName = geocodeResult.localArea;
       }
       
       setDetectedLocation(displayName);
       
-      onLocationSelect({
-        type: 'gps',
-        data: {
+      const locationData = {
+        latitude,
+        longitude,
+        name: nearestLocation?.name || displayName,
+        type: nearestLocation?.type || 'manual' as const,
+        parent: nearestLocation?.parent,
+        address: displayName
+      };
+
+      // Add to history if we have a proper location
+      if (nearestLocation) {
+        addToHistory({
+          name: nearestLocation.name,
+          type: nearestLocation.type,
           latitude,
           longitude,
-          name: nearestLocation?.name || displayName,
-          type: nearestLocation?.type,
-          parent: nearestLocation?.parent,
-          address: displayName
-        }
+          parent: nearestLocation.parent
+        });
+      }
+      
+      onLocationSelect({
+        type: 'gps',
+        data: locationData
       });
       
       onOpenChange(false);
@@ -106,10 +125,10 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
     } finally {
       setIsLoadingGPS(false);
     }
-  };
+  }, [reverseGeocode, findNearestLocation, addToHistory, onLocationSelect, onOpenChange]);
 
-  const handleSuggestionSelect = (suggestion: any) => {
-    // Add to history
+  const handleSuggestionSelect = useCallback((suggestion: any) => {
+    // Add to history with optimized tracking
     addToHistory({
       name: suggestion.name,
       type: suggestion.type,
@@ -126,13 +145,22 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
         longitude: suggestion.longitude,
         type: suggestion.type,
         parent: suggestion.parent,
-        address: suggestion.name // Usar solo el nombre específico
+        address: suggestion.name
       }
     });
     onOpenChange(false);
-  };
+  }, [addToHistory, onLocationSelect, onOpenChange]);
 
-  const handleHistorySelect = (item: any) => {
+  const handleHistorySelect = useCallback((item: any) => {
+    // This will increment usage count automatically
+    addToHistory({
+      name: item.name,
+      type: item.type,
+      latitude: item.latitude,
+      longitude: item.longitude,
+      parent: item.parent
+    });
+
     onLocationSelect({
       type: 'suggestion',
       data: {
@@ -141,17 +169,17 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
         longitude: item.longitude,
         type: item.type,
         parent: item.parent,
-        address: item.name // Usar solo el nombre específico
+        address: item.name
       }
     });
     onOpenChange(false);
-  };
+  }, [addToHistory, onLocationSelect, onOpenChange]);
 
-  const showInfo = (location: any) => {
+  const showInfo = useCallback((location: any) => {
     if (location.type === 'poi' && location.description) {
       setShowLocationInfo(location);
     }
-  };
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -204,7 +232,7 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
             )}
           </div>
 
-          {/* Suggestions with intelligent search */}
+          {/* Search Suggestions */}
           {searchQuery.length >= 2 && (
             <div className="border rounded-md bg-background max-h-48 overflow-hidden">
               <ScrollArea className="max-h-48">
@@ -229,11 +257,6 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
                               {suggestion.is_famous && (
                                 <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
                                   ⭐
-                                </span>
-                              )}
-                              {suggestion.similarity_score && suggestion.similarity_score < 0.7 && (
-                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                                  ¿Esto?
                                 </span>
                               )}
                             </div>
@@ -291,7 +314,7 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
               <div className="border rounded-md bg-background max-h-40 overflow-hidden">
                 <ScrollArea className="max-h-40">
                   <div className="p-1">
-                    {history.map((item) => (
+                    {topLocations.map((item) => (
                       <Button
                         key={item.id}
                         variant="ghost"
@@ -299,7 +322,14 @@ export default function LocationModal({ open, onOpenChange, onLocationSelect }: 
                         onClick={() => handleHistorySelect(item)}
                       >
                         <div className="w-full">
-                          <div className="font-medium">{item.name}</div>
+                          <div className="font-medium flex items-center gap-2">
+                            {item.name}
+                            {item.usage_count > 1 && (
+                              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                                {item.usage_count}x
+                              </span>
+                            )}
+                          </div>
                           {item.parent && (
                             <div className="text-xs text-muted-foreground">
                               {item.parent}
