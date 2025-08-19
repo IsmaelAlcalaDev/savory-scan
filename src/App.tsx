@@ -8,14 +8,11 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
 import { DishFavoritesProvider } from "./contexts/DishFavoritesContext";
-import { OrderSimulatorProvider } from "./contexts/OrderSimulatorContext";
-import AnalyticsProvider from "./components/AnalyticsProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RestaurantProfile from "./pages/RestaurantProfile";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
 import SuperAdminPanel from "./pages/SuperAdminPanel";
-import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -23,33 +20,24 @@ import LocationEntry from "./pages/LocationEntry";
 import Restaurants from "./pages/Restaurants";
 import Dishes from "./pages/Dishes";
 import Account from "./pages/Account";
-import OptimizedErrorBoundary from "./components/OptimizedErrorBoundary";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { OrderSimulatorProvider } from "./contexts/OrderSimulatorContext";
 
-// Optimized QueryClient configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error: any) => {
-        // Smart retry logic
-        if (error?.status === 404 || error?.status === 403) return false;
-        return failureCount < 2;
-      },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: 'always',
-    },
-    mutations: {
       retry: 1,
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
     },
   },
 });
 
 const App = () => {
-  console.log('🚀 App: Starting optimized application with enhanced security and performance');
+  console.log('App: Starting application with enhanced security');
 
   return (
-    <OptimizedErrorBoundary>
+    <ErrorBoundary>
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
@@ -60,50 +48,40 @@ const App = () => {
                     <Toaster />
                     <Sonner />
                     <BrowserRouter>
-                      <AnalyticsProvider>
-                        <Routes>
-                          <Route path="/" element={<LocationEntry />} />
-                          <Route path="/restaurantes" element={<Restaurants />} />
-                          <Route path="/platos" element={<Dishes />} />
-                          <Route path="/account" element={<Account />} />
-                          <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
-                          <Route path="/carta/:slug" element={<RestaurantMenu />} />
-                          <Route 
-                            path="/admin" 
-                            element={
-                              <ProtectedRoute requiredRole="admin">
-                                <SecureAdminPanel />
-                              </ProtectedRoute>
-                            } 
-                          />
-                          <Route 
-                            path="/superadmin" 
-                            element={
-                              <ProtectedRoute requiredRole="admin">
-                                <SuperAdminDashboard />
-                              </ProtectedRoute>
-                            } 
-                          />
-                          <Route 
-                            path="/super-admin-a7f8b2e9" 
-                            element={
-                              <ProtectedRoute requiredRole="admin">
-                                <SuperAdminDashboard />
-                              </ProtectedRoute>
-                            } 
-                          />
-                          <Route 
-                            path="/security" 
-                            element={
-                              <ProtectedRoute requiredRole="admin">
-                                <SecurityDashboard />
-                              </ProtectedRoute>
-                            } 
-                          />
-                          <Route path="/auth" element={<Auth />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </AnalyticsProvider>
+                      <Routes>
+                        <Route path="/" element={<LocationEntry />} />
+                        <Route path="/restaurantes" element={<Restaurants />} />
+                        <Route path="/platos" element={<Dishes />} />
+                        <Route path="/account" element={<Account />} />
+                        <Route path="/restaurant/:slug" element={<RestaurantProfile />} />
+                        <Route path="/carta/:slug" element={<RestaurantMenu />} />
+                        <Route 
+                          path="/admin" 
+                          element={
+                            <ProtectedRoute requiredRole="admin">
+                              <SecureAdminPanel />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/superadmin" 
+                          element={
+                            <ProtectedRoute requiredRole="admin">
+                              <SuperAdminPanel />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/security" 
+                          element={
+                            <ProtectedRoute requiredRole="admin">
+                              <SecurityDashboard />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
                     </BrowserRouter>
                   </TooltipProvider>
                 </OrderSimulatorProvider>
@@ -112,7 +90,7 @@ const App = () => {
           </AuthProvider>
         </QueryClientProvider>
       </HelmetProvider>
-    </OptimizedErrorBoundary>
+    </ErrorBoundary>
   );
 };
 

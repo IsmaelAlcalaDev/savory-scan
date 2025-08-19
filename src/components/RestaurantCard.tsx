@@ -3,7 +3,6 @@ import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import FavoriteButton from './FavoriteButton';
-import OptimizedImage from './OptimizedImage';
 
 interface RestaurantCardProps {
   id: number;
@@ -25,7 +24,6 @@ interface RestaurantCardProps {
   onLoginRequired?: () => void;
   layout?: 'grid' | 'list';
   onFavoriteChange?: (restaurantId: number, isFavorite: boolean) => void;
-  priority?: boolean;
 }
 
 export default function RestaurantCard({
@@ -47,8 +45,7 @@ export default function RestaurantCard({
   className,
   onLoginRequired = () => {},
   layout = 'grid',
-  onFavoriteChange,
-  priority = false
+  onFavoriteChange
 }: RestaurantCardProps) {
   const handleClick = () => {
     if (onClick) {
@@ -77,17 +74,17 @@ export default function RestaurantCard({
         onClick={handleClick}
       >
         <div className="w-24 h-24 relative overflow-hidden rounded-lg flex-shrink-0">
-          {displayImage && (
-            <OptimizedImage
-              src={displayImage}
+          {displayImage ? (
+            <img 
+              src={displayImage} 
               alt={name}
-              width={96}
-              height={96}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              priority={priority}
-              sizes="96px"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
             />
-          )}
+          ) : null}
           <div className={cn(
             "absolute inset-0 transition-smooth",
             displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
@@ -111,36 +108,55 @@ export default function RestaurantCard({
         </div>
 
         <div className="flex-1 space-y-2">
-          {/* Name and rating */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-base line-clamp-1 text-black font-medium">
-              {name}
-            </h3>
-            
-            {googleRating && typeof googleRating === 'number' && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
-                {googleRatingCount && typeof googleRatingCount === 'number' && (
-                  <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
-                )}
+          {/* Logo and name row */}
+          <div className="flex items-center gap-3">
+            {logoUrl && (
+              <div className="flex-shrink-0 flex items-center">
+                <img 
+                  src={logoUrl} 
+                  alt={`${name} logo`}
+                  className="w-12 h-12 rounded object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
               </div>
             )}
-          </div>
-          
-          {/* Cuisine types, price and distance */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-            <span className="line-clamp-1">
-              {cuisineTypes.slice(0, 2).join(', ')}
-            </span>
-            <span>•</span>
-            <span className="text-muted-foreground font-medium">{priceRange}</span>
-            {distance && typeof distance === 'number' && (
-              <>
+            
+            {/* Name and rating container - aligned with content below */}
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base line-clamp-1 text-black font-medium">
+                  {name}
+                </h3>
+                
+                {googleRating && typeof googleRating === 'number' && (
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
+                    {googleRatingCount && typeof googleRatingCount === 'number' && (
+                      <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {/* Second line - aligned with name, not logo */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                <span className="line-clamp-1">
+                  {cuisineTypes.slice(0, 2).join(', ')}
+                </span>
                 <span>•</span>
-                <span className="flex-shrink-0 text-black font-medium">{formatDistance(distance)}</span>
-              </>
-            )}
+                <span className="text-muted-foreground font-medium">{priceRange}</span>
+                {distance && typeof distance === 'number' && (
+                  <>
+                    <span>•</span>
+                    <span className="flex-shrink-0 text-black font-medium">{formatDistance(distance)}</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -156,15 +172,17 @@ export default function RestaurantCard({
       onClick={handleClick}
     >
       <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
-        {displayImage && (
-          <OptimizedImage
-            src={displayImage}
+        {displayImage ? (
+          <img 
+            src={displayImage} 
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            priority={priority}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
           />
-        )}
+        ) : null}
         <div className={cn(
           "absolute inset-0 transition-smooth",
           displayImage ? "bg-black/20 group-hover:bg-black/10" : "bg-gradient-hero"
@@ -188,35 +206,53 @@ export default function RestaurantCard({
       </div>
 
       <div className="space-y-2">
-        {/* Name and rating */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-base line-clamp-1 text-black font-medium">
-            {name}
-          </h3>
-          {googleRating && typeof googleRating === 'number' && (
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-              <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
-              {googleRatingCount && typeof googleRatingCount === 'number' && (
-                <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
-              )}
+        <div className="flex items-center gap-3">
+          {logoUrl && (
+            <div className="flex-shrink-0 flex items-center">
+              <img 
+                src={logoUrl} 
+                alt={`${name} logo`}
+                className="w-12 h-12 rounded object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
             </div>
           )}
-        </div>
-        
-        {/* Cuisine types, price and distance */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-          <span className="line-clamp-1">
-            {cuisineTypes.slice(0, 2).join(', ')}
-          </span>
-          <span>•</span>
-          <span className="text-muted-foreground font-medium">{priceRange}</span>
-          {distance && typeof distance === 'number' && (
-            <>
+          
+          {/* Name and rating container - aligned with content below */}
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-base line-clamp-1 text-black font-medium">
+                {name}
+              </h3>
+              {googleRating && typeof googleRating === 'number' && (
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <span className="font-medium text-foreground text-sm">{googleRating.toFixed(1)}</span>
+                  {googleRatingCount && typeof googleRatingCount === 'number' && (
+                    <span className="text-muted-foreground text-xs">({googleRatingCount})</span>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Second line - aligned with name, not logo */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+              <span className="line-clamp-1">
+                {cuisineTypes.slice(0, 2).join(', ')}
+              </span>
               <span>•</span>
-              <span className="flex-shrink-0 text-black font-medium">{formatDistance(distance)}</span>
-            </>
-          )}
+              <span className="text-muted-foreground font-medium">{priceRange}</span>
+              {distance && typeof distance === 'number' && (
+                <>
+                  <span>•</span>
+                  <span className="flex-shrink-0 text-black font-medium">{formatDistance(distance)}</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

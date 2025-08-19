@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,68 +12,20 @@ interface UserPreferences {
   updated_at: string;
 }
 
-interface UserLocation {
-  latitude: number;
-  longitude: number;
-  accuracy?: number;
-  timestamp?: number;
-}
-
 export const useUserPreferences = () => {
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
-  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchPreferences();
-      getUserLocation();
     } else {
       setPreferences(null);
-      setUserLocation(null);
       setLoading(false);
     }
   }, [user]);
-
-  const getUserLocation = () => {
-    // Try to get location from localStorage first
-    const savedLocation = localStorage.getItem('userLocation');
-    if (savedLocation) {
-      try {
-        const location = JSON.parse(savedLocation);
-        setUserLocation(location);
-      } catch (error) {
-        console.error('Error parsing saved location:', error);
-      }
-    }
-
-    // Try to get current location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const location = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            timestamp: Date.now()
-          };
-          setUserLocation(location);
-          localStorage.setItem('userLocation', JSON.stringify(location));
-        },
-        (error) => {
-          console.log('Geolocation error:', error);
-          // Don't show error toast, just use saved location if available
-        },
-        {
-          enableHighAccuracy: false,
-          timeout: 10000,
-          maximumAge: 300000 // 5 minutes
-        }
-      );
-    }
-  };
 
   const fetchPreferences = async () => {
     if (!user) return;
@@ -230,7 +183,6 @@ export const useUserPreferences = () => {
 
   return {
     preferences,
-    userLocation,
     loading,
     updating,
     updatePreferences,

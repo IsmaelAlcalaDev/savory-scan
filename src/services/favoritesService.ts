@@ -1,146 +1,208 @@
-
-
-
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
-interface FavoriteResult {
+export interface FavoriteToggleResult {
   success: boolean;
-  isFavorite?: boolean;
+  isFavorite: boolean;
+  newCount: number;
   error?: string;
 }
 
-import { notificationBroadcaster } from './notificationBroadcaster';
-
 export class FavoritesService {
+  /**
+   * Toggle favorite status for a restaurant
+   */
+  static async toggleRestaurantFavorite(
+    restaurantId: number,
+    savedFrom: string = 'button'
+  ): Promise<FavoriteToggleResult> {
+    try {
+      // Check if user is authenticated
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.user) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const userId = session.user.id;
+
+      // Check current favorite status
+      const { data: existingFavorite, error: checkError } = await supabase
+        .from('user_saved_restaurants')
+        .select('is_active')
+        .eq('user_id', userId)
+        .eq('restaurant_id', restaurantId)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking favorite status:', checkError);
+        throw new Error('Error al verificar estado de favorito');
+      }
+
+      let newIsFavorite: boolean;
+
+      if (!existingFavorite) {
+        // Create new favorite
+        const { error: insertError } = await supabase
+          .from('user_saved_restaurants')
+          .insert({
+            user_id: userId,
+            restaurant_id: restaurantId,
+            is_active: true,
+            saved_from: savedFrom,
+            saved_at: new Date().toISOString()
+          });
+
+        if (insertError) {
+          console.error('Error creating favorite:', insertError);
+          throw new Error('Error al guardar favorito');
+        }
+
+        newIsFavorite = true;
+      } else {
+        // Toggle existing favorite
+        newIsFavorite = !existingFavorite.is_active;
+        
+        const updateData = newIsFavorite
+          ? {
+              is_active: true,
+              saved_from: savedFrom,
+              saved_at: new Date().toISOString(),
+              unsaved_at: null
+            }
+          : {
+              is_active: false,
+              unsaved_at: new Date().toISOString()
+            };
+
+        const { error: updateError } = await supabase
+          .from('user_saved_restaurants')
+          .update(updateData)
+          .eq('user_id', userId)
+          .eq('restaurant_id', restaurantId);
+
+        if (updateError) {
+          console.error('Error updating favorite:', updateError);
+          throw new Error('Error al actualizar favorito');
+        }
+      }
+
+      // Wait a moment for triggers to complete, then get the updated count
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Get the updated favorites_count from restaurants table (after triggers have run)
+      const { data: updatedRestaurant, error: getRestaurantError } = await supabase
+        .from('restaurants')
+        .select('favorites_count')
+        .eq('id', restaurantId)
+        .single();
+
+      if (getRestaurantError) {
+        console.error('Error getting updated restaurant:', getRestaurantError);
+        throw new Error('Error al obtener datos actualizados del restaurante');
+      }
+
+      const newCount = updatedRestaurant.favorites_count || 0;
+
+      // Dispatch custom event for real-time UI updates
+      window.dispatchEvent(new CustomEvent('favoriteToggled', {
+        detail: {
+          restaurantId,
+          isFavorite: newIsFavorite,
+          newCount,
+          userId
+        }
+      }));
+
+      // Show success toast
+      toast({
+        title: newIsFavorite ? "Restaurante guardado" : "Eliminado de favoritos",
+        description: newIsFavorite 
+          ? "El restaurante se ha añadido a tus favoritos" 
+          : "El restaurante se ha eliminado de tus favoritos"
+      });
+
+      return {
+        success: true,
+        isFavorite: newIsFavorite,
+        newCount
+      };
+
+    } catch (error) {
+      console.error('Error in toggleRestaurantFavorite:', error);
+      
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "No se pudo actualizar el favorito",
+        variant: "destructive"
+      });
+
+      return {
+        success: false,
+        isFavorite: false,
+        newCount: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Check if a restaurant is favorited by the current user
+   */
+  static async isRestaurantFavorited(restaurantId: number): Promise<boolean> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        return false;
+      }
+
+      const { data, error } = await supabase
+        .from('user_saved_restaurants')
+        .select('is_active')
+        .eq('user_id', session.user.id)
+        .eq('restaurant_id', restaurantId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking if restaurant is favorited:', error);
+        return false;
+      }
+
+      return !!data;
+    } catch (error) {
+      console.error('Error in isRestaurantFavorited:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Load all favorites for the current user
+   */
   static async loadUserFavorites(): Promise<number[]> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        console.warn('FavoritesService: No user found, returning empty favorites.');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
         return [];
       }
 
       const { data, error } = await supabase
         .from('user_saved_restaurants')
         .select('restaurant_id')
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .eq('is_active', true);
 
       if (error) {
-        console.error('FavoritesService: Error fetching favorites:', error);
+        console.error('Error loading user favorites:', error);
         return [];
       }
 
-      const favoriteIds = data.map(item => item.restaurant_id);
-      return favoriteIds;
+      return data?.map(item => item.restaurant_id) || [];
     } catch (error) {
-      console.error('FavoritesService: Unexpected error in loadUserFavorites:', error);
+      console.error('Error in loadUserFavorites:', error);
       return [];
     }
   }
-
-  static async toggleRestaurantFavorite(
-    restaurantId: number, 
-    savedFrom: string = 'toggle'
-  ): Promise<FavoriteResult> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        return { success: false, error: 'User not authenticated' };
-      }
-
-      // Check if the restaurant is already in favorites - use composite key
-      const { data: existingFavorite, error: existingFavoriteError } = await supabase
-        .from('user_saved_restaurants')
-        .select('is_active, restaurant_id, user_id')
-        .eq('user_id', user.id)
-        .eq('restaurant_id', restaurantId)
-        .maybeSingle();
-
-      if (existingFavoriteError) {
-        console.error('Error checking existing favorite:', existingFavoriteError);
-        throw existingFavoriteError;
-      }
-
-      let result;
-      
-      if (existingFavorite) {
-        // Toggle existing favorite
-        const newState = !existingFavorite.is_active;
-        
-        const { error } = await supabase
-          .from('user_saved_restaurants')
-          .update({ 
-            is_active: newState,
-            saved_from: savedFrom,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id)
-          .eq('restaurant_id', restaurantId);
-
-        if (error) throw error;
-        
-        // Send broadcast notification for new favorites
-        if (newState) {
-          // Get restaurant name for notification
-          const { data: restaurantData } = await supabase
-            .from('restaurants')
-            .select('name')
-            .eq('id', restaurantId)
-            .single();
-
-          const restaurantName = restaurantData?.name || 'Restaurante';
-          notificationBroadcaster.notifyFavoriteAdded(
-            user.id, 
-            restaurantName, 
-            restaurantId
-          );
-        }
-
-        result = { success: true, isFavorite: newState };
-      } else {
-        // Create new favorite
-        const { error } = await supabase
-          .from('user_saved_restaurants')
-          .insert({
-            user_id: user.id,
-            restaurant_id: restaurantId,
-            is_active: true,
-            saved_from: savedFrom
-          });
-
-        if (error) throw error;
-
-        // Get restaurant name for notification
-        const { data: restaurantData } = await supabase
-          .from('restaurants')
-          .select('name')
-          .eq('id', restaurantId)
-          .single();
-
-        const restaurantName = restaurantData?.name || 'Restaurante';
-        notificationBroadcaster.notifyFavoriteAdded(
-          user.id, 
-          restaurantName, 
-          restaurantId
-        );
-
-        result = { success: true, isFavorite: true };
-      }
-
-      console.log('FavoritesService: Toggle result:', result);
-      return result;
-
-    } catch (error: any) {
-      console.error('FavoritesService: Error in toggleRestaurantFavorite:', error);
-      return { 
-        success: false, 
-        error: error?.message || 'Unknown error occurred'
-      };
-    }
-  }
 }
-
-

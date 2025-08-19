@@ -15,11 +15,12 @@ interface Restaurant {
   favorites_count: number;
   cover_image_url?: string;
   logo_url?: string;
+  specializes_in_diet?: number[];
+  diet_certifications?: string[];
+  diet_percentages?: Record<string, number>;
 }
 
-type PriceRange = '€' | '€€' | '€€€' | '€€€€';
-
-interface UseRestaurantsProps {
+interface UseEnhancedRestaurantsProps {
   searchQuery?: string;
   userLat?: number;
   userLng?: number;
@@ -30,11 +31,10 @@ interface UseRestaurantsProps {
   selectedEstablishmentTypes?: number[];
   selectedDietTypes?: number[];
   isOpenNow?: boolean;
-  isBudgetFriendly?: boolean;
 }
 
 const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371; // Radio de la Tierra en km
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lng2 - lng1) * Math.PI / 180;
   const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -60,19 +60,18 @@ const calculateDietPercentage = (dishes: any[], category: string): number => {
   return Math.round((matchingDishes.length / dishes.length) * 100);
 };
 
-export const useRestaurants = ({
+export const useEnhancedRestaurants = ({
   searchQuery = '',
   userLat,
   userLng,
-  maxDistance = 1000, // Increased default to 1000km to cover all of Spain
+  maxDistance = 50,
   cuisineTypeIds,
   priceRanges,
   isHighRated = false,
   selectedEstablishmentTypes,
   selectedDietTypes,
-  isOpenNow = false,
-  isBudgetFriendly = false
-}: UseRestaurantsProps) => {
+  isOpenNow = false
+}: UseEnhancedRestaurantsProps) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,25 +81,18 @@ export const useRestaurants = ({
       try {
         setLoading(true);
         setError(null);
-        console.log('Fetching restaurants with params:', {
-          searchQuery,
-          userLat,
-          userLng,
-          maxDistance,
-          cuisineTypeIds,
-          priceRanges,
-          isHighRated,
-          selectedEstablishmentTypes,
-          selectedDietTypes,
-          isOpenNow,
-          isBudgetFriendly
-        });
 
-        // Handle budget-friendly filter - override price ranges if active
-        let effectivePriceRanges = priceRanges;
-        if (isBudgetFriendly) {
-          effectivePriceRanges = ['€'];
-          console.log('Budget-friendly filter active, filtering by € only');
+        // Convert price range values to display_text for filtering
+        let priceDisplayTexts: string[] | undefined;
+        if (priceRanges && priceRanges.length > 0) {
+          const { data: priceRangeData } = await supabase
+            .from('price_ranges')
+            .select('value, display_text')
+            .in('value', priceRanges);
+
+          if (priceRangeData && priceRangeData.length > 0) {
+            priceDisplayTexts = priceRangeData.map(range => range.display_text);
+          }
         }
 
         let query = supabase
@@ -118,6 +110,9 @@ export const useRestaurants = ({
             favorites_count,
             cover_image_url,
             logo_url,
+            specializes_in_diet,
+            diet_certifications,
+            diet_percentages,
             establishment_types!inner(name),
             restaurant_cuisines!inner(
               cuisine_types!inner(name)
@@ -137,11 +132,13 @@ export const useRestaurants = ({
           .eq('is_published', true)
           .is('deleted_at', null);
 
+        // Filtro "Abierto ahora" - optimizado con SQL
         if (isOpenNow) {
           console.log('Applying "open now" filter with SQL optimization');
           
+          // Obtener día de la semana actual (0=domingo, 1=lunes, etc.)
           const currentDay = new Date().getDay();
-          const currentTime = new Date().toTimeString().slice(0, 8);
+          const currentTime = new Date().toTimeString().slice(0, 8); // HH:MM:SS format
           
           query = query
             .eq('restaurant_schedules.day_of_week', currentDay)
@@ -158,46 +155,23 @@ export const useRestaurants = ({
           query = query.gte('google_rating', 4.5);
         }
 
-        // Apply budget-friendly filter directly
-        if (isBudgetFriendly) {
-          console.log('Applying budget-friendly filter: price_range = €');
-          query = query.eq('price_range', '€');
-        } else if (effectivePriceRanges && effectivePriceRanges.length > 0) {
-          // Only apply regular price range filter if not budget-friendly
-          console.log('Converting price range values to display texts:', effectivePriceRanges);
-          
-          const { data: priceRangeData, error: priceError } = await supabase
-            .from('price_ranges')
-            .select('value, display_text')
-            .in('value', effectivePriceRanges);
-
-          if (priceError) {
-            console.error('Error fetching price ranges:', priceError);
-          } else if (priceRangeData && priceRangeData.length > 0) {
-            const priceDisplayTexts = priceRangeData.map(range => range.display_text);
-            console.log('Mapped price display texts:', priceDisplayTexts);
-            query = query.in('price_range', priceDisplayTexts as any);
-          }
+        if (priceDisplayTexts && priceDisplayTexts.length > 0) {
+          query = query.in('price_range', priceDisplayTexts as any);
         }
 
         if (cuisineTypeIds && cuisineTypeIds.length > 0) {
-          console.log('Applying cuisine type filter for IDs:', cuisineTypeIds);
           query = query.in('restaurant_cuisines.cuisine_type_id', cuisineTypeIds);
         }
 
         if (selectedEstablishmentTypes && selectedEstablishmentTypes.length > 0) {
-          console.log('Applying establishment type filter for IDs:', selectedEstablishmentTypes);
           query = query.in('establishment_type_id', selectedEstablishmentTypes);
         }
 
         const { data, error } = await query.limit(50);
 
         if (error) {
-          console.error('Supabase error:', error);
           throw error;
         }
-
-        console.log('Raw data from restaurants table:', data);
 
         let formattedData = data?.map((restaurant: any) => {
           let distance_km = null;
@@ -219,42 +193,46 @@ export const useRestaurants = ({
             services: restaurant.restaurant_services?.map((rs: any) => rs.services?.name).filter(Boolean) || [],
             favorites_count: restaurant.favorites_count || 0,
             cover_image_url: restaurant.cover_image_url,
-            logo_url: restaurant.logo_url
+            logo_url: restaurant.logo_url,
+            specializes_in_diet: restaurant.specializes_in_diet || [],
+            diet_certifications: restaurant.diet_certifications || [],
+            diet_percentages: restaurant.diet_percentages || {}
           };
         }).filter(Boolean) || [];
 
-        // Apply diet type filters
+        // Enhanced diet type filtering with specializations and calculated percentages
         if (selectedDietTypes && selectedDietTypes.length > 0) {
-          console.log('Applying diet type filter for IDs:', selectedDietTypes);
-          
-          // Get diet types data to understand the filtering criteria
-          const { data: dietTypesData, error: dietTypesError } = await supabase
+          const { data: dietTypesData } = await supabase
             .from('diet_types')
             .select('*')
             .in('id', selectedDietTypes);
 
-          if (dietTypesError) {
-            console.error('Error fetching diet types:', dietTypesError);
-          } else if (dietTypesData && dietTypesData.length > 0) {
-            console.log('Diet types to apply:', dietTypesData);
-            
+          if (dietTypesData && dietTypesData.length > 0) {
             const restaurantIds = formattedData.map(r => r.id);
             
             if (restaurantIds.length > 0) {
-              // Get all dishes for these restaurants
-              const { data: dishesData, error: dishesError } = await supabase
+              // Check for restaurants with diet specializations first (faster)
+              const specializedRestaurants = new Set<number>();
+              formattedData.forEach(restaurant => {
+                if (restaurant.specializes_in_diet && restaurant.specializes_in_diet.length > 0) {
+                  const hasMatchingSpecialization = selectedDietTypes.some(dietId => 
+                    restaurant.specializes_in_diet!.includes(dietId)
+                  );
+                  if (hasMatchingSpecialization) {
+                    specializedRestaurants.add(restaurant.id);
+                  }
+                }
+              });
+
+              // For restaurants without specializations, calculate percentages
+              const { data: dishesData } = await supabase
                 .from('dishes')
                 .select('restaurant_id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
-                .in('restaurant_id', restaurantIds)
+                .in('restaurant_id', restaurantIds.filter(id => !specializedRestaurants.has(id)))
                 .eq('is_active', true)
                 .is('deleted_at', null);
 
-              if (dishesError) {
-                console.error('Error fetching dishes for diet filtering:', dishesError);
-              } else if (dishesData) {
-                console.log('Dishes data for diet filtering:', dishesData.length, 'dishes found');
-                
-                // Group dishes by restaurant
+              if (dishesData) {
                 const dishesByRestaurant: Record<number, any[]> = {};
                 dishesData.forEach(dish => {
                   if (!dishesByRestaurant[dish.restaurant_id]) {
@@ -263,73 +241,43 @@ export const useRestaurants = ({
                   dishesByRestaurant[dish.restaurant_id].push(dish);
                 });
 
-                console.log('Dishes grouped by restaurant:', Object.keys(dishesByRestaurant).length, 'restaurants have dishes');
-
-                // Filter restaurants that meet ALL selected diet type criteria
-                const validRestaurantIds = new Set<number>();
-
-                // For each restaurant, check if it meets ALL diet type requirements
-                Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
-                  const restaurantId = parseInt(restaurantIdStr);
-                  let meetsAllCriteria = true;
-
-                  // Check each selected diet type
-                  for (const dietType of dietTypesData) {
+                const calculatedRestaurants = new Set<number>();
+                dietTypesData.forEach((dietType: any) => {
+                  Object.entries(dishesByRestaurant).forEach(([restaurantIdStr, dishes]) => {
+                    const restaurantId = parseInt(restaurantIdStr);
                     const percentage = calculateDietPercentage(dishes, dietType.category);
-                    console.log(`Restaurant ${restaurantId} - ${dietType.category}: ${percentage}% (need ${dietType.min_percentage}%-${dietType.max_percentage}%)`);
                     
-                    if (percentage < dietType.min_percentage || percentage > dietType.max_percentage) {
-                      meetsAllCriteria = false;
-                      break;
+                    if (percentage >= dietType.min_percentage && percentage <= dietType.max_percentage) {
+                      calculatedRestaurants.add(restaurantId);
                     }
-                  }
-
-                  if (meetsAllCriteria) {
-                    validRestaurantIds.add(restaurantId);
-                    console.log(`Restaurant ${restaurantId} meets all diet criteria`);
-                  }
+                  });
                 });
 
-                console.log('Valid restaurants after diet filtering:', validRestaurantIds.size, 'out of', formattedData.length);
-
-                // Filter the restaurants array
+                // Combine specialized and calculated restaurants
+                const validRestaurantIds = new Set([...specializedRestaurants, ...calculatedRestaurants]);
                 formattedData = formattedData.filter(restaurant => 
                   validRestaurantIds.has(restaurant.id)
                 );
-                
-                console.log('Final restaurants after diet filtering:', formattedData.length);
+              } else {
+                // If no dishes data, keep only specialized restaurants
+                formattedData = formattedData.filter(restaurant => 
+                  specializedRestaurants.has(restaurant.id)
+                );
               }
             }
           }
         }
 
-        // FIXED: Remove distance filtering, only sort by distance or popularity
         let sortedData = formattedData;
         if (userLat && userLng) {
-          // Sort by distance when user location is available (closest first)
-          sortedData = formattedData.sort((a, b) => {
-            if (a.distance_km === null && b.distance_km === null) return 0;
-            if (a.distance_km === null) return 1;
-            if (b.distance_km === null) return -1;
-            return a.distance_km - b.distance_km;
-          });
-          
-          console.log('Restaurants sorted by distance:', sortedData.length, 'restaurants');
-        } else {
-          // Sort by popularity/rating when no location available
-          sortedData = formattedData.sort((a, b) => {
-            // First by favorites count, then by rating
-            if (b.favorites_count !== a.favorites_count) {
-              return b.favorites_count - a.favorites_count;
-            }
-            return (b.google_rating || 0) - (a.google_rating || 0);
-          });
-          
-          console.log('Restaurants sorted by popularity:', sortedData.length, 'restaurants');
+          sortedData = formattedData
+            .filter(restaurant => {
+              if (restaurant.distance_km === null) return false;
+              return restaurant.distance_km <= maxDistance;
+            })
+            .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
         }
 
-        console.log('Final formatted restaurants after all filters:', sortedData.length);
-        
         setRestaurants(sortedData);
 
       } catch (err) {
@@ -387,7 +335,7 @@ export const useRestaurants = ({
       supabase.removeChannel(channel);
     };
 
-  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow, isBudgetFriendly]);
+  }, [searchQuery, userLat, userLng, maxDistance, cuisineTypeIds, priceRanges, isHighRated, selectedEstablishmentTypes, selectedDietTypes, isOpenNow]);
 
   return { restaurants, loading, error };
 };

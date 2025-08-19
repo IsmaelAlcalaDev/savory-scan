@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Images, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import OptimizedImage from './OptimizedImage';
 
 interface GalleryImage {
   image_url: string;
@@ -61,12 +60,10 @@ export default function RestaurantGallery({ gallery, restaurantName }: Restauran
                 className="aspect-square relative overflow-hidden rounded-lg cursor-pointer group"
                 onClick={() => openLightbox(index)}
               >
-                <OptimizedImage
+                <img
                   src={image.image_url}
                   alt={image.alt_text || `${restaurantName} - Imagen ${index + 1}`}
-                  context="gallery"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
               </div>
@@ -80,13 +77,10 @@ export default function RestaurantGallery({ gallery, restaurantName }: Restauran
         <DialogContent className="max-w-4xl p-0 bg-black/90">
           {selectedImage !== null && (
             <div className="relative">
-              <OptimizedImage
+              <img
                 src={gallery[selectedImage].image_url}
                 alt={gallery[selectedImage].alt_text || `${restaurantName} - Imagen ${selectedImage + 1}`}
-                context="gallery"
-                priority={true}
                 className="w-full h-auto max-h-[80vh] object-contain"
-                sizes="90vw"
               />
               
               {gallery[selectedImage].caption && (

@@ -3,7 +3,6 @@ import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import DishFavoriteButton from './DishFavoriteButton';
-import OptimizedImage from './OptimizedImage';
 
 interface AllDishCardProps {
   id: number;
@@ -67,14 +66,14 @@ export default function AllDishCard({
       >
         <div className="w-24 h-24 relative overflow-hidden rounded-lg flex-shrink-0">
           {imageUrl ? (
-            <OptimizedImage
-              src={imageUrl}
+            <img 
+              src={imageUrl} 
               alt={name}
-              width={96}
-              height={96}
-              context="dish"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              sizes="96px"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
             />
           ) : null}
           <div className={cn(
@@ -136,12 +135,14 @@ export default function AllDishCard({
     >
       <div className="aspect-[5/3] relative overflow-hidden rounded-lg mb-2">
         {imageUrl ? (
-          <OptimizedImage
-            src={imageUrl}
+          <img 
+            src={imageUrl} 
             alt={name}
-            context="dish"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 768px) 320px, 480px"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
           />
         ) : null}
         <div className={cn(

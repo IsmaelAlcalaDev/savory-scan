@@ -24,16 +24,34 @@ pop3_port = 54326
 [storage]
 enabled = true
 port = 54325
-file_size_limit = "52428800"
+image_transformation = true
 
 [auth]
 enabled = true
 port = 54326
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://localhost:3000"]
+site_url = "https://9407bbda-2b57-4bd7-838a-73839fb60e6a.lovableproject.com"
+additional_redirect_urls = ["https://localhost:3000", "http://localhost:3000"]
 jwt_expiry = 3600
 refresh_token_rotation_enabled = true
-security_update_password_require_reauthentication = true
+security_refresh_token_reuse_interval = 10
+enable_signup = true
+enable_email_confirmations = true
+enable_email_change_confirmations = true
+enable_phone_confirmations = false
 
-[functions.analytics]
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+template = {}
+
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+template = {}
+
+[functions.send-confirmation-email]
 verify_jwt = false
+
+[analytics]
+enabled = false

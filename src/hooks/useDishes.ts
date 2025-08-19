@@ -1,6 +1,6 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useIntelligentDishes } from './useIntelligentDishes';
 
 interface DishData {
   id: number;
@@ -59,11 +59,6 @@ const formatPrice = (basePrice: number): string => {
 };
 
 export const useDishes = (params: UseDishesParams = {}) => {
-  // Si hay searchQuery, usar búsqueda inteligente
-  if (params.searchQuery && params.searchQuery.trim().length > 0) {
-    return useIntelligentDishes(params);
-  }
-
   const [dishes, setDishes] = useState<DishData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
