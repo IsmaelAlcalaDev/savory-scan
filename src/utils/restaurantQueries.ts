@@ -4,30 +4,38 @@ import { supabase } from '@/integrations/supabase/client';
 // Consulta simple para verificar si un restaurante específico está abierto
 export const isRestaurantOpenNow = async (restaurantId: number): Promise<boolean> => {
   try {
-    // Usar la vista optimizada
-    const { data, error } = await supabase
-      .from('restaurants_open_now')
-      .select('is_currently_open')
-      .eq('id', restaurantId)
-      .single();
+    // Usar la función SQL creada en la base de datos
+    const { data, error } = await supabase.rpc('is_restaurant_open_now', {
+      restaurant_id_param: restaurantId
+    });
     
     if (error) {
       console.error('Error checking if restaurant is open:', error);
       return false;
     }
     
-    return data?.is_currently_open || false;
+    return data || false;
   } catch (error) {
     console.error('Error in isRestaurantOpenNow:', error);
     return false;
   }
 };
 
-// Obtener todos los restaurantes abiertos ahora mismo
+// Obtener todos los restaurantes abiertos ahora mismo usando la función SQL
 export const getOpenRestaurantsNow = async () => {
   try {
+    // Primero obtenemos los IDs de restaurantes abiertos
+    const { data: openIds, error: idsError } = await supabase.rpc('get_open_restaurant_ids');
+
+    if (idsError) throw idsError;
+
+    if (!openIds || openIds.length === 0) {
+      return [];
+    }
+
+    // Luego obtenemos los datos completos
     const { data, error } = await supabase
-      .from('restaurants_open_now')
+      .from('restaurants')
       .select(`
         id,
         name,
@@ -42,7 +50,10 @@ export const getOpenRestaurantsNow = async () => {
         cover_image_url,
         favorites_count
       `)
-      .eq('is_currently_open', true);
+      .in('id', openIds)
+      .eq('is_active', true)
+      .eq('is_published', true)
+      .is('deleted_at', null);
 
     if (error) throw error;
 
@@ -53,7 +64,7 @@ export const getOpenRestaurantsNow = async () => {
   }
 };
 
-// Consulta optimizada usando la vista directamente
+// Consulta optimizada con filtros
 export const getOpenRestaurantsWithFilters = async (filters: {
   userLat?: number;
   userLng?: number;
@@ -62,8 +73,17 @@ export const getOpenRestaurantsWithFilters = async (filters: {
   priceRanges?: string[];
 }) => {
   try {
+    // Primero obtenemos los IDs de restaurantes abiertos
+    const { data: openIds, error: idsError } = await supabase.rpc('get_open_restaurant_ids');
+
+    if (idsError) throw idsError;
+
+    if (!openIds || openIds.length === 0) {
+      return [];
+    }
+
     let query = supabase
-      .from('restaurants_open_now')
+      .from('restaurants')
       .select(`
         id,
         name,
@@ -78,7 +98,10 @@ export const getOpenRestaurantsWithFilters = async (filters: {
         cover_image_url,
         favorites_count
       `)
-      .eq('is_currently_open', true);
+      .in('id', openIds)
+      .eq('is_active', true)
+      .eq('is_published', true)
+      .is('deleted_at', null);
 
     // Agregar filtros si se proporcionan
     if (filters.cuisineTypeIds && filters.cuisineTypeIds.length > 0) {

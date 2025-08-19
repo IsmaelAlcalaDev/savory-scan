@@ -51,9 +51,23 @@ export const useOpenRestaurants = (props: UseOpenRestaurantsProps) => {
       setLoading(true);
       setError(null);
 
-      // Usar la vista optimizada que ya filtra por restaurantes abiertos
+      // Primero obtenemos los IDs de restaurantes abiertos usando la función SQL
+      const { data: openIds, error: idsError } = await supabase.rpc('get_open_restaurant_ids');
+
+      if (idsError) {
+        console.error('Error getting open restaurant IDs:', idsError);
+        throw idsError;
+      }
+
+      if (!openIds || openIds.length === 0) {
+        console.log('No open restaurants found');
+        setRestaurants([]);
+        return;
+      }
+
+      // Ahora obtenemos los datos completos de los restaurantes abiertos
       let query = supabase
-        .from('restaurants_open_now')
+        .from('restaurants')
         .select(`
           id,
           name,
@@ -68,7 +82,10 @@ export const useOpenRestaurants = (props: UseOpenRestaurantsProps) => {
           cover_image_url,
           favorites_count
         `)
-        .eq('is_currently_open', true);
+        .in('id', openIds)
+        .eq('is_active', true)
+        .eq('is_published', true)
+        .is('deleted_at', null);
 
       // Aplicar filtros adicionales
       if (cuisineTypeIds && cuisineTypeIds.length > 0) {
