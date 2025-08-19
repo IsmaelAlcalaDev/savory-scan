@@ -1,111 +1,87 @@
+
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, Clock, Users, ChefHat } from 'lucide-react';
-import { DishFavoriteButton } from './DishFavoriteButton';
-import { useNavigate } from 'react-router-dom';
+import DishFavoriteButton from './DishFavoriteButton';
+import OptimizedImage from './OptimizedImage';
+import { formatPrice } from '@/lib/utils';
 
-interface AllDishCardProps {
+export interface AllDishCardProps {
   id: number;
   name: string;
   description?: string;
-  price: number;
+  base_price: number;
   imageUrl?: string;
-  isVegetarian?: boolean;
-  isVegan?: boolean;
-  isGlutenFree?: boolean;
-  isHealthy?: boolean;
-  prepTimeMinutes?: number;
-  servingSize?: number;
+  categoryName?: string;
   restaurantName: string;
   restaurantSlug: string;
-  rating?: number;
-  category?: string;
-  spiceLevel?: number;
-  allergens?: string[];
+  restaurantId: number;
+  restaurantRating?: number;
+  distance?: number;
+  formattedPrice: string;
 }
 
 export default function AllDishCard({
   id,
   name,
   description,
-  price,
+  base_price,
   imageUrl,
-  isVegetarian,
-  isVegan,
-  isGlutenFree,
-  isHealthy,
-  prepTimeMinutes,
-  servingSize,
+  categoryName,
   restaurantName,
   restaurantSlug,
-  rating,
-  category,
-  spiceLevel,
-  allergens
+  restaurantId,
+  restaurantRating,
+  distance,
+  formattedPrice
 }: AllDishCardProps) {
-  const navigate = useNavigate();
-
   return (
-    <Card className="bg-secondary shadow-md hover:shadow-lg transition-shadow duration-200">
-      {imageUrl && (
-        <div className="relative w-full h-48 overflow-hidden rounded-md">
-          <img
-            src={imageUrl}
+    <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
+      <CardContent className="p-0">
+        <div className="relative aspect-video overflow-hidden rounded-t-lg">
+          <OptimizedImage
+            src={imageUrl || '/placeholder.svg'}
             alt={name}
-            className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-        </div>
-      )}
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold line-clamp-1">{name}</h3>
-          <DishFavoriteButton dishId={id} />
-        </div>
-        <p className="text-sm text-muted-foreground line-clamp-2">{description || 'No description available'}</p>
-        <div className="flex items-center space-x-2 mt-3">
-          <Badge variant="secondary">
-            {price.toLocaleString('es-AR', {
-              style: 'currency',
-              currency: 'ARS',
-              minimumFractionDigits: 0,
-            })}
-          </Badge>
-          {isVegetarian && <Badge>Vegetariano</Badge>}
-          {isVegan && <Badge>Vegano</Badge>}
-          {isGlutenFree && <Badge>Sin Gluten</Badge>}
-          {isHealthy && <Badge>Saludable</Badge>}
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {allergens && allergens.length > 0 && (
-            <div className="flex items-center text-xs text-red-500">
-              Alergenos: {allergens.join(', ')}
-            </div>
+          <div className="absolute top-2 right-2">
+            <DishFavoriteButton
+              dishId={id}
+              restaurantId={restaurantId}
+              size="sm"
+            />
+          </div>
+          {categoryName && (
+            <Badge className="absolute top-2 left-2 bg-black/70 text-white">
+              {categoryName}
+            </Badge>
           )}
         </div>
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center text-sm text-muted-foreground">
-            {rating !== null && rating !== undefined && (
-              <>
-                <Star className="h-4 w-4 mr-1" />
-                <span>{rating?.toFixed(1) || 'Sin calificar'}</span>
-              </>
-            )}
+        
+        <div className="p-4">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-semibold text-lg line-clamp-1">{name}</h3>
+            <span className="font-bold text-primary ml-2">{formattedPrice}</span>
           </div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            {prepTimeMinutes !== null && prepTimeMinutes !== undefined && (
-              <>
-                <Clock className="h-4 w-4 mr-1" />
-                <span>{prepTimeMinutes} min</span>
-              </>
-            )}
+          
+          {description && (
+            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+              {description}
+            </p>
+          )}
+          
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span className="font-medium">{restaurantName}</span>
+            <div className="flex items-center gap-2">
+              {restaurantRating && (
+                <span>⭐ {restaurantRating.toFixed(1)}</span>
+              )}
+              {distance && (
+                <span>{distance.toFixed(1)} km</span>
+              )}
+            </div>
           </div>
         </div>
-        <button
-          onClick={() => navigate(`/restaurants/${restaurantSlug}/dishes/${id}`)}
-          className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90 font-medium rounded-md text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
-        >
-          Ver detalles
-        </button>
       </CardContent>
     </Card>
   );
