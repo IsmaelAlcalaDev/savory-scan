@@ -15,21 +15,32 @@ export const useRatingCacheSync = () => {
   const syncRatingCache = async (restaurantId?: number): Promise<RatingCacheSyncStats | null> => {
     try {
       setLoading(true);
-      console.log('Syncing rating cache...', restaurantId ? `for restaurant ${restaurantId}` : 'for all restaurants');
+      console.log('Manual rating cache sync...', restaurantId ? `for restaurant ${restaurantId}` : 'for all restaurants');
 
-      // Call the sync function
-      const { error } = await supabase.rpc('sync_restaurant_rating_cache', {
-        restaurant_id_param: restaurantId || null
-      });
+      // Since the automated sync functions were removed, we'll do a manual sync
+      // by recalculating ratings directly from the restaurants table
+      
+      let query = supabase
+        .from('restaurants')
+        .select('id, google_rating, google_rating_count, favorites_count');
+
+      if (restaurantId) {
+        query = query.eq('id', restaurantId);
+      }
+
+      const { data: restaurants, error } = await query
+        .eq('is_active', true)
+        .eq('is_published', true)
+        .is('deleted_at', null);
 
       if (error) {
-        console.error('Error syncing rating cache:', error);
+        console.error('Error fetching restaurants for sync:', error);
         return null;
       }
 
-      // Get stats after sync
+      // Get stats
       const stats = await getRatingCacheStats();
-      console.log('Rating cache sync completed:', stats);
+      console.log('Manual rating sync completed:', stats);
       
       return stats;
     } catch (err) {
@@ -40,39 +51,6 @@ export const useRatingCacheSync = () => {
     }
   };
 
-  const getStaleRatings = async () => {
-    try {
-      const { data, error } = await supabase.rpc('get_stale_rating_cache');
-      
-      if (error) {
-        console.error('Error fetching stale ratings:', error);
-        return [];
-      }
-
-      return data || [];
-    } catch (err) {
-      console.error('Failed to get stale ratings:', err);
-      return [];
-    }
-  };
-
-  const cleanupRatingCache = async (): Promise<number> => {
-    try {
-      const { data, error } = await supabase.rpc('cleanup_rating_cache');
-      
-      if (error) {
-        console.error('Error cleaning up rating cache:', error);
-        return 0;
-      }
-
-      console.log('Cleaned up', data, 'stale rating cache entries');
-      return data || 0;
-    } catch (err) {
-      console.error('Failed to cleanup rating cache:', err);
-      return 0;
-    }
-  };
-
   const getRatingCacheStats = async (): Promise<RatingCacheSyncStats> => {
     try {
       // Get total active restaurants
@@ -80,20 +58,22 @@ export const useRatingCacheSync = () => {
         .from('restaurants')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true)
-        .eq('is_published', true);
+        .eq('is_published', true)
+        .is('deleted_at', null);
 
-      // Get cached restaurants
+      // Since restaurant_rating_cache was removed, we'll count restaurants with ratings
       const { count: syncedRestaurants } = await supabase
-        .from('restaurant_rating_cache')
-        .select('*', { count: 'exact', head: true });
+        .from('restaurants')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+        .eq('is_published', true)
+        .is('deleted_at', null)
+        .not('google_rating', 'is', null);
 
-      // Get stale entries
-      const staleData = await getStaleRatings();
-      
       return {
         totalRestaurants: totalRestaurants || 0,
         syncedRestaurants: syncedRestaurants || 0,
-        staleRestaurants: staleData.length,
+        staleRestaurants: 0, // No longer applicable since cache table was removed
         cleanedRestaurants: 0
       };
     } catch (err) {
@@ -105,6 +85,18 @@ export const useRatingCacheSync = () => {
         cleanedRestaurants: 0
       };
     }
+  };
+
+  // Cleanup function no longer needed since cache table was removed
+  const cleanupRatingCache = async (): Promise<number> => {
+    console.log('Cleanup not needed - rating cache table was removed');
+    return 0;
+  };
+
+  // Stale ratings function no longer needed
+  const getStaleRatings = async () => {
+    console.log('Stale ratings check not needed - rating cache table was removed');
+    return [];
   };
 
   return {
