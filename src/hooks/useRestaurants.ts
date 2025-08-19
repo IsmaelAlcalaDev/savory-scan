@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -16,6 +15,7 @@ interface Restaurant {
   favorites_count: number;
   cover_image_url?: string;
   logo_url?: string;
+  subscription_plan?: string;
 }
 
 interface UseRestaurantsProps {
@@ -100,6 +100,7 @@ export const useRestaurants = ({
             favorites_count,
             cover_image_url,
             logo_url,
+            subscription_plan,
             establishment_types!inner(name),
             restaurant_cuisines!inner(
               cuisine_types!inner(name)
@@ -117,7 +118,7 @@ export const useRestaurants = ({
           `)
           .eq('is_active', true)
           .eq('is_published', true)
-          .is('deleted_at', null);
+          .limit(200);
 
         if (isOpenNow) {
           console.log('Applying "open now" filter with SQL optimization');
@@ -199,15 +200,14 @@ export const useRestaurants = ({
             services: restaurant.restaurant_services?.map((rs: any) => rs.services?.name).filter(Boolean) || [],
             favorites_count: restaurant.favorites_count || 0,
             cover_image_url: restaurant.cover_image_url,
-            logo_url: restaurant.logo_url
+            logo_url: restaurant.logo_url,
+            subscription_plan: restaurant.subscription_plan || 'free'
           };
         }).filter(Boolean) || [];
 
-        // Apply diet filtering with proper percentage calculation
         if (selectedDietTypes && selectedDietTypes.length > 0) {
           console.log('Applying diet type filter for IDs:', selectedDietTypes);
           
-          // Get diet types data to map categories
           const { data: dietTypesData, error: dietTypesError } = await supabase
             .from('diet_types')
             .select('*')
@@ -223,9 +223,7 @@ export const useRestaurants = ({
             if (restaurantIds.length > 0) {
               const validRestaurantIds = new Set<number>();
               
-              // Check each restaurant individually
               for (const restaurant of formattedData) {
-                // Get total dishes for this restaurant
                 const { data: dishesData, error: dishesError } = await supabase
                   .from('dishes')
                   .select('id, is_vegetarian, is_vegan, is_gluten_free, is_healthy')
@@ -240,7 +238,6 @@ export const useRestaurants = ({
                 const totalDishes = dishesData.length;
                 console.log(`Restaurant ${restaurant.name} has ${totalDishes} dishes`);
 
-                // Check if any selected diet meets the 20% threshold
                 for (const dietType of dietTypesData) {
                   let dietDishesCount = 0;
                   
@@ -265,7 +262,7 @@ export const useRestaurants = ({
                   if (percentage >= 20) {
                     validRestaurantIds.add(restaurant.id);
                     console.log(`✓ Restaurant ${restaurant.name} meets ${dietType.category} requirement (${percentage.toFixed(2)}%)`);
-                    break; // Found matching diet type, no need to check others
+                    break;
                   }
                 }
               }

@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import DishCard from './DishCard';
-import type { MenuSection } from '@/types/dish';
+import type { MenuSection } from '@/hooks/useRestaurantMenu';
 
 interface RestaurantMenuSectionProps {
   section: MenuSection;

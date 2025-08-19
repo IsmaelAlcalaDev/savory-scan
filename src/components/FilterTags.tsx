@@ -1,4 +1,5 @@
-import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Tags, Flame, ArrowUp, ArrowDown } from 'lucide-react';
+
+import { X, ChevronDown, Euro, Star, Store, Utensils, Clock, RotateCcw, CircleDollarSign, Tags, Flame, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -25,16 +26,18 @@ interface FilterTagsProps {
   selectedDishDietTypes?: string[];
   selectedCustomTags?: string[];
   selectedSpiceLevels?: number[];
+  selectedSortBy?: string[];
   isOpenNow?: boolean;
   isHighRated?: boolean;
   isBudgetFriendly?: boolean;
-  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'establishment' | 'diet' | 'dishDiet' | 'customTags' | 'spice' | 'openNow' | 'highRated' | 'budgetFriendly' | 'all', id?: number) => void;
+  onClearFilter: (type: 'cuisine' | 'foodType' | 'price' | 'establishment' | 'diet' | 'dishDiet' | 'customTags' | 'spice' | 'sortBy' | 'openNow' | 'highRated' | 'budgetFriendly' | 'all', id?: number) => void;
   onPriceRangeChange?: (ranges: string[]) => void;
   onEstablishmentTypeChange?: (types: number[]) => void;
   onDietTypeChange?: (types: number[]) => void;
   onDishDietTypeChange?: (types: string[]) => void;
   onCustomTagsChange?: (tags: string[]) => void;
   onSpiceLevelChange?: (levels: number[]) => void;
+  onSortByChange?: (sortBy: string[]) => void;
   onOpenNowChange?: (isOpen: boolean) => void;
   onHighRatedChange?: (isHighRated: boolean) => void;
   onBudgetFriendlyChange?: (isBudgetFriendly: boolean) => void;
@@ -50,6 +53,7 @@ export default function FilterTags({
   selectedDishDietTypes = [],
   selectedCustomTags = [],
   selectedSpiceLevels = [],
+  selectedSortBy = [],
   isOpenNow = false,
   isHighRated = false,
   isBudgetFriendly = false,
@@ -60,6 +64,7 @@ export default function FilterTags({
   onDishDietTypeChange = () => {},
   onCustomTagsChange = () => {},
   onSpiceLevelChange = () => {},
+  onSortByChange = () => {},
   onOpenNowChange = () => {},
   onHighRatedChange = () => {},
   onBudgetFriendlyChange = () => {}
@@ -75,6 +80,7 @@ export default function FilterTags({
     (activeTab === 'restaurants' ? selectedDietTypes.length > 0 : selectedDishDietTypes.length > 0) ||
     selectedCustomTags.length > 0 ||
     selectedSpiceLevels.length > 0 ||
+    selectedSortBy.length > 0 ||
     isOpenNow ||
     isHighRated ||
     isBudgetFriendly;
@@ -116,6 +122,7 @@ export default function FilterTags({
       case 'diet': return Utensils;
       case 'customTags': return Tags;
       case 'spice': return Flame;
+      case 'sortBy': return ArrowUpDown;
       default: return null;
     }
   };
@@ -127,6 +134,7 @@ export default function FilterTags({
       case 'diet': return 'Dieta';
       case 'customTags': return 'Etiquetas';
       case 'spice': return 'Picante';
+      case 'sortBy': return 'Ordenar por';
       default: return 'Filtro';
     }
   };
@@ -138,6 +146,7 @@ export default function FilterTags({
       case 'diet': return activeTab === 'restaurants' ? selectedDietTypes.length : selectedDishDietTypes.length;
       case 'customTags': return selectedCustomTags.length;
       case 'spice': return selectedSpiceLevels.length;
+      case 'sortBy': return selectedSortBy.length;
       default: return 0;
     }
   };
@@ -235,8 +244,8 @@ export default function FilterTags({
         return (
           <div className="[&_label]:text-base space-y-4">
             <CustomTagsFilter
-              selectedTags={selectedCustomTags}
-              onTagsChange={onCustomTagsChange}
+              selectedCustomTags={selectedCustomTags}
+              onCustomTagsChange={onCustomTagsChange}
             />
           </div>
         );
@@ -247,6 +256,53 @@ export default function FilterTags({
               selectedSpiceLevels={selectedSpiceLevels}
               onSpiceLevelChange={onSpiceLevelChange}
             />
+          </div>
+        );
+      case 'sortBy':
+        return (
+          <div className="[&_label]:text-base space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="recommended"
+                  name="sort-type"
+                  value="recommended"
+                  checked={selectedSortBy.includes('recommended')}
+                  onChange={() => {
+                    if (selectedSortBy.includes('recommended')) {
+                      onSortByChange([]);
+                    } else {
+                      onSortByChange(['recommended']);
+                    }
+                  }}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="recommended" className="text-sm font-medium">
+                  Recomendados
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="distance"
+                  name="sort-type"
+                  value="distance"
+                  checked={selectedSortBy.includes('distance')}
+                  onChange={() => {
+                    if (selectedSortBy.includes('distance')) {
+                      onSortByChange([]);
+                    } else {
+                      onSortByChange(['distance']);
+                    }
+                  }}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="distance" className="text-sm font-medium">
+                  Distancia
+                </label>
+              </div>
+            </div>
           </div>
         );
       default:
@@ -295,6 +351,9 @@ export default function FilterTags({
     { key: 'price', label: activeTab === 'dishes' ? 'Precio' : 'Precio' },
     { key: 'diet', label: 'Dieta' },
     { key: 'establishment', label: 'Tipo' },
+    ...(activeTab === 'restaurants' ? [
+      { key: 'sortBy', label: 'Ordenar' }
+    ] : []),
     ...(activeTab === 'dishes' ? [
       { key: 'spice', label: 'Picante' },
       { key: 'customTags', label: 'Etiquetas' }
@@ -319,7 +378,7 @@ export default function FilterTags({
         <Button
           variant="outline"
           size="sm"
-          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
+          className={`flex-shrink-0 h-10 px-2 text-sm rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
               ? 'bg-black text-white hover:bg-black hover:text-white' 
               : 'text-black hover:text-black'
@@ -359,7 +418,7 @@ export default function FilterTags({
         <Button
           variant="outline"
           size="sm"
-          className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 relative ${
+          className={`flex-shrink-0 h-10 px-2 text-sm rounded-full border-0 flex items-center gap-2 relative ${
             isActive 
               ? 'bg-black text-white hover:bg-black hover:text-white' 
               : 'text-black hover:text-black'
@@ -420,7 +479,7 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
+            className={`flex-shrink-0 h-10 px-2 text-sm rounded-full border-0 flex items-center gap-2 ${
               isHighRated 
                 ? 'bg-black text-white hover:bg-black hover:text-white' 
                 : 'text-black hover:text-black'
@@ -456,7 +515,7 @@ export default function FilterTags({
           <Button
             variant="outline"
             size="sm"
-            className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
+            className={`flex-shrink-0 h-10 px-2 text-sm rounded-full border-0 flex items-center gap-2 ${
               isOpenNow 
                 ? 'bg-black text-white hover:bg-black hover:text-white' 
                 : 'text-black hover:text-black'
@@ -493,7 +552,7 @@ export default function FilterTags({
             <Button
               variant="outline"
               size="sm"
-              className={`flex-shrink-0 h-8 px-4 text-sm rounded-full border-0 flex items-center gap-2 ${
+              className={`flex-shrink-0 h-10 px-2 text-sm rounded-full border-0 flex items-center gap-2 ${
                 isBudgetFriendly 
                   ? 'bg-black text-white hover:bg-black hover:text-white' 
                   : 'text-black hover:text-black'

@@ -1,164 +1,119 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { Dish } from '@/types/dish';
+import type { Dish } from '@/hooks/useRestaurantMenu';
 
-interface UseDishesProps {
-  restaurantId: number;
-  categoryId?: number;
-  sectionId?: number;
-  searchQuery?: string;
-  allergenIds?: number[];
-  dietTypeIds?: number[];
-  spiceLevel?: number;
-  customTags?: string[];
-  isHealthy?: boolean;
-  isVegetarian?: boolean;
-  isVegan?: boolean;
-  isGlutenFree?: boolean;
-  isLactoseFree?: boolean;
-  minPrice?: number;
-  maxPrice?: number;
-}
+export { type Dish } from '@/hooks/useRestaurantMenu';
 
-export const useRestaurantDishes = (props: UseDishesProps) => {
+export const useRestaurantDishes = (restaurantId: number) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    restaurantId,
-    categoryId,
-    sectionId,
-    searchQuery,
-    allergenIds,
-    dietTypeIds,
-    spiceLevel,
-    customTags,
-    isHealthy,
-    isVegetarian,
-    isVegan,
-    isGlutenFree,
-    isLactoseFree,
-    minPrice,
-    maxPrice
-  } = props;
-
   useEffect(() => {
-    fetchDishes();
-  }, [
-    restaurantId,
-    categoryId,
-    sectionId,
-    searchQuery,
-    JSON.stringify(allergenIds),
-    JSON.stringify(dietTypeIds),
-    spiceLevel,
-    JSON.stringify(customTags),
-    isHealthy,
-    isVegetarian,
-    isVegan,
-    isGlutenFree,
-    isLactoseFree,
-    minPrice,
-    maxPrice
-  ]);
-
-  const fetchDishes = async () => {
-    if (!restaurantId) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      let query = supabase
-        .from('dishes')
-        .select(`
-          *,
-          dish_categories!inner(name),
-          menu_sections!inner(name),
-          dish_variants(*)
-        `)
-        .eq('restaurant_id', restaurantId)
-        .eq('is_active', true)
-        .is('deleted_at', null)
-        .order('name');
-
-      // Apply filters
-      if (categoryId) {
-        query = query.eq('category_id', categoryId);
-      }
-
-      if (sectionId) {
-        query = query.eq('section_id', sectionId);
-      }
-
-      if (searchQuery) {
-        query = query.ilike('name', `%${searchQuery}%`);
-      }
-
-      if (spiceLevel !== undefined) {
-        query = query.eq('spice_level', spiceLevel);
-      }
-
-      if (isHealthy) {
-        query = query.eq('is_healthy', true);
-      }
-
-      if (isVegetarian) {
-        query = query.eq('is_vegetarian', true);
-      }
-
-      if (isVegan) {
-        query = query.eq('is_vegan', true);
-      }
-
-      if (isGlutenFree) {
-        query = query.eq('is_gluten_free', true);
-      }
-
-      if (isLactoseFree) {
-        query = query.eq('is_lactose_free', true);
-      }
-
-      if (minPrice !== undefined) {
-        query = query.gte('base_price', minPrice);
-      }
-
-      if (maxPrice !== undefined) {
-        query = query.lte('base_price', maxPrice);
-      }
-
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-
-      // Transform data to match Dish interface
-      let transformedData = (data || []).map((dish: any) => ({
-        ...dish,
-        allergens: Array.isArray(dish.allergens) ? dish.allergens : [],
-        diet_types: Array.isArray(dish.diet_types) ? dish.diet_types : [],
-        custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags : [],
-        variants: dish.dish_variants || []
-      }));
-
-      // Filter by custom tags if specified
-      if (customTags && customTags.length > 0) {
-        transformedData = transformedData.filter(dish => 
-          dish.custom_tags && 
-          Array.isArray(dish.custom_tags) &&
-          customTags.some(tag => dish.custom_tags.includes(tag))
-        );
-      }
-
-      setDishes(transformedData);
-    } catch (err) {
-      console.error('Error fetching dishes:', err);
-      setError(err instanceof Error ? err.message : 'Error al cargar platos');
-    } finally {
+    if (!restaurantId) {
+      console.log('useRestaurantDishes: No restaurantId provided');
+      setDishes([]);
       setLoading(false);
+      return;
     }
-  };
 
-  return { dishes, loading, error, refetch: fetchDishes };
+    console.log('useRestaurantDishes: Fetching dishes for restaurantId:', restaurantId);
+
+    const fetchDishes = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        console.log('useRestaurantDishes: Making query to dishes table with restaurant_id:', restaurantId);
+
+        // Query dishes directly filtering by restaurant_id
+        const { data: dishesData, error: dishesError } = await supabase
+          .from('dishes')
+          .select(`
+            id,
+            name,
+            description,
+            base_price,
+            image_url,
+            image_alt,
+            is_featured,
+            is_vegetarian,
+            is_vegan,
+            is_gluten_free,
+            is_lactose_free,
+            is_healthy,
+            spice_level,
+            preparation_time_minutes,
+            favorites_count,
+            allergens,
+            custom_tags,
+            category_id,
+            dish_categories!dishes_category_id_fkey(name),
+            dish_variants(id, name, price, is_default, display_order)
+          `)
+          .eq('restaurant_id', restaurantId)
+          .eq('is_active', true)
+          .is('deleted_at', null)
+          .order('is_featured', { ascending: false })
+          .order('name');
+
+        console.log('useRestaurantDishes: Query result:', { dishesData, dishesError });
+
+        if (dishesError) {
+          console.error('useRestaurantDishes: Query error:', dishesError);
+          throw dishesError;
+        }
+
+        console.log('useRestaurantDishes: Raw dishes data:', dishesData);
+        console.log('useRestaurantDishes: Number of dishes found:', dishesData?.length || 0);
+
+        const formattedDishes = (dishesData || []).map(dish => {
+          console.log('useRestaurantDishes: Processing dish:', dish);
+          return {
+            id: dish.id,
+            name: dish.name,
+            description: dish.description,
+            base_price: dish.base_price,
+            image_url: dish.image_url,
+            image_alt: dish.image_alt,
+            is_featured: dish.is_featured,
+            is_vegetarian: dish.is_vegetarian,
+            is_vegan: dish.is_vegan,
+            is_gluten_free: dish.is_gluten_free,
+            is_lactose_free: dish.is_lactose_free,
+            is_healthy: dish.is_healthy,
+            spice_level: dish.spice_level,
+            preparation_time_minutes: dish.preparation_time_minutes,
+            favorites_count: dish.favorites_count,
+            category_name: dish.dish_categories?.name,
+            allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
+            custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags as string[] : [],
+            variants: (dish.dish_variants || [])
+              .sort((a: any, b: any) => a.display_order - b.display_order)
+              .map((variant: any) => ({
+                id: variant.id,
+                name: variant.name,
+                price: variant.price,
+                is_default: variant.is_default
+              }))
+          };
+        });
+
+        console.log('useRestaurantDishes: Formatted dishes:', formattedDishes);
+        setDishes(formattedDishes);
+      } catch (err) {
+        console.error('useRestaurantDishes: Error fetching dishes:', err);
+        setError(err instanceof Error ? err.message : 'Error al cargar platos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDishes();
+  }, [restaurantId]);
+
+  console.log('useRestaurantDishes: Hook state:', { dishes: dishes.length, loading, error });
+
+  return { dishes, loading, error };
 };

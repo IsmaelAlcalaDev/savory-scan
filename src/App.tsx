@@ -15,7 +15,6 @@ import RestaurantProfile from "./pages/RestaurantProfile";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
 import SuperAdminPanel from "./pages/SuperAdminPanel";
-import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -80,15 +79,7 @@ const App = () => {
                             path="/superadmin" 
                             element={
                               <ProtectedRoute requiredRole="admin">
-                                <SuperAdminDashboard />
-                              </ProtectedRoute>
-                            } 
-                          />
-                          <Route 
-                            path="/super-admin-a7f8b2e9" 
-                            element={
-                              <ProtectedRoute requiredRole="admin">
-                                <SuperAdminDashboard />
+                                <SuperAdminPanel />
                               </ProtectedRoute>
                             } 
                           />

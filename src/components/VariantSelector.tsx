@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import {
@@ -6,7 +7,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import type { Dish } from '@/types/dish';
+import type { Dish } from '@/hooks/useRestaurantMenu';
 
 interface VariantSelectorProps {
   dish: Dish;

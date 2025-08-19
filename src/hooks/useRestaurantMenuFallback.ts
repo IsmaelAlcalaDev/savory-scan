@@ -1,116 +1,140 @@
 
 import { useState, useEffect } from 'react';
-import type { MenuSection, Dish, DishVariant } from '@/types/dish';
+import { supabase } from '@/integrations/supabase/client';
+import { type Dish, type MenuSection } from '@/hooks/useRestaurantMenu';
 
-interface UseRestaurantMenuFallbackProps {
-  restaurantSlug: string;
-}
-
-export const useRestaurantMenuFallback = ({ restaurantSlug }: UseRestaurantMenuFallbackProps) => {
+export const useRestaurantMenuFallback = (restaurantId: number) => {
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simular carga de datos de prueba
-    const loadFallbackData = () => {
-      setLoading(true);
-      
-      // Crear variantes de prueba
-      const createVariant = (id: number, dishId: number, name: string, price: number, isDefault: boolean = false): DishVariant => ({
-        id,
-        dish_id: dishId,
-        name,
-        price,
-        display_order: 0,
-        is_default: isDefault,
-        created_at: new Date().toISOString()
-      });
+    if (!restaurantId) return;
 
-      // Crear platos de prueba
-      const createDish = (id: number, name: string, description: string, price: number, variants: DishVariant[]): Dish => ({
-        id,
-        restaurant_id: 1,
-        category_id: 1,
-        section_id: 1,
-        name,
-        description,
-        base_price: price,
-        image_url: `/placeholder.svg`,
-        image_alt: name,
-        is_featured: false,
-        is_active: true,
-        is_healthy: false,
-        is_vegetarian: false,
-        is_vegan: false,
-        is_gluten_free: false,
-        is_lactose_free: false,
-        spice_level: 0,
-        preparation_time_minutes: 15,
-        allergens: [],
-        diet_types: [],
-        custom_tags: [],
-        favorites_count: 0,
-        favorites_count_week: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        variants
-      });
+    const fetchMenuWithFallback = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const fallbackSections: MenuSection[] = [
-        {
-          id: 1,
-          restaurant_id: 1,
-          name: 'Entrantes',
-          description: 'Deliciosos entrantes para comenzar',
-          display_order: 1,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          dishes: [
-            createDish(1, 'Croquetas de Jamón', 'Croquetas caseras de jamón ibérico', 8.5, [
-              createVariant(1, 1, 'Ración (6 unidades)', 8.5, true),
-              createVariant(2, 1, 'Media ración (3 unidades)', 5.0, false)
-            ]),
-            createDish(2, 'Patatas Bravas', 'Patatas con salsa brava y alioli', 6.0, [
-              createVariant(3, 2, 'Ración completa', 6.0, true)
-            ])
-          ]
-        },
-        {
-          id: 2,
-          restaurant_id: 1,
-          name: 'Principales',
-          description: 'Platos principales',
-          display_order: 2,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          dishes: [
-            createDish(3, 'Paella Valenciana', 'Paella tradicional con pollo y verduras', 16.0, [
-              createVariant(4, 3, 'Para 2 personas', 16.0, true)
-            ])
-          ]
+        // First try to get menu sections
+        const { data: sectionsData, error: sectionsError } = await supabase
+          .from('menu_sections')
+          .select('id, name, description, display_order')
+          .eq('restaurant_id', restaurantId)
+          .eq('is_active', true)
+          .is('deleted_at', null)
+          .order('display_order');
+
+        if (sectionsError) {
+          throw sectionsError;
         }
-      ];
 
-      setTimeout(() => {
-        setSections(fallbackSections);
+        // Get all dishes for this restaurant
+        const { data: dishesData, error: dishesError } = await supabase
+          .from('dishes')
+          .select(`
+            id,
+            name,
+            description,
+            base_price,
+            image_url,
+            image_alt,
+            is_featured,
+            is_vegetarian,
+            is_vegan,
+            is_gluten_free,
+            is_lactose_free,
+            is_healthy,
+            spice_level,
+            preparation_time_minutes,
+            favorites_count,
+            allergens,
+            custom_tags,
+            section_id,
+            dish_categories(name),
+            dish_variants(id, name, price, is_default, display_order)
+          `)
+          .eq('restaurant_id', restaurantId)
+          .eq('is_active', true)
+          .is('deleted_at', null);
+
+        if (dishesError) {
+          throw dishesError;
+        }
+
+        const dishes = (dishesData || []).map(dish => ({
+          id: dish.id,
+          name: dish.name,
+          description: dish.description,
+          base_price: dish.base_price,
+          image_url: dish.image_url,
+          image_alt: dish.image_alt,
+          is_featured: dish.is_featured,
+          is_vegetarian: dish.is_vegetarian,
+          is_vegan: dish.is_vegan,
+          is_gluten_free: dish.is_gluten_free,
+          is_lactose_free: dish.is_lactose_free,
+          is_healthy: dish.is_healthy,
+          spice_level: dish.spice_level,
+          preparation_time_minutes: dish.preparation_time_minutes,
+          favorites_count: dish.favorites_count,
+          category_name: dish.dish_categories?.name,
+          allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
+          custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags as string[] : [],
+          section_id: dish.section_id,
+          variants: (dish.dish_variants || [])
+            .sort((a: any, b: any) => a.display_order - b.display_order)
+            .map((variant: any) => ({
+              id: variant.id,
+              name: variant.name,
+              price: variant.price,
+              is_default: variant.is_default
+            }))
+        }));
+
+        // If we have sections, use them
+        if (sectionsData && sectionsData.length > 0) {
+          const sectionsWithDishes = sectionsData.map(section => ({
+            ...section,
+            dishes: dishes.filter(dish => dish.section_id === section.id)
+          }));
+          setSections(sectionsWithDishes);
+        } else {
+          // Fallback: group dishes by category and get unique section IDs from dishes
+          const dishesGroupedByCategory = dishes.reduce((acc, dish) => {
+            const categoryName = dish.category_name || 'Sin categoría';
+            if (!acc[categoryName]) {
+              acc[categoryName] = {
+                dishes: [],
+                sectionId: dish.section_id || null
+              };
+            }
+            acc[categoryName].dishes.push(dish);
+            return acc;
+          }, {} as Record<string, { dishes: Dish[], sectionId: number | null }>);
+
+          // Convert to sections format using real section IDs or generate consistent ones
+          const fallbackSections = Object.entries(dishesGroupedByCategory).map(([categoryName, categoryData], index) => ({
+            id: categoryData.sectionId || (1000 + index), // Use real section ID or generate consistent fallback
+            name: categoryName,
+            description: undefined,
+            display_order: index + 1,
+            dishes: categoryData.dishes
+          }));
+
+          setSections(fallbackSections);
+        }
+
+      } catch (err) {
+        console.error('Error fetching menu:', err);
+        setError(err instanceof Error ? err.message : 'Error al cargar menú');
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
 
-    loadFallbackData();
-  }, [restaurantSlug]);
+    fetchMenuWithFallback();
+  }, [restaurantId]);
 
-  return {
-    sections,
-    loading,
-    error,
-    refetch: () => {
-      setLoading(true);
-      // Recargar datos fallback
-      setTimeout(() => setLoading(false), 1000);
-    }
-  };
+  return { sections, loading, error };
 };

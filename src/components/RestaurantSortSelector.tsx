@@ -3,8 +3,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowUpDown } from 'lucide-react';
 
 interface RestaurantSortSelectorProps {
-  value: 'distance' | 'rating' | 'favorites';
-  onChange: (value: 'distance' | 'rating' | 'favorites') => void;
+  value: 'recommended' | 'distance';
+  onChange: (value: 'recommended' | 'distance') => void;
   hasLocation?: boolean;
   className?: string;
 }
@@ -15,6 +15,8 @@ export default function RestaurantSortSelector({
   hasLocation = false,
   className = "" 
 }: RestaurantSortSelectorProps) {
+  console.log('RestaurantSortSelector: value =', value, 'hasLocation =', hasLocation);
+
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
@@ -23,10 +25,9 @@ export default function RestaurantSortSelector({
           <SelectValue placeholder="Ordenar por" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="favorites">Más populares</SelectItem>
-          <SelectItem value="rating">Mejor valorados</SelectItem>
+          <SelectItem value="recommended">Recomendados</SelectItem>
           {hasLocation && (
-            <SelectItem value="distance">Más cercanos</SelectItem>
+            <SelectItem value="distance">Distancia</SelectItem>
           )}
         </SelectContent>
       </Select>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Plus, X } from 'lucide-react';
 import {
@@ -5,7 +6,7 @@ import {
   ModalContent,
 } from '@/components/ui/modal-wrapper';
 import DinerSelector from './DinerSelector';
-import type { Dish } from '@/types/dish';
+import type { Dish } from '@/hooks/useRestaurantMenu';
 import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
 
 interface DishVariantsModalProps {

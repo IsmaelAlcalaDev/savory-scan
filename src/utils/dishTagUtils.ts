@@ -1,4 +1,5 @@
-import type { Dish } from '@/types/dish';
+
+import type { Dish } from '@/hooks/useRestaurantMenu';
 
 export interface PriorityTag {
   text: string;
