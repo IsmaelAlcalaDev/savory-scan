@@ -34,12 +34,14 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import RestaurantSocialSection from '@/components/RestaurantSocialSection';
 import RestaurantServicesList from '@/components/RestaurantServicesList';
 import RestaurantDeliveryLinks from '@/components/RestaurantDeliveryLinks';
+import { useRestaurantSchedules } from '@/hooks/useRestaurantSchedules';
 
 export default function RestaurantProfile() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { restaurant, loading, error } = useRestaurantProfile(slug || '');
+  const { schedules } = useRestaurantSchedules(restaurant?.id || 0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -279,20 +281,31 @@ export default function RestaurantProfile() {
     const currentDay = now.getDay();
     const currentTime = now.toTimeString().slice(0, 5);
     
-    const todaySchedule = restaurant?.schedules.find(s => s.day_of_week === currentDay);
+    const todaySchedule = schedules.find(s => s.day_of_week === currentDay);
     
     if (!todaySchedule || todaySchedule.is_closed) {
       return { status: 'Cerrado', className: 'text-red-500', isOpen: false };
     }
     
-    if (currentTime >= todaySchedule.opening_time && currentTime <= todaySchedule.closing_time) {
-      return { status: 'Abierto', className: 'text-green-500', isOpen: true };
+    // Check first shift
+    if (todaySchedule.first_opening_time && todaySchedule.first_closing_time) {
+      if (currentTime >= todaySchedule.first_opening_time && currentTime <= todaySchedule.first_closing_time) {
+        return { status: 'Abierto', className: 'text-green-500', isOpen: true };
+      }
+    }
+    
+    // Check second shift if exists
+    if (todaySchedule.second_opening_time && todaySchedule.second_closing_time) {
+      if (currentTime >= todaySchedule.second_opening_time && currentTime <= todaySchedule.second_closing_time) {
+        return { status: 'Abierto', className: 'text-green-500', isOpen: true };
+      }
     }
     
     return { status: 'Cerrado', className: 'text-red-500', isOpen: false };
   };
 
-  const formatTime = (time: string) => {
+  const formatTime = (time?: string | null) => {
+    if (!time) return '';
     return time.slice(0, 5);
   };
 
@@ -568,7 +581,7 @@ export default function RestaurantProfile() {
 
               <RestaurantServicesList services={restaurant.services} />
 
-              {/* Desktop: Horarios section without container */}
+              {/* Desktop: Horarios section updated */}
               <section 
                 id="horarios"
                 ref={(el) => sectionsRef.current['horarios'] = el}
@@ -586,10 +599,10 @@ export default function RestaurantProfile() {
                     );
                   })()}
                 </h3>
-                {restaurant.schedules.length > 0 ? (
+                {schedules.length > 0 ? (
                   <div className="space-y-2">
                     {['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'].map((dayName, index) => {
-                      const schedule = restaurant.schedules.find(s => s.day_of_week === index);
+                      const schedule = schedules.find(s => s.day_of_week === index);
                       const isToday = new Date().getDay() === index;
                       
                       return (
@@ -606,7 +619,14 @@ export default function RestaurantProfile() {
                             {schedule?.is_closed || !schedule ? (
                               'Cerrado'
                             ) : (
-                              `${formatTime(schedule.opening_time)} - ${formatTime(schedule.closing_time)}`
+                              <>
+                                {schedule.first_opening_time && schedule.first_closing_time && (
+                                  `${formatTime(schedule.first_opening_time)} - ${formatTime(schedule.first_closing_time)}`
+                                )}
+                                {schedule.second_opening_time && schedule.second_closing_time && (
+                                  ` y ${formatTime(schedule.second_opening_time)} - ${formatTime(schedule.second_closing_time)}`
+                                )}
+                              </>
                             )}
                           </span>
                         </div>
@@ -654,7 +674,7 @@ export default function RestaurantProfile() {
             </div>
           </div>
 
-          {/* Non-desktop: Content sections */}
+          {/* Mobile: Content sections updated */}
           <div className={`lg:hidden space-y-6 mt-4 ${
             isQuickActionsFixed ? 'mt-32' : ''
           }`}>
@@ -677,10 +697,10 @@ export default function RestaurantProfile() {
                   );
                 })()}
               </div>
-              {restaurant.schedules.length > 0 ? (
+              {schedules.length > 0 ? (
                 <div className="space-y-2">
                   {['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'].map((dayName, index) => {
-                    const schedule = restaurant.schedules.find(s => s.day_of_week === index);
+                    const schedule = schedules.find(s => s.day_of_week === index);
                     const isToday = new Date().getDay() === index;
                     
                     return (
@@ -697,7 +717,14 @@ export default function RestaurantProfile() {
                           {schedule?.is_closed || !schedule ? (
                             'Cerrado'
                           ) : (
-                            `${formatTime(schedule.opening_time)} - ${formatTime(schedule.closing_time)}`
+                            <>
+                              {schedule.first_opening_time && schedule.first_closing_time && (
+                                `${formatTime(schedule.first_opening_time)} - ${formatTime(schedule.first_closing_time)}`
+                              )}
+                              {schedule.second_opening_time && schedule.second_closing_time && (
+                                ` y ${formatTime(schedule.second_opening_time)} - ${formatTime(schedule.second_closing_time)}`
+                              )}
+                            </>
                           )}
                         </span>
                       </div>

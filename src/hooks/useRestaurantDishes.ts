@@ -49,10 +49,7 @@ export const useRestaurantDishes = (restaurantId: number) => {
             allergens,
             category_id,
             dish_categories!dishes_category_id_fkey(name),
-            dish_variants(id, name, price, is_default, display_order),
-            dish_custom_tags(
-              restaurant_custom_tags(name)
-            )
+            dish_variants(id, name, price, is_default, display_order)
           `)
           .eq('restaurant_id', restaurantId)
           .eq('is_active', true)
@@ -70,8 +67,35 @@ export const useRestaurantDishes = (restaurantId: number) => {
         console.log('useRestaurantDishes: Raw dishes data:', dishesData);
         console.log('useRestaurantDishes: Number of dishes found:', dishesData?.length || 0);
 
+        // Get custom tags separately and map them to dishes
+        const dishIds = (dishesData || []).map(dish => dish.id);
+        let customTagsData: any[] = [];
+        
+        if (dishIds.length > 0) {
+          const { data: tagsData, error: tagsError } = await supabase
+            .from('dish_custom_tags')
+            .select(`
+              dish_id,
+              restaurant_custom_tags(name)
+            `)
+            .in('dish_id', dishIds);
+
+          if (tagsError) {
+            console.error('Error fetching custom tags:', tagsError);
+          } else {
+            customTagsData = tagsData || [];
+          }
+        }
+
         const formattedDishes = (dishesData || []).map(dish => {
           console.log('useRestaurantDishes: Processing dish:', dish);
+          
+          // Map custom tags for this dish
+          const dishCustomTags = customTagsData
+            .filter(tag => tag.dish_id === dish.id)
+            .map(tag => tag.restaurant_custom_tags?.name)
+            .filter(Boolean);
+
           return {
             id: dish.id,
             name: dish.name,
@@ -90,7 +114,7 @@ export const useRestaurantDishes = (restaurantId: number) => {
             favorites_count: dish.favorites_count,
             category_name: dish.dish_categories?.name,
             allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
-            custom_tags: (dish.dish_custom_tags || []).map((dct: any) => dct.restaurant_custom_tags?.name).filter(Boolean),
+            custom_tags: dishCustomTags,
             variants: (dish.dish_variants || [])
               .sort((a: any, b: any) => a.display_order - b.display_order)
               .map((variant: any) => ({

@@ -63,7 +63,7 @@ export const useRestaurantMenu = (restaurantId: number) => {
           throw sectionsError;
         }
 
-        // Get dishes for all sections with custom tags from junction table
+        // Get dishes for all sections
         const { data: dishesData, error: dishesError } = await supabase
           .from('dishes')
           .select(`
@@ -85,10 +85,7 @@ export const useRestaurantMenu = (restaurantId: number) => {
             allergens,
             section_id,
             dish_categories(name),
-            dish_variants(id, name, price, is_default, display_order),
-            dish_custom_tags(
-              restaurant_custom_tags(name)
-            )
+            dish_variants(id, name, price, is_default, display_order)
           `)
           .eq('restaurant_id', restaurantId)
           .eq('is_active', true)
@@ -98,39 +95,67 @@ export const useRestaurantMenu = (restaurantId: number) => {
           throw dishesError;
         }
 
+        // Get custom tags separately
+        const dishIds = (dishesData || []).map(dish => dish.id);
+        let customTagsData: any[] = [];
+        
+        if (dishIds.length > 0) {
+          const { data: tagsData, error: tagsError } = await supabase
+            .from('dish_custom_tags')
+            .select(`
+              dish_id,
+              restaurant_custom_tags(name)
+            `)
+            .in('dish_id', dishIds);
+
+          if (tagsError) {
+            console.error('Error fetching custom tags:', tagsError);
+          } else {
+            customTagsData = tagsData || [];
+          }
+        }
+
         // Group dishes by section
         const sectionsWithDishes = (sectionsData || []).map(section => ({
           ...section,
           dishes: (dishesData || [])
             .filter(dish => dish.section_id === section.id)
-            .map(dish => ({
-              id: dish.id,
-              name: dish.name,
-              description: dish.description,
-              base_price: dish.base_price,
-              image_url: dish.image_url,
-              image_alt: dish.image_alt,
-              is_featured: dish.is_featured,
-              is_vegetarian: dish.is_vegetarian,
-              is_vegan: dish.is_vegan,
-              is_gluten_free: dish.is_gluten_free,
-              is_lactose_free: dish.is_lactose_free,
-              is_healthy: dish.is_healthy,
-              spice_level: dish.spice_level,
-              preparation_time_minutes: dish.preparation_time_minutes,
-              favorites_count: dish.favorites_count,
-              category_name: dish.dish_categories?.name,
-              allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
-              custom_tags: (dish.dish_custom_tags || []).map((dct: any) => dct.restaurant_custom_tags?.name).filter(Boolean),
-              variants: (dish.dish_variants || [])
-                .sort((a: any, b: any) => a.display_order - b.display_order)
-                .map((variant: any) => ({
-                  id: variant.id,
-                  name: variant.name,
-                  price: variant.price,
-                  is_default: variant.is_default
-                }))
-            }))
+            .map(dish => {
+              // Map custom tags for this dish
+              const dishCustomTags = customTagsData
+                .filter(tag => tag.dish_id === dish.id)
+                .map(tag => tag.restaurant_custom_tags?.name)
+                .filter(Boolean);
+
+              return {
+                id: dish.id,
+                name: dish.name,
+                description: dish.description,
+                base_price: dish.base_price,
+                image_url: dish.image_url,
+                image_alt: dish.image_alt,
+                is_featured: dish.is_featured,
+                is_vegetarian: dish.is_vegetarian,
+                is_vegan: dish.is_vegan,
+                is_gluten_free: dish.is_gluten_free,
+                is_lactose_free: dish.is_lactose_free,
+                is_healthy: dish.is_healthy,
+                spice_level: dish.spice_level,
+                preparation_time_minutes: dish.preparation_time_minutes,
+                favorites_count: dish.favorites_count,
+                category_name: dish.dish_categories?.name,
+                allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
+                custom_tags: dishCustomTags,
+                variants: (dish.dish_variants || [])
+                  .sort((a: any, b: any) => a.display_order - b.display_order)
+                  .map((variant: any) => ({
+                    id: variant.id,
+                    name: variant.name,
+                    price: variant.price,
+                    is_default: variant.is_default
+                  }))
+              };
+            })
         }));
 
         setSections(sectionsWithDishes);
