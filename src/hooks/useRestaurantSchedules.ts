@@ -1,7 +1,23 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { RestaurantSchedule } from '@/types/restaurant-schedule';
+
+export interface RestaurantSchedule {
+  id: number;
+  restaurant_id: number;
+  day_of_week: number;
+  is_closed: boolean;
+  first_opening_time?: string | null;
+  first_closing_time?: string | null;
+  second_opening_time?: string | null;
+  second_closing_time?: string | null;
+  notes?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  has_split_schedule?: boolean;
+  formatted_schedule?: string;
+}
 
 export const useRestaurantSchedules = (restaurantId: number) => {
   const [schedules, setSchedules] = useState<RestaurantSchedule[]>([]);
@@ -53,7 +69,7 @@ export const useRestaurantSchedules = (restaurantId: number) => {
       return `${schedule.first_opening_time?.slice(0, 5)} - ${schedule.first_closing_time?.slice(0, 5)} y ${schedule.second_opening_time?.slice(0, 5)} - ${schedule.second_closing_time?.slice(0, 5)}`;
     }
     
-    return `${schedule.first_opening_time?.slice(0, 5)} - ${schedule.first_closing_time?.slice(0, 5)}`;
+    return `${schedule.first_opening_time?.slice(0, 5)} - ${schedule.second_closing_time?.slice(0, 5)}`;
   };
 
   const getCurrentDayStatus = () => {
@@ -77,6 +93,13 @@ export const useRestaurantSchedules = (restaurantId: number) => {
     // Verificar segundo turno si existe
     if (todaySchedule.second_opening_time && todaySchedule.second_closing_time) {
       if (currentTime >= todaySchedule.second_opening_time && currentTime <= todaySchedule.second_closing_time) {
+        return { status: `Abierto hasta las ${todaySchedule.second_closing_time.slice(0, 5)}`, className: 'text-green-500', isOpen: true };
+      }
+    }
+    
+    // Verificar si está en horario continuo (solo primer horario definido)
+    if (todaySchedule.first_opening_time && !todaySchedule.first_closing_time && todaySchedule.second_closing_time) {
+      if (currentTime >= todaySchedule.first_opening_time && currentTime <= todaySchedule.second_closing_time) {
         return { status: `Abierto hasta las ${todaySchedule.second_closing_time.slice(0, 5)}`, className: 'text-green-500', isOpen: true };
       }
     }

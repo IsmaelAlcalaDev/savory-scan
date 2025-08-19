@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { PriceRange } from '@/types/dish';
 
 interface Restaurant {
   id: number;
@@ -10,9 +11,9 @@ interface Restaurant {
   latitude: number;
   longitude: number;
   google_rating: number;
-  price_range: string;
-  cuisine_types: string[];
-  establishment_type: string;
+  price_range: PriceRange;
+  cuisine_type_ids: number[];
+  establishment_type_id: number;
   cover_image_url: string;
   favorites_count: number;
   distance_km?: number;
@@ -23,7 +24,7 @@ interface UseOpenRestaurantsProps {
   userLng?: number;
   maxDistance?: number;
   cuisineTypeIds?: number[];
-  priceRanges?: string[];
+  priceRanges?: PriceRange[];
   selectedEstablishmentTypes?: number[];
 }
 
@@ -50,8 +51,9 @@ export const useOpenRestaurants = (props: UseOpenRestaurantsProps) => {
       setLoading(true);
       setError(null);
 
+      // Usar la vista optimizada que ya filtra por restaurantes abiertos
       let query = supabase
-        .from('restaurants')
+        .from('restaurants_open_now')
         .select(`
           id,
           name,
@@ -61,20 +63,12 @@ export const useOpenRestaurants = (props: UseOpenRestaurantsProps) => {
           longitude,
           google_rating,
           price_range,
-          cuisine_types,
-          establishment_type,
+          cuisine_type_ids,
+          establishment_type_id,
           cover_image_url,
           favorites_count
         `)
-        .eq('is_active', true)
-        .is('deleted_at', null);
-
-      // Filtrar solo restaurantes abiertos ahora mismo
-      query = query.filter('id', 'in', `(
-        SELECT r.id 
-        FROM restaurants r 
-        WHERE is_restaurant_open_now(r.id) = true
-      )`);
+        .eq('is_currently_open', true);
 
       // Aplicar filtros adicionales
       if (cuisineTypeIds && cuisineTypeIds.length > 0) {
@@ -96,7 +90,7 @@ export const useOpenRestaurants = (props: UseOpenRestaurantsProps) => {
         throw fetchError;
       }
 
-      let processedRestaurants = data || [];
+      let processedRestaurants = (data || []) as Restaurant[];
 
       // Calcular distancia si tenemos ubicación del usuario
       if (userLat && userLng) {
@@ -113,15 +107,15 @@ export const useOpenRestaurants = (props: UseOpenRestaurantsProps) => {
         // Filtrar por distancia máxima si se especifica
         if (maxDistance) {
           processedRestaurants = processedRestaurants.filter(
-            restaurant => restaurant.distance_km && restaurant.distance_km <= maxDistance
+            restaurant => restaurant.distance_km !== undefined && restaurant.distance_km <= maxDistance
           );
         }
 
         // Ordenar por distancia
         processedRestaurants.sort((a, b) => {
-          if (a.distance_km === null && b.distance_km === null) return 0;
-          if (a.distance_km === null) return 1;
-          if (b.distance_km === null) return -1;
+          if (a.distance_km === undefined && b.distance_km === undefined) return 0;
+          if (a.distance_km === undefined) return 1;
+          if (b.distance_km === undefined) return -1;
           return a.distance_km - b.distance_km;
         });
       }
