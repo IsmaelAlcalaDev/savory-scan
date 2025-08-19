@@ -4,10 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Dish, MenuSection } from '@/types/dish';
 
 interface UseRestaurantMenuProps {
-  restaurantSlug: string;
-  sectionId?: number | null;
-  categoryId?: number | null;
+  restaurantId: number;
   searchQuery?: string;
+  categoryId?: number;
+  sectionId?: number;
   allergenIds?: number[];
   dietTypeIds?: number[];
   spiceLevel?: number;
@@ -22,17 +22,16 @@ interface UseRestaurantMenuProps {
 }
 
 export const useRestaurantMenu = (props: UseRestaurantMenuProps) => {
-  const [restaurant, setRestaurant] = useState<any>(null);
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const {
-    restaurantSlug,
-    sectionId,
-    categoryId,
+    restaurantId,
     searchQuery,
+    categoryId,
+    sectionId,
     allergenIds,
     dietTypeIds,
     spiceLevel,
@@ -47,14 +46,14 @@ export const useRestaurantMenu = (props: UseRestaurantMenuProps) => {
   } = props;
 
   useEffect(() => {
-    if (restaurantSlug) {
-      fetchRestaurantMenu();
+    if (restaurantId) {
+      fetchMenu();
     }
   }, [
-    restaurantSlug,
-    sectionId,
-    categoryId,
+    restaurantId,
     searchQuery,
+    categoryId,
+    sectionId,
     JSON.stringify(allergenIds),
     JSON.stringify(dietTypeIds),
     spiceLevel,
@@ -68,49 +67,44 @@ export const useRestaurantMenu = (props: UseRestaurantMenuProps) => {
     maxPrice
   ]);
 
-  const fetchRestaurantMenu = async () => {
+  const fetchMenu = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Obtener información del restaurante
-      const { data: restaurantData, error: restaurantError } = await supabase
-        .from('restaurants')
-        .select('*')
-        .eq('slug', restaurantSlug)
-        .single();
-
-      if (restaurantError) throw restaurantError;
-      
-      setRestaurant(restaurantData);
-
-      // Obtener secciones del menú
+      // Fetch sections
       const { data: sectionsData, error: sectionsError } = await supabase
         .from('menu_sections')
         .select('*')
-        .eq('restaurant_id', restaurantData.id)
+        .eq('restaurant_id', restaurantId)
         .eq('is_active', true)
         .is('deleted_at', null)
         .order('display_order');
 
       if (sectionsError) throw sectionsError;
 
-      setSections(sectionsData || []);
+      // Transform sections data
+      const transformedSections: MenuSection[] = (sectionsData || []).map(section => ({
+        ...section,
+        dishes: []
+      }));
 
-      // Construir query para platos
+      setSections(transformedSections);
+
+      // Build dishes query
       let dishesQuery = supabase
         .from('dishes')
         .select(`
           *,
-          dish_categories!inner(id, name, slug),
-          menu_sections!inner(id, name),
+          dish_categories(name),
+          menu_sections(name),
           dish_variants(*)
         `)
-        .eq('restaurant_id', restaurantData.id)
+        .eq('restaurant_id', restaurantId)
         .eq('is_active', true)
         .is('deleted_at', null);
 
-      // Aplicar filtros
+      // Apply filters
       if (sectionId) {
         dishesQuery = dishesQuery.eq('section_id', sectionId);
       }
@@ -120,7 +114,7 @@ export const useRestaurantMenu = (props: UseRestaurantMenuProps) => {
       }
 
       if (searchQuery) {
-        dishesQuery = dishesQuery.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        dishesQuery = dishesQuery.ilike('name', `%${searchQuery}%`);
       }
 
       if (spiceLevel !== undefined) {
@@ -155,25 +149,32 @@ export const useRestaurantMenu = (props: UseRestaurantMenuProps) => {
         dishesQuery = dishesQuery.lte('base_price', maxPrice);
       }
 
-      dishesQuery = dishesQuery.order('section_id').order('name');
-
-      const { data: dishesData, error: dishesError } = await dishesQuery;
+      const { data: dishesData, error: dishesError } = await dishesQuery.order('name');
 
       if (dishesError) throw dishesError;
 
-      // Filtrar por custom tags si se especifican
-      let filteredDishes = dishesData || [];
+      // Transform dishes data
+      let transformedDishes = (dishesData || []).map((dish: any) => ({
+        ...dish,
+        allergens: Array.isArray(dish.allergens) ? dish.allergens : [],
+        diet_types: Array.isArray(dish.diet_types) ? dish.diet_types : [],
+        custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags : [],
+        variants: dish.dish_variants || []
+      }));
+
+      // Filter by custom tags if specified
       if (customTags && customTags.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => 
+        transformedDishes = transformedDishes.filter(dish => 
           dish.custom_tags && 
           Array.isArray(dish.custom_tags) &&
-          customTags.some(tag => (dish.custom_tags as string[]).includes(tag))
+          customTags.some(tag => dish.custom_tags.includes(tag))
         );
       }
 
-      setDishes(filteredDishes);
+      setDishes(transformedDishes);
+
     } catch (err) {
-      console.error('Error fetching restaurant menu:', err);
+      console.error('Error fetching menu:', err);
       setError(err instanceof Error ? err.message : 'Error al cargar el menú');
     } finally {
       setLoading(false);
@@ -181,12 +182,11 @@ export const useRestaurantMenu = (props: UseRestaurantMenuProps) => {
   };
 
   return {
-    restaurant,
     sections,
     dishes,
     loading,
     error,
-    refetch: fetchRestaurantMenu
+    refetch: fetchMenu
   };
 };
 

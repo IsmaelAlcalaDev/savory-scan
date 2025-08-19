@@ -21,7 +21,6 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
-import { useRestaurantMenu, type Dish } from '@/hooks/useRestaurantMenu';
 import { useIsMobile } from '@/hooks/use-mobile';
 import FavoriteButton from '@/components/FavoriteButton';
 import RestaurantDishesGrid from '@/components/RestaurantDishesGrid';

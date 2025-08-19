@@ -84,7 +84,7 @@ export const useRestaurantDishes = (props: UseDishesProps) => {
         .is('deleted_at', null)
         .order('name');
 
-      // Aplicar filtros
+      // Apply filters
       if (categoryId) {
         query = query.eq('category_id', categoryId);
       }
@@ -133,17 +133,25 @@ export const useRestaurantDishes = (props: UseDishesProps) => {
 
       if (fetchError) throw fetchError;
 
-      // Filtrar por custom tags si se especifican
-      let filteredData = data || [];
+      // Transform data to match Dish interface
+      let transformedData = (data || []).map((dish: any) => ({
+        ...dish,
+        allergens: Array.isArray(dish.allergens) ? dish.allergens : [],
+        diet_types: Array.isArray(dish.diet_types) ? dish.diet_types : [],
+        custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags : [],
+        variants: dish.dish_variants || []
+      }));
+
+      // Filter by custom tags if specified
       if (customTags && customTags.length > 0) {
-        filteredData = filteredData.filter(dish => 
+        transformedData = transformedData.filter(dish => 
           dish.custom_tags && 
           Array.isArray(dish.custom_tags) &&
-          customTags.some(tag => (dish.custom_tags as string[]).includes(tag))
+          customTags.some(tag => dish.custom_tags.includes(tag))
         );
       }
 
-      setDishes(filteredData);
+      setDishes(transformedData);
     } catch (err) {
       console.error('Error fetching dishes:', err);
       setError(err instanceof Error ? err.message : 'Error al cargar platos');
