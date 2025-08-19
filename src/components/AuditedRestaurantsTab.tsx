@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import InfiniteRestaurantsGrid from './InfiniteRestaurantsGrid';
+import AuditedRestaurantsGrid from './AuditedRestaurantsGrid';
 import RestaurantSortSelector from './RestaurantSortSelector';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
@@ -18,11 +18,11 @@ interface AuditedRestaurantsTabProps {
 
 export default function AuditedRestaurantsTab(props: AuditedRestaurantsTabProps) {
   const { userLocation } = useUserPreferences();
-  const [sortBy, setSortBy] = useState<'recommended' | 'distance'>('recommended');
+  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'favorites'>(
+    userLocation ? 'distance' : 'favorites'
+  );
 
   const hasLocation = Boolean(userLocation?.latitude && userLocation?.longitude);
-
-  console.log('AuditedRestaurantsTab: sortBy state =', sortBy, 'hasLocation =', hasLocation);
 
   return (
     <div className="space-y-6">
@@ -35,15 +35,17 @@ export default function AuditedRestaurantsTab(props: AuditedRestaurantsTabProps)
         />
       </div>
 
-      <InfiniteRestaurantsGrid
+      <AuditedRestaurantsGrid
         searchQuery={props.searchQuery}
         userLat={userLocation?.latitude}
         userLng={userLocation?.longitude}
+        maxDistance={props.maxDistance}
         cuisineTypeIds={props.cuisineTypeIds}
         priceRanges={props.priceRanges}
         isHighRated={props.isHighRated}
         selectedEstablishmentTypes={props.selectedEstablishmentTypes}
         selectedDietTypes={props.selectedDietTypes}
+        selectedDietCategories={props.selectedDietCategories}
         isOpenNow={props.isOpenNow}
         sortBy={sortBy}
       />

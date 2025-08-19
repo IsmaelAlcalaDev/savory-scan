@@ -1,37 +1,53 @@
 
-import React from 'react';
-import RestaurantCard, { RestaurantCardProps } from './RestaurantCard';
-import { useActionTracking } from '@/hooks/useActionTracking';
+import { useCallback } from 'react'
+import RestaurantCard from './RestaurantCard'
+import { useAnalytics } from '@/hooks/useAnalytics'
 
-interface InstrumentedRestaurantCardProps extends RestaurantCardProps {
-  position?: number;
+interface InstrumentedRestaurantCardProps {
+  id: number
+  name: string
+  slug: string
+  description?: string
+  priceRange: string
+  googleRating?: number
+  googleRatingCount?: number
+  distance?: number
+  cuisineTypes: string[]
+  establishmentType?: string
+  services?: string[]
+  favoritesCount?: number
+  coverImageUrl?: string
+  logoUrl?: string
+  onClick?: () => void
+  className?: string
+  onLoginRequired?: () => void
+  layout?: 'grid' | 'list'
+  onFavoriteChange?: (restaurantId: number, isFavorite: boolean) => void
+  priority?: boolean
+  position?: number // For tracking card position in feed
 }
 
 export default function InstrumentedRestaurantCard(props: InstrumentedRestaurantCardProps) {
-  const { trackAction } = useActionTracking();
+  const { trackCardClick } = useAnalytics()
 
-  const handleClick = () => {
-    trackAction('restaurant_card_click', {
-      restaurant_id: props.id,
-      restaurant_name: props.name,
-      position: props.position,
-      distance: props.distance,
-      rating: props.googleRating,
-      price_range: props.priceRange
-    });
+  const handleClick = useCallback(() => {
+    // Track card click
+    trackCardClick(props.id, props.position)
     
-    // Navigate to restaurant profile
-    window.location.href = `/restaurante/${props.slug}`;
-  };
+    // Call original handler or navigate
+    if (props.onClick) {
+      props.onClick()
+    } else {
+      window.location.href = `/restaurant/${props.slug}`
+    }
+  }, [props.id, props.position, props.onClick, props.slug, trackCardClick])
 
   return (
-    <div
+    <RestaurantCard
+      {...props}
       onClick={handleClick}
       data-analytics-restaurant-id={props.id}
-      data-analytics-action="restaurant_card_click"
-      className="cursor-pointer"
-    >
-      <RestaurantCard {...props} />
-    </div>
-  );
+      data-analytics-action="restaurant-click"
+    />
+  )
 }
