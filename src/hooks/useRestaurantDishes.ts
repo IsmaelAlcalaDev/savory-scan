@@ -27,7 +27,7 @@ export const useRestaurantDishes = (restaurantId: number) => {
 
         console.log('useRestaurantDishes: Making query to dishes table with restaurant_id:', restaurantId);
 
-        // Query dishes directly filtering by restaurant_id
+        // Query dishes with custom tags from junction table
         const { data: dishesData, error: dishesError } = await supabase
           .from('dishes')
           .select(`
@@ -47,10 +47,12 @@ export const useRestaurantDishes = (restaurantId: number) => {
             preparation_time_minutes,
             favorites_count,
             allergens,
-            custom_tags,
             category_id,
             dish_categories!dishes_category_id_fkey(name),
-            dish_variants(id, name, price, is_default, display_order)
+            dish_variants(id, name, price, is_default, display_order),
+            dish_custom_tags(
+              restaurant_custom_tags(name)
+            )
           `)
           .eq('restaurant_id', restaurantId)
           .eq('is_active', true)
@@ -88,7 +90,7 @@ export const useRestaurantDishes = (restaurantId: number) => {
             favorites_count: dish.favorites_count,
             category_name: dish.dish_categories?.name,
             allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
-            custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags as string[] : [],
+            custom_tags: (dish.dish_custom_tags || []).map((dct: any) => dct.restaurant_custom_tags?.name).filter(Boolean),
             variants: (dish.dish_variants || [])
               .sort((a: any, b: any) => a.display_order - b.display_order)
               .map((variant: any) => ({

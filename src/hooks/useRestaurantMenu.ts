@@ -63,7 +63,7 @@ export const useRestaurantMenu = (restaurantId: number) => {
           throw sectionsError;
         }
 
-        // Get dishes for all sections
+        // Get dishes for all sections with custom tags from junction table
         const { data: dishesData, error: dishesError } = await supabase
           .from('dishes')
           .select(`
@@ -83,10 +83,12 @@ export const useRestaurantMenu = (restaurantId: number) => {
             preparation_time_minutes,
             favorites_count,
             allergens,
-            custom_tags,
             section_id,
             dish_categories(name),
-            dish_variants(id, name, price, is_default, display_order)
+            dish_variants(id, name, price, is_default, display_order),
+            dish_custom_tags(
+              restaurant_custom_tags(name)
+            )
           `)
           .eq('restaurant_id', restaurantId)
           .eq('is_active', true)
@@ -119,7 +121,7 @@ export const useRestaurantMenu = (restaurantId: number) => {
               favorites_count: dish.favorites_count,
               category_name: dish.dish_categories?.name,
               allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
-              custom_tags: Array.isArray(dish.custom_tags) ? dish.custom_tags as string[] : [],
+              custom_tags: (dish.dish_custom_tags || []).map((dct: any) => dct.restaurant_custom_tags?.name).filter(Boolean),
               variants: (dish.dish_variants || [])
                 .sort((a: any, b: any) => a.display_order - b.display_order)
                 .map((variant: any) => ({

@@ -15,30 +15,28 @@ export const useCustomTags = () => {
   useEffect(() => {
     const fetchCustomTags = async () => {
       try {
-        console.log('useCustomTags: Fetching custom tags from dishes');
+        console.log('useCustomTags: Fetching custom tags from normalized tables');
         
+        // Query the junction table to get tag counts
         const { data, error: fetchError } = await supabase
-          .from('dishes')
-          .select('custom_tags')
-          .eq('is_active', true)
-          .not('custom_tags', 'is', null);
+          .from('dish_custom_tags')
+          .select(`
+            restaurant_custom_tags(name)
+          `);
 
         if (fetchError) {
-          console.error('useCustomTags: Error fetching dishes:', fetchError);
+          console.error('useCustomTags: Error fetching dish custom tags:', fetchError);
           throw fetchError;
         }
 
         // Process the custom_tags to get unique tags with counts
         const tagCounts: Record<string, number> = {};
         
-        data?.forEach(dish => {
-          if (dish.custom_tags && Array.isArray(dish.custom_tags)) {
-            dish.custom_tags.forEach((tag: any) => {
-              if (typeof tag === 'string' && tag.trim()) {
-                const cleanTag = tag.trim();
-                tagCounts[cleanTag] = (tagCounts[cleanTag] || 0) + 1;
-              }
-            });
+        data?.forEach(dct => {
+          const tagName = dct.restaurant_custom_tags?.name;
+          if (tagName && typeof tagName === 'string' && tagName.trim()) {
+            const cleanTag = tagName.trim();
+            tagCounts[cleanTag] = (tagCounts[cleanTag] || 0) + 1;
           }
         });
 

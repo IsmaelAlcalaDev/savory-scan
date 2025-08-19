@@ -115,7 +115,7 @@ export const useIntelligentDishes = (params: UseIntelligentDishesParams = {}) =>
         }
       }
 
-      // Construir query base
+      // Construir query base with normalized custom tags
       let query = supabase
         .from('dishes')
         .select(`
@@ -133,7 +133,6 @@ export const useIntelligentDishes = (params: UseIntelligentDishesParams = {}) =>
           spice_level,
           preparation_time_minutes,
           favorites_count,
-          custom_tags,
           restaurants!inner (
             id,
             name,
@@ -146,6 +145,9 @@ export const useIntelligentDishes = (params: UseIntelligentDishesParams = {}) =>
           ),
           dish_categories (
             name
+          ),
+          dish_custom_tags(
+            restaurant_custom_tags(name)
           )
         `)
         .eq('is_active', true)
@@ -193,9 +195,11 @@ export const useIntelligentDishes = (params: UseIntelligentDishesParams = {}) =>
             distance_km = haversineDistance(userLat, userLng, restaurant.latitude, restaurant.longitude);
           }
 
+          // Extract custom tags from normalized structure
           let customTags: string[] = [];
-          if (dish.custom_tags && Array.isArray(dish.custom_tags)) {
-            customTags = dish.custom_tags
+          if (dish.dish_custom_tags && Array.isArray(dish.dish_custom_tags)) {
+            customTags = dish.dish_custom_tags
+              .map((dct: any) => dct.restaurant_custom_tags?.name)
               .filter((tag: any) => typeof tag === 'string' && tag.trim())
               .map((tag: any) => tag.trim());
           }
