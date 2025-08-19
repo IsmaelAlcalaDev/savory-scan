@@ -21,28 +21,42 @@ export const useOptimizedMetrics = () => {
     try {
       setLoading(true);
 
-      // Get total count
+      // Get total count from analytics_events
       const { count } = await supabase
-        .from('metrics')
+        .from('analytics_events')
         .select('*', { count: 'exact', head: true });
 
-      // Get latest metrics
-      const { data: latestMetrics } = await supabase
-        .from('metrics')
-        .select('entity_type, entity_id, metric_type, metric_value, metric_date')
+      // Get latest events
+      const { data: latestEvents } = await supabase
+        .from('analytics_events')
+        .select('entity_type, entity_id, event_type, created_at')
         .order('created_at', { ascending: false })
         .limit(10);
 
-      // Get entity types
+      // Get distinct entity types
       const { data: entityTypesData } = await supabase
-        .from('metrics')
+        .from('analytics_events')
         .select('entity_type')
-        .group('entity_type');
+        .order('entity_type');
+
+      // Remove duplicates manually since .group() is not available
+      const uniqueEntityTypes = Array.from(
+        new Set(entityTypesData?.map(item => item.entity_type).filter(Boolean))
+      );
+
+      // Transform latest events to match expected format
+      const latestMetrics = (latestEvents || []).map(event => ({
+        entity_type: event.entity_type || '',
+        entity_id: event.entity_id || 0,
+        metric_type: event.event_type || '',
+        metric_value: 1,
+        metric_date: event.created_at?.split('T')[0] || ''
+      }));
 
       return {
         totalMetrics: count || 0,
-        latestMetrics: latestMetrics || [],
-        entityTypes: entityTypesData?.map(item => item.entity_type) || []
+        latestMetrics,
+        entityTypes: uniqueEntityTypes
       };
     } catch (err) {
       console.error('Error fetching metrics summary:', err);
@@ -61,14 +75,15 @@ export const useOptimizedMetrics = () => {
   ) => {
     try {
       const { error } = await supabase
-        .from('metrics')
+        .from('analytics_events')
         .insert({
           entity_type: entityType,
           entity_id: entityId,
-          metric_type: metricType,
-          metric_value: metricValue,
-          metric_data: metricData,
-          metric_date: new Date().toISOString().split('T')[0]
+          event_type: metricType,
+          properties: { 
+            ...metricData, 
+            metric_value: metricValue 
+          }
         });
 
       if (error) {
