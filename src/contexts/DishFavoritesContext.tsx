@@ -1,6 +1,4 @@
-
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useSecurityLogger } from '@/hooks/useSecurityLogger';
@@ -32,7 +30,6 @@ export const DishFavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
   const { logSecurityEvent } = useSecurityLogger();
   const [dishFavoritesSet, setDishFavoritesSet] = useState<Set<number>>(new Set());
   const [loadingMap, setLoadingMap] = useState<Record<number, boolean>>({});
-  const channelRef = useRef<any>(null);
 
   // Load user dish favorites using the service
   const loadUserDishFavorites = async () => {
@@ -60,85 +57,10 @@ export const DishFavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Setup real-time subscription for multi-tab sync
+  // Load favorites when user changes
   useEffect(() => {
-    if (!user) {
-      setDishFavoritesSet(new Set());
-      return;
-    }
-
-    console.log('DishFavoritesProvider: Setting up realtime for user', user.id);
     loadUserDishFavorites();
-
-    // Cleanup previous channel
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-    }
-
-    // Create new channel for this user with realtime updates
-    const channel = supabase
-      .channel(`user-dish-favorites-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_saved_dishes',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('DishFavoritesProvider: Realtime change detected:', payload);
-          
-          if (payload.new && typeof payload.new === 'object' && 'dish_id' in payload.new) {
-            const dishId = payload.new.dish_id;
-            const isActive = payload.new.is_active;
-            
-            setDishFavoritesSet(prev => {
-              const newSet = new Set(prev);
-              if (isActive) {
-                newSet.add(dishId);
-              } else {
-                newSet.delete(dishId);
-              }
-              return newSet;
-            });
-            
-          } else if (payload.old && typeof payload.old === 'object' && 'dish_id' in payload.old) {
-            const dishId = payload.old.dish_id;
-            
-            setDishFavoritesSet(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(dishId);
-              return newSet;
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    channelRef.current = channel;
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
   }, [user]);
-
-  // Listen for custom dishFavoriteToggled events
-  useEffect(() => {
-    const handleDishFavoriteToggled = (event: CustomEvent) => {
-      const { dishId, isFavorite } = event.detail;
-      setDishFavoriteState(dishId, isFavorite);
-    };
-
-    window.addEventListener('dishFavoriteToggled', handleDishFavoriteToggled as EventListener);
-    
-    return () => {
-      window.removeEventListener('dishFavoriteToggled', handleDishFavoriteToggled as EventListener);
-    };
-  }, []);
 
   const refreshDishFavorites = async () => {
     await loadUserDishFavorites();
@@ -204,6 +126,9 @@ export const DishFavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       console.log('DishFavoritesProvider: Service result:', result);
+
+      // Update local state immediately
+      setDishFavoriteState(dishId, result.isFavorite);
 
       // Log security event
       try {

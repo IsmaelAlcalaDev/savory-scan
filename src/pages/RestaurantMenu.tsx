@@ -1,332 +1,266 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { MapPin, Phone, Globe, ChevronLeft, Star, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Utensils, Search } from 'lucide-react';
-import { useRestaurantProfile } from '@/hooks/useRestaurantProfile';
-import { useRestaurantMenuFallback } from '@/hooks/useRestaurantMenuFallback';
-import RestaurantMenuSection from '@/components/RestaurantMenuSection';
-import MenuSectionTabs from '@/components/MenuSectionTabs';
-import InlineSearchBar from '@/components/InlineSearchBar';
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { OrderSimulatorProvider } from '@/contexts/OrderSimulatorContext';
-import OrderSimulatorSummary from '@/components/OrderSimulatorSummary';
+import DishCard from '@/components/DishCard';
+import DishSearchBar from '@/components/DishSearchBar';
 import OrderSimulatorModal from '@/components/OrderSimulatorModal';
-import AddDinersModal from '@/components/AddDinersModal';
-import { useOrderSimulator } from '@/contexts/OrderSimulatorContext';
+import { Separator } from "@/components/ui/separator"
+import { useNavigate } from 'react-router-dom';
+import type { Dish } from '@/hooks/useRestaurantMenu';
 
-function RestaurantMenuContent() {
-  const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
-  const { restaurant, loading: restaurantLoading, error: restaurantError } = useRestaurantProfile(slug || '');
-  const { sections, loading: sectionsLoading, error: sectionsError } = useRestaurantMenuFallback(restaurant?.id || 0);
-  const { isSimulatorOpen, closeSimulator, isDinersModalOpen, closeDinersModal } = useOrderSimulator();
-
-  // Filter states
-  const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
-  const [selectedDietTypes, setSelectedDietTypes] = useState<number[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeSection, setActiveSection] = useState<number | undefined>();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
-  // Reference point for active section detection (150px from top)
-  const REFERENCE_POINT = 150;
-
-  // Filter sections and dishes based on active filters
-  const filteredSections = useMemo(() => {
-    if (!sections) return [];
-    return sections.map(section => {
-      let filteredDishes = section.dishes;
-
-      // Apply search filter
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase().trim();
-        filteredDishes = filteredDishes.filter(dish => dish.name.toLowerCase().includes(query) || dish.description?.toLowerCase().includes(query));
-      }
-
-      // Apply allergen filter (exclude dishes that contain selected allergens)
-      if (selectedAllergens.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => {
-          const dishAllergens = dish.allergens || [];
-          return !selectedAllergens.some(allergen => dishAllergens.includes(allergen));
-        });
-      }
-
-      // Apply diet type filter
-      if (selectedDietTypes.length > 0) {
-        filteredDishes = filteredDishes.filter(dish => {
-          return selectedDietTypes.some(dietTypeId => {
-            switch (dietTypeId) {
-              case 1:
-                return dish.is_vegetarian;
-              case 2:
-                return dish.is_vegan;
-              case 3:
-                return dish.is_gluten_free;
-              case 4:
-                return dish.is_lactose_free;
-              case 5:
-                return dish.is_healthy;
-              default:
-                return false;
-            }
-          });
-        });
-      }
-      return {
-        ...section,
-        dishes: filteredDishes
-      };
-    }).filter(section => section.dishes.length > 0);
-  }, [sections, searchQuery, selectedAllergens, selectedDietTypes]);
-
-  const handleGoBack = () => {
-    navigate(`/restaurant/${slug}`);
-  };
-
-  const handleSectionClick = (sectionId: number) => {
-    console.log('Section clicked:', sectionId);
-    setActiveSection(sectionId);
-    const element = document.getElementById(`section-${sectionId}`);
-    if (element) {
-      // Calculate offset for sticky header + navigation (approximately 110px)
-      const stickyOffset = 110;
-      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - stickyOffset;
-      window.scrollTo({
-        top: elementPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const handleSearchToggle = () => {
-    setIsSearchOpen(!isSearchOpen);
-  };
-
-  const handleSearchClose = () => {
-    setIsSearchOpen(false);
-    setSearchQuery(''); // Clear search when closing
-  };
-
-  // Enhanced scroll handler with improved section detection
-  const handleScroll = useCallback(() => {
-    if (filteredSections.length === 0) return;
-
-    let activeId = null;
-    let closestDistance = Infinity;
-    let bestCandidate = null;
-    
-    // Check if we're near the bottom of the page
-    const isNearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
-    
-    // If near bottom, activate last section
-    if (isNearBottom && filteredSections.length > 0) {
-      const lastSectionId = filteredSections[filteredSections.length - 1].id;
-      if (activeSection !== lastSectionId) {
-        console.log('Near bottom - activating last section:', lastSectionId);
-        setActiveSection(lastSectionId);
-      }
-      return;
-    }
-    
-    filteredSections.forEach(section => {
-      const element = document.getElementById(`section-${section.id}`);
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        const sectionTop = rect.top;
-        const sectionBottom = rect.bottom;
-        
-        // Priority 1: Section that contains the reference point (perfect match)
-        if (sectionTop <= REFERENCE_POINT && sectionBottom > REFERENCE_POINT) {
-          activeId = section.id;
-          console.log('Perfect match - section contains reference point:', section.id);
-          return;
-        }
-        
-        // Priority 2: Section that has passed the reference point and is closest
-        if (sectionTop <= REFERENCE_POINT) {
-          const distanceFromReference = REFERENCE_POINT - sectionTop;
-          if (distanceFromReference < closestDistance) {
-            closestDistance = distanceFromReference;
-            bestCandidate = section.id;
-          }
-        }
-        
-        // Priority 3: If no section has passed, find the closest one approaching
-        if (bestCandidate === null) {
-          const distanceToReference = Math.abs(REFERENCE_POINT - sectionTop);
-          if (distanceToReference < closestDistance) {
-            closestDistance = distanceToReference;
-            bestCandidate = section.id;
-          }
-        }
-      }
-    });
-    
-    // Use the best candidate if no perfect match
-    if (activeId === null) {
-      activeId = bestCandidate;
-    }
-    
-    // Fallback to first section if nothing else works
-    if (activeId === null && filteredSections.length > 0) {
-      activeId = filteredSections[0].id;
-    }
-    
-    if (activeId !== activeSection) {
-      console.log('Active section changed to:', activeId, 'from:', activeSection);
-      setActiveSection(activeId);
-    }
-  }, [filteredSections, activeSection, REFERENCE_POINT]);
-
-  // Throttle scroll events for better performance
-  const throttledHandleScroll = useCallback(() => {
-    let ticking = false;
-    
-    const update = () => {
-      handleScroll();
-      ticking = false;
-    };
-    
-    return () => {
-      if (!ticking) {
-        requestAnimationFrame(update);
-        ticking = true;
-      }
-    };
-  }, [handleScroll]);
-
-  // Set initial active section when filteredSections are loaded
-  useEffect(() => {
-    if (filteredSections.length > 0 && activeSection === undefined) {
-      console.log('Setting initial active section:', filteredSections[0].id);
-      setActiveSection(filteredSections[0].id);
-    }
-  }, [filteredSections, activeSection]);
-
-  // Set up scroll listener for active section detection
-  useEffect(() => {
-    if (filteredSections.length === 0) return;
-
-    console.log('Setting up enhanced scroll listener for sections:', filteredSections.map(s => s.id));
-    
-    const scrollHandler = throttledHandleScroll();
-    window.addEventListener('scroll', scrollHandler, { passive: true });
-    
-    // Initial check
-    handleScroll();
-
-    return () => {
-      console.log('Cleaning up scroll listener');
-      window.removeEventListener('scroll', scrollHandler);
-    };
-  }, [filteredSections, throttledHandleScroll, handleScroll]);
-
-  if (restaurantLoading || sectionsLoading) {
-    return <div className="min-h-screen bg-gray-100">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <Skeleton className="h-12 w-64 mb-8" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({
-            length: 6
-          }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}
-          </div>
-        </div>
-      </div>;
-  }
-
-  if (restaurantError || sectionsError || !restaurant) {
-    return <div className="min-h-screen bg-gray-100">
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Restaurante no encontrado</h1>
-            <p className="text-muted-foreground mb-4">Error: {restaurantError || sectionsError}</p>
-            <Button onClick={() => navigate('/restaurantes')}>
-              Volver a restaurantes
-            </Button>
-          </div>
-        </div>
-      </div>;
-  }
-
-  console.log('Rendering with activeSection:', activeSection, 'filteredSections:', filteredSections.length);
-
-  return (
-    <>
-      <Helmet>
-        <title>Carta de {restaurant.name} | SavorySearch</title>
-        <meta name="description" content={`Explora la carta completa de ${restaurant.name}. Descubre todos nuestros platos y encuentra tu favorito.`} />
-      </Helmet>
-
-      <div className="min-h-screen bg-gray-100 pb-20">
-        {/* Sticky Header with Inline Search */}
-        <div className="sticky top-0 z-50">
-          <InlineSearchBar
-            isOpen={isSearchOpen}
-            onClose={handleSearchClose}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            placeholder="Buscar platos..."
-            restaurantName={restaurant.name}
-            restaurantLogo={restaurant.logo_url}
-            onGoBack={handleGoBack}
-            onSearchToggle={handleSearchToggle}
-          />
-
-          {/* Section Navigation - only show when search is not active */}
-          {!isSearchOpen && (
-            <div className="bg-white border-b">
-              <MenuSectionTabs 
-                sections={filteredSections} 
-                activeSection={activeSection} 
-                onSectionClick={handleSectionClick}
-                selectedAllergens={selectedAllergens}
-                selectedDietTypes={selectedDietTypes}
-                onAllergenChange={setSelectedAllergens}
-                onDietTypeChange={setSelectedDietTypes}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Menu Content - Full width container */}
-        <div className="w-full">
-          {filteredSections.length === 0 ? (
-            <div className="max-w-6xl mx-auto px-4 py-8">
-              <div className="text-center py-12 bg-white rounded-lg">
-                <Utensils className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <h3 className="text-lg font-semibold mb-2">No se encontraron platos</h3>
-                <p className="text-muted-foreground">
-                  {searchQuery || selectedAllergens.length > 0 || selectedDietTypes.length > 0 
-                    ? 'Intenta ajustar los filtros o la búsqueda' 
-                    : 'Este restaurante aún no tiene platos disponibles'}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="w-full">
-              {filteredSections.map(section => (
-                <RestaurantMenuSection key={section.id} section={section} restaurantId={restaurant.id} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Order Simulator Components */}
-        <OrderSimulatorSummary />
-        
-        <OrderSimulatorModal isOpen={isSimulatorOpen} onClose={closeSimulator} />
-        
-        <AddDinersModal isOpen={isDinersModalOpen} onClose={closeDinersModal} />
-      </div>
-    </>
-  );
+interface Restaurant {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  cuisine: string;
+  rating: number;
+  cover_image: string;
+  phone_number: string;
+  website: string;
+  latitude: number;
+  longitude: number;
 }
 
 export default function RestaurantMenu() {
+  const { restaurantId } = useParams<{ restaurantId: string }>();
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [dishes, setDishes] = useState<Dish[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchRestaurantAndDishes = async () => {
+      setLoading(true);
+      try {
+        // Simulación de llamada a la API
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const mockRestaurant: Restaurant = {
+          id: restaurantId || '1',
+          name: 'Delicious Italian Cuisine',
+          address: '123 Main St, Anytown',
+          city: 'Anytown',
+          cuisine: 'Italian',
+          rating: 4.5,
+          cover_image: '/images/restaurant-cover.jpg',
+          phone_number: '555-123-4567',
+          website: 'https://example.com',
+          latitude: 34.0522,
+          longitude: -118.2437,
+        };
+        setRestaurant(mockRestaurant);
+
+        const mockDishes: Dish[] = [
+          {
+            id: 1,
+            name: 'Margherita Pizza',
+            description: 'Classic pizza with tomato, mozzarella, and basil',
+            base_price: 12.99,
+            image_url: '/images/margherita-pizza.jpg',
+            image_alt: 'Margherita Pizza',
+            is_featured: true,
+            is_vegetarian: true,
+            is_vegan: false,
+            is_gluten_free: false,
+            is_lactose_free: false,
+            is_healthy: false,
+            spice_level: 0,
+            preparation_time_minutes: 15,
+            favorites_count: 25,
+            category_name: 'Pizza',
+            allergens: ['gluten', 'dairy'],
+            custom_tags: ['popular'],
+            variants: [
+              {
+                id: 1,
+                name: 'Personal',
+                price: 12.99,
+                is_default: true
+              },
+              {
+                id: 2,
+                name: 'Familiar',
+                price: 18.99,
+                is_default: false
+              }
+            ]
+          },
+          {
+            id: 2,
+            name: 'Spaghetti Carbonara',
+            description: 'Spaghetti with eggs, pancetta, Parmesan, and black pepper',
+            base_price: 14.99,
+            image_url: '/images/spaghetti-carbonara.jpg',
+            image_alt: 'Spaghetti Carbonara',
+            is_featured: false,
+            is_vegetarian: false,
+            is_vegan: false,
+            is_gluten_free: false,
+            is_lactose_free: false,
+            is_healthy: false,
+            spice_level: 0,
+            preparation_time_minutes: 20,
+            favorites_count: 18,
+            category_name: 'Pasta',
+            allergens: ['gluten', 'eggs', 'dairy'],
+            custom_tags: ['classic'],
+            variants: [
+              {
+                id: 3,
+                name: 'Regular',
+                price: 14.99,
+                is_default: true
+              }
+            ]
+          },
+          {
+            id: 3,
+            name: 'Tiramisu',
+            description: 'Coffee-flavored Italian dessert',
+            base_price: 7.99,
+            image_url: '/images/tiramisu.jpg',
+            image_alt: 'Tiramisu',
+            is_featured: false,
+            is_vegetarian: true,
+            is_vegan: false,
+            is_gluten_free: false,
+            is_lactose_free: false,
+            is_healthy: false,
+            spice_level: 0,
+            preparation_time_minutes: 5,
+            favorites_count: 32,
+            category_name: 'Dessert',
+            allergens: ['eggs', 'dairy', 'gluten'],
+            custom_tags: ['dessert', 'coffee'],
+            variants: [
+              {
+                id: 4,
+                name: 'Individual',
+                price: 7.99,
+                is_default: true
+              }
+            ]
+          },
+        ];
+        setDishes(mockDishes);
+      } catch (error) {
+        console.error('Failed to fetch restaurant or dishes', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRestaurantAndDishes();
+  }, [restaurantId]);
+
+  const filteredDishes = dishes.filter(dish =>
+    dish.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    dish.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-4">
+        <Skeleton className="h-10 w-32 mb-4" />
+        <Skeleton className="h-40 w-full mb-4" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-64 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!restaurant) {
+    return <div className="container mx-auto p-4">Restaurant not found</div>;
+  }
+
   return (
-    <OrderSimulatorProvider>
-      <RestaurantMenuContent />
-    </OrderSimulatorProvider>
+    <div className="min-h-screen bg-background">
+      {/* Restaurant Cover */}
+      <div className="relative">
+        <img
+          src={restaurant.cover_image}
+          alt={restaurant.name}
+          className="w-full h-64 object-cover"
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2 left-2 md:top-4 md:left-4 bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-foreground"
+          onClick={() => navigate(-1)}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+      </div>
+
+      <div className="container mx-auto p-4 md:p-8">
+        {/* Restaurant Info */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-semibold mb-2">{restaurant.name}</h1>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+            <Star className="h-4 w-4" />
+            <span>{restaurant.rating}</span>
+            <Separator orientation="vertical" className="h-4" />
+            <span>{restaurant.cuisine}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4" />
+            <span>{restaurant.address}, {restaurant.city}</span>
+          </div>
+        </div>
+
+        {/* Contact Info */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <Button variant="outline" className="w-full md:w-auto">
+            <Phone className="h-4 w-4 mr-2" />
+            {restaurant.phone_number}
+          </Button>
+          <Button variant="outline" className="w-full md:w-auto">
+            <Globe className="h-4 w-4 mr-2" />
+            <a href={restaurant.website} target="_blank" rel="noopener noreferrer">
+              Website
+            </a>
+          </Button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-4">
+          <DishSearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            placeholder="Buscar platos..."
+          />
+        </div>
+
+        {/* Menu */}
+        <div className="mb-4">
+          <h2 className="text-2xl font-semibold mb-3">Menu</h2>
+          <ScrollArea className="h-[400px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredDishes.map(dish => (
+                <DishCard 
+                  key={dish.id} 
+                  dish={dish} 
+                  restaurantId={parseInt(restaurantId || '1')}
+                  expandedDishId={null}
+                  onExpandedChange={() => {}}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Order Simulator Modal */}
+        <OrderSimulatorModal />
+      </div>
+    </div>
   );
 }

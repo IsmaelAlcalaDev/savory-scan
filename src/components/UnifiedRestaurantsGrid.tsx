@@ -1,0 +1,124 @@
+
+import { useRestaurants } from '@/hooks/useRestaurants';
+import RestaurantCard from './RestaurantCard';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle } from 'lucide-react';
+
+interface UnifiedRestaurantsGridProps {
+  searchQuery?: string;
+  userLat?: number;
+  userLng?: number;
+  maxDistance?: number;
+  cuisineTypeIds?: number[];
+  priceRanges?: string[];
+  isHighRated?: boolean;
+  selectedEstablishmentTypes?: number[];
+  selectedDietTypes?: number[];
+  isOpenNow?: boolean;
+  sortBy?: 'distance' | 'rating' | 'favorites';
+}
+
+export default function UnifiedRestaurantsGrid({
+  searchQuery,
+  userLat,
+  userLng,
+  maxDistance,
+  cuisineTypeIds,
+  priceRanges,
+  isHighRated,
+  selectedEstablishmentTypes,
+  selectedDietTypes,
+  isOpenNow,
+  sortBy = 'distance'
+}: UnifiedRestaurantsGridProps) {
+  const {
+    restaurants,
+    loading,
+    error
+  } = useRestaurants({
+    searchQuery,
+    userLat,
+    userLng,
+    maxDistance,
+    cuisineTypeIds,
+    priceRanges,
+    isHighRated,
+    selectedEstablishmentTypes,
+    selectedDietTypes,
+    isOpenNow
+  });
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="space-y-4">
+            <Skeleton className="h-48 w-full rounded-lg" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Error al cargar restaurantes</h3>
+        <p className="text-muted-foreground">{error}</p>
+      </div>
+    );
+  }
+
+  if (restaurants.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-lg font-semibold mb-2">No hay restaurantes disponibles</h3>
+        <p className="text-muted-foreground">
+          Intenta ajustar tus filtros o buscar en una zona diferente.
+        </p>
+      </div>
+    );
+  }
+
+  // Sort restaurants based on sortBy prop
+  const sortedRestaurants = [...restaurants].sort((a, b) => {
+    switch (sortBy) {
+      case 'rating':
+        return (b.google_rating || 0) - (a.google_rating || 0);
+      case 'favorites':
+        return (b.favorites_count || 0) - (a.favorites_count || 0);
+      case 'distance':
+      default:
+        if (a.distance_km === null && b.distance_km === null) return 0;
+        if (a.distance_km === null) return 1;
+        if (b.distance_km === null) return -1;
+        return a.distance_km - b.distance_km;
+    }
+  });
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {sortedRestaurants.map((restaurant) => (
+        <RestaurantCard
+          key={restaurant.id}
+          id={restaurant.id}
+          name={restaurant.name}
+          description={restaurant.description}
+          coverImageUrl={restaurant.cover_image_url}
+          cuisineTypes={restaurant.cuisine_types}
+          priceRange={restaurant.price_range}
+          googleRating={restaurant.google_rating}
+          distance={restaurant.distance_km}
+          establishmentType={restaurant.establishment_type}
+          slug={restaurant.slug}
+          favoritesCount={restaurant.favorites_count}
+        />
+      ))}
+    </div>
+  );
+}

@@ -1,0 +1,75 @@
+
+/* Mobile performance optimizations */
+
+/* Improve scrolling performance */
+@media (max-width: 768px) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Optimize transforms for mobile */
+  .hover\:scale-\[1\.01\]:hover,
+  .hover\:scale-\[1\.02\]:hover,
+  .group-hover\:scale-105 {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Optimize images for mobile */
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+
+  /* Reduce motion for performance */
+  @media (prefers-reduced-motion: no-preference) {
+    .transition-transform {
+      transition: transform 0.2s ease-out;
+    }
+  }
+
+  /* Optimize grid layouts */
+  .restaurants-grid {
+    contain: layout style paint;
+  }
+
+  /* Better tap targets */
+  button, 
+  [role="button"],
+  .cursor-pointer {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Optimize skeleton animations */
+  .animate-pulse {
+    animation-duration: 1.5s;
+    animation-timing-function: ease-in-out;
+  }
+
+  /* Prevent layout shifts */
+  .aspect-\[5\/3\] {
+    contain: size layout;
+  }
+}
+
+/* High DPI optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  img {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Reduce paint operations */
+.bg-gradient-hero {
+  will-change: auto;
+}
+
+/* Optimize for iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  .overflow-hidden {
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+  }
+}
