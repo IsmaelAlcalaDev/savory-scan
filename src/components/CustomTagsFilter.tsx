@@ -1,87 +1,120 @@
 
+import { useState } from 'react';
+import { Check, Tag } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useCustomTags } from '@/hooks/useCustomTags';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface CustomTagsFilterProps {
-  selectedCustomTags: string[];
-  onCustomTagsChange: (tags: string[]) => void;
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
 }
 
-export default function CustomTagsFilter({
-  selectedCustomTags,
-  onCustomTagsChange
-}: CustomTagsFilterProps) {
-  const { customTags, loading, error } = useCustomTags();
+export default function CustomTagsFilter({ selectedTags, onTagsChange }: CustomTagsFilterProps) {
+  const [open, setOpen] = useState(false);
+  const { tags, loading, getTagsWithCounts } = useCustomTags();
+  const tagsWithCounts = getTagsWithCounts();
 
-  const handleTagToggle = (tag: string, checked: boolean) => {
-    if (checked) {
-      onCustomTagsChange([...selectedCustomTags, tag]);
-    } else {
-      onCustomTagsChange(selectedCustomTags.filter(t => t !== tag));
-    }
+  const handleTagToggle = (tagName: string) => {
+    const newTags = selectedTags.includes(tagName)
+      ? selectedTags.filter(t => t !== tagName)
+      : [...selectedTags, tagName];
+    
+    onTagsChange(newTags);
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Cargando etiquetas...
-        </p>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="flex items-center space-x-3">
-            <Skeleton className="h-5 w-5" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-        ))}
-      </div>
-    );
-  }
+  const clearAllTags = () => {
+    onTagsChange([]);
+  };
 
-  if (error) {
-    return (
-      <div className="space-y-4">
-        <p className="text-sm text-destructive">
-          Error al cargar etiquetas: {error}
-        </p>
-      </div>
-    );
-  }
-
-  if (customTags.length === 0) {
-    return (
-      <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          No hay etiquetas disponibles
-        </p>
-      </div>
-    );
+  if (loading || tagsWithCounts.length === 0) {
+    return null;
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3">
-        {customTags.map(({ tag, count }) => (
-          <div key={tag} className="flex items-center space-x-3">
-            <Checkbox
-              id={`custom-tag-${tag}`}
-              checked={selectedCustomTags.includes(tag)}
-              onCheckedChange={(checked) => handleTagToggle(tag, checked as boolean)}
-              className="data-[state=checked]:bg-black data-[state=checked]:border-black"
-            />
-            <Label 
-              htmlFor={`custom-tag-${tag}`}
-              className="flex-1 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 capitalize cursor-pointer"
+    <div className="space-y-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2 border-dashed"
+          >
+            <Tag className="h-4 w-4" />
+            Tags personalizados
+            {selectedTags.length > 0 && (
+              <Badge variant="secondary" className="ml-1">
+                {selectedTags.length}
+              </Badge>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-4" align="start">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-sm">Tags personalizados</h4>
+              {selectedTags.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAllTags}
+                  className="h-auto p-1 text-xs"
+                >
+                  Limpiar
+                </Button>
+              )}
+            </div>
+
+            <div className="grid gap-2 max-h-60 overflow-y-auto">
+              {tagsWithCounts.map((item) => {
+                const isSelected = selectedTags.includes(item.tag);
+                return (
+                  <div
+                    key={item.tag}
+                    className={`flex items-center justify-between p-2 rounded-lg border cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-primary/10 border-primary/20'
+                        : 'bg-secondary/20 border-secondary hover:bg-secondary/30'
+                    }`}
+                    onClick={() => handleTagToggle(item.tag)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                          isSelected ? 'bg-primary border-primary' : 'border-muted-foreground'
+                        }`}
+                      >
+                        {isSelected && <Check className="h-3 w-3 text-white" />}
+                      </div>
+                      <span className="text-sm font-medium">{item.tag}</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {item.count}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      {selectedTags.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {selectedTags.map((tag) => (
+            <Badge
+              key={tag}
+              variant="secondary"
+              className="text-xs cursor-pointer"
+              onClick={() => handleTagToggle(tag)}
             >
               {tag}
-              <span className="ml-2 text-xs text-muted-foreground">
-                ({count})
-              </span>
-            </Label>
-          </div>
-        ))}
-      </div>
+              <span className="ml-1">×</span>
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

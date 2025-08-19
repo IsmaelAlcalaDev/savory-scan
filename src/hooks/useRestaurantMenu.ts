@@ -2,173 +2,189 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface MenuSection {
-  id: number;
-  name: string;
-  description?: string;
-  display_order: number;
-  dishes: Dish[];
+interface UseRestaurantMenuProps {
+  restaurantSlug: string;
+  sectionId?: number | null;
+  categoryId?: number | null;
+  searchQuery?: string;
+  allergenIds?: number[];
+  dietTypeIds?: number[];
+  spiceLevel?: number;
+  customTags?: string[];
+  isHealthy?: boolean;
+  isVegetarian?: boolean;
+  isVegan?: boolean;
+  isGlutenFree?: boolean;
+  isLactoseFree?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
 }
 
-export interface Dish {
-  id: number;
-  name: string;
-  description?: string;
-  base_price: number;
-  image_url?: string;
-  image_alt?: string;
-  is_featured: boolean;
-  is_vegetarian: boolean;
-  is_vegan: boolean;
-  is_gluten_free: boolean;
-  is_lactose_free: boolean;
-  is_healthy: boolean;
-  spice_level: number;
-  preparation_time_minutes?: number;
-  favorites_count: number;
-  category_name?: string;
-  allergens?: string[];
-  custom_tags?: string[];
-  variants: Array<{
-    id: number;
-    name: string;
-    price: number;
-    is_default: boolean;
-  }>;
-}
-
-export const useRestaurantMenu = (restaurantId: number) => {
-  const [sections, setSections] = useState<MenuSection[]>([]);
+export const useRestaurantMenu = (props: UseRestaurantMenuProps) => {
+  const [restaurant, setRestaurant] = useState<any>(null);
+  const [sections, setSections] = useState<any[]>([]);
+  const [dishes, setDishes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const {
+    restaurantSlug,
+    sectionId,
+    categoryId,
+    searchQuery,
+    allergenIds,
+    dietTypeIds,
+    spiceLevel,
+    customTags,
+    isHealthy,
+    isVegetarian,
+    isVegan,
+    isGlutenFree,
+    isLactoseFree,
+    minPrice,
+    maxPrice
+  } = props;
+
   useEffect(() => {
-    if (!restaurantId) return;
+    if (restaurantSlug) {
+      fetchRestaurantMenu();
+    }
+  }, [
+    restaurantSlug,
+    sectionId,
+    categoryId,
+    searchQuery,
+    JSON.stringify(allergenIds),
+    JSON.stringify(dietTypeIds),
+    spiceLevel,
+    JSON.stringify(customTags),
+    isHealthy,
+    isVegetarian,
+    isVegan,
+    isGlutenFree,
+    isLactoseFree,
+    minPrice,
+    maxPrice
+  ]);
 
-    const fetchMenu = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchRestaurantMenu = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        // Get menu sections
-        const { data: sectionsData, error: sectionsError } = await supabase
-          .from('menu_sections')
-          .select('id, name, description, display_order')
-          .eq('restaurant_id', restaurantId)
-          .eq('is_active', true)
-          .is('deleted_at', null)
-          .order('display_order');
+      // Obtener información del restaurante
+      const { data: restaurantData, error: restaurantError } = await supabase
+        .from('restaurants')
+        .select('*')
+        .eq('slug', restaurantSlug)
+        .single();
 
-        if (sectionsError) {
-          throw sectionsError;
-        }
+      if (restaurantError) throw restaurantError;
+      
+      setRestaurant(restaurantData);
 
-        // Get dishes for all sections
-        const { data: dishesData, error: dishesError } = await supabase
-          .from('dishes')
-          .select(`
-            id,
-            name,
-            description,
-            base_price,
-            image_url,
-            image_alt,
-            is_featured,
-            is_vegetarian,
-            is_vegan,
-            is_gluten_free,
-            is_lactose_free,
-            is_healthy,
-            spice_level,
-            preparation_time_minutes,
-            favorites_count,
-            allergens,
-            section_id,
-            dish_categories(name),
-            dish_variants(id, name, price, is_default, display_order)
-          `)
-          .eq('restaurant_id', restaurantId)
-          .eq('is_active', true)
-          .is('deleted_at', null);
+      // Obtener secciones del menú
+      const { data: sectionsData, error: sectionsError } = await supabase
+        .from('menu_sections')
+        .select('*')
+        .eq('restaurant_id', restaurantData.id)
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .order('display_order');
 
-        if (dishesError) {
-          throw dishesError;
-        }
+      if (sectionsError) throw sectionsError;
 
-        // Get custom tags separately
-        const dishIds = (dishesData || []).map(dish => dish.id);
-        let customTagsData: any[] = [];
-        
-        if (dishIds.length > 0) {
-          const { data: tagsData, error: tagsError } = await supabase
-            .from('dish_custom_tags')
-            .select(`
-              dish_id,
-              restaurant_custom_tags(name)
-            `)
-            .in('dish_id', dishIds);
+      setSections(sectionsData || []);
 
-          if (tagsError) {
-            console.error('Error fetching custom tags:', tagsError);
-          } else {
-            customTagsData = tagsData || [];
-          }
-        }
+      // Construir query para platos
+      let dishesQuery = supabase
+        .from('dishes')
+        .select(`
+          *,
+          dish_categories!inner(id, name, slug),
+          menu_sections!inner(id, name),
+          dish_variants(*)
+        `)
+        .eq('restaurant_id', restaurantData.id)
+        .eq('is_active', true)
+        .is('deleted_at', null);
 
-        // Group dishes by section
-        const sectionsWithDishes = (sectionsData || []).map(section => ({
-          ...section,
-          dishes: (dishesData || [])
-            .filter(dish => dish.section_id === section.id)
-            .map(dish => {
-              // Map custom tags for this dish
-              const dishCustomTags = customTagsData
-                .filter(tag => tag.dish_id === dish.id)
-                .map(tag => tag.restaurant_custom_tags?.name)
-                .filter(Boolean);
-
-              return {
-                id: dish.id,
-                name: dish.name,
-                description: dish.description,
-                base_price: dish.base_price,
-                image_url: dish.image_url,
-                image_alt: dish.image_alt,
-                is_featured: dish.is_featured,
-                is_vegetarian: dish.is_vegetarian,
-                is_vegan: dish.is_vegan,
-                is_gluten_free: dish.is_gluten_free,
-                is_lactose_free: dish.is_lactose_free,
-                is_healthy: dish.is_healthy,
-                spice_level: dish.spice_level,
-                preparation_time_minutes: dish.preparation_time_minutes,
-                favorites_count: dish.favorites_count,
-                category_name: dish.dish_categories?.name,
-                allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
-                custom_tags: dishCustomTags,
-                variants: (dish.dish_variants || [])
-                  .sort((a: any, b: any) => a.display_order - b.display_order)
-                  .map((variant: any) => ({
-                    id: variant.id,
-                    name: variant.name,
-                    price: variant.price,
-                    is_default: variant.is_default
-                  }))
-              };
-            })
-        }));
-
-        setSections(sectionsWithDishes);
-      } catch (err) {
-        console.error('Error fetching menu:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar menú');
-      } finally {
-        setLoading(false);
+      // Aplicar filtros
+      if (sectionId) {
+        dishesQuery = dishesQuery.eq('section_id', sectionId);
       }
-    };
 
-    fetchMenu();
-  }, [restaurantId]);
+      if (categoryId) {
+        dishesQuery = dishesQuery.eq('category_id', categoryId);
+      }
 
-  return { sections, loading, error };
+      if (searchQuery) {
+        dishesQuery = dishesQuery.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      }
+
+      if (spiceLevel !== undefined) {
+        dishesQuery = dishesQuery.eq('spice_level', spiceLevel);
+      }
+
+      if (isHealthy) {
+        dishesQuery = dishesQuery.eq('is_healthy', true);
+      }
+
+      if (isVegetarian) {
+        dishesQuery = dishesQuery.eq('is_vegetarian', true);
+      }
+
+      if (isVegan) {
+        dishesQuery = dishesQuery.eq('is_vegan', true);
+      }
+
+      if (isGlutenFree) {
+        dishesQuery = dishesQuery.eq('is_gluten_free', true);
+      }
+
+      if (isLactoseFree) {
+        dishesQuery = dishesQuery.eq('is_lactose_free', true);
+      }
+
+      if (minPrice !== undefined) {
+        dishesQuery = dishesQuery.gte('base_price', minPrice);
+      }
+
+      if (maxPrice !== undefined) {
+        dishesQuery = dishesQuery.lte('base_price', maxPrice);
+      }
+
+      dishesQuery = dishesQuery.order('section_id').order('name');
+
+      const { data: dishesData, error: dishesError } = await dishesQuery;
+
+      if (dishesError) throw dishesError;
+
+      // Filtrar por custom tags si se especifican
+      let filteredDishes = dishesData || [];
+      if (customTags && customTags.length > 0) {
+        filteredDishes = filteredDishes.filter(dish => 
+          dish.custom_tags && 
+          Array.isArray(dish.custom_tags) &&
+          customTags.some(tag => dish.custom_tags.includes(tag))
+        );
+      }
+
+      setDishes(filteredDishes);
+    } catch (err) {
+      console.error('Error fetching restaurant menu:', err);
+      setError(err instanceof Error ? err.message : 'Error al cargar el menú');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    restaurant,
+    sections,
+    dishes,
+    loading,
+    error,
+    refetch: fetchRestaurantMenu
+  };
 };

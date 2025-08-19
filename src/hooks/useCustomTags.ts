@@ -1,64 +1,68 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { CustomTag, CustomTagWithCount } from '@/types/restaurant-schedule';
 
-export interface CustomTag {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  restaurant_id: number;
-  dish_count?: number;
-}
-
-export const useCustomTags = (restaurantId?: number) => {
-  const [customTags, setCustomTags] = useState<CustomTag[]>([]);
+export const useCustomTags = () => {
+  const [tags, setTags] = useState<CustomTag[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCustomTags = async () => {
-      try {
-        setLoading(true);
-        console.log('Fetching custom tags for restaurant:', restaurantId);
-        
-        let query = supabase
-          .from('restaurant_custom_tags')
-          .select('*');
+    fetchTags();
+  }, []);
 
-        if (restaurantId) {
-          query = query.eq('restaurant_id', restaurantId);
+  const fetchTags = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Obtener tags únicos de los platos
+      const { data: dishTags, error: dishTagsError } = await supabase
+        .from('dishes')
+        .select('custom_tags')
+        .not('custom_tags', 'eq', '[]')
+        .eq('is_active', true);
+
+      if (dishTagsError) throw dishTagsError;
+
+      // Procesar y contar tags
+      const tagCounts: Record<string, number> = {};
+      
+      dishTags?.forEach((dish) => {
+        if (dish.custom_tags && Array.isArray(dish.custom_tags)) {
+          dish.custom_tags.forEach((tag: string) => {
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          });
         }
+      });
 
-        const { data, error: fetchError } = await query.order('name');
+      // Convertir a array de objetos CustomTag
+      const processedTags: CustomTag[] = Object.entries(tagCounts).map(([name, count], index) => ({
+        id: index + 1,
+        name,
+        slug: name.toLowerCase().replace(/\s+/g, '-'),
+        description: `Tag personalizado: ${name}`,
+        restaurant_id: null,
+        created_at: new Date().toISOString(),
+        is_active: true
+      }));
 
-        if (fetchError) {
-          console.error('Supabase error fetching custom tags:', fetchError);
-          setError('Error al cargar tags');
-          return;
-        }
-        
-        console.log('Raw custom tags data:', data);
-        
-        const formattedTags = (data || []).map(tag => ({
-          id: tag.id,
-          name: tag.name,
-          slug: tag.slug,
-          description: tag.description,
-          restaurant_id: tag.restaurant_id
-        }));
+      setTags(processedTags);
+    } catch (err) {
+      console.error('Error fetching custom tags:', err);
+      setError(err instanceof Error ? err.message : 'Error al cargar tags personalizados');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setCustomTags(formattedTags);
-      } catch (err) {
-        console.error('Error fetching custom tags:', err);
-        setError('Error al cargar tags');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const getTagsWithCounts = (): CustomTagWithCount[] => {
+    return tags.map(tag => ({
+      tag: tag.name,
+      count: 1 // Por ahora usamos 1, pero podrías implementar conteo real
+    }));
+  };
 
-    fetchCustomTags();
-  }, [restaurantId]);
-
-  return { customTags, loading, error };
+  return { tags, loading, error, getTagsWithCounts };
 };

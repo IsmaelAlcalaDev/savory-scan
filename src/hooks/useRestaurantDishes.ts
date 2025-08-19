@@ -1,145 +1,155 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { Dish } from '@/hooks/useRestaurantMenu';
 
-export { type Dish } from '@/hooks/useRestaurantMenu';
+interface UseDishesProps {
+  restaurantId: number;
+  categoryId?: number;
+  sectionId?: number;
+  searchQuery?: string;
+  allergenIds?: number[];
+  dietTypeIds?: number[];
+  spiceLevel?: number;
+  customTags?: string[];
+  isHealthy?: boolean;
+  isVegetarian?: boolean;
+  isVegan?: boolean;
+  isGlutenFree?: boolean;
+  isLactoseFree?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+}
 
-export const useRestaurantDishes = (restaurantId: number) => {
-  const [dishes, setDishes] = useState<Dish[]>([]);
+export const useRestaurantDishes = (props: UseDishesProps) => {
+  const [dishes, setDishes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const {
+    restaurantId,
+    categoryId,
+    sectionId,
+    searchQuery,
+    allergenIds,
+    dietTypeIds,
+    spiceLevel,
+    customTags,
+    isHealthy,
+    isVegetarian,
+    isVegan,
+    isGlutenFree,
+    isLactoseFree,
+    minPrice,
+    maxPrice
+  } = props;
+
   useEffect(() => {
-    if (!restaurantId) {
-      console.log('useRestaurantDishes: No restaurantId provided');
-      setDishes([]);
-      setLoading(false);
-      return;
-    }
-
-    console.log('useRestaurantDishes: Fetching dishes for restaurantId:', restaurantId);
-
-    const fetchDishes = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        console.log('useRestaurantDishes: Making query to dishes table with restaurant_id:', restaurantId);
-
-        // Query dishes with custom tags from junction table
-        const { data: dishesData, error: dishesError } = await supabase
-          .from('dishes')
-          .select(`
-            id,
-            name,
-            description,
-            base_price,
-            image_url,
-            image_alt,
-            is_featured,
-            is_vegetarian,
-            is_vegan,
-            is_gluten_free,
-            is_lactose_free,
-            is_healthy,
-            spice_level,
-            preparation_time_minutes,
-            favorites_count,
-            allergens,
-            category_id,
-            dish_categories!dishes_category_id_fkey(name),
-            dish_variants(id, name, price, is_default, display_order)
-          `)
-          .eq('restaurant_id', restaurantId)
-          .eq('is_active', true)
-          .is('deleted_at', null)
-          .order('is_featured', { ascending: false })
-          .order('name');
-
-        console.log('useRestaurantDishes: Query result:', { dishesData, dishesError });
-
-        if (dishesError) {
-          console.error('useRestaurantDishes: Query error:', dishesError);
-          throw dishesError;
-        }
-
-        console.log('useRestaurantDishes: Raw dishes data:', dishesData);
-        console.log('useRestaurantDishes: Number of dishes found:', dishesData?.length || 0);
-
-        // Get custom tags separately and map them to dishes
-        const dishIds = (dishesData || []).map(dish => dish.id);
-        let customTagsData: any[] = [];
-        
-        if (dishIds.length > 0) {
-          const { data: tagsData, error: tagsError } = await supabase
-            .from('dish_custom_tags')
-            .select(`
-              dish_id,
-              restaurant_custom_tags(name)
-            `)
-            .in('dish_id', dishIds);
-
-          if (tagsError) {
-            console.error('Error fetching custom tags:', tagsError);
-          } else {
-            customTagsData = tagsData || [];
-          }
-        }
-
-        const formattedDishes = (dishesData || []).map(dish => {
-          console.log('useRestaurantDishes: Processing dish:', dish);
-          
-          // Map custom tags for this dish
-          const dishCustomTags = customTagsData
-            .filter(tag => tag.dish_id === dish.id)
-            .map(tag => tag.restaurant_custom_tags?.name)
-            .filter(Boolean);
-
-          return {
-            id: dish.id,
-            name: dish.name,
-            description: dish.description,
-            base_price: dish.base_price,
-            image_url: dish.image_url,
-            image_alt: dish.image_alt,
-            is_featured: dish.is_featured,
-            is_vegetarian: dish.is_vegetarian,
-            is_vegan: dish.is_vegan,
-            is_gluten_free: dish.is_gluten_free,
-            is_lactose_free: dish.is_lactose_free,
-            is_healthy: dish.is_healthy,
-            spice_level: dish.spice_level,
-            preparation_time_minutes: dish.preparation_time_minutes,
-            favorites_count: dish.favorites_count,
-            category_name: dish.dish_categories?.name,
-            allergens: Array.isArray(dish.allergens) ? dish.allergens as string[] : [],
-            custom_tags: dishCustomTags,
-            variants: (dish.dish_variants || [])
-              .sort((a: any, b: any) => a.display_order - b.display_order)
-              .map((variant: any) => ({
-                id: variant.id,
-                name: variant.name,
-                price: variant.price,
-                is_default: variant.is_default
-              }))
-          };
-        });
-
-        console.log('useRestaurantDishes: Formatted dishes:', formattedDishes);
-        setDishes(formattedDishes);
-      } catch (err) {
-        console.error('useRestaurantDishes: Error fetching dishes:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar platos');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDishes();
-  }, [restaurantId]);
+  }, [
+    restaurantId,
+    categoryId,
+    sectionId,
+    searchQuery,
+    JSON.stringify(allergenIds),
+    JSON.stringify(dietTypeIds),
+    spiceLevel,
+    JSON.stringify(customTags),
+    isHealthy,
+    isVegetarian,
+    isVegan,
+    isGlutenFree,
+    isLactoseFree,
+    minPrice,
+    maxPrice
+  ]);
 
-  console.log('useRestaurantDishes: Hook state:', { dishes: dishes.length, loading, error });
+  const fetchDishes = async () => {
+    if (!restaurantId) return;
 
-  return { dishes, loading, error };
+    try {
+      setLoading(true);
+      setError(null);
+
+      let query = supabase
+        .from('dishes')
+        .select(`
+          *,
+          dish_categories!inner(name),
+          menu_sections!inner(name),
+          dish_variants(*)
+        `)
+        .eq('restaurant_id', restaurantId)
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .order('name');
+
+      // Aplicar filtros
+      if (categoryId) {
+        query = query.eq('category_id', categoryId);
+      }
+
+      if (sectionId) {
+        query = query.eq('section_id', sectionId);
+      }
+
+      if (searchQuery) {
+        query = query.ilike('name', `%${searchQuery}%`);
+      }
+
+      if (spiceLevel !== undefined) {
+        query = query.eq('spice_level', spiceLevel);
+      }
+
+      if (isHealthy) {
+        query = query.eq('is_healthy', true);
+      }
+
+      if (isVegetarian) {
+        query = query.eq('is_vegetarian', true);
+      }
+
+      if (isVegan) {
+        query = query.eq('is_vegan', true);
+      }
+
+      if (isGlutenFree) {
+        query = query.eq('is_gluten_free', true);
+      }
+
+      if (isLactoseFree) {
+        query = query.eq('is_lactose_free', true);
+      }
+
+      if (minPrice !== undefined) {
+        query = query.gte('base_price', minPrice);
+      }
+
+      if (maxPrice !== undefined) {
+        query = query.lte('base_price', maxPrice);
+      }
+
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) throw fetchError;
+
+      // Filtrar por custom tags si se especifican
+      let filteredData = data || [];
+      if (customTags && customTags.length > 0) {
+        filteredData = filteredData.filter(dish => 
+          dish.custom_tags && 
+          Array.isArray(dish.custom_tags) &&
+          customTags.some(tag => dish.custom_tags.includes(tag))
+        );
+      }
+
+      setDishes(filteredData);
+    } catch (err) {
+      console.error('Error fetching dishes:', err);
+      setError(err instanceof Error ? err.message : 'Error al cargar platos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { dishes, loading, error, refetch: fetchDishes };
 };

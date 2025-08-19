@@ -1,21 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-export interface RestaurantSchedule {
-  id: number;
-  restaurant_id: number;
-  day_of_week: number;
-  is_closed: boolean;
-  first_opening_time?: string;
-  first_closing_time?: string;
-  second_opening_time?: string;
-  second_closing_time?: string;
-  notes?: string;
-  is_active: boolean;
-  has_split_schedule?: boolean;
-  formatted_schedule?: string;
-}
+import type { RestaurantSchedule } from '@/types/restaurant-schedule';
 
 export const useRestaurantSchedules = (restaurantId: number) => {
   const [schedules, setSchedules] = useState<RestaurantSchedule[]>([]);
@@ -30,18 +16,24 @@ export const useRestaurantSchedules = (restaurantId: number) => {
         setLoading(true);
         setError(null);
 
+        // Usar query SQL directo ya que la función RPC no existe
         const { data, error: fetchError } = await supabase
-          .from('restaurant_schedules')
-          .select('*')
-          .eq('restaurant_id', restaurantId)
-          .eq('is_active', true)
-          .order('day_of_week');
+          .rpc('get_restaurant_schedules', { p_restaurant_id: restaurantId })
+          .catch(async () => {
+            // Fallback: consulta directa a la tabla
+            return await supabase
+              .from('restaurant_schedules')
+              .select('*')
+              .eq('restaurant_id', restaurantId)
+              .eq('is_active', true)
+              .order('day_of_week');
+          });
 
         if (fetchError) {
           throw fetchError;
         }
 
-        const formattedSchedules = (data || []).map(schedule => ({
+        const formattedSchedules = (data || []).map((schedule: any) => ({
           ...schedule,
           has_split_schedule: !!(schedule.second_opening_time && schedule.second_closing_time),
           formatted_schedule: formatSchedule(schedule)
@@ -97,5 +89,10 @@ export const useRestaurantSchedules = (restaurantId: number) => {
     return { status: 'Cerrado', className: 'text-red-500', isOpen: false };
   };
 
-  return { schedules, loading, error, getCurrentDayStatus };
+  const isRestaurantOpenNow = () => {
+    const currentStatus = getCurrentDayStatus();
+    return currentStatus.isOpen;
+  };
+
+  return { schedules, loading, error, getCurrentDayStatus, isRestaurantOpenNow };
 };
