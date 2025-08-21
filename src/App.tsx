@@ -16,6 +16,7 @@ import RestaurantMenu from "./pages/RestaurantMenu";
 import SecureAdminPanel from "./pages/SecureAdminPanel";
 import SuperAdminPanel from "./pages/SuperAdminPanel";
 import SecurityDashboard from "./pages/SecurityDashboard";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import LocationEntry from "./pages/LocationEntry";
@@ -73,14 +74,22 @@ const App = () => {
                               </ProtectedRoute>
                             } 
                           />
-                          <Route 
-                            path="/security" 
-                            element={
-                              <ProtectedRoute requiredRole="admin">
-                                <SecurityDashboard />
-                              </ProtectedRoute>
-                            } 
-                          />
+                           <Route 
+                             path="/security" 
+                             element={
+                               <ProtectedRoute requiredRole="admin">
+                                 <SecurityDashboard />
+                               </ProtectedRoute>
+                             } 
+                           />
+                           <Route 
+                             path="/analytics" 
+                             element={
+                               <ProtectedRoute requiredRole="admin">
+                                 <Analytics />
+                               </ProtectedRoute>
+                             } 
+                           />
                           <Route path="/auth" element={<Auth />} />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
