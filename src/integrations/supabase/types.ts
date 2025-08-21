@@ -3669,7 +3669,6 @@ export type Database = {
           item_type: string | null
           restaurant_id: number
           saved_at: string | null
-          saved_from: string | null
           updated_at: string
           user_id: string
         }
@@ -3680,7 +3679,6 @@ export type Database = {
           item_type?: string | null
           restaurant_id: number
           saved_at?: string | null
-          saved_from?: string | null
           updated_at?: string
           user_id: string
         }
@@ -3691,7 +3689,6 @@ export type Database = {
           item_type?: string | null
           restaurant_id?: number
           saved_at?: string | null
-          saved_from?: string | null
           updated_at?: string
           user_id?: string
         }
