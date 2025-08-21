@@ -3847,7 +3847,6 @@ export type Database = {
       user_saved_dishes: {
         Row: {
           dish_id: number
-          is_active: boolean | null
           restaurant_id: number
           saved_at: string | null
           saved_from: string | null
@@ -3856,7 +3855,6 @@ export type Database = {
         }
         Insert: {
           dish_id: number
-          is_active?: boolean | null
           restaurant_id: number
           saved_at?: string | null
           saved_from?: string | null
@@ -3865,7 +3863,6 @@ export type Database = {
         }
         Update: {
           dish_id?: number
-          is_active?: boolean | null
           restaurant_id?: number
           saved_at?: string | null
           saved_from?: string | null
@@ -3948,7 +3945,6 @@ export type Database = {
       user_saved_events: {
         Row: {
           event_id: number
-          is_active: boolean | null
           restaurant_id: number
           saved_at: string | null
           saved_from: string | null
@@ -3957,7 +3953,6 @@ export type Database = {
         }
         Insert: {
           event_id: number
-          is_active?: boolean | null
           restaurant_id: number
           saved_at?: string | null
           saved_from?: string | null
@@ -3966,7 +3961,6 @@ export type Database = {
         }
         Update: {
           event_id?: number
-          is_active?: boolean | null
           restaurant_id?: number
           saved_at?: string | null
           saved_from?: string | null
@@ -4034,7 +4028,6 @@ export type Database = {
       }
       user_saved_restaurants: {
         Row: {
-          is_active: boolean | null
           restaurant_id: number
           saved_at: string | null
           saved_from: string | null
@@ -4042,7 +4035,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          is_active?: boolean | null
           restaurant_id: number
           saved_at?: string | null
           saved_from?: string | null
@@ -4050,7 +4042,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          is_active?: boolean | null
           restaurant_id?: number
           saved_at?: string | null
           saved_from?: string | null
@@ -4705,18 +4696,6 @@ export type Database = {
           f_table_schema?: unknown | null
           srid?: number | null
           type?: string | null
-        }
-        Relationships: []
-      }
-      most_favorited_items: {
-        Row: {
-          id: number | null
-          image_url: string | null
-          name: string | null
-          slug: string | null
-          total_favorites: number | null
-          type: string | null
-          week_favorites: number | null
         }
         Relationships: []
       }
