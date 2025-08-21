@@ -3667,7 +3667,6 @@ export type Database = {
           id: number
           item_id: number | null
           item_type: string | null
-          restaurant_id: number | null
           saved_at: string | null
           updated_at: string
           user_id: string
@@ -3677,7 +3676,6 @@ export type Database = {
           id?: number
           item_id?: number | null
           item_type?: string | null
-          restaurant_id?: number | null
           saved_at?: string | null
           updated_at?: string
           user_id: string
@@ -3687,55 +3685,11 @@ export type Database = {
           id?: number
           item_id?: number | null
           item_type?: string | null
-          restaurant_id?: number | null
           saved_at?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_favorites_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_diet_stats"
-            referencedColumns: ["restaurant_id"]
-          },
-          {
-            foreignKeyName: "user_favorites_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurant_stats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_favorites_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_favorites_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants_full"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_favorites_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants_with_counters"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_favorites_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "v_restaurants_with_images"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_metrics: {
         Row: {
