@@ -3667,7 +3667,7 @@ export type Database = {
           id: number
           item_id: number | null
           item_type: string | null
-          restaurant_id: number
+          restaurant_id: number | null
           saved_at: string | null
           updated_at: string
           user_id: string
@@ -3677,7 +3677,7 @@ export type Database = {
           id?: number
           item_id?: number | null
           item_type?: string | null
-          restaurant_id: number
+          restaurant_id?: number | null
           saved_at?: string | null
           updated_at?: string
           user_id: string
@@ -3687,7 +3687,7 @@ export type Database = {
           id?: number
           item_id?: number | null
           item_type?: string | null
-          restaurant_id?: number
+          restaurant_id?: number | null
           saved_at?: string | null
           updated_at?: string
           user_id?: string
