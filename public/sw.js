@@ -53,6 +53,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Detect potentially sensitive/authenticated requests
+  const hasAuthHeader = request.headers.has('authorization') || request.headers.has('Authorization');
+  const isApiRequest = url.hostname.includes('supabase.co') && url.pathname.includes('/rest/');
+
   // Handle different types of requests with appropriate strategies
   if (url.pathname.startsWith('/assets/')) {
     // Static assets - Cache First
@@ -60,9 +64,10 @@ self.addEventListener('fetch', (event) => {
   } else if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/')) {
     // Images from Supabase - Stale While Revalidate
     event.respondWith(staleWhileRevalidate(request, IMAGE_CACHE));
-  } else if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/')) {
-    // API calls - Network First with short cache
-    event.respondWith(networkFirst(request, API_CACHE, 5000)); // 5 second timeout
+  } else if (isApiRequest) {
+    // API calls - Network First with short cache, but DO NOT cache authenticated responses
+    const cacheResponses = !hasAuthHeader;
+    event.respondWith(networkFirst(request, API_CACHE, 5000, cacheResponses)); // 5 second timeout
   } else if (url.origin === location.origin) {
     // Same-origin requests - Network First
     event.respondWith(networkFirst(request, CACHE_NAME));
@@ -80,7 +85,7 @@ async function cacheFirst(request, cacheName) {
   
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    if (response.ok && isResponseCacheable(response)) {
       cache.put(request, response.clone());
     }
     return response;
@@ -97,7 +102,7 @@ async function staleWhileRevalidate(request, cacheName) {
   
   // Fetch fresh version in background
   const fetchPromise = fetch(request).then((response) => {
-    if (response.ok) {
+    if (response.ok && isResponseCacheable(response)) {
       cache.put(request, response.clone());
     }
     return response;
@@ -108,7 +113,7 @@ async function staleWhileRevalidate(request, cacheName) {
 }
 
 // Network First Strategy - for API calls and pages
-async function networkFirst(request, cacheName, timeout = 3000) {
+async function networkFirst(request, cacheName, timeout = 3000, cacheResponse = true) {
   const cache = await caches.open(cacheName);
   
   try {
@@ -122,7 +127,7 @@ async function networkFirst(request, cacheName, timeout = 3000) {
     
     clearTimeout(timeoutId);
     
-    if (response.ok) {
+    if (response.ok && cacheResponse && isResponseCacheable(response)) {
       // Cache successful responses
       cache.put(request, response.clone());
     }
@@ -142,6 +147,14 @@ async function networkFirst(request, cacheName, timeout = 3000) {
       headers: { 'Content-Type': 'text/plain' }
     });
   }
+}
+
+// Only cache responses that are safe to store
+function isResponseCacheable(response) {
+  const cacheControl = response.headers.get('Cache-Control') || '';
+  // Avoid caching private or no-store responses
+  if (/no-store|private/i.test(cacheControl)) return false;
+  return true;
 }
 
 // Background sync for offline actions
