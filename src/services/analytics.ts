@@ -16,12 +16,21 @@ class AnalyticsService {
   private userId: string | null = null
   private eventQueue: AnalyticsEvent[] = []
   private isOnline = true
-  private retryTimeouts: Set<NodeJS.Timeout> = new Set()
+  private retryTimeouts: Set<number> = new Set()
   private lastSendTime = 0
   private readonly BATCH_SIZE = 10
   private readonly BATCH_TIMEOUT = 2000 // 2 seconds
   private readonly RETRY_DELAY = 5000 // 5 seconds
   private readonly MIN_SEND_INTERVAL = 100 // Throttle sends to max 10/second
+  private batchIntervalId: number | null = null
+  private authSubscription: { unsubscribe: () => void } | null = null
+  private handleOnline = () => {
+    this.isOnline = true
+    this.processQueue()
+  }
+  private handleOffline = () => {
+    this.isOnline = false
+  }
 
   constructor() {
     this.sessionId = this.generateSessionId()
@@ -31,7 +40,18 @@ class AnalyticsService {
   }
 
   private generateSessionId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    try {
+      if ('randomUUID' in crypto) {
+        // @ts-ignore
+        return crypto.randomUUID()
+      }
+      const bytes = new Uint8Array(16)
+      crypto.getRandomValues(bytes)
+      return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
+    } catch {
+      // Fallback (less secure)
+      return `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    }
   }
 
   private async initializeSession() {
@@ -64,23 +84,20 @@ class AnalyticsService {
 
   private setupEventListeners() {
     // Listen for online/offline events
-    window.addEventListener('online', () => {
-      this.isOnline = true
-      this.processQueue()
-    })
-
-    window.addEventListener('offline', () => {
-      this.isOnline = false
-    })
+    window.addEventListener('online', this.handleOnline)
+    window.addEventListener('offline', this.handleOffline)
 
     // Listen for auth changes
-    supabase.auth.onAuthStateChange((event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       this.userId = session?.user?.id || null
     })
+    // Store subscription to cleanup later
+    // @ts-ignore - supabase types provide unsubscribe method
+    this.authSubscription = data?.subscription ?? null
   }
 
   private startBatchProcessor() {
-    setInterval(() => {
+    this.batchIntervalId = window.setInterval(() => {
       if (this.eventQueue.length > 0) {
         this.processQueue()
       }
@@ -156,6 +173,14 @@ class AnalyticsService {
   public destroy() {
     this.retryTimeouts.forEach(timeout => clearTimeout(timeout))
     this.retryTimeouts.clear()
+    if (this.batchIntervalId !== null) {
+      clearInterval(this.batchIntervalId)
+      this.batchIntervalId = null
+    }
+    window.removeEventListener('online', this.handleOnline)
+    window.removeEventListener('offline', this.handleOffline)
+    this.authSubscription?.unsubscribe?.()
+    this.authSubscription = null
   }
 }
 

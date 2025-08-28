@@ -38,14 +38,12 @@ class ImagePreloader {
       });
 
       const img = new Image();
+      // Hint the browser about priority and decoding
+      try { (img as any).fetchPriority = options.priority ? 'high' : 'auto'; } catch {}
+      img.decoding = 'async';
       
       img.onload = () => {
         this.preloadedImages.add(src);
-        
-        // Also add to browser cache via link preload for better caching
-        if (options.priority) {
-          this.addPreloadLink(optimized.webp || src, options);
-        }
         
         resolve();
       };
@@ -55,6 +53,11 @@ class ImagePreloader {
         reject(new Error(`Failed to preload image: ${src}`));
       };
       
+      // For priority images, add a <link rel="preload"> hint before fetching
+      if (options.priority) {
+        this.addPreloadLink(optimized.webp || src, options);
+      }
+
       // Use WebP version if available, fallback to original
       img.src = optimized.webp || src;
     });
