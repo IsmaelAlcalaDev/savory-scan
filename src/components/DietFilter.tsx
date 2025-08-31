@@ -1,5 +1,5 @@
-import SimpleDietFilter from './SimpleDietFilter';
-import DietFilterWithPercentages from './DietFilterWithPercentages';
+
+import RestaurantDietFilter from './RestaurantDietFilter';
 
 interface DietFilterProps {
   selectedDietTypes: number[];
@@ -10,26 +10,15 @@ interface DietFilterProps {
 }
 
 export default function DietFilter({ 
-  selectedDietTypes, 
+  selectedDietTypes,
   onDietTypeChange,
   selectedDietCategories = [],
   onDietCategoryChange = () => {},
   useSimpleMode = false
 }: DietFilterProps) {
-  // If simple mode is enabled, use the new SimpleDietFilter
-  if (useSimpleMode) {
-    return (
-      <SimpleDietFilter
-        selectedDietCategories={selectedDietCategories}
-        onDietCategoryChange={onDietCategoryChange}
-      />
-    );
-  }
-
-  // Keep existing DietFilterWithPercentages for backward compatibility
-  // This will be used in other parts of the app that still need the complex filtering
+  // Use the new RestaurantDietFilter for restaurant filtering
   return (
-    <DietFilterWithPercentages
+    <RestaurantDietFilter
       selectedDietTypes={selectedDietTypes}
       onDietTypeChange={onDietTypeChange}
     />

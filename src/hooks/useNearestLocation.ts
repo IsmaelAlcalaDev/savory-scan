@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface NearestLocationResult {
+  id: number;
   name: string;
   type: 'city' | 'municipality' | 'district' | 'poi';
   distance: number;
@@ -66,7 +67,7 @@ export const useNearestLocation = () => {
         .limit(10);
 
       // Calcular distancias manualmente y encontrar el más cercano
-      const allLocations: (NearestLocationResult & { id: number })[] = [];
+      const allLocations: NearestLocationResult[] = [];
 
       // Agregar ciudades
       nearestCities?.forEach(city => {
